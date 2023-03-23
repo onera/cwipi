@@ -140,6 +140,9 @@ namespace cwipi {
    _id_geom_writer(-1),
    _id_field_partitioning_writer(-1),
    _id_field_ranking_writer(-1),
+   _id_user_tgt_geom_writer(-1),
+   _id_user_tgt_field_partitioning_writer(-1),
+   _id_user_tgt_field_ranking_writer(-1),
    _freq_writer(-1),
    _writer(nullptr),
    _fields(*(new map < string, Field * >())),
@@ -1698,6 +1701,237 @@ namespace cwipi {
     // }
 
     // fflush(stdout);
+  }
+
+  /**
+   *
+   * \brief Export user targets to Ensight format
+   *
+   */
+
+  void
+  Coupling::exportUserTgts(Coupling &cpl)
+  {
+    if (cpl._writer != NULL) {
+
+      /* First, create geometry and variables if necessary */
+      if (cpl._n_step == 0) {
+
+        // Geometry
+        cpl._id_user_tgt_geom_writer = PDM_writer_geom_create(cpl._writer,
+                                                              "user_tgt_geom",
+                                                              cpl._nPart);
+
+        int block_id = PDM_writer_geom_bloc_add(cpl._writer,
+                                                cpl._id_user_tgt_geom_writer,
+                                                PDM_WRITER_POINT,
+                                                PDM_OWNERSHIP_KEEP);
+
+        for (int i_part = 0; i_part < cpl._nPart; i_part++) {
+
+          int n_pts = cpl._userTargetN[i_part];
+
+          PDM_writer_geom_coord_set(cpl._writer,
+                                    cpl._id_user_tgt_geom_writer,
+                                    i_part,
+                                    n_pts,
+                                    cpl._userTargetCoord[i_part],
+                                    cpl._localUserTargetGnum[i_part],
+                                    PDM_OWNERSHIP_USER);
+
+          int *point_connec = (int *) malloc(sizeof(int) * n_pts);
+          for (int i = 0; i < n_pts; i++) {
+            point_connec[i] = i+1;
+          }
+
+          PDM_writer_geom_bloc_std_set(cpl._writer,
+                                       cpl._id_user_tgt_geom_writer,
+                                       block_id,
+                                       i_part,
+                                       n_pts,
+                                       point_connec,
+                                       cpl._localUserTargetGnum[i_part]);
+
+          free(point_connec);
+
+        }
+
+        // Variables to show user targets partitionning
+
+        PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
+
+        PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
+
+        PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
+
+        if (cpl._displacement == CWP_DYNAMIC_MESH_STATIC) {
+          st_dep_tps = PDM_WRITER_OFF;
+        }
+
+        cpl._id_user_tgt_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
+                                                                           st_dep_tps,
+                                                                           PDMfieldComp,
+                                                                           PDMfieldType,
+                                                                           "user_tgt_partitioning");
+
+        cpl._id_user_tgt_field_ranking_writer = PDM_writer_var_create(cpl._writer,
+                                                                      st_dep_tps,
+                                                                      PDMfieldComp,
+                                                                      PDMfieldType,
+                                                                      "user_tgt_ranking");
+      }
+
+      /* Then begin a new time step if none is currently open */
+      if (!PDM_writer_is_open_step (cpl._writer) && ((cpl._n_step % cpl._freq_writer) == 0)) {
+
+        double current_time;
+
+        cpl._localCodeProperties.ctrlParamGet("time", &current_time);
+
+        PDM_writer_step_beg (cpl._writer, current_time);
+
+      }
+
+      /* Finally write geometry and variables */
+      if (cpl._n_step == 0) {
+
+        // Geometry
+        PDM_writer_geom_write(cpl._writer,
+                              cpl._id_user_tgt_geom_writer);
+
+        // Variables
+        std::vector <double *> partitioning_field_data(cpl._nPart);
+        std::vector <double *> ranking_field_data(cpl._nPart);
+
+        int i_rank;
+        MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
+
+        // get global number of partitions
+        int n_part = cpl._nPart;
+        int g_n_part = 0;
+
+        MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
+
+        g_n_part += -n_part;
+
+        for(int i_part= 0 ; i_part < cpl._nPart; i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+
+          // Fill array in with gobal partition number and ranks number
+          for(int i_elt = 0; i_elt < cpl._userTargetN[i_part]; i_elt++){
+            partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
+            ranking_field_data[i_part][i_elt] = (double) i_rank;
+          }
+
+          PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_partitioning_writer, cpl._id_user_tgt_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
+          PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_ranking_writer     , cpl._id_user_tgt_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
+        }
+
+        PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
+        PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
+
+        PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
+        PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
+
+        for(int i_part= 0 ; i_part < cpl._nPart; i_part++){
+          free (partitioning_field_data[i_part]);
+          free (ranking_field_data     [i_part]);
+          partitioning_field_data[i_part] = nullptr;
+          ranking_field_data     [i_part] = nullptr;
+        }
+
+      }
+
+      else if (((cpl._n_step % cpl._freq_writer) == 0) && (cpl._displacement != CWP_DYNAMIC_MESH_STATIC)) {
+
+        // TO DO : même enum pour nuage de point utilisateur dynamique ?
+        if (cpl._displacement == CWP_DYNAMIC_MESH_VARIABLE) {
+
+          // Geometry
+          cpl._id_user_tgt_geom_writer = PDM_writer_geom_create(cpl._writer,
+                                                                "user_tgt_geom",
+                                                                cpl._nPart);
+
+          int block_id = PDM_writer_geom_bloc_add(cpl._writer,
+                                                  cpl._id_user_tgt_geom_writer,
+                                                  PDM_WRITER_POINT,
+                                                  PDM_OWNERSHIP_KEEP);
+
+          for (int i_part = 0; i_part < cpl._nPart; i_part++) {
+
+            int n_pts = cpl._userTargetN[i_part];
+
+            PDM_writer_geom_coord_set(cpl._writer,
+                                      cpl._id_user_tgt_geom_writer,
+                                      i_part,
+                                      n_pts,
+                                      cpl._userTargetCoord[i_part],
+                                      cpl._localUserTargetGnum[i_part],
+                                      PDM_OWNERSHIP_USER);
+
+            int *point_connec = (int *) malloc(sizeof(int) * n_pts);
+            for (int i = 0; i < n_pts; i++) {
+              point_connec[i] = i+1;
+            }
+
+            PDM_writer_geom_bloc_std_set(cpl._writer,
+                                         cpl._id_user_tgt_geom_writer,
+                                         block_id,
+                                         i_part,
+                                         n_pts,
+                                         point_connec,
+                                         cpl._localUserTargetGnum[i_part]);
+
+            free(point_connec);
+
+          }
+        }
+
+        PDM_writer_geom_write(cpl._writer, cpl._id_user_tgt_geom_writer);
+
+        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
+        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+
+        int i_rank;
+        MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
+
+        int n_part = cpl._mesh.getNPart();
+        int g_n_part = 0;
+
+        MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
+
+        g_n_part += -n_part;
+
+        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+
+          for(int i_elt = 0; i_elt < cpl._userTargetN[i_part]; i_elt++){
+            partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
+            ranking_field_data[i_part][i_elt] = (double) i_rank;
+          }
+
+          PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_partitioning_writer, cpl._id_user_tgt_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
+          PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_ranking_writer     , cpl._id_user_tgt_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
+        }
+
+        PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
+        PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
+
+        PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
+        PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
+
+        for(int i_part= 0 ; i_part < cpl._nPart; i_part++){
+          free (partitioning_field_data[i_part]);
+          free (ranking_field_data     [i_part]);
+          partitioning_field_data[i_part] = nullptr;
+          ranking_field_data     [i_part] = nullptr;
+        }
+      }
+
+    }
+
   }
 
 

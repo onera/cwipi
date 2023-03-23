@@ -83,7 +83,7 @@ Field::Field (std::string            field_id    ,
       pdm_field_type = PDM_WRITER_VAR_VERTICES;
     }
     else if ( _fieldLocation == CWP_DOF_LOCATION_USER        ) {
-      pdm_field_type = PDM_WRITER_VAR_PARTICLES ;
+      pdm_field_type = PDM_WRITER_VAR_VERTICES; // vertices on other geometry, PDM_WRITER_VAR_PARTICLES not implemented
     }
 
     // Create send variables
@@ -313,7 +313,7 @@ CWP_Field_exch_t exch_type
             }
           }
 
-          PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
+          PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(_fieldLocation), i_part, comp_data[i_part]);
         } // end loop n_part
 
         PDM_writer_var_write(_writer, id_writer_var[i_comp]);
@@ -369,7 +369,7 @@ CWP_Field_exch_t exch_type
 
             PDM_writer_var_set(_writer,
                                _id_writer_var_recv_computed,
-                               _cpl->idGeomWriterGet(),
+                               _cpl->idGeomWriterGet(_fieldLocation),
                                i_part,
                                comp_data[i_part]);
 

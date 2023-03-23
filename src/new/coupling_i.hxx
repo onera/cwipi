@@ -1581,9 +1581,14 @@ namespace cwipi {
   int
   Coupling::idGeomWriterGet
   (
+   CWP_Dof_location_t dof_location
   )
   {
-    return _id_geom_writer;
+    if (dof_location == CWP_DOF_LOCATION_USER) {
+      return _id_user_tgt_geom_writer;
+    } else {
+      return _id_geom_writer;
+    }
   }
 
 } // name space cwipi
