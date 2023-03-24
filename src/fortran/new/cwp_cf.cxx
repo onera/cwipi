@@ -923,6 +923,9 @@ void CWP_User_tgt_pts_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_User_tgt_pts_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 

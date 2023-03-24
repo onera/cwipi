@@ -257,7 +257,7 @@ namespace cwipi {
     if (_userTargetN != nullptr) {
       if (_localUserTargetGnum != nullptr) {
         for (int iPart = 0; iPart < _nPart; iPart++) {
-          free (_localUserTargetGnum[iPart]);
+          if (_localUserTargetGnum[iPart] != nullptr) free (_localUserTargetGnum[iPart]);
         }
       }
       free ( _userTargetN);
@@ -1564,14 +1564,17 @@ namespace cwipi {
           for (int i_part = 0; i_part < cpl._nPart; i_part++) {
 
             int n_pts = cpl._userTargetN[i_part];
-            CWP_g_num_t *point_gnum = (CWP_g_num_t *) cpl.userTargetGNumGet(i_part);
+            CWP_g_num_t *tmp_point_gnum = (CWP_g_num_t *) cpl.userTargetGNumGet(i_part);
+
+            CWP_g_num_t *point_gnum = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+            memcpy(point_gnum, tmp_point_gnum, sizeof(CWP_g_num_t) * n_pts);
 
             PDM_writer_geom_coord_set(cpl._writer,
                                       cpl._id_user_tgt_geom_writer,
                                       i_part,
                                       n_pts,
                                       cpl._userTargetCoord[i_part],
-                                      point_gnum,
+                                      tmp_point_gnum,
                                       PDM_OWNERSHIP_USER);
 
             int *point_connec = (int *) malloc(sizeof(int) * n_pts);
@@ -1744,18 +1747,39 @@ namespace cwipi {
 
           if (_userTargetN != nullptr) {
 
+            int block_id = PDM_writer_geom_bloc_add(cpl._writer,
+                                                    cpl._id_user_tgt_geom_writer,
+                                                    PDM_WRITER_POINT,
+                                                    PDM_OWNERSHIP_KEEP);
+
             for (int i_part = 0; i_part < cpl._nPart; i_part++) {
 
               int n_pts = cpl._userTargetN[i_part];
-              CWP_g_num_t *point_gnum = (CWP_g_num_t *) cpl.userTargetGNumGet(i_part);
+              CWP_g_num_t *tmp_point_gnum = (CWP_g_num_t *) cpl.userTargetGNumGet(i_part);
+
+              CWP_g_num_t *point_gnum = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+              memcpy(point_gnum, tmp_point_gnum, sizeof(CWP_g_num_t) * n_pts);
 
               PDM_writer_geom_coord_set(cpl._writer,
                                         cpl._id_user_tgt_geom_writer,
                                         i_part,
                                         n_pts,
                                         cpl._userTargetCoord[i_part],
-                                        point_gnum,
+                                        tmp_point_gnum,
                                         PDM_OWNERSHIP_USER);
+
+              int *point_connec = (int *) malloc(sizeof(int) * n_pts);
+              for (int i = 0; i < n_pts; i++) {
+                point_connec[i] = i+1;
+              }
+
+              PDM_writer_geom_bloc_std_set(cpl._writer,
+                                           cpl._id_user_tgt_geom_writer,
+                                           block_id,
+                                           i_part,
+                                           n_pts,
+                                           point_connec,
+                                           point_gnum);
 
             }
 
