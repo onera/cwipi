@@ -98,8 +98,6 @@ program fortran_new_api_deformable_sol
                 time_init,       &
                 intra_comms)
 
-  print *, "FORTRAN - CWP_Init : OK"
-
   ! Create the coupling :
   ! CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
   ! to the mesh over the coupling steps.
@@ -117,16 +115,12 @@ program fortran_new_api_deformable_sol
                       CWP_DYNAMIC_MESH_DEFORMABLE,                           &
                       CWP_TIME_EXCH_USER_CONTROLLED)
 
-  print *, "FORTRAN - CWP_Cpl_create : OK"
-
   ! Set coupling visualisation:
   call CWP_Visu_set(code_names(1),           &
                     coupling_name,           &
                     1,                       &
                     CWP_VISU_FORMAT_ENSIGHT, &
                     "text")
-
-  print *, "FORTRAN - CWP_Visu_set : OK"
 
   ! Create mesh :
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
@@ -136,9 +130,8 @@ program fortran_new_api_deformable_sol
                                               elt_vtx_idx,     &
                                               elt_vtx)
 
-  print *, "FORTRAN - grid_mesh : OK"
-
   ! Interations :
+  ! At each iteration the mesh coordinates and the exchanged fields are modified.
   itdeb = 1
   itend = 50
   freq  = 0.20d0
@@ -204,14 +197,10 @@ program fortran_new_api_deformable_sol
                                    coords,        &
                                    vtx_g_num)
 
-      print *, "FORTRAN - CWP_Mesh_interf_vtx_set : OK"
-
       ! Set the mesh polygons connectivity :
       id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                            coupling_name,       &
                                            CWP_BLOCK_FACE_POLY)
-
-      print *, "FORTRAN - CWP_Mesh_interf_block_add : OK"
 
       call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
                                             coupling_name, &
@@ -222,10 +211,9 @@ program fortran_new_api_deformable_sol
                                             elt_vtx,        &
                                             elt_g_num)
 
-      print *, "FORTRAN - CWP_Mesh_interf_f_poly_block_set : OK"
-
-
       ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory :
+      ! This is a point cloud different from the nodes of the mesh that were
+      ! previously set.
       call CWP_User_tgt_pts_set(code_names(1), &
                                 coupling_name, &
                                 0,             &
@@ -233,13 +221,9 @@ program fortran_new_api_deformable_sol
                                 xyz_dest,      &
                                 pts_g_num)
 
-      print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
-
       ! Finalize mesh :
       call CWP_Mesh_interf_finalize(code_names(1), &
                                     coupling_name)
-
-      print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
 
       n_components = 1
       ! Create field :
@@ -253,8 +237,6 @@ program fortran_new_api_deformable_sol
                             CWP_FIELD_EXCH_SEND,          &
                             CWP_STATUS_ON)
 
-      print *, "FORTRAN - CWP_Field_create send : OK"
-
       ! Set the field values :
       call CWP_Field_data_set(code_names(1),        &
                               coupling_name,        &
@@ -262,8 +244,6 @@ program fortran_new_api_deformable_sol
                               0,                    &
                               CWP_FIELD_MAP_SOURCE, &
                               send_field_data)
-
-      print *, "FORTRAN - CWP_Field_data_set send : OK"
 
       ! Create field :
       call CWP_Field_create(code_names(1),                &
@@ -276,8 +256,6 @@ program fortran_new_api_deformable_sol
                             CWP_FIELD_EXCH_RECV,          &
                             CWP_STATUS_ON)
 
-      print *, "FORTRAN - CWP_Field_create recv : OK"
-
       ! Set the field values :
       call CWP_Field_data_set(code_names(1),        &
                               coupling_name,        &
@@ -286,8 +264,6 @@ program fortran_new_api_deformable_sol
                               CWP_FIELD_MAP_TARGET, &
                               recv_field_data)
 
-      print *, "FORTRAN - CWP_Field_data_set recv : OK"
-
       ! Set interpolation property :
       call CWP_Spatial_interp_property_set(code_names(1), &
                                            coupling_name, &
@@ -295,15 +271,12 @@ program fortran_new_api_deformable_sol
                                            "double",      &
                                            "0.1")
 
-      print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
-
     else
 
-      ! Update time
+      ! Update time :
+      ! One need to informs CWIPI that we moved to a new interation step.
       call CWP_Time_update(code_names(1), &
                            time)
-
-      print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
 
     endif
 
@@ -311,32 +284,22 @@ program fortran_new_api_deformable_sol
     call CWP_Spatial_interp_weights_compute(code_names(1), &
                                             coupling_name)
 
-    print *, "FORTRAN - CWP_Spatial_interp_weights_compute : OK"
-
     ! Exchange field values :
     call CWP_Field_irecv(code_names(1), &
                          coupling_name, &
                          recv_field_name)
 
-    print *, "FORTRAN - CWP_Field_irecv : OK"
-
     call CWP_Field_issend(code_names(1), &
                           coupling_name, &
                           send_field_name)
-
-    print *, "FORTRAN - CWP_Field_issend : OK"
 
     call CWP_Field_wait_irecv(code_names(1), &
                               coupling_name, &
                               recv_field_name)
 
-    print *, "FORTRAN - CWP_Field_wait_irecv : OK"
-
     call CWP_Field_wait_issend(code_names(1), &
                                coupling_name, &
                                send_field_name)
-
-    print *, "FORTRAN - CWP_Field_wait_issend : OK"
 
     ! Check interpolation :
     n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1),   &
@@ -344,15 +307,11 @@ program fortran_new_api_deformable_sol
                                                   recv_field_name, &
                                                   0)
 
-    print *, "FORTRAN - CWP_N_uncomputed_tgts_get : OK"
-
     if (n_uncomputed_tgts /= 0) then
       uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1),   &
                                                  coupling_name,   &
                                                  recv_field_name, &
                                                  0)
-
-      print *, "FORTRAN - CWP_Uncomputed_tgts_get : OK"
     endif
 
   enddo
@@ -362,25 +321,17 @@ program fortran_new_api_deformable_sol
                      coupling_name,   &
                      send_field_name)
 
-  print *, "FORTRAN - CWP_Field_Del send : OK"
-
   call CWP_Field_Del(code_names(1),   &
                      coupling_name,   &
                      recv_field_name)
-
-  print *, "FORTRAN - CWP_Field_Del recv : OK"
 
   ! Delete Mesh :
   call CWP_Mesh_interf_del(code_names(1), &
                            coupling_name)
 
-  print *, "FORTRAN - CWP_Mesh_interf_del : OK"
-
   ! Delete the coupling :
   call CWP_Cpl_Del(code_names(1), &
                    coupling_name)
-
-  print *, "FORTRAN - CWP_Cpl_Del : OK"
 
   ! free
   deallocate(code_names)
@@ -395,8 +346,6 @@ program fortran_new_api_deformable_sol
 
   ! Finalize CWIPI :
   call CWP_Finalize()
-
-  print *, "FORTRAN - CWP_Finalize : OK"
 
   ! Finalize MPI :
   call MPI_Finalize(ierr)

@@ -30,63 +30,6 @@
 
 /*----------------------------------------------------------------------
  *
- * User interpolation function
- *
- *---------------------------------------------------------------------*/
-
-static void
-_user_interpolation_function
-(
- const char           *local_code_name,
- const char           *cpl_id,
- const char           *field_id,
- int                   i_part,
- CWP_Spatial_interp_t  spatial_interp_algorithm,
- CWP_Field_storage_t   storage,
- double               *buffer_in,
- double               *buffer_out
-)
-{
-  PDM_UNUSED(spatial_interp_algorithm);
-  PDM_UNUSED(storage);
-  // Get the location of the fields degrees of freedom :
-  CWP_Dof_location_t location = CWP_Field_target_dof_location_get(local_code_name,
-                                                                  cpl_id,
-                                                                  field_id);
-
-  if (location == CWP_DOF_LOCATION_USER) {
-
-    // Get the number of components of the field :
-    int n_components = CWP_Field_n_component_get(local_code_name,
-                                                 cpl_id,
-                                                 field_id);
-
-    // TO DO: is this what Florent Duchaine wanted to do ?
-    int           n_elt_src       = 0;
-    int          *src_to_tgt_idx  = NULL;
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &n_elt_src,
-                            &src_to_tgt_idx);
-
-    int ival = 0;
-    for (int i = 0; i < n_elt_src; i++) {
-      for (int j = src_to_tgt_idx[i]; j < src_to_tgt_idx[i+1]; j++) {
-        for (int k1 = 0; k1 < n_components; k1++) {
-          buffer_out[ival++] = buffer_in[i*n_components + k1];
-        }
-      }
-  }
-
-  } else {
-    PDM_error(__FILE__, __LINE__, 0, "Error user interpolation not implemented for dof location %d\n", location);
-  }
-}
-
-/*----------------------------------------------------------------------
- *
  * Main : advanced test : Deformable (code 2)
  *
  *---------------------------------------------------------------------*/
@@ -134,9 +77,6 @@ main(int argc, char *argv[]) {
            time_init,
            intra_comm);
 
-  printf("C - CWP_Init on %d : OK\n", i_rank);
-  fflush(stdout);
-
   // Create the coupling :
   // CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
   // to the mesh over the coupling steps.
@@ -154,9 +94,6 @@ main(int argc, char *argv[]) {
                  CWP_DYNAMIC_MESH_DEFORMABLE,
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
-  printf("C - CWP_Cpl_create : OK\n");
-  fflush(stdout);
-
   // Set coupling visualisation:
   CWP_Visu_set(code_name[0],
                coupling_name,
@@ -164,10 +101,10 @@ main(int argc, char *argv[]) {
                CWP_VISU_FORMAT_ENSIGHT,
                "text");
 
-  printf("C - CWP_Visu_set : OK\n");
-  fflush(stdout);
-
   // Create mesh :
+  // It is the users responsability to free arrays from _simplified mesh generation functions.
+  // PDM_MPI_mpi_2_pdm_mpi_comm is used when calling ParaDiGM library functions to
+  // convert the MPI communicator into the expected format.
   int     n_vtx = 0;
   int     n_elt = 0;
   double *coords      = NULL;
@@ -180,10 +117,8 @@ main(int argc, char *argv[]) {
                                          &elt_vtx_idx,
                                          &elt_vtx);
 
-  printf("C - grid_mesh : OK\n");
-  fflush(stdout);
-
   // Interations :
+  // At each iteration the mesh coordinates and the exchanged fields are modified.
   const char *send_field_name = "chinchilla";
   const char *recv_field_name = "girafe";
   int         n_components    = 1;
@@ -220,16 +155,10 @@ main(int argc, char *argv[]) {
                               coords,
                               NULL);
 
-      printf("C - CWP_Mesh_interf_vtx_set : OK\n");
-      fflush(stdout);
-
       // Set the mesh polygons connectivity :
       int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                                coupling_name,
                                                CWP_BLOCK_FACE_POLY);
-
-      printf("C - CWP_Mesh_interf_block_add : OK\n");
-      fflush(stdout);
 
       CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                        coupling_name,
@@ -240,17 +169,11 @@ main(int argc, char *argv[]) {
                                        elt_vtx,
                                        NULL);
 
-      printf("C - CWP_Mesh_interf_f_poly_block_set : OK\n");
-      fflush(stdout);
-
       // Finalize mesh :
       CWP_Mesh_interf_finalize(code_name[0],
                                coupling_name);
 
-      printf("C - CWP_Mesh_interf_finalize : OK\n");
-      fflush(stdout);
-
-      // Create field :
+      // Create the field to be send:
       CWP_Field_create(code_name[0],
                        coupling_name,
                        send_field_name,
@@ -261,10 +184,7 @@ main(int argc, char *argv[]) {
                        CWP_FIELD_EXCH_SEND,
                        CWP_STATUS_ON);
 
-      printf("C - CWP_Field_create send : OK\n");
-      fflush(stdout);
-
-      // Set the field values :
+      // Set the values of the field to be send:
       CWP_Field_data_set(code_name[0],
                          coupling_name,
                          send_field_name,
@@ -272,10 +192,7 @@ main(int argc, char *argv[]) {
                          CWP_FIELD_MAP_SOURCE,
                          send_field_data);
 
-      printf("C - CWP_Field_data_set send : OK\n");
-      fflush(stdout);
-
-      // Create field :
+      // Create the field to be received:
       CWP_Field_create(code_name[0],
                        coupling_name,
                        recv_field_name,
@@ -286,19 +203,13 @@ main(int argc, char *argv[]) {
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);
 
-      printf("C - CWP_Field_create recv : OK\n");
-      fflush(stdout);
-
-      // Set the field values :
+      // Set the values of the field to be received:
       CWP_Field_data_set(code_name[0],
                          coupling_name,
                          recv_field_name,
                          0,
                          CWP_FIELD_MAP_TARGET,
                          recv_field_data);
-
-      printf("C - CWP_Field_data_set recv : OK\n");
-      fflush(stdout);
 
       // Set interpolation property :
       CWP_Spatial_interp_property_set(code_name[0],
@@ -307,65 +218,37 @@ main(int argc, char *argv[]) {
                                       "double",
                                       "0.1");
 
-      printf("C - CWP_Spatial_interp_property_set : OK\n");
-      fflush(stdout);
-
-      // // Set user interpolation function :
-      // CWP_Interp_function_set(code_name[0],
-      //                         coupling_name,
-      //                         recv_field_name,
-      //                         _user_interpolation_function);
-
-      // printf("C - CWP_Interp_function_set : OK\n");
-      // fflush(stdout);
-
     } else {
       // Update mesh :
-      // Nothing to do since CWIPI stores the pointers of the arrays passed. Thus if the data
-      // in the pointer is changed, it is automatically in the CWIPI code.
+      // Since CWIPI stores the pointers of the arrays passed, no need to set
+      // again the mesh if were deformed. Indeed if the data in the pointer is changed,
+      // it is automatically in the CWIPI code. Still one need to informs CWIPI
+      // that we moved to a new interation step.
 
       CWP_Time_update(code_name[0],
                       ttime);
-
-      printf("C - CWP_Time_update : OK\n");
-      fflush(stdout);
     }
 
     // Compute interpolation weights :
     CWP_Spatial_interp_weights_compute(code_name[0],
                                        coupling_name);
 
-    printf("C - CWP_Spatial_interp_weights_compute : OK\n");
-    fflush(stdout);
-
     // Exchange
     CWP_Field_issend(code_name[0],
                      coupling_name,
                      send_field_name);
 
-    printf("C - CWP_Field_issend : OK\n");
-    fflush(stdout);
-
     CWP_Field_irecv(code_name[0],
                     coupling_name,
                     recv_field_name);
-
-    printf("C - CWP_Field_irecv : OK\n");
-    fflush(stdout);
 
     CWP_Field_wait_issend(code_name[0],
                           coupling_name,
                           send_field_name);
 
-    printf("C - CWP_Field_wait_issend : OK\n");
-    fflush(stdout);
-
     CWP_Field_wait_irecv(code_name[0],
                          coupling_name,
                          recv_field_name);
-
-    printf("C - CWP_Field_wait_irecv : OK\n");
-    fflush(stdout);
 
   // Check interpolation :
   int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
@@ -373,18 +256,12 @@ main(int argc, char *argv[]) {
                                                     recv_field_name,
                                                     0);
 
-  printf("C - CWP_N_uncomputed_tgts_get : OK\n");
-  fflush(stdout);
-
   int *uncomputed_tgts = NULL;
   if (n_uncomputed_tgts != 0) {
     uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
                                               coupling_name,
                                               recv_field_name,
                                               0);
-
-    printf("C - CWP_Uncomputed_tgts_get : OK\n");
-    fflush(stdout);
   }
 
   PDM_UNUSED(n_uncomputed_tgts);
@@ -396,29 +273,17 @@ main(int argc, char *argv[]) {
                 coupling_name,
                 send_field_name);
 
-  printf("C - CWP_Field_del send : OK\n");
-  fflush(stdout);
-
   CWP_Field_del(code_name[0],
                 coupling_name,
                 recv_field_name);
-
-  printf("C - CWP_Field_del recv : OK\n");
-  fflush(stdout);
 
   // Delete Mesh :
   CWP_Mesh_interf_del(code_name[0],
                       coupling_name);
 
-  printf("C - CWP_Mesh_interf_del : OK\n");
-  fflush(stdout);
-
   // Delete the coupling :
   CWP_Cpl_del(code_name[0],
               coupling_name);
-
-  printf("C - CWP_Cpl_del : OK\n");
-  fflush(stdout);
 
   // free
   free(code_name);
@@ -433,9 +298,6 @@ main(int argc, char *argv[]) {
 
   // Finalize CWIPI :
   CWP_Finalize();
-
-  printf("C - CWP_Finalize : OK\n");
-  fflush(stdout);
 
   // Finalize MPI :
   MPI_Finalize();
