@@ -1778,15 +1778,6 @@ namespace cwipi {
 
     /**
      *
-     * \brief Export user targets to Ensight format
-     *
-     */
-
-    void
-    exportUserTgts(Coupling &cpl);
-
-    /**
-     *
      * \brief Compute user target global number (if not given by user)
      *
      */
