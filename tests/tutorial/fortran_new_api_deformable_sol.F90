@@ -120,13 +120,13 @@ program fortran_new_api_deformable_sol
   print *, "FORTRAN - CWP_Cpl_create : OK"
 
   ! Set coupling visualisation:
-  ! call CWP_Visu_set(code_names(1),           &
-  !                   coupling_name,           &
-  !                   1,                       &
-  !                   CWP_VISU_FORMAT_ENSIGHT, &
-  !                   "text")
+  call CWP_Visu_set(code_names(1),           &
+                    coupling_name,           &
+                    1,                       &
+                    CWP_VISU_FORMAT_ENSIGHT, &
+                    "text")
 
-  ! print *, "FORTRAN - CWP_Visu_set : OK"
+  print *, "FORTRAN - CWP_Visu_set : OK"
 
   ! Create mesh :
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
@@ -161,10 +161,14 @@ program fortran_new_api_deformable_sol
 
     time = (it-itdeb)*dt
 
+    ! Deform mesh :
+
     do i = 1, n_vtx
       coords((i-1)*3+3) = (coords((i-1)*3+1)*coords((i-1)*3+1) + coords((i-1)*3+2)*coords((i-1)*3+2))* &
                           ampl*cos(omega*time+phi)
     enddo
+
+    ! Update sent field :
 
     do  i = 1, n_elt
       send_field_data(i) = 0.
@@ -172,6 +176,22 @@ program fortran_new_api_deformable_sol
         send_field_data(i) = send_field_data(i) + coords((elt_vtx(j)-1)*3+3)
       enddo
       send_field_data(i) = send_field_data(i)/ (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+    enddo
+
+    ! Update user defined degrees of freedom :
+
+    do i = 1, n_elt
+       xyz_dest((i-1)*3+1) = 0.
+       xyz_dest((i-1)*3+2) = 0.
+       xyz_dest((i-1)*3+3) = 0.
+       do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
+           xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((elt_vtx(j)-1)*3+1)
+           xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((elt_vtx(j)-1)*3+2)
+           xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((elt_vtx(j)-1)*3+3)
+       enddo
+       xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+       xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+       xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     enddo
 
     if (it == itdeb) then
@@ -204,43 +224,24 @@ program fortran_new_api_deformable_sol
 
       print *, "FORTRAN - CWP_Mesh_interf_f_poly_block_set : OK"
 
-    endif
 
-    ! Update user defined degrees of freedom :
-    ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory.
+      ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory :
+      call CWP_User_tgt_pts_set(code_names(1), &
+                                coupling_name, &
+                                0,             &
+                                n_elt,         &
+                                xyz_dest,      &
+                                pts_g_num)
 
-    do i = 1, n_elt
-       xyz_dest((i-1)*3+1) = 0.
-       xyz_dest((i-1)*3+2) = 0.
-       xyz_dest((i-1)*3+3) = 0.
-       do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
-           xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((elt_vtx(j)-1)*3+1)
-           xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((elt_vtx(j)-1)*3+2)
-           xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((elt_vtx(j)-1)*3+3)
-       enddo
-       xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
-       xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
-       xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
-    enddo
+      print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
 
-    call CWP_User_tgt_pts_set(code_names(1), &
-                              coupling_name, &
-                              0,             &
-                              n_elt,         &
-                              xyz_dest,      &
-                              pts_g_num)
+      ! Finalize mesh :
+      call CWP_Mesh_interf_finalize(code_names(1), &
+                                    coupling_name)
 
-    print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
+      print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
 
-    ! Finalize mesh :
-    call CWP_Mesh_interf_finalize(code_names(1), &
-                                  coupling_name)
-
-    print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
-
-    n_components = 1
-    if (it == itdeb) then
-
+      n_components = 1
       ! Create field :
       call CWP_Field_create(code_names(1),                &
                             coupling_name,                &
@@ -254,6 +255,17 @@ program fortran_new_api_deformable_sol
 
       print *, "FORTRAN - CWP_Field_create send : OK"
 
+      ! Set the field values :
+      call CWP_Field_data_set(code_names(1),        &
+                              coupling_name,        &
+                              send_field_name,      &
+                              0,                    &
+                              CWP_FIELD_MAP_SOURCE, &
+                              send_field_data)
+
+      print *, "FORTRAN - CWP_Field_data_set send : OK"
+
+      ! Create field :
       call CWP_Field_create(code_names(1),                &
                             coupling_name,                &
                             recv_field_name,              &
@@ -266,6 +278,16 @@ program fortran_new_api_deformable_sol
 
       print *, "FORTRAN - CWP_Field_create recv : OK"
 
+      ! Set the field values :
+      call CWP_Field_data_set(code_names(1),        &
+                              coupling_name,        &
+                              recv_field_name,      &
+                              0,                    &
+                              CWP_FIELD_MAP_TARGET, &
+                              recv_field_data)
+
+      print *, "FORTRAN - CWP_Field_data_set recv : OK"
+
       ! Set interpolation property :
       call CWP_Spatial_interp_property_set(code_names(1), &
                                            coupling_name, &
@@ -274,6 +296,15 @@ program fortran_new_api_deformable_sol
                                            "0.1")
 
       print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
+
+    else
+
+      ! Update time
+      call CWP_Time_update(code_names(1), &
+                           time)
+
+      print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
+
     endif
 
     ! Compute interpolation weights :
@@ -282,30 +313,12 @@ program fortran_new_api_deformable_sol
 
     print *, "FORTRAN - CWP_Spatial_interp_weights_compute : OK"
 
-    call CWP_Field_data_set(code_names(1),        &
-                            coupling_name,        &
-                            recv_field_name,      &
-                            0,                    &
-                            CWP_FIELD_MAP_TARGET, &
-                            recv_field_data)
-
-    print *, "FORTRAN - CWP_Field_data_set recv : OK"
-
+    ! Exchange field values :
     call CWP_Field_irecv(code_names(1), &
                          coupling_name, &
                          recv_field_name)
 
     print *, "FORTRAN - CWP_Field_irecv : OK"
-
-    ! Set and exchange the field values :
-    call CWP_Field_data_set(code_names(1),        &
-                            coupling_name,        &
-                            send_field_name,      &
-                            0,                    &
-                            CWP_FIELD_MAP_SOURCE, &
-                            send_field_data)
-
-    print *, "FORTRAN - CWP_Field_data_set send : OK"
 
     call CWP_Field_issend(code_names(1), &
                           coupling_name, &

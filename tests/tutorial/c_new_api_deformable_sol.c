@@ -158,14 +158,14 @@ main(int argc, char *argv[]) {
   fflush(stdout);
 
   // Set coupling visualisation:
-  // CWP_Visu_set(code_name[0],
-  //              coupling_name,
-  //              1,
-  //              CWP_VISU_FORMAT_ENSIGHT,
-  //              "text");
+  CWP_Visu_set(code_name[0],
+               coupling_name,
+               1,
+               CWP_VISU_FORMAT_ENSIGHT,
+               "text");
 
-  // printf("C - CWP_Visu_set : OK\n");
-  // fflush(stdout);
+  printf("C - CWP_Visu_set : OK\n");
+  fflush(stdout);
 
   // Create mesh :
   int     n_vtx = 0;
@@ -264,6 +264,18 @@ main(int argc, char *argv[]) {
       printf("C - CWP_Field_create send : OK\n");
       fflush(stdout);
 
+      // Set the field values :
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         send_field_name,
+                         0,
+                         CWP_FIELD_MAP_SOURCE,
+                         send_field_data);
+
+      printf("C - CWP_Field_data_set send : OK\n");
+      fflush(stdout);
+
+      // Create field :
       CWP_Field_create(code_name[0],
                        coupling_name,
                        recv_field_name,
@@ -275,6 +287,17 @@ main(int argc, char *argv[]) {
                        CWP_STATUS_ON);
 
       printf("C - CWP_Field_create recv : OK\n");
+      fflush(stdout);
+
+      // Set the field values :
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         recv_field_name,
+                         0,
+                         CWP_FIELD_MAP_TARGET,
+                         recv_field_data);
+
+      printf("C - CWP_Field_data_set recv : OK\n");
       fflush(stdout);
 
       // Set interpolation property :
@@ -300,6 +323,12 @@ main(int argc, char *argv[]) {
       // Update mesh :
       // Nothing to do since CWIPI stores the pointers of the arrays passed. Thus if the data
       // in the pointer is changed, it is automatically in the CWIPI code.
+
+      CWP_Time_update(code_name[0],
+                      ttime);
+
+      printf("C - CWP_Time_update : OK\n");
+      fflush(stdout);
     }
 
     // Compute interpolation weights :
@@ -309,32 +338,12 @@ main(int argc, char *argv[]) {
     printf("C - CWP_Spatial_interp_weights_compute : OK\n");
     fflush(stdout);
 
-    // Set and exchange the field values :
-    CWP_Field_data_set(code_name[0],
-                       coupling_name,
-                       send_field_name,
-                       0,
-                       CWP_FIELD_MAP_SOURCE,
-                       send_field_data);
-
-    printf("C - CWP_Field_data_set send : OK\n");
-    fflush(stdout);
-
+    // Exchange
     CWP_Field_issend(code_name[0],
                      coupling_name,
                      send_field_name);
 
     printf("C - CWP_Field_issend : OK\n");
-    fflush(stdout);
-
-    CWP_Field_data_set(code_name[0],
-                       coupling_name,
-                       recv_field_name,
-                       0,
-                       CWP_FIELD_MAP_TARGET,
-                       recv_field_data);
-
-    printf("C - CWP_Field_data_set recv : OK\n");
     fflush(stdout);
 
     CWP_Field_irecv(code_name[0],
