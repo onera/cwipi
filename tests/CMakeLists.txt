@@ -162,6 +162,7 @@ if (CWP_ENABLE_NEW_API)
       test_c_create (client_new_api_cellface_set_block 2)
       test_c_create (client_new_api_c_poly_block 2)
       test_c_create (client_new_api_surf_P1P0_P0P1 4)
+      test_c_create (client_new_api_wind_turbine_blade 2)
     endif()
 
     if (CWP_ENABLE_Fortran)
