@@ -525,20 +525,6 @@ _cube_mesh
 
       for (int i_part = 0; i_part < n_part; i_part++) {
 
-        int n_cell;
-        int n_face;
-        int n_face_part_bound;
-        int n_vtx;
-        int n_proc;
-        int n_t_part;
-        int s_cell_face;
-        int s_face_vtx;
-        int s_face_join;
-        int s_face_group;
-
-        int n_groups, n_joins;
-        int n_section;
-        int *n_elt;
 
         int         *cell_tag;
         int         *cell_face_idx;
@@ -564,23 +550,22 @@ _cube_mesh
         int         **elt_vtx;
         PDM_g_num_t **elt_section_ln_to_gn;
 
-        PDM_multipart_part_dim_get (mpart,
-                                    0,
-                                    i_part,
-                                    &n_section,
-                                    &n_elt,
-                                    &n_cell,
-                                    &n_face,
-                                    &n_face_part_bound,
-                                    &n_vtx,
-                                    &n_proc,
-                                    &n_t_part,
-                                    &s_cell_face,
-                                    &s_face_vtx,
-                                    &s_face_group,
-                                    &n_groups,
-                                    &s_face_join,
-                                    &n_joins);
+        int n_cell = PDM_multipart_part_n_entity_get(mpart,
+                                                     0,
+                                                     i_part,
+                                                     PDM_MESH_ENTITY_CELL);
+
+        int n_face = PDM_multipart_part_n_entity_get(mpart,
+                                                     0,
+                                                     i_part,
+                                                     PDM_MESH_ENTITY_FACE);
+
+        int n_vtx = PDM_multipart_part_n_entity_get(mpart,
+                                                    0,
+                                                    i_part,
+                                                    PDM_MESH_ENTITY_VERTEX);
+
+        int n_face_part_bound = 0;
 
         PDM_multipart_part_val_get (mpart,
                                     0,
@@ -665,21 +650,6 @@ _cube_mesh
 
     for (int i_part = 0; i_part < n_part; i_part++) {
 
-      int n_cell;
-      int n_face;
-      int n_face_part_bound;
-      int n_vtx;
-      int n_proc;
-      int n_t_part;
-      int s_cell_face;
-      int s_face_vtx;
-      int s_face_join;
-      int s_face_group;
-
-      int n_groups, n_joins;
-      int n_section;
-      int *n_elt;
-
       int         *cell_tag;
       int         *cell_face_idx;
       int         *cell_face;
@@ -704,23 +674,20 @@ _cube_mesh
       int         **elt_vtx;
       PDM_g_num_t **elt_section_ln_to_gn;
 
-      PDM_multipart_part_dim_get (mpart,
-                                  0,
-                                  i_part,
-                                  &n_section,
-                                  &n_elt,
-                                  &n_cell,
-                                  &n_face,
-                                  &n_face_part_bound,
-                                  &n_vtx,
-                                  &n_proc,
-                                  &n_t_part,
-                                  &s_cell_face,
-                                  &s_face_vtx,
-                                  &s_face_group,
-                                  &n_groups,
-                                  &s_face_join,
-                                  &n_joins);
+      int n_cell = PDM_multipart_part_n_entity_get(mpart,
+                                                   0,
+                                                   i_part,
+                                                   PDM_MESH_ENTITY_CELL);
+
+      int n_face = PDM_multipart_part_n_entity_get(mpart,
+                                                   0,
+                                                   i_part,
+                                                   PDM_MESH_ENTITY_FACE);
+
+      int n_vtx = PDM_multipart_part_n_entity_get(mpart,
+                                                  0,
+                                                  i_part,
+                                                  PDM_MESH_ENTITY_VERTEX);
 
       PDM_multipart_part_val_get (mpart,
                                   0,
@@ -822,7 +789,7 @@ _cube_mesh
       (*pcell_face_idx)[i_part] = (int *) malloc(sizeof(int) * (n_cell + n_ext_cell + 1));
       memcpy((*pcell_face_idx)[i_part], cell_face_idx, sizeof(int) * (n_cell + 1));
 
-      s_cell_face = cell_face_idx[n_cell];
+      int s_cell_face = cell_face_idx[n_cell];
       if (part_extension_depth > 0) {
         s_cell_face += ext_cell_face_idx[n_ext_cell];
       }
@@ -837,7 +804,7 @@ _cube_mesh
       (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + n_ext_face + 1));
       memcpy((*pface_vtx_idx)[i_part], face_vtx_idx, sizeof(int) * (n_face + 1));
 
-      s_face_vtx = face_vtx_idx[n_face];
+      int s_face_vtx = face_vtx_idx[n_face];
       if (part_extension_depth > 0) {
         s_face_vtx += ext_face_vtx_idx[n_ext_face];
       }

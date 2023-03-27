@@ -277,20 +277,6 @@ _gen_mesh
   *pvtx_coord     = (double **)      malloc(sizeof(double **)      * n_part);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
-    int n_face;
-    int n_edge;
-    int n_edge_part_bound;
-    int n_vtx;
-    int n_proc;
-    int n_t_part;
-    int s_face_edge;
-    int s_edge_vtx;
-    int s_edge_join;
-    int s_edge_group;
-
-    int n_groups, n_joins;
-    int n_section;
-    int *n_elt;
 
     int         *face_tag;
     int         *face_edge_idx;
@@ -316,23 +302,15 @@ _gen_mesh
     int         **elt_vtx;
     PDM_g_num_t **elt_section_ln_to_gn;
 
-    PDM_multipart_part_dim_get(mpart,
-                               0,
-                               i_part,
-                               &n_section,
-                               &n_elt,
-                               &n_face,
-                               &n_edge,
-                               &n_edge_part_bound,
-                               &n_vtx,
-                               &n_proc,
-                               &n_t_part,
-                               &s_face_edge,
-                               &s_edge_vtx,
-                               &s_edge_group,
-                               &n_groups,
-                               &s_edge_join,
-                               &n_joins);
+    int n_face = PDM_multipart_part_n_entity_get(mpart,
+                                                 0,
+                                                 i_part,
+                                                 PDM_MESH_ENTITY_FACE);
+
+    int n_vtx = PDM_multipart_part_n_entity_get(mpart,
+                                                 0,
+                                                 i_part,
+                                                 PDM_MESH_ENTITY_VERTEX);
 
     PDM_multipart_part_val_get(mpart,
                                0,
