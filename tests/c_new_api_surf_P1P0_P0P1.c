@@ -306,8 +306,7 @@ _gen_mesh
 
       (*pn_face)[i_part] = n_face;
 
-      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + 1));
-      memcpy((*pface_vtx_idx)[i_part], face_edge_idx, sizeof(int) * (n_face + 1));
+      (*pface_vtx_idx)[i_part] = face_edge_idx;
 
       PDM_compute_face_vtx_from_face_and_edge_unsigned(n_face,
                                                        face_edge_idx,
@@ -315,9 +314,7 @@ _gen_mesh
                                                        edge_vtx,
                                                        &(*pface_vtx)[i_part]);
 
-      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
-      memcpy((*pface_ln_to_gn)[i_part], face_ln_to_gn, sizeof(PDM_g_num_t) * n_face);
-
+      (*pface_ln_to_gn)[i_part] = face_ln_to_gn;
 
       /* Vertices */
       n_vtx = PDM_multipart_part_vtx_coord_get(mpart,
@@ -332,13 +329,9 @@ _gen_mesh
                                       &vtx_ln_to_gn,
                                       PDM_OWNERSHIP_KEEP);
 
-      (*pn_vtx)[i_part] = n_vtx;
-
-      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);
-      memcpy((*pvtx_coord)[i_part], vtx, sizeof(double) * 3 * n_vtx);
-
-      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_vtx);
-      memcpy((*pvtx_ln_to_gn)[i_part], vtx_ln_to_gn, sizeof(PDM_g_num_t) * n_vtx);
+      (*pn_vtx)[i_part]        = n_vtx;
+      (*pvtx_coord)[i_part]    = vtx;
+      (*pvtx_ln_to_gn)[i_part] = vtx_ln_to_gn;
 
     }
     PDM_multipart_free(mpart);

@@ -820,41 +820,31 @@ _cube_mesh
       *(pn_vtx)[i_part]  = n_vtx  + n_ext_vtx;
 
       /* Vertices */
-      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * (n_vtx + n_ext_vtx));
-      memcpy((*pvtx_coord)[i_part], vtx_coord, sizeof(double) * 3 * n_vtx);
-
-      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_vtx + n_ext_vtx));
-      memcpy((*pvtx_ln_to_gn)[i_part], vtx_ln_to_gn, sizeof(PDM_g_num_t) * n_vtx);
+      (*pvtx_coord)[i_part] = vtx_coord;
+      (*pvtx_ln_to_gn)[i_part] = vtx_ln_to_gn;
 
 
       /* Cells */
-      (*pcell_face_idx)[i_part] = (int *) malloc(sizeof(int) * (n_cell + n_ext_cell + 1));
-      memcpy((*pcell_face_idx)[i_part], cell_face_idx, sizeof(int) * (n_cell + 1));
+      (*pcell_face_idx)[i_part] = cell_face_idx;
 
       int s_cell_face = cell_face_idx[n_cell];
       if (part_extension_depth > 0) {
         s_cell_face += ext_cell_face_idx[n_ext_cell];
       }
-      (*pcell_face)[i_part] = (int *) malloc(sizeof(int) * s_cell_face);
-      memcpy((*pcell_face)[i_part], cell_face, sizeof(int) * cell_face_idx[n_cell]);
-
-      (*pcell_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_cell + n_ext_cell));
-      memcpy((*pcell_ln_to_gn)[i_part], cell_ln_to_gn, sizeof(PDM_g_num_t) * n_cell);
+      (*pcell_face)[i_part] = cell_face;
+      (*pcell_ln_to_gn)[i_part] = cell_ln_to_gn;
 
 
       /* Faces */
-      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + n_ext_face + 1));
-      memcpy((*pface_vtx_idx)[i_part], face_vtx_idx, sizeof(int) * (n_face + 1));
+      (*pface_vtx_idx)[i_part] = face_vtx_idx;
 
       int s_face_vtx = face_vtx_idx[n_face];
       if (part_extension_depth > 0) {
         s_face_vtx += ext_face_vtx_idx[n_ext_face];
       }
-      (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * s_face_vtx);
-      memcpy((*pface_vtx)[i_part], face_vtx, sizeof(int) * face_vtx_idx[n_face]);
+      (*pface_vtx)[i_part] = face_vtx;
 
-      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_face + n_ext_face));
-      memcpy((*pface_ln_to_gn)[i_part], face_ln_to_gn, sizeof(PDM_g_num_t) * n_face);
+      (*pface_ln_to_gn)[i_part] = face_ln_to_gn;
 
 
       if (part_extension_depth > 0) {
@@ -1602,13 +1592,10 @@ main(int argc, char *argv[]) {
   free(pface_vtx);
   free(pcell_ln_to_gn);
   free(pface_ln_to_gn);
+  free(cellVtxIdx);
+  free(send_val);
+  free(recv_val);
 
-  if (code_id == 1) {
-    free(send_val);
-  }
-  else {
-    free(recv_val);
-  }
   PDM_timer_free(timer);
 
   //  Finalize CWIPI
