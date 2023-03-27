@@ -287,25 +287,15 @@ _gen_mesh
 
   for (int i_part = 0; i_part < n_part; i_part++) {
 
-    int n_face = PDM_multipart_part_n_entity_get(mpart,
-                                                 0,
-                                                 i_part,
-                                                 PDM_MESH_ENTITY_FACE);
-
-    int n_vtx = PDM_multipart_part_n_entity_get(mpart,
-                                                0,
-                                                i_part,
-                                                PDM_MESH_ENTITY_VERTEX);
-
     int *face_edge     = NULL;
     int *face_edge_idx = NULL;
-    PDM_multipart_part_connectivity_get(mpart,
-                                        0,
-                                        i_part,
-                                        PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                        &face_edge,
-                                        &face_edge_idx,
-                                        PDM_OWNERSHIP_USER);
+    int n_face = PDM_multipart_part_connectivity_get(mpart,
+                                                     0,
+                                                     i_part,
+                                                     PDM_CONNECTIVITY_TYPE_FACE_EDGE,
+                                                     &face_edge,
+                                                     &face_edge_idx,
+                                                     PDM_OWNERSHIP_USER);
 
     PDM_g_num_t* face_ln_to_gn = NULL;
     PDM_multipart_part_ln_to_gn_get(mpart,
@@ -327,11 +317,11 @@ _gen_mesh
                                         PDM_OWNERSHIP_USER);
 
     double *vtx_coord = NULL;
-    PDM_multipart_part_vtx_coord_get(mpart,
-                                    0,
-                                    i_part,
-                                    &vtx_coord,
-                                    PDM_OWNERSHIP_USER);
+    int n_vtx = PDM_multipart_part_vtx_coord_get(mpart,
+                                                 0,
+                                                 i_part,
+                                                 &vtx_coord,
+                                                 PDM_OWNERSHIP_USER);
 
     PDM_g_num_t* vtx_ln_to_gn = NULL;
     PDM_multipart_part_ln_to_gn_get(mpart,
@@ -351,10 +341,6 @@ _gen_mesh
 
     /* Faces */
     (*pface_vtx_idx)[i_part] = face_edge_idx;
-
-    printf("face_edge_idx : %p\n", face_edge_idx);
-    printf("face_edge : %p\n", face_edge);
-    printf("edge_vtx : %p\n", edge_vtx);
 
     PDM_compute_face_vtx_from_face_and_edge_unsigned(n_face,
                                                      face_edge_idx,
