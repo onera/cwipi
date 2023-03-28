@@ -450,7 +450,7 @@ main(int argc, char *argv[]) {
 
     char str[999];
     sprintf(str, "mpiexec -n %d ../bin/cwp_server -cn code0 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt\" \
-                  : -n %d  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &", \
+                  : -n %d  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &",
                   code_n_rank[0], 49100, 49100 + code_n_rank[0] - 1, code_n_rank[1], 49100 + code_n_rank[0],  49100 + code_n_rank[0] + code_n_rank[1] - 1);
     system(str);
   }
@@ -523,16 +523,23 @@ main(int argc, char *argv[]) {
   double       **pvtx_coord       = NULL;
   PDM_g_num_t  **pface_ln_to_gn   = NULL;
   PDM_g_num_t  **pvtx_ln_to_gn    = NULL;
-  int            n_vtx_field      = NULL;
+  int            n_vtx_field      = 0;
   char         **vtx_field_name   = NULL;
   PDM_data_t    *vtx_field_type   = NULL;
   int           *vtx_field_stride = NULL;
   double      ***pvtx_field_value = NULL;
 
   PDM_MPI_Comm pdm_intra_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm);
-
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
-  _gen_part_data(mesh_filenames,
+  char *filename = NULL;
+
+  if (code1) {
+    filename = mesh_filenames[0];
+  } else {
+    filename = mesh_filenames[1];
+  }
+
+  _gen_part_data(filename,
                  pdm_intra_comm,
                  n_part,
                  part_method,
@@ -555,44 +562,103 @@ main(int argc, char *argv[]) {
                                                   CWP_BLOCK_FACE_POLY);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
-    CWP_Mesh_interf_vtx_set(code_name[0],
-                            cpl_name,
-                            i_part,
-                            pn_vtx       [i_part],
-                            pvtx_coord   [i_part],
+    CWP_client_Mesh_interf_vtx_set(code_name[0],
+                                   cpl_name,
+                                   i_part,
+                                   pn_vtx       [i_part],
+                                   pvtx_coord   [i_part],
                             pvtx_ln_to_gn[i_part]);
 
-    CWP_Mesh_interf_f_poly_block_set(code_name[0],
-                                     cpl_name,
-                                     i_part,
-                                     block_id,
-                                     pn_face       [i_part],
-                                     pface_vtx_idx [i_part],
+    CWP_client_Mesh_interf_f_poly_block_set(code_name[0],
+                                            cpl_name,
+                                            i_part,
+                                            block_id,
+                                            pn_face       [i_part],
+                                            pface_vtx_idx [i_part],
                                      pface_vtx     [i_part],
                                      pface_ln_to_gn[i_part]);
   }
 
-  CWP_Mesh_interf_finalize(code_name[0],
-                           cpl_name);
+  CWP_client_Mesh_interf_finalize(code_name[0],
+                                  cpl_name);
 
   // Create field
-  if (code1) {
-    // CWP_Field_create(code_name[0],
-    //                  cpl_name,
-    //                  vtx_field_name[icode][0],
-    //                  CWP_DOUBLE,
-    //                  CWP_FIELD_STORAGE_INTERLACED,
-    //                  vtx_field_stride[icode][0],
-    //                  CWP_DOF_LOCATION_NODE,
-    //                  exch_type,
-    //                  visu_status);
-  } else {
+  CWP_Field_exch_t exch_type;
+  CWP_Field_map_t  map_type;
+  double **field_ptr = NULL;
+  double ** recv_val = NULL;
 
+  if (code1) {
+    exch_type = CWP_FIELD_EXCH_SEND;
+    map_type  = CWP_FIELD_MAP_SOURCE;
+    field_ptr = pvtx_field_value[0];
+  } else {
+    exch_type = CWP_FIELD_EXCH_RECV;
+    map_type  = CWP_FIELD_MAP_TARGET;
+    field_ptr = recv_val;
+
+    recv_val = malloc(sizeof(double *) * n_part);
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      recv_val[i_part] = malloc(sizeof(double) * pn_vtx[i_part]);
+    }
+  }
+
+  CWP_client_Field_create(code_name[0],
+                          cpl_name,
+                          vtx_field_name[0],
+                          CWP_DOUBLE,
+                          CWP_FIELD_STORAGE_INTERLACED,
+                          vtx_field_stride[0],
+                          CWP_DOF_LOCATION_NODE,
+                          exch_type,
+                          CWP_STATUS_ON);
+
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    CWP_client_Field_data_set(code_name[0],
+                              cpl_name,
+                              vtx_field_name[0],
+                              i_part,
+                              map_type,
+                              pn_vtx[i_part],
+                              field_ptr[i_part]);
   }
 
   // Compute weights
+  CWP_Spatial_interp_property_set(code_name[0],
+                                  cpl_name,
+                                  "tolerance",
+                                  "double",
+                                  "0.1");
+
+  CWP_Spatial_interp_property_set(code_name[0],
+                                  cpl_name,
+                                  "n_closest_pts",
+                                  "int",
+                                  "1");
+
+  CWP_Spatial_interp_weights_compute(code_name[0],
+                                     cpl_name);
 
   // Exchange field
+  if (code1) {
+    CWP_client_Field_issend(code_name[0],
+                            cpl_name,
+                            vtx_field_name[0]);
+  } else {
+    CWP_client_Field_irecv (code_name[0],
+                            cpl_name,
+                            vtx_field_name[0]);
+  }
+
+  if (code1) {
+    CWP_client_Field_wait_issend(code_name[0],
+                                 cpl_name,
+                                 vtx_field_name[0]);
+  } else {
+    CWP_client_Field_wait_irecv (code_name[0],
+                                 cpl_name,
+                                 vtx_field_name[0]);
+  }
 
   // Check interpolation error
 
