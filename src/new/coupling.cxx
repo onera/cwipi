@@ -1277,25 +1277,6 @@ namespace cwipi {
    * \brief Getters for callbacks.
    */
 
-  // Field
-
-  // Get the number of components
-  int
-  Coupling::n_components_get
-  (
-   std::string    name
-  )
-  {
-    int n_components = 0;
-
-    map <string, Field *>::iterator it  = _fields.find(name);
-    if (it != _fields.end()) {
-      n_components = it->second->nComponentGet();
-    }
-
-    return n_components;
-  }
-
   // SpatialInterp
 
   // Get weights
