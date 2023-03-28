@@ -236,9 +236,6 @@ main
     }
   }
 
-  printf("i_rank : %d - code_name %s has id %d\n", i_rank, code_name, code_ids[i_rank]);
-  fflush(stdout);
-
   MPI_Barrier(comm);
 
   MPI_Comm intra_comm;

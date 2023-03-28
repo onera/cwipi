@@ -56,9 +56,6 @@ namespace cwipi {
 
     virtual ~oldCoupling();
 
-    int commGet (MPI_Comm  *cpl_comm,
-                 int      **cpl_ranks);
-
     void defineMesh(const int nVertex,
                     const int nElement,
                     double coordinates[],
