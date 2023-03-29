@@ -1438,6 +1438,12 @@ namespace cwipi {
           n_closest_pts = it->second;
         }
 
+        int polyfit_degree = CWP_CLOSEST_POINTS_POLYFIT_DEGREE;
+        it = prop.find("polyfit_degree");
+        if (it != prop.end()) {
+          polyfit_degree = it->second;
+        }
+
         int use_idw_interpolation = 0;
         double       *src_coord = NULL;
         const double *tgt_coord = NULL;
@@ -1514,19 +1520,8 @@ namespace cwipi {
                           tgt_value);
             }
             else {
-              char *env_var = NULL;
-              int use_wls = 0;
-              env_var = getenv("USE_WLS");
-              if (env_var != NULL) {
-                use_wls = atoi(env_var);
-              }
-              if (use_wls) {
-                int degree = 1;
-                env_var = getenv("WLS_DEGREE");
-                if (env_var != NULL) {
-                  degree = atoi(env_var);
-                }
-                _interp_weighted_least_squares(degree,
+              if (1) {
+                _interp_weighted_least_squares(polyfit_degree,
                                                n_closest_pts,
                                                nComponent,
                                                src_value,
