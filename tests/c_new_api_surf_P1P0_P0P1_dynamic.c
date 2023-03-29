@@ -222,48 +222,42 @@ _gen_mesh
                                                 PDM_OWNERSHIP_KEEP);
   free(n_part_zones);
 
-  int n_join = 0;
   PDM_dmesh_t *dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
+                                        0,
                                         dn_face,
                                         dn_edge,
-                                        -1,
                                         dn_vtx,
-                                        n_edge_group,
-                                        n_join,
                                         comm);
 
-  int *djoins_ids = malloc (sizeof(int) * n_join);
-  int *dedge_join_idx = malloc (sizeof(int) * (n_join + 1));
-  dedge_join_idx[0] = 0;
-  PDM_g_num_t *dedge_join = malloc (sizeof(PDM_g_num_t) * dedge_join_idx[n_join]);
+  PDM_dmesh_vtx_coord_set(dmesh,
+                          dvtx_coord,
+                          PDM_OWNERSHIP_USER);
 
   int *dedge_vtx_idx = PDM_array_new_idx_from_const_stride_int(2, dn_edge);
 
-  PDM_dmesh_set(dmesh,
-                dvtx_coord,
-                dedge_vtx_idx,
-                dedge_vtx,
-                dedge_face,
-                dedge_group_idx,
-                dedge_group,
-                djoins_ids,
-                dedge_join_idx,
-                dedge_join);
+  PDM_dmesh_connectivity_set(dmesh,
+                             PDM_CONNECTIVITY_TYPE_EDGE_VTX,
+                             dedge_vtx,
+                             dedge_vtx_idx,
+                             PDM_OWNERSHIP_USER);
+
+  PDM_dmesh_connectivity_set(dmesh,
+                             PDM_CONNECTIVITY_TYPE_EDGE_FACE,
+                             dedge_face,
+                             NULL,
+                             PDM_OWNERSHIP_USER);
+
+  PDM_dmesh_bound_set(dmesh,
+                      PDM_BOUND_TYPE_EDGE,
+                      n_edge_group,
+                      dedge_group,
+                      dedge_group_idx,
+                      PDM_OWNERSHIP_USER);
 
   PDM_multipart_register_block(mpart, 0, dmesh);
 
-  /* Connection between zones */
-  int n_total_joins = 0;
-  int *join_to_opposite = malloc(sizeof(int) * n_total_joins);
-  PDM_multipart_register_joins(mpart, n_total_joins, join_to_opposite);
-
   /* Run */
   PDM_multipart_run_ppart(mpart);
-
-  free(djoins_ids);
-  free(dedge_join_idx);
-  free(dedge_join);
-  free(join_to_opposite);
 
 
 
