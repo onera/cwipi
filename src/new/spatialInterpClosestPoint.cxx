@@ -1208,127 +1208,6 @@ namespace cwipi {
     }
 
 
-    /**
-     * Solve the linear system Ax = b using Gaussian elimination,
-     * where A is a n*n matrix and b, x are n*stride matrices
-     * (Aij = A[n*i+j], bij = b[stride*i+j], xij = x[stride*i+j])
-     *
-     * return 1 if A is singular, 0 else
-     */
-    static int _linsolve
-    (
-      const int     n,
-      const int     stride,
-            double *A,
-            double *b,
-            double *x
-     )
-    {
-      const double eps = 1e-15;
-
-      if (0) {
-        log_trace("A = \n");
-        for (int ii = 0; ii < n; ii++) {
-          for (int jj = 0; jj < n; jj++) {
-            log_trace("%f ", A[n*ii+jj]);
-          }
-          log_trace("\n");
-        }
-
-        // log_trace("b = \n");
-        // for (int i = 0; i < n; i++) {
-        //   for (int j = 0; j < stride; j++) {
-        //     log_trace("%f ", b[stride*i+j]);
-        //   }
-        //   log_trace("\n");
-        // }
-      }
-
-      for (int i = 0; i < n; i++) {
-        /* Seek best pivot */
-        double amax = std::fabs(A[n*i+i]);
-        int imax = i;
-        for (int k = i+1; k < n; k++) {
-          double aki = std::fabs(A[n*k+i]);
-          if (aki > amax) {
-            amax = aki;
-            imax = k;
-          }
-        }
-
-        if (amax <= eps) {
-          /* matrix A is singular */
-          // log_trace("A is singular\n");
-          // for (int ii = 0; ii < n; ii++) {
-          //   for (int jj = 0; jj < n; jj++) {
-          //     log_trace("%f ", A[n*ii+jj]);
-          //   }
-          //   log_trace("\n");
-          // }
-          return 1;
-        }
-
-        /* Swap rows i and imax */
-        if (i != imax) {
-          for (int j = 0; j < n; j++) {
-            double tmp = A[n*i+j];
-            A[n*i   +j] = A[n*imax+j];
-            A[n*imax+j] = tmp;
-          }
-
-          for (int j = 0; j < stride; j++) {
-            double tmp = b[stride*i + j];
-            b[stride*i    + j] = b[stride*imax + j];
-            b[stride*imax + j] = tmp;
-          }
-        }
-
-        /* Eliminate subdiagonal terms */
-        double inv_amax = 1./A[n*i+i];
-
-        for (int k = i+1; k < n; k++) {
-          double r = A[n*k+i] * inv_amax;
-          for (int j = i+1; j < n; j++) {
-            A[n*k+j] -= r * A[n*i+j];
-          }
-          A[n*k+i] = 0.;
-
-          for (int j = 0; j < stride; j++) {
-            b[stride*k + j] -= r * b[stride*i + j];
-          }
-        }
-      }
-
-      /* Solve triangular system */
-      memcpy(x, b, sizeof(double) * n * stride);
-
-      for (int i = n-1; i >= 0; i--) {
-        for (int j = i+1; j < n; j++) {
-          for (int k = 0; k < stride; k++) {
-            x[stride*i + k] -= x[stride*j + k] * A[n*i+j];
-          }
-        }
-
-        double inv_ai = 1./A[n*i+i];
-        for (int k = 0; k < stride; k++) {
-          x[stride*i + k] *= inv_ai;
-        }
-      }
-
-      if (0) {
-        log_trace("x = \n");
-        for (int i = 0; i < n; i++) {
-          for (int j = 0; j < stride; j++) {
-            log_trace("%f ", x[stride*i+j]);
-          }
-          log_trace("\n");
-        }
-      }
-
-      return 0;
-    }
-
-
     static void _interp_least_squares
     (
       const int     n_closest_pts,
@@ -1383,7 +1262,14 @@ namespace cwipi {
       A[4*3+2] = A[4*2+3];
 
       double coeff[4*stride];
-      if (_linsolve(4, stride, A, b, coeff) == 0) {
+      int stat = PDM_linear_algebra_linsolve_svd(4,
+                                                 4,
+                                                 stride,
+                                                 0.,
+                                      (double *) A,
+                                      (double *) b,
+                                                 coeff);
+      if (stat == 0) {
         for (int j = 0; j < stride; j++) {
           tgt_value[j] =
           coeff[stride*0 + j] * tgt_coord[0] +
@@ -1393,7 +1279,6 @@ namespace cwipi {
         }
       }
       else {
-        // what do we do if A is singular? SVD? IDW?
         _interp_idw(n_closest_pts,
                     stride,
                     src_value,
@@ -1501,7 +1386,6 @@ namespace cwipi {
       else {
         // log_trace("singular matrix! ");
         // PDM_log_trace_array_double(tgt_coord, 3, "tgt_coord : ");
-        // what do we do if A is singular? SVD? IDW?
         _interp_idw(n_closest_pts,
                     stride,
                     src_value,
