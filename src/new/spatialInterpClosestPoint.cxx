@@ -24,6 +24,7 @@
 #include "coupling_i.hxx"
 #include "pdm_array.h"
 #include "pdm_logging.h"
+#include "pdm_linear_algebra.h"
 
 CWP_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
 
@@ -1405,6 +1406,113 @@ namespace cwipi {
     }
 
 
+    static inline void _basis_vector
+    (
+     const int     dim,
+     const int     degree,
+     const double *x,
+     const double *x0,
+           double *b
+     )
+    {
+      b[0] = 1.;
+
+      for (int j = 0; j < degree; j++) {
+        for (int i = 0; i < dim; i++) {
+          double _x = x[i];
+          if (x0 != NULL) {
+            _x -= x0[i];
+          }
+          b[1+dim*j+i] = 1.;
+          for (int k = 0; k <= j; k++) {
+            b[1+dim*j+i] *= _x;
+          }
+        }
+      }
+    }
+
+
+    static inline double _weight_function
+    (
+     const double d2
+     )
+    {
+      const double eps2 = 1e-12;
+
+      return 1. / (d2 + eps2);
+    }
+
+    static void _interp_weighted_least_squares
+    (
+      const int     degree,
+      const int     n_closest_pts,
+      const int     stride,
+      const double *src_value,
+      const double *src_coord,
+      const double *src_dist2,
+      const double *tgt_coord,
+            double *tgt_value
+     )
+    {
+      #define siz (1 + degree*3)
+
+      double A[siz*siz] = {0.};
+      double rhs[siz*stride] = {0.};
+      double b[siz];
+
+      for (int i = 0; i < n_closest_pts; i++) {
+        double wi = _weight_function(src_dist2[i]);
+
+        _basis_vector(3,
+                      degree,
+                      src_coord + 3*i,
+                      tgt_coord,
+                      b);
+
+        for (int j = 0; j < siz; j++) {
+          for (int k = 0; k < stride; k++) {
+            rhs[stride*j+k] += wi * b[j] * src_value[stride*i+k];
+          }
+
+          for (int k = j; k < siz; k++) {
+            A[siz*j+k] += wi * b[j] * b[k];
+          }
+          for (int k = 0; k < j; k++) {
+            A[siz*j+k] = A[siz*k+j];
+          }
+        }
+      }
+
+      double c[siz*stride];
+      int stat = PDM_linear_algebra_linsolve_svd(siz,
+                                                 siz,
+                                                 stride,
+                                                 0.,
+                                      (double *) A,
+                                      (double *) rhs,
+                                                 c);
+      if (stat == 0) {
+
+        for (int j = 0; j < stride; j++) {
+          tgt_value[j] = c[j];
+        }
+
+      }
+      else {
+        // log_trace("singular matrix! ");
+        // PDM_log_trace_array_double(tgt_coord, 3, "tgt_coord : ");
+        // what do we do if A is singular? SVD? IDW?
+        _interp_idw(n_closest_pts,
+                    stride,
+                    src_value,
+                    src_dist2,
+                    tgt_value);
+      }
+
+      #undef siz
+    }
+
+
 
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
@@ -1470,7 +1578,8 @@ namespace cwipi {
             n_pts = _mesh->getPartNVertex(i_part);
           }
           else {
-            PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");
+            n_pts = _cpl->userTargetNGet(i_part);
+            // PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");
           }
 
           if (!use_idw_interpolation) {
@@ -1521,13 +1630,36 @@ namespace cwipi {
                           tgt_value);
             }
             else {
-              _interp_least_squares(n_closest_pts,
-                                    nComponent,
-                                    src_value,
-                                    src_coord + 3*n_closest_pts*i,
-                                    _weights[i_part] + n_closest_pts*i,
-                                    tgt_coord + 3*i,
-                                    tgt_value);
+              char *env_var = NULL;
+              int use_wls = 0;
+              env_var = getenv("USE_WLS");
+              if (env_var != NULL) {
+                use_wls = atoi(env_var);
+              }
+              if (use_wls) {
+                int degree = 1;
+                env_var = getenv("WLS_DEGREE");
+                if (env_var != NULL) {
+                  degree = atoi(env_var);
+                }
+                _interp_weighted_least_squares(degree,
+                                               n_closest_pts,
+                                               nComponent,
+                                               src_value,
+                                               src_coord + 3*n_closest_pts*i,
+                                               _weights[i_part] + n_closest_pts*i,
+                                               tgt_coord + 3*i,
+                                               tgt_value);
+              }
+              else {
+                _interp_least_squares(n_closest_pts,
+                                      nComponent,
+                                      src_value,
+                                      src_coord + 3*n_closest_pts*i,
+                                      _weights[i_part] + n_closest_pts*i,
+                                      tgt_coord + 3*i,
+                                      tgt_value);
+              }
 
 
               if (0) {
