@@ -63,6 +63,7 @@ main(int argc, char *argv[]) {
   // ------------------------------------------------------- To fill in
   int n_code = 1;
   const char  **code_name  = malloc(sizeof(char *) * n_code);
+  MPI_Comm     *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "code2";
 
@@ -116,7 +117,7 @@ main(int argc, char *argv[]) {
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
 
   const int    itdeb = 1;
-  const int    itend = 50;
+  const int    itend = 10;
   const double freq  = 0.20;
   const double ampl  = 0.012;
   const double phi   = 0.1;
@@ -155,12 +156,10 @@ main(int argc, char *argv[]) {
 
       // ---------------------------------------------------- End To fill in
 
-      // Set interpolation property :
-      CWP_Spatial_interp_property_set(code_name[0],
-                                      coupling_name,
-                                      "tolerance",
-                                      "double",
-                                      "0.1");
+      // Set tolerance to 10%.
+      // ------------------------------------------------------- To fill in
+
+      // ---------------------------------------------------- End To fill in
 
     } else {
 
@@ -172,74 +171,62 @@ main(int argc, char *argv[]) {
     }
 
     // Compute interpolation weights :
-    CWP_Spatial_interp_weights_compute(code_name[0],
-                                       coupling_name);
+    // ------------------------------------------------------- To fill in
 
-    // Exchange
-    CWP_Field_issend(code_name[0],
-                     coupling_name,
-                     send_field_name);
+    // ---------------------------------------------------- End To fill in
 
-    CWP_Field_irecv(code_name[0],
-                    coupling_name,
-                    recv_field_name);
+    // Exchange field values between codes :
+    // Use the CWIPI exchange functions similar to the MPI ones
+    // for code2 to send "chinchilla" and receive "girafe".
+    // ------------------------------------------------------- To fill in
 
-    CWP_Field_wait_issend(code_name[0],
-                          coupling_name,
-                          send_field_name);
+    // ---------------------------------------------------- End To fill in
 
-    CWP_Field_wait_irecv(code_name[0],
-                         coupling_name,
-                         recv_field_name);
+    // Check interpolation :
+    // For the receiving field "girafe", check if all  points have been located.
+    // ------------------------------------------------------- To fill in
+    int n_uncomputed_tgts = 0;
+    const int *uncomputed_tgts = NULL;
 
-  // Check interpolation :
-  int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-                                                    coupling_name,
-                                                    recv_field_name,
-                                                    0);
+    if (n_uncomputed_tgts != 0) {
 
-  int *uncomputed_tgts = NULL;
-  if (n_uncomputed_tgts != 0) {
-    uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                              coupling_name,
-                                              recv_field_name,
-                                              0);
-  }
+    }
 
-  PDM_UNUSED(n_uncomputed_tgts);
-  PDM_UNUSED(uncomputed_tgts);
+    // ---------------------------------------------------- End To fill in
+
+    PDM_UNUSED(n_uncomputed_tgts);
+    PDM_UNUSED(uncomputed_tgts);
   } // end interations
 
-  // Delete field :
-  CWP_Field_del(code_name[0],
-                coupling_name,
-                send_field_name);
+  // Delete fields :
+  // ------------------------------------------------------- To fill in
 
-  CWP_Field_del(code_name[0],
-                coupling_name,
-                recv_field_name);
+  // ---------------------------------------------------- End To fill in
 
   // Delete Mesh :
-  CWP_Mesh_interf_del(code_name[0],
-                      coupling_name);
+  // ------------------------------------------------------- To fill in
+
+  // ---------------------------------------------------- End To fill in
 
   // Delete the coupling :
-  CWP_Cpl_del(code_name[0],
-              coupling_name);
+  // ------------------------------------------------------- To fill in
+
+  // ---------------------------------------------------- End To fill in
 
   // free
-  free(code_name);
-  free(is_active_rank);
-  free(time_init);
-  free(coupled_code_name);
-  free(coords);
-  free(elt_vtx_idx);
-  free(elt_vtx);
-  free(send_field_data);
-  free(recv_field_data);
+  if (intra_comm        != NULL) free(intra_comm);
+  if (code_name         != NULL) free(code_name);
+  if (coupled_code_name != NULL) free(coupled_code_name);
+  if (coords            != NULL) free(coords);
+  if (elt_vtx_idx       != NULL) free(elt_vtx_idx);
+  if (elt_vtx           != NULL) free(elt_vtx);
+  if (send_field_data   != NULL) free(send_field_data);
+  if (recv_field_data   != NULL) free(recv_field_data);
 
   // Finalize CWIPI :
-  CWP_Finalize();
+  // ------------------------------------------------------- To fill in
+
+  // ---------------------------------------------------- End To fill in
 
   // Finalize MPI :
   MPI_Finalize();

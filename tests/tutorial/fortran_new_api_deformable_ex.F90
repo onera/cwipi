@@ -80,49 +80,43 @@ program fortran_new_api_deformable_sol
   endif
 
   ! Initialize CWIPI :
+  ! Use CWP_Init for code2 written in C.
+  ! ------------------------------------------------------- To fill in
   n_code = 1
 
-  allocate(code_names(n_code),         &
-           is_coupled_rank(n_code),    &
-           time_init(n_code),          &
-           intra_comms(n_code))
+  allocate(code_names(n_code))
 
   code_names(1)         = "code1"
-  is_coupled_rank(1)    = CWP_STATUS_ON
-  time_init(1)          = 0.d0
 
-  call CWP_Init(mpi_comm_world,  &
-                n_code,          &
-                code_names,      &
-                is_coupled_rank, &
-                time_init,       &
-                intra_comms)
+  ! ---------------------------------------------------- End To fill in
 
   ! Create the coupling :
-  ! CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
-  ! to the mesh over the coupling steps.
+  ! In this tutorial the mesh will be deformed over the coupling
+  ! itreations. Those iterations mimic solver steps. Use CWP_Cpl_create
+  ! to couple code1 with code2. A rectangular mesh is used with triangle
+  ! elements. Operate the localization with the octree method.
+  ! ------------------------------------------------------- To fill in
   coupling_name     = "coupling"
   allocate(coupled_code_names(n_code))
   coupled_code_names(1) = "code2"
   n_part = 1;
-  call CWP_Cpl_create(code_names(1),                                         &
-                      coupling_name,                                         &
-                      coupled_code_names(1),                                 &
-                      CWP_INTERFACE_SURFACE,                                 &
-                      CWP_COMM_PAR_WITH_PART,                                &
-                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
-                      n_part,                                                &
-                      CWP_DYNAMIC_MESH_DEFORMABLE,                           &
-                      CWP_TIME_EXCH_USER_CONTROLLED)
+
+  ! ---------------------------------------------------- End To fill in
 
   ! Set coupling visualisation:
-  call CWP_Visu_set(code_names(1),           &
-                    coupling_name,           &
-                    1,                       &
-                    CWP_VISU_FORMAT_ENSIGHT, &
-                    "text")
+  ! Use CWP_Visu_set to output ASCII Ensight format files
+  ! at each iteration step. Open the CHR.case file in
+  ! paraview to visualize the deformed mesh and exchanged fields.
+  ! ------------------------------------------------------- To fill in
+
+  ! ---------------------------------------------------- End To fill in
 
   ! Create mesh :
+  ! A ParaDiGM library function is used to generate the rectangular mesh.
+  ! PDM_MPI_mpi_2_pdm_mpi_comm is used to convert the MPI communicator into
+  ! the expected ParaDiGM format. It is the users responsability to
+  ! free arrays from _simplified mesh generation functions. In a real life
+  ! coupling case here a user generated mesh would be read/loaded/given.
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
                                               n_vtx,          &
                                               n_elt,          &
@@ -133,7 +127,7 @@ program fortran_new_api_deformable_sol
   ! Interations :
   ! At each iteration the mesh coordinates and the exchanged fields are modified.
   itdeb = 1
-  itend = 50
+  itend = 10
   freq  = 0.20d0
   ampl  = 0.012d0
   phi   = 0.1d0
@@ -155,14 +149,16 @@ program fortran_new_api_deformable_sol
     time = (it-itdeb)*dt
 
     ! Deform mesh :
-
+    ! The z-coordinate of the mesh is modified with some kind of cosinus at
+    ! each iteration.
     do i = 1, n_vtx
       coords((i-1)*3+3) = (coords((i-1)*3+1)*coords((i-1)*3+1) + coords((i-1)*3+2)*coords((i-1)*3+2))* &
                           ampl*cos(omega*time+phi)
     enddo
 
     ! Update sent field :
-
+    ! The send field is updated at each iteration. It is an average of
+    ! the z-coordoninates of the nodes around the cell center.
     do  i = 1, n_elt
       send_field_data(i) = 0.
       do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
@@ -171,8 +167,11 @@ program fortran_new_api_deformable_sol
       send_field_data(i) = send_field_data(i)/ (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     enddo
 
-    ! Update user defined degrees of freedom :
-
+    ! User defined targets :
+    ! Targets at a different position than the mesh nodes are used for code1.
+    ! Here it is chosen for them to be at the cell center but they could be
+    ! at random places. Since here they depend on the mesh node position
+    ! they need to be updated when the mesh coordinates are updated.
     do i = 1, n_elt
        xyz_dest((i-1)*3+1) = 0.
        xyz_dest((i-1)*3+2) = 0.
@@ -189,154 +188,92 @@ program fortran_new_api_deformable_sol
 
     if (it == itdeb) then
 
-      ! Set the mesh vertices coordinates :
-      call CWP_Mesh_interf_vtx_set(code_names(1), &
-                                   coupling_name, &
-                                   0,             &
-                                   n_vtx,         &
-                                   coords,        &
-                                   vtx_g_num)
+      ! Set the mesh :
+      ! Here the appropriate CWIPI functions should be called to
+      ! set the arrays difining the mesh.
+      ! ------------------------------------------------------- To fill in
 
-      ! Set the mesh polygons connectivity :
-      id_block = CWP_Mesh_interf_block_add(code_names(1),       &
-                                           coupling_name,       &
-                                           CWP_BLOCK_FACE_POLY)
+      ! ---------------------------------------------------- End To fill in
 
-      call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
-                                            coupling_name, &
-                                            0,             &
-                                            id_block,      &
-                                            n_elt,         &
-                                            elt_vtx_idx,    &
-                                            elt_vtx,        &
-                                            elt_g_num)
+      ! Set user defined targets :
+      ! As explained, the xyz_dest array is filled with user targets (a set of
+      ! vertices that are not located on the mesh nodes). Use CWP_User_tgt_pts_set
+      ! to set those.
+      ! ------------------------------------------------------- To fill in
 
-      ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory :
-      ! This is a point cloud different from the nodes of the mesh that were
-      ! previously set.
-      call CWP_User_tgt_pts_set(code_names(1), &
-                                coupling_name, &
-                                0,             &
-                                n_elt,         &
-                                xyz_dest,      &
-                                pts_g_num)
+      ! ---------------------------------------------------- End To fill in
 
-      ! Finalize mesh :
-      call CWP_Mesh_interf_finalize(code_names(1), &
-                                    coupling_name)
+      ! Finalize the mesh :
+      ! ------------------------------------------------------- To fill in
+
+      ! ---------------------------------------------------- End To fill in
 
       n_components = 1
-      ! Create field :
-      call CWP_Field_create(code_names(1),                &
-                            coupling_name,                &
-                            send_field_name,              &
-                            CWP_DOUBLE,                   &
-                            CWP_FIELD_STORAGE_INTERLACED, &
-                            n_components,                 &
-                            CWP_DOF_LOCATION_USER,        &
-                            CWP_FIELD_EXCH_SEND,          &
-                            CWP_STATUS_ON)
+      ! Set fields :
+      ! code1 sends the "girafe" field and receives "chinchilla". The field
+      ! that is sent is not on the user targets but on the mesh. The field
+      ! that is received is located on the user targets.
+      ! ------------------------------------------------------- To fill in
 
-      ! Set the field values :
-      call CWP_Field_data_set(code_names(1),        &
-                              coupling_name,        &
-                              send_field_name,      &
-                              0,                    &
-                              CWP_FIELD_MAP_SOURCE, &
-                              send_field_data)
+      ! ---------------------------------------------------- End To fill in
 
-      ! Create field :
-      call CWP_Field_create(code_names(1),                &
-                            coupling_name,                &
-                            recv_field_name,              &
-                            CWP_DOUBLE,                   &
-                            CWP_FIELD_STORAGE_INTERLACED, &
-                            n_components,                 &
-                            CWP_DOF_LOCATION_USER,        &
-                            CWP_FIELD_EXCH_RECV,          &
-                            CWP_STATUS_ON)
 
-      ! Set the field values :
-      call CWP_Field_data_set(code_names(1),        &
-                              coupling_name,        &
-                              recv_field_name,      &
-                              0,                    &
-                              CWP_FIELD_MAP_TARGET, &
-                              recv_field_data)
+      ! Set tolerance to 10%.
+      ! ------------------------------------------------------- To fill in
 
-      ! Set interpolation property :
-      call CWP_Spatial_interp_property_set(code_names(1), &
-                                           coupling_name, &
-                                           "tolerance",   &
-                                           "double",      &
-                                           "0.1")
+      ! ---------------------------------------------------- End To fill in
 
     else
 
-      ! Update time :
-      ! One need to informs CWIPI that we moved to a new interation step.
-      call CWP_Time_update(code_names(1), &
-                           time)
+      ! Find the correct CWIPI function to inform CWIPI that the
+      ! the time step has been incremented.
+      ! ------------------------------------------------------- To fill in
+
+      ! ---------------------------------------------------- End To fill in
 
     endif
 
     ! Compute interpolation weights :
-    call CWP_Spatial_interp_weights_compute(code_names(1), &
-                                            coupling_name)
+    ! ------------------------------------------------------- To fill in
 
-    ! Exchange field values :
-    call CWP_Field_irecv(code_names(1), &
-                         coupling_name, &
-                         recv_field_name)
+    ! ---------------------------------------------------- End To fill in
 
-    call CWP_Field_issend(code_names(1), &
-                          coupling_name, &
-                          send_field_name)
+    ! Exchange field values between codes :
+    ! Use the CWIPI exchange functions similar to the MPI ones
+    ! for code1 to send "girafe" and receive "chinchilla".
+    ! ------------------------------------------------------- To fill in
 
-    call CWP_Field_wait_irecv(code_names(1), &
-                              coupling_name, &
-                              recv_field_name)
-
-    call CWP_Field_wait_issend(code_names(1), &
-                               coupling_name, &
-                               send_field_name)
+    ! ---------------------------------------------------- End To fill in
 
     ! Check interpolation :
-    n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1),   &
-                                                  coupling_name,   &
-                                                  recv_field_name, &
-                                                  0)
+    ! For the receiving field "girafe", check if all  points have been located.
+    ! ------------------------------------------------------- To fill in
+    n_uncomputed_tgts = 0
 
     if (n_uncomputed_tgts /= 0) then
-      uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1),   &
-                                                 coupling_name,   &
-                                                 recv_field_name, &
-                                                 0)
+
     endif
+    ! ---------------------------------------------------- End To fill in
 
   enddo
 
-  ! Delete field :
-  call CWP_Field_Del(code_names(1),   &
-                     coupling_name,   &
-                     send_field_name)
+  ! Delete fields :
+  ! ------------------------------------------------------- To fill in
 
-  call CWP_Field_Del(code_names(1),   &
-                     coupling_name,   &
-                     recv_field_name)
+  ! ---------------------------------------------------- End To fill in
 
   ! Delete Mesh :
-  call CWP_Mesh_interf_del(code_names(1), &
-                           coupling_name)
+  ! ------------------------------------------------------- To fill in
+
+  ! ---------------------------------------------------- End To fill in
 
   ! Delete the coupling :
-  call CWP_Cpl_Del(code_names(1), &
-                   coupling_name)
+  ! ------------------------------------------------------- To fill in
+
+  ! ---------------------------------------------------- End To fill in
 
   ! free
   deallocate(code_names)
-  deallocate(is_coupled_rank)
-  deallocate(time_init)
   deallocate(intra_comms)
   deallocate(coupled_code_names)
   deallocate(send_field_data)
@@ -344,8 +281,14 @@ program fortran_new_api_deformable_sol
   deallocate(xyz_dest)
   deallocate(uncomputed_tgts)
 
+  call pdm_fortran_free_c(c_loc(coords))
+  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
+  call pdm_fortran_free_c(c_loc(elt_vtx))
+
   ! Finalize CWIPI :
-  call CWP_Finalize()
+  ! ------------------------------------------------------- To fill in
+
+  ! ---------------------------------------------------- End To fill in
 
   ! Finalize MPI :
   call MPI_Finalize(ierr)
