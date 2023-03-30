@@ -891,6 +891,9 @@ CWP_Spatial_interp_weights_compute
 /**
  * \brief Set a property of the spatial interpolation algorithm.
  *
+ * Use "n_closest_pts" and "polyfit_degree" for the closest point
+ * algorithm. Use tolerance" for the location algorithm.
+ *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  property_name    Name of the property
