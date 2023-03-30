@@ -69,6 +69,15 @@ namespace cwipi {
         ~SpatialInterpLocationMeshLocationDbbtree() override = default;
     };
 
+    class SpatialInterpLocationMeshLocationLocateAllTgt : public SpatialInterpLocationMeshLocation {
+    public:
+        SpatialInterpLocationMeshLocationLocateAllTgt() {
+            _location_method = PDM_MESH_LOCATION_LOCATE_ALL_TGT;
+        };
+
+        ~SpatialInterpLocationMeshLocationLocateAllTgt() override = default;
+    };
+
 /**
  * \endcond
  */
