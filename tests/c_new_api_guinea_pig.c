@@ -30,7 +30,6 @@
 
 #include "grid_mesh.h"
 #include "pdm_dcube_nodal_gen.h"
-#include "pdm_multipart.h"
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_dmesh.h"
 #include "pdm_array.h"
@@ -267,30 +266,30 @@ int main(int argc, char *argv[])
 
   CWP_Cpl_del(code_name[0], cpl_name);
 
-  const char   *field_name[]   = {field_name1};//, field_name2};
-  const double *field_value[2];
-  if (code_id == 0) {
-    field_value[0] = send_val;
-    // field_value[1] = recv_val;
-  }
-  else {
-    field_value[0] = send_val;
-    // field_value[1] = recv_val;
-  }
+  // const char   *field_name[]   = {field_name1};//, field_name2};
+  // const double *field_value[2];
+  // if (code_id == 0) {
+  //   field_value[0] = send_val;
+  //   // field_value[1] = recv_val;
+  // }
+  // else {
+  //   field_value[0] = send_val;
+  //   // field_value[1] = recv_val;
+  // }
 
-  sprintf(filename, "result_guinea_pig_%d.vtk", code_id+1);
-  PDM_vtk_write_polydata_field(filename,
-                               n_vtx,
-                               vtx_coord,
-                               NULL,
-                               n_face,
-                               face_vtx_idx,
-                               face_vtx,
-                               NULL,
-                               NULL,
-                               NULL,
-                               field_name[0],
-                               field_value[0]);
+  // sprintf(filename, "result_guinea_pig_%d.vtk", code_id+1);
+  // PDM_vtk_write_polydata_field(filename,
+  //                              n_vtx,
+  //                              vtx_coord,
+  //                              NULL,
+  //                              n_face,
+  //                              face_vtx_idx,
+  //                              face_vtx,
+  //                              NULL,
+  //                              NULL,
+  //                              NULL,
+  //                              field_name[0],
+  //                              field_value[0]);
 
 
 

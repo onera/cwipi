@@ -272,36 +272,27 @@ _gen_part_data
   for (int ipart = 0; ipart < n_part; ipart++) {
 
     /* Vertices */
-    PDM_g_num_t *_vtx_ln_to_gn;
     (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
                                                        0,
                                                        ipart,
                                                        PDM_MESH_ENTITY_VERTEX,
-                                                       &_vtx_ln_to_gn,
+                                                       &(*pvtx_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
-    (*pvtx_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*pn_vtx)[ipart]);
-    memcpy((*pvtx_ln_to_gn)[ipart], _vtx_ln_to_gn, sizeof(PDM_g_num_t) * (*pn_vtx)[ipart]);
 
-    double *_vtx_coord;
     PDM_multipart_part_vtx_coord_get(mpart,
                                      0,
                                      ipart,
-                                     &_vtx_coord,
+                                     &(*pvtx_coord)[ipart],
                                      PDM_OWNERSHIP_USER);
-    (*pvtx_coord)[ipart] = malloc(sizeof(double) * (*pn_vtx)[ipart] * 3);
-    memcpy((*pvtx_coord)[ipart], _vtx_coord, sizeof(double) * (*pn_vtx)[ipart] * 3);
 
 
     /* Faces */
-    PDM_g_num_t *_face_ln_to_gn;
     (*pn_face)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
                                                        0,
                                                        ipart,
                                                        PDM_MESH_ENTITY_FACE,
-                                                       &_face_ln_to_gn,
+                                                       &(*pface_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
-    (*pface_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*pn_face)[ipart]);
-    memcpy((*pface_ln_to_gn)[ipart], _face_ln_to_gn, sizeof(PDM_g_num_t) * (*pn_face)[ipart]);
 
     int *_face_vtx;
     int *_face_vtx_idx;
@@ -311,7 +302,7 @@ _gen_part_data
                                         PDM_CONNECTIVITY_TYPE_FACE_VTX,
                                         &_face_vtx,
                                         &_face_vtx_idx,
-                                        PDM_OWNERSHIP_USER);
+                                        PDM_OWNERSHIP_KEEP);
 
     if (_face_vtx != NULL) {
       (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
