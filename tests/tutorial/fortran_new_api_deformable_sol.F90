@@ -133,7 +133,7 @@ program fortran_new_api_deformable_sol
   ! Interations :
   ! At each iteration the mesh coordinates and the exchanged fields are modified.
   itdeb = 1
-  itend = 50
+  itend = 10
   freq  = 0.20d0
   ampl  = 0.012d0
   phi   = 0.1d0
@@ -233,7 +233,7 @@ program fortran_new_api_deformable_sol
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
-                            CWP_DOF_LOCATION_USER,        &
+                            CWP_DOF_LOCATION_CELL_CENTER, &
                             CWP_FIELD_EXCH_SEND,          &
                             CWP_STATUS_ON)
 
@@ -343,6 +343,10 @@ program fortran_new_api_deformable_sol
   deallocate(recv_field_data)
   deallocate(xyz_dest)
   deallocate(uncomputed_tgts)
+
+  call pdm_fortran_free_c(c_loc(coords))
+  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
+  call pdm_fortran_free_c(c_loc(elt_vtx))
 
   ! Finalize CWIPI :
   call CWP_Finalize()

@@ -126,7 +126,7 @@ main(int argc, char *argv[]) {
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
 
   const int    itdeb = 1;
-  const int    itend = 50;
+  const int    itend = 10;
   const double freq  = 0.20;
   const double ampl  = 0.012;
   const double phi   = 0.1;
@@ -256,7 +256,7 @@ main(int argc, char *argv[]) {
                                                     recv_field_name,
                                                     0);
 
-  int *uncomputed_tgts = NULL;
+  const int *uncomputed_tgts = NULL;
   if (n_uncomputed_tgts != 0) {
     uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
                                               coupling_name,
@@ -286,6 +286,7 @@ main(int argc, char *argv[]) {
               coupling_name);
 
   // free
+  free(intra_comm);
   free(code_name);
   free(is_active_rank);
   free(time_init);
