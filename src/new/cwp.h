@@ -294,7 +294,6 @@ typedef enum {
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT, /*!< Location into a mesh (all targets are located) */
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,         /*!< Location into a mesh with the octree method*/
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE,        /*!< Location into a mesh with the dbbtree method */
-  CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,              /*!< Location into a mesh with the distance from the points cloud to surface */
   CWP_SPATIAL_INTERP_FROM_IDENTITY
 
 } CWP_Spatial_interp_t;

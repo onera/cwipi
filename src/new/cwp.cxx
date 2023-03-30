@@ -67,7 +67,6 @@
 #include "surfMeshGeneratorDB.hxx"
 #include "spatialInterpClosestPoint.hxx"
 #include "spatialInterpIntersection.hxx"
-#include "spatialInterpLocationDistSurf.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
 #include "spatialInterpIdentity.hxx"
 
@@ -609,7 +608,6 @@ CWP_Init
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
     cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationDistSurf>(CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
@@ -2384,8 +2382,8 @@ CWP_Interp_location_weights_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
@@ -2431,8 +2429,8 @@ CWP_Interp_location_point_data_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
@@ -2481,8 +2479,8 @@ CWP_Interp_location_internal_cell_vtx_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }

@@ -37,7 +37,6 @@
 #include "surfMeshGeneratorDB.hxx"
 #include "spatialInterpClosestPoint.hxx"
 #include "spatialInterpIntersection.hxx"
-#include "spatialInterpLocationDistSurf.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
 
 #include "mesh.hxx"
