@@ -559,11 +559,6 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
-  case CWP_MSG_CWP_FIELD_N_COMPONENT_GET: {
-    char name[] = "CWP_Field_n_component_get";
-    strcpy(function, name);
-    } break;
-
   case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET: {
     char name[] = "CWP_Field_target_dof_location_get";
     strcpy(function, name);
@@ -4815,71 +4810,6 @@ CWP_client_Field_data_set
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
-}
-
-int
-CWP_client_Field_n_component_get
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const char      *field_id
-)
-{
-  t_message msg;
-
-  // verbose
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
-    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_n_component_get\n", clt->code_name);
-    PDM_printf_flush();
-  }
-
-  // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_FIELD_N_COMPONENT_GET);
-
-  // send message
-  if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_n_component_get failed to send message header\n");
-  }
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-
-  // send local code name
-  write_name(local_code_name);
-
-  // send coupling identifier
-  write_name(cpl_id);
-
-  // send field identifier
-  write_name(field_id);
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-
-  // read number of components
-  int n_components = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_components, sizeof(int));
-
-  return n_components; // Could just use what is stored in local struct
 }
 
 CWP_Dof_location_t

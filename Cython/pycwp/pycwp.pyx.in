@@ -378,9 +378,6 @@ cdef extern from "cwp.h":
                           int                i_part,
                           CWP_Field_map_t    map_type,
                           double            *data)
-  int CWP_Field_n_component_get(char      *local_code_name,
-                                char      *cpl_id,
-                                char      *field_id)
   CWP_Dof_location_t CWP_Field_target_dof_location_get(char      *local_code_name,
                                                        char      *cpl_id,
                                                        char      *field_id)
@@ -2049,20 +2046,6 @@ cdef class Field (object):
         CWP_Field_wait_irecv(self.local_code_name,
                              self.cpl_id,
                              self.field_id)
-
-    def n_component_get(self):
-        """
-        Get number of field components.
-
-        Returns:
-          n_comp (int) : Number of field components
-        """
-
-        cdef int n_comp = CWP_Field_n_component_get(self.local_code_name,
-                                                    self.cpl_id,
-                                                    self.field_id)
-
-        return n_comp
 
     def target_dof_location_get(self):
         """

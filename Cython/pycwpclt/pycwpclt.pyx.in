@@ -365,9 +365,6 @@ cdef extern from "client_server/client.h":
                                  CWP_Field_map_t    map_type,
                                  int                n_entities,
                                  double             *data)
-  int CWP_client_Field_n_component_get(char      *local_code_name,
-                                       char      *cpl_id,
-                                       char      *field_id)
   CWP_Dof_location_t CWP_client_Field_target_dof_location_get(char      *local_code_name,
                                                               char      *cpl_id,
                                                               char      *field_id)
@@ -1429,20 +1426,6 @@ cdef class Field (object):
                                   map_type,
                                   n_entities,
                        <double *> data.data)
-
-    def n_component_get(self):
-        """
-        Get number of field components.
-
-        Returns:
-          n_comp (int) : Number of field components
-        """
-
-        cdef int n_comp = CWP_client_Field_n_component_get(self.local_code_name,
-                                                           self.cpl_id,
-                                                           self.field_id)
-
-        return n_comp
 
     def target_dof_location_get(self):
         """

@@ -1023,16 +1023,6 @@ main
   free((void *) cell_ln_to_gn);
   free((void *) mesh_nodal);
 
-  // Field_*
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    int n_component = CWP_client_Field_n_component_get(code_names[i_code],
-                                                       cpl_name,
-                                                       field_name);
-
-    printf("%d : %s --- number of components: %d\n", rank, code_names[i_code], n_component);
-  }
-
   // property_set
 
   if (cond_code1) {

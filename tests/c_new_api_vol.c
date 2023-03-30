@@ -360,46 +360,42 @@ _gen_mesh
                       &dface_group);
 
     /* Generate dmesh */
-    int n_join = 0;
     PDM_dmesh_t *dmesh = PDM_dmesh_create (PDM_OWNERSHIP_KEEP,
                                            dn_cell,
                                            dn_face,
                                            dn_edge,
                                            dn_vtx,
-                                           n_face_group,
-                                           n_join,
                                            comm);
 
-    int *djoins_ids = malloc (sizeof(int) * n_join);
-    int *dface_join_idx = malloc (sizeof(int) * (n_join + 1));
-    dface_join_idx[0] = 0;
-    PDM_g_num_t *dface_join = malloc (sizeof(PDM_g_num_t) * dface_join_idx[n_join]);
+    PDM_dmesh_vtx_coord_set(dmesh,
+                            dvtx_coord,
+                            PDM_OWNERSHIP_USER);
 
-    PDM_dmesh_set (dmesh,
-                   dvtx_coord,
-                   dface_vtx_idx,
-                   dface_vtx,
-                   dface_cell,
-                   dface_group_idx,
-                   dface_group,
-                   djoins_ids,
-                   dface_join_idx,
-                   dface_join);
+
+    PDM_dmesh_connectivity_set(dmesh,
+                               PDM_CONNECTIVITY_TYPE_FACE_VTX,
+                               dface_vtx,
+                               dface_vtx_idx,
+                               PDM_OWNERSHIP_USER);
+
+    PDM_dmesh_connectivity_set(dmesh,
+                               PDM_CONNECTIVITY_TYPE_FACE_CELL,
+                               dface_cell,
+                               NULL,
+                               PDM_OWNERSHIP_USER);
+
+    PDM_dmesh_bound_set(dmesh,
+                        PDM_BOUND_TYPE_FACE,
+                        n_face_group,
+                        dface_group,
+                        dface_group_idx,
+                        PDM_OWNERSHIP_USER);
 
     PDM_multipart_register_block (mpart, 0, dmesh);
-
-    /* Connection between zones */
-    int n_total_joins = 0;
-    int *join_to_opposite = malloc(sizeof(int) * n_total_joins);
-    PDM_multipart_register_joins (mpart, n_total_joins, join_to_opposite);
 
     PDM_multipart_run_ppart(mpart);
 
     PDM_dmesh_free(dmesh);
-    free(djoins_ids);
-    free(dface_join_idx);
-    free(dface_join);
-    free(join_to_opposite);
     free(dvtx_coord);
     free(dcell_face_idx);
     free(dcell_face);

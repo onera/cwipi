@@ -1129,25 +1129,6 @@ CWP_client_Field_data_set
 
 /**
  *
- * \brief Field_n_component_get CWIPI.
- *  * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      number of field components
- *
- */
-
-int
-CWP_client_Field_n_component_get
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const char      *field_id
-);
-
-/**
- *
  * \brief Field_target_dof_location_get CWIPI.
  *
  * \param [in] local_code_name  Local code name

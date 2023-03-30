@@ -2263,7 +2263,7 @@ CWP_Interp_field_n_components_get
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  return cpl.n_components_get(field_id);
+  return cpl.fieldNComponentGet(field_id);
 }
 
 /**
@@ -2707,31 +2707,6 @@ CWP_Field_data_get
     cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
     cpl.fieldDataGet(field_id, i_part, map_type, (void **) data);
   }
-}
-
-
-/**
- *
- * \brief Get number of field components.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      number of field components
- *
- */
-
-int
-CWP_Field_n_component_get
-(
- const char                  *local_code_name,
- const char                  *cpl_id,
- const char                  *field_id
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  return cpl.fieldNComponentGet(field_id);
 }
 
 

@@ -375,20 +375,6 @@ namespace cwipi {
 
   }
 
-  // Get coupling communicator and coupling ranks.
-
-  int
-  oldCoupling::commGet (
-    MPI_Comm  *cpl_comm,
-    int      **cpl_ranks
-  )
-  {
-    *cpl_comm  = _couplingComm;
-    *cpl_ranks = _rankList;
-
-    return _nRankList;
-  }
-
   void oldCoupling::_interpolate(double *referenceField,
                                  std::vector<double>& interpolatedField,
                                  const int stride)

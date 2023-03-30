@@ -311,10 +311,6 @@ module cwp
         CWP_Field_data_set_
     end interface CWP_Field_data_set
 
-    interface CWP_Field_n_component_get ; module procedure &
-        CWP_Field_n_component_get_
-    end interface CWP_Field_n_component_get
-
     interface CWP_Field_target_dof_location_get ; module procedure &
         CWP_Field_target_dof_location_get_
     end interface CWP_Field_target_dof_location_get
@@ -542,7 +538,6 @@ module cwp
              CWP_Mesh_interf_from_faceedge_set_ ,&
              CWP_Field_create_ ,&
              CWP_Field_data_set_ ,&
-             CWP_Field_n_component_get_ ,&
              CWP_Field_target_dof_location_get_ ,&
              CWP_Field_storage_get_ ,&
              CWP_Field_del_ ,&
@@ -1494,22 +1489,6 @@ module cwp
       integer(c_int)        :: n_elts, n_faces
       type(c_ptr)           :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num
     end subroutine CWP_Mesh_interf_c_poly_block_get_cf
-
-
-    function CWP_Field_n_component_get_cf(local_code_name,   &
-                                          l_local_code_name, &
-                                          cpl_id,            &
-                                          l_cpl_id,          &
-                                          field_id,          &
-                                          l_field_id)        &
-      result (n_component)                                   &
-      bind(c, name='CWP_Field_n_component_get_cf')
-      use, intrinsic :: iso_c_binding
-      implicit none
-      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
-      integer(c_int)        :: n_component
-    end function CWP_Field_n_component_get_cf
 
 
     function CWP_Field_target_dof_location_get_cf(local_code_name,   &
@@ -3461,44 +3440,6 @@ contains
                                 map_type,          &
                                 c_loc(data))
   end subroutine CWP_Field_data_set_
-
-
-  !>
-  !!
-  !! \brief Get number of field components.
-  !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] field_id         Field identifier
-  !!
-  !! \return                      number of field components
-  !!
-  !!
-
-  function CWP_Field_n_component_get_(local_code_name, &
-                                     cpl_id,          &
-                                     field_id)        &
-    result (n_component)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
-    integer(c_int) :: n_component
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
-
-    l_local_code_name = len(local_code_name)
-    l_cpl_id          = len(cpl_id)
-    l_field_id        = len(field_id)
-
-    n_component = CWP_Field_n_component_get_cf(local_code_name,   &
-                                               l_local_code_name, &
-                                               cpl_id,            &
-                                               l_cpl_id,          &
-                                               field_id,          &
-                                               l_field_id)
-
-  end function CWP_Field_n_component_get_
 
 
   !>

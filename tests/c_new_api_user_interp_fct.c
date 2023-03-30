@@ -91,6 +91,9 @@ main(int argc, char *argv[]) {
   CWP_Status_t *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
   double       *time_init         = malloc(sizeof(double) * n_code);
 
+  is_active_rank[0] = CWP_STATUS_ON;
+  time_init[0] = 0.;
+
   int code_id;
   if (i_rank % 2 == 0) {
     code_id = 1;

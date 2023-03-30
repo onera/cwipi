@@ -760,40 +760,6 @@ void cwipi_create_coupling
 
 /*----------------------------------------------------------------------------
  *
- * Get coupling communicator and coupling ranks.
- *
- * parameters:
- *   local_code_name  <-- Local code name
- *   cpl_id           <-- Coupling identifier
- *   cpl_comm         --> Coupling communicator
- *   cpl_ranks        --> Coupling ranks
- *
- * returns:
- *   size             --> Number of ranks
- *----------------------------------------------------------------------------*/
-
-int cwipi_coupling_comm_get
-(
- const char  *coupling_name,
- MPI_Comm   *cpl_comm,
- int       **cpl_ranks
-)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_name;
-
-  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  int size = coupling.commGet(cpl_comm,
-                              cpl_ranks);
-
-  return size;
-}
-
-/*----------------------------------------------------------------------------
- *
  * Set data user (optional)
  *
  * parameters:

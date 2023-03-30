@@ -1035,5 +1035,5 @@ main
   // Finalize MPI
   MPI_Finalize();
 
-  return (gn_wrong == 0);
+  return (gn_wrong > 0);
 }

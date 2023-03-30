@@ -1648,44 +1648,6 @@ CWP_Field_data_set_cf (
 
 /**
  *
- * \brief Get number of field components.
- *  * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      number of field components
- *
- */
-
-int
-CWP_Field_n_component_get_cf
-(
- const char      *f_local_code_name,
-       int        l_local_code_name,
- const char      *f_cpl_id,
-       int        l_cpl_id,
- const char      *f_field_id,
-       int        l_field_id
-)
-{
-  char *c_local_code_name, *c_cpl_id, *c_field_id;
-
-  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
-  c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
-
-  int n_component = CWP_Field_n_component_get(c_local_code_name, c_cpl_id, c_field_id);
-
-  free ( c_local_code_name);
-  free ( c_cpl_id);
-  free ( c_field_id);
-
-  return n_component;
-}
-
-
-/**
- *
  * \brief Get target degrees of freedom location.
  *
  * \param [in] local_code_name  Local code name
