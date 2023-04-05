@@ -477,10 +477,9 @@ if (CWP_ENABLE_NEW_API)
   endif()
 endif()
 
-
 add_subdirectory(tests)
-add_subdirectory(doc)
 
+add_subdirectory(doc)
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages

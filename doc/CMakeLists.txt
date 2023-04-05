@@ -21,7 +21,6 @@ if(CWP_ENABLE_DOCUMENTATION)
     configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
     add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
-                       # DEPENDS ${CAT_CUTIFIER_PUBLIC_HEADERS}
                        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
                        MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
                        COMMENT "Generating API documentation with Doxygen"
