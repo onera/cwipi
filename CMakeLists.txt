@@ -500,6 +500,8 @@ add_subdirectory(${CWP_CMAKE_DIR}/post-install)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
+  message(STATUS "Going to execute custom command !")
+
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
@@ -507,13 +509,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   # Delete previous .gcno and .gcda files : TO DO ?
 
   # run test
-  add_custom_target(cwp_test
-                    COMMAND ctest -j 24
+  add_custom_target(cwp_test ALL
+                    COMMAND ctest -R c_new_api_dcube --verbose #ctest -j 24
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    DEPENDS c_new_api_dcube # liste des test comme ce que prends pdm_run
                     COMMENT "Running test for coverage")
 
   # command to generate xml coverage summary
-  add_custom_target(cwp_coverage
+  add_custom_target(cwp_coverage ALL
                     COMMAND gcovr --cobertura-pretty
                             --root ${CMAKE_SOURCE_DIR}
                             --object-directory ${CMAKE_BINARY_DIR}
