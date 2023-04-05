@@ -322,6 +322,10 @@ CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 set(COMMON_LIBRARIES)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
+   add_link_options("--coverage")
+endif()
+
 #------------------------------------------------------------------------------
 # Check dependecies
 #------------------------------------------------------------------------------
@@ -490,3 +494,39 @@ FEATURE_SUMMARY(WHAT ALL)
 #------------------------------------------------------------------------------
 
 add_subdirectory(${CWP_CMAKE_DIR}/post-install)
+
+#------------------------------------------------------------------------------
+# Print coverage report
+#------------------------------------------------------------------------------
+
+if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
+
+  if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
+    message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
+  endif()
+
+  # Delete previous .gcno and .gcda files : TO DO ?
+
+  # run test
+  add_custom_target(cwp_test
+                    COMMAND ctest -j 24
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running test for coverage")
+
+  # command to generate xml coverage summary
+  add_custom_target(cwp_coverage
+                    COMMAND gcovr --cobertura-pretty
+                            --root ${CMAKE_SOURCE_DIR}
+                            --object-directory ${CMAKE_BINARY_DIR}
+                            --output cwp_coverage.xml
+                    BYPRODUCTS cwp_coverage.xml
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    DEPENDS cwp_test
+                    COMMENT "Running gcovr to produce Cobertura code coverage summary")
+
+  # execute command
+  add_custom_command(TARGET cwp_coverage POST_BUILD
+                     COMMAND ;
+                     COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
+
+endif()

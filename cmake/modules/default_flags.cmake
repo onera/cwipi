@@ -166,7 +166,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g")
   set (CMAKE_C_FLAGS_SANITIZE        "-O0 -g -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
-  set (CMAKE_C_FLAGS_COVERAGE        "-O0 -g")
+  set (CMAKE_C_FLAGS_COVERAGE        "-O0 -g --coverage -fprofile-dir=${CMAKE_SOURCE_DIR}") # --coverage equivalent to -fprofile-arcs -ftest-coverage for recent compilers
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
 
