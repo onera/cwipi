@@ -636,6 +636,7 @@ CWP_Properties_str_dump
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
+ * \param [in]  entities_dim        Coupling interface type
  * \param [in]  comm_type           Communication type
  * \param [in]  spatial_interp      Spatial interpolation method
  * \param [in]  n_part              Number of interface partition
@@ -890,6 +891,9 @@ CWP_Spatial_interp_weights_compute
 
 /**
  * \brief Set a property of the spatial interpolation algorithm.
+ *
+ * Use "n_closest_pts" and "polyfit_degree" for the closest point
+ * algorithm. Use tolerance" for the location algorithm.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier

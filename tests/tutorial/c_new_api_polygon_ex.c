@@ -68,6 +68,9 @@ main(int argc, char *argv[]) {
   // Create the coupling :
   // Use CWP_Cpl_create to couple code1 with code2 on a surface
   // interface. Operate the localization with the octree method.
+  // In this tutorial, one coupling iteration is done on a mesh
+  // partitionned over all processors. This induces that the mesh
+  // is static.
   // ------------------------------------------------------- To fill in
   int n_part = 1;
   const char  *coupling_name     = "code1_code2";
@@ -92,7 +95,8 @@ main(int argc, char *argv[]) {
 
   // Set the mesh vertices coordinates :
   // Use CWP_Mesh_interf_vtx_set to set the mesh vertex coordinates,
-  // no global numbering of the vertices will be given.
+  // no global numbering of the vertices will be given. In this
+  // simple setting, there is only one partition per processor.
   // ------------------------------------------------------- To fill in
   int    n_vtx  = 11;
   double coords[33] = {0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
@@ -124,7 +128,9 @@ main(int argc, char *argv[]) {
   // Use CWP_Field_create and CWP_Field_data_set to create and set
   // a field onto the mesh. code1 will send its field which code2
   // will receive. The field is located at the mesh nodes.
-  // There is only one mesh partition in this tutorial.
+  // There is only one mesh partition in this tutorial. Activate
+  // visualization for this field if you wish it to be in the
+  // Ensight file.
   // ------------------------------------------------------- To fill in
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
@@ -156,6 +162,10 @@ main(int argc, char *argv[]) {
   // Exchange field values between codes :
   // Use the CWIPI exchange functions similar to the MPI ones
   // for code1 to send a field and code2 to receive that field.
+  // The reason for the double if statements is that the exchange
+  // operation is non-blocking. That means that work can be done
+  // before calling the wait function where the field need to be
+  // used or changed.
   // ------------------------------------------------------- To fill in
   if (I_am_code1) {
 
@@ -178,8 +188,12 @@ main(int argc, char *argv[]) {
   // ---------------------------------------------------- End To fill in
 
   // Check interpolation :
-  // For the receiving code, check the vertices for which the
-  // interpolation has been unsuccessful.
+  // The field that has been sent will be interpolated on the vertices
+  // of the mesh of the receiving code. Depending on the geometric
+  // tolerance and the interpolation algorithm used, some points might
+  // not be located. Users often want all points on the receiving mesh
+  // to have a field value. Thus, for the receiving code, check if there
+  // are vertices for which the interpolation has been unsuccessful.
   // ------------------------------------------------------- To fill in
 
   // ---------------------------------------------------- End To fill in

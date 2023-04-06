@@ -4,6 +4,7 @@ if (CWP_ENABLE_NEW_API)
   test_c_create (c_new_api_deformable_sol  2)
   test_c_create (c_new_api_polygon_sol     2)
 
+  test_c_create (c_new_api_deformable_ex   2)
   test_c_create (c_new_api_polygon_ex      2)
 
   # fortran
@@ -11,6 +12,7 @@ if (CWP_ENABLE_NEW_API)
     test_fortran_create (fortran_new_api_deformable_sol 2)
     test_fortran_create (fortran_new_api_polygon_sol    2)
 
+    test_fortran_create (fortran_new_api_deformable_ex  2)
     test_fortran_create (fortran_new_api_polygon_ex     2)
   endif()
 
