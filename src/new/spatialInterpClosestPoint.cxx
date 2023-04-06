@@ -1339,6 +1339,19 @@ namespace cwipi {
             double *tgt_value
      )
     {
+      /* Special case : coincident points */
+      const double eps_dist2 = 1e-24;
+
+      for (int i = 0; i < n_closest_pts; i++) {
+        if (src_dist2[i] < eps_dist2) {
+          for (int j = 0; j < stride; j++) {
+            tgt_value[j] = src_value[stride*i+j];
+          }
+          return;
+        }
+      }
+
+
       #define siz (1 + degree*3)
 
       double A[siz*siz] = {0.};

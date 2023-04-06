@@ -24,7 +24,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "cwipi.h"
+#include "cwp_priv.h"
 #include "cwp.h"
 
 #include "pdm.h"
@@ -41,6 +41,8 @@
 
 #define ABS(a)    ((a) < 0   ? -(a) : (a))
 #define MAX(a, b) ((a) > (b) ?  (a) : (b))
+
+static int polyfit_degree = 1;
 
 /*----------------------------------------------------------------------
  *
@@ -149,6 +151,15 @@ _read_args
         *n_closest_pts = atoi(argv[i]);
       }
     }
+    else if (strcmp(argv[i], "-polyfit_degree") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        polyfit_degree = atoi(argv[i]);
+      }
+    }
     else if (strcmp(argv[i], "-algo") == 0) {
       i++;
       if (i >= argc) {
@@ -194,6 +205,23 @@ _paper
 }
 
 
+static double
+_polynomial
+(
+ const double x,
+ const double y,
+ const double z
+ )
+{
+  double f = 1.;
+
+  for (int d = 1; d <= polyfit_degree; d++) {
+    f += (pow(x, d) + pow(y, d) + pow(z, d)) / pow(2, d);
+  }
+
+  return f;
+}
+
 static void
 _gen_part_data
 (
@@ -213,7 +241,6 @@ _gen_part_data
        PDM_data_t         **vtx_field_type,
        int                **vtx_field_stride,
        double           ****pvtx_field_value
-
  )
 {
   int i_rank;
@@ -354,6 +381,7 @@ _gen_part_data
 
   int dn_vtx = (int) (distrib_vtx[i_rank+1] - distrib_vtx[i_rank]);
 
+  CWP_GCC_SUPPRESS_WARNING("-Wcast-qual")
   PDM_block_to_part_t *btp = PDM_block_to_part_create(distrib_vtx,
                                (const PDM_g_num_t **) *pvtx_ln_to_gn,
                                                       *pn_vtx,
@@ -438,9 +466,16 @@ _gen_part_data
                                                      (*pvtx_coord)[ipart][3*i+2]);
         }
         else {
-          (*pvtx_field_value)[0][ipart][i] = _paper((*pvtx_coord)[ipart][3*i  ],
-                                                    (*pvtx_coord)[ipart][3*i+1],
-                                                    (*pvtx_coord)[ipart][3*i+2]);
+          if (0) {
+            (*pvtx_field_value)[0][ipart][i] = _paper((*pvtx_coord)[ipart][3*i  ],
+                                                      (*pvtx_coord)[ipart][3*i+1],
+                                                      (*pvtx_coord)[ipart][3*i+2]);
+          }
+          else {
+            (*pvtx_field_value)[0][ipart][i] = _polynomial((*pvtx_coord)[ipart][3*i  ],
+                                                           (*pvtx_coord)[ipart][3*i+1],
+                                                           (*pvtx_coord)[ipart][3*i+2]);
+          }
         }
       }
     }
@@ -723,6 +758,13 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "n_closest_pts",
+                                    "int",
+                                    char_param);
+
+    sprintf(char_param, "%d", polyfit_degree);
+    CWP_Spatial_interp_property_set(code_name[icode],
+                                    cpl_name,
+                                    "polyfit_degree",
                                     "int",
                                     char_param);
 
