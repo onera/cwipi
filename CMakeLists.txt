@@ -507,11 +507,27 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
+  # remove .gcda and .gcno files if any
+  # make clean
+  # find . -type f -name '*.gcno' -exec rm {} +
+  # make rebuild_cache
+  # make -j
+  # add_custom_target(coverage ALL
+  #                   COMMAND make clean;
+  #                           find . -type f -name '*.gcno' -exec rm {} +;
+  #                           make rebuild_cache;
+  #                           make -j;
+  #                   COMMENT "Manufactured make for coverage")
+
+  #  add_custom_command(TARGET coverage POST_BUILD
+  #                    COMMAND ;
+  #                    COMMENT "Manufactured make for coverage")
+
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code
+                    COMMAND ctest -R c_new_api_dcube || echo "" # ctest -R new || echo "" # || echo "" to ensure zero error code
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-                    DEPENDS c_new_api_polygon_ex # list of cwipi tests
+                    DEPENDS c_new_api_dcube # list of cwipi tests
                     COMMENT "Running tests for coverage")
 
   # command to generate xml coverage summary
