@@ -280,7 +280,7 @@ namespace cwipi {
     //   connecCompute(i_part);
     // }//end if NULL
 
-    return PDM_part_mesh_nodal_g_num_get_from_part (_pdmNodal_handle_index, _geom_kind, i_part);
+    return PDM_part_mesh_nodal_g_num_get_from_part (_pdmNodal_handle_index, _geom_kind, i_part, PDM_OWNERSHIP_KEEP);
   }
 
 
@@ -346,7 +346,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet (i_part  ,
                        block_id,
@@ -371,7 +372,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet (i_part  ,
                        block_id,
@@ -389,8 +391,8 @@ namespace cwipi {
           int* connec = NULL;
           int* connec_idx = NULL;
           CWP_g_num_t* gnum = NULL;
-          PDM_part_mesh_nodal_section_poly2d_get(_pdmNodal_handle_index, i_section, i_part, &connec_idx , &connec );
-          gnum = PDM_part_mesh_nodal_g_num_get(_pdmNodal_handle_index, i_section, i_part);
+          PDM_part_mesh_nodal_section_poly2d_get(_pdmNodal_handle_index, i_section, i_part, &connec_idx , &connec, PDM_OWNERSHIP_KEEP);
+          gnum = PDM_part_mesh_nodal_g_num_get(_pdmNodal_handle_index, i_section, i_part, PDM_OWNERSHIP_KEEP);
 
           poly2DBlockSet (i_part  ,
                           block_id,
@@ -415,7 +417,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet(i_part, block_id, n_pyramid, connec, gnum);
         }
@@ -435,7 +438,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet(i_part, block_id, n_prism, connec, gnum);
         }
@@ -455,7 +459,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
         }
@@ -475,7 +480,8 @@ namespace cwipi {
                                               &connec,
                                               &gnum,
                                               &parent_num,
-                                              &parent_entity_g_num);
+                                              &parent_entity_g_num,
+                                              PDM_OWNERSHIP_KEEP);
 
           stdBlockSet(i_part, block_id, n_tetra, connec, gnum);
         }
@@ -506,7 +512,8 @@ namespace cwipi {
                                                  &cellfac_idx,
                                                  &cellfa,
                                                  &parent_num,
-                                                 &parent_entity_g_num);
+                                                 &parent_entity_g_num,
+                                                 PDM_OWNERSHIP_KEEP);
 
           poly3DBlockSet (i_part,
                           block_id,
@@ -1177,7 +1184,7 @@ namespace cwipi {
 
         int pdm_id_block = _blockDB[i_block]->blockIDPDMGet();
 
-        int *parent_num = PDM_part_mesh_nodal_section_parent_num_get(_pdmNodal_handle_index, pdm_id_block, i_part);
+        int *parent_num = PDM_part_mesh_nodal_section_parent_num_get(_pdmNodal_handle_index, pdm_id_block, i_part, PDM_OWNERSHIP_KEEP);
 
         if (parent_num != NULL) {
           for(int i_elt = 0; i_elt < n_elt; i_elt++){

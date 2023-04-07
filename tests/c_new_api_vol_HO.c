@@ -321,7 +321,8 @@ _gen_mesh
                                            &parent_num,
                                            &parent_entity_g_num,
                                            &_order,
-                                           &ho_ordering);
+                                           &ho_ordering,
+                                           PDM_OWNERSHIP_KEEP);
 
     int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, _order);
 

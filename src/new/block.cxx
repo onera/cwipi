@@ -72,7 +72,7 @@ namespace cwipi {
     if (_cells_center[i_part] == NULL) {
       PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
     }
-    return PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);
+    return PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
   }
 
   CWP_g_num_t*
