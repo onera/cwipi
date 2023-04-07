@@ -500,33 +500,32 @@ add_subdirectory(${CWP_CMAKE_DIR}/post-install)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
+  message(STATUS "CMAKE_CXX_FLAGS_COVERAGE : ${CMAKE_CXX_FLAGS_COVERAGE}")
+  message(STATUS "CMAKE_C_FLAGS_COVERAGE : ${CMAKE_C_FLAGS_COVERAGE}")
+
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
-  # delete previous .gcda files
-  add_custom_target(cwp_gcda_rm ALL
-                    COMMAND rm -f *.gcda
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                    COMMENT "Removing .gcda files")
-
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R c_new_api_dcube --verbose #ctest -j 24
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    DEPENDS c_new_api_dcube # test list
+                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+                    DEPENDS c_new_api_polygon_ex # list of cwipi tests
                     COMMENT "Running tests for coverage")
 
   # command to generate xml coverage summary
   add_custom_target(cwp_coverage ALL
-                    COMMAND gcovr --cobertura-pretty
-                            --root ${CMAKE_SOURCE_DIR}
+                    COMMAND python3 -m gcovr
+                            --cobertura-pretty
+                            --root ${CMAKE_SOURCE_DIR}/src/new
                             --object-directory ${CMAKE_BINARY_DIR}
+                            # --exclude-directories='(.+/)?paradigm'
                             --output cwp_coverage.xml
                     BYPRODUCTS cwp_coverage.xml
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     DEPENDS cwp_test
-                    COMMENT "Running gcovr to produce Cobertura code coverage summary")
+                    COMMENT "Running gcovr to produce Cobertura code coverage report")
 
   # execute command
   add_custom_command(TARGET cwp_coverage POST_BUILD
