@@ -111,6 +111,7 @@ main(int argc, char *argv[]) {
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
   PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
+                                         10,
                                          &n_vtx,
                                          &n_elt,
                                          &coords,

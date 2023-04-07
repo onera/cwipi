@@ -17,6 +17,7 @@ program fortran_new_api_deformable_sol
   !--------------------------------------------------------------------
   integer                                     :: ierr
   integer                                     :: i_rank, n_rank
+  integer(kind=8), parameter                  :: n_vtx_seg = 10
 
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
@@ -118,10 +119,11 @@ program fortran_new_api_deformable_sol
   ! free arrays from _simplified mesh generation functions. In a real life
   ! coupling case here a user generated mesh would be read/loaded/given.
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
+                                              n_vtx_seg,      &
                                               n_vtx,          &
                                               n_elt,          &
                                               coords,         &
-                                              elt_vtx_idx,     &
+                                              elt_vtx_idx,    &
                                               elt_vtx)
 
   ! Interations :
