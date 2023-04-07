@@ -449,6 +449,12 @@ set(CWP_DOC_DIR "${CWP_SHARE_DIR}/doc")
 set(CWP_ETC_DIR "etc")
 
 #------------------------------------------------------------------------------
+# Create test list
+#------------------------------------------------------------------------------
+
+set(CWP_LIST_TEST "")
+
+#------------------------------------------------------------------------------
 # Ajout des sources de tous les elements du projet
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
@@ -500,37 +506,37 @@ add_subdirectory(${CWP_CMAKE_DIR}/post-install)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-  message(STATUS "CMAKE_CXX_FLAGS_COVERAGE : ${CMAKE_CXX_FLAGS_COVERAGE}")
-  message(STATUS "CMAKE_C_FLAGS_COVERAGE : ${CMAKE_C_FLAGS_COVERAGE}")
-
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
   # remove .gcda and .gcno files if any
-  # make clean
-  # find . -type f -name '*.gcno' -exec rm {} +
-  # make rebuild_cache
-  # make -j
-  # add_custom_target(coverage ALL
-  #                   COMMAND make clean;
-  #                           find . -type f -name '*.gcno' -exec rm {} +;
-  #                           make rebuild_cache;
-  #                           make -j;
-  #                   COMMENT "Manufactured make for coverage")
+  message(STATUS "Removing .o .o.d .gcov .gcno .gcda files form build directory")
+  # TO DO : use set_directory_properties ADDITIONAL_CLEAN_FILES
+  execute_process(COMMAND find . -type f -name '*.o' -exec rm {} +)
+  execute_process(COMMAND find . -type f -name '*.o.d' -exec rm {} +)
+  execute_process(COMMAND find . -type f -name '*.gcov' -exec rm {} +)
+  execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
+  execute_process(COMMAND find . -type f -name '*.gcda' -exec rm {} +)
+  # set_directory_properties( PROPERTIES APPEND ADDITIONAL_CLEAN_FILES '*.gcno' )
 
-  #  add_custom_command(TARGET coverage POST_BUILD
-  #                    COMMAND ;
-  #                    COMMENT "Manufactured make for coverage")
+  # prepare test list
+  # TO DO
+  set(BASE_CWP_LIST_TEST "")
+  foreach (TEST_NAME IN LISTS CWP_LIST_TEST)
+    get_filename_component(TEST_BASE_NAME "${TEST_NAME}" NAME )
+    list(APPEND BASE_CWP_LIST_TEST ${TEST_BASE_NAME})
+  endforeach()
 
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R c_new_api_dcube || echo "" # ctest -R new || echo "" # || echo "" to ensure zero error code
+                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-                    DEPENDS c_new_api_dcube # list of cwipi tests
+                    DEPENDS ${BASE_CWP_LIST_TEST}
                     COMMENT "Running tests for coverage")
 
   # command to generate xml coverage summary
+  # TO DO: check if gcov and gcovr installed
   add_custom_target(cwp_coverage ALL
                     COMMAND python3 -m gcovr
                             --cobertura-pretty
@@ -544,8 +550,12 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
                     COMMENT "Running gcovr to produce Cobertura code coverage report")
 
   # execute command
-  add_custom_command(TARGET cwp_coverage POST_BUILD
-                     COMMAND ;
-                     COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
+  if(EXISTS ${CMAKE_BINARY_DIR}/cwp_coverage.xml)
+    message(FATAL_ERROR "cwp_coverage.xml already exists, make clean before make again for a new coverage report")
+  else()
+    add_custom_command(TARGET cwp_coverage POST_BUILD
+                       COMMAND ;
+                       COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
+  endif()
 
 endif()

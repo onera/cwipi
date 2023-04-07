@@ -6,7 +6,15 @@
 #
 ################################################################################
 
-function(test_c_create name n_proc)
+function (add_test_cwp_run name LIST_TEST)
+
+    set (${LIST_TEST} ${${LIST_TEST}} "${CMAKE_CURRENT_BINARY_DIR}/${name}")
+
+    set (${LIST_TEST} ${${LIST_TEST}} PARENT_SCOPE)
+
+endfunction()
+
+function(test_c_create name n_proc LIST_TEST)
    add_executable(${name} "${name}.c")
    if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
      set_target_properties(${name}
@@ -39,9 +47,13 @@ function(test_c_create name n_proc)
     set_property(TEST ${name} PROPERTY ENVIRONMENT "${LIST_PYTHON_TEST_ENV}")
   endif()
 
+  # create test name list
+  add_test_cwp_run (${name} ${LIST_TEST})
+  set (LIST_TEST ${LIST_TEST} PARENT_SCOPE )
+
 endfunction()
 
-function(test_fortran_create name n_proc)
+function(test_fortran_create name n_proc LIST_TEST)
    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${name}.f90")
      add_executable(${name} "${name}.f90")
    else ()
@@ -79,10 +91,13 @@ function(test_fortran_create name n_proc)
     set_property(TEST ${name} PROPERTY ENVIRONMENT "${LIST_PYTHON_TEST_ENV}")
   endif()
 
+  # create test name list
+  add_test_cwp_run (${name} ${LIST_TEST})
+  set (LIST_TEST ${LIST_TEST} PARENT_SCOPE )
 
 endfunction()
 
-function(test_python_create name n_proc)
+function(test_python_create name n_proc LIST_TEST)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${name}.py ${CMAKE_CURRENT_BINARY_DIR}/${name}.py)
 
   add_custom_target(${name}
@@ -112,5 +127,9 @@ function(test_python_create name n_proc)
   if (LIST_PYTHON_TEST_ENV)
     set_property(TEST ${name} PROPERTY ENVIRONMENT "${LIST_PYTHON_TEST_ENV}")
   endif()
+
+  # create test name list
+  add_test_cwp_run (${name} ${LIST_TEST})
+  set (LIST_TEST ${LIST_TEST} PARENT_SCOPE )
 
 endfunction()
