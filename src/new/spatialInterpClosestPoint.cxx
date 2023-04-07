@@ -25,6 +25,7 @@
 #include "pdm_array.h"
 #include "pdm_logging.h"
 #include "pdm_linear_algebra.h"
+#include "pdm_vtk.h"
 
 CWP_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
 
@@ -114,6 +115,14 @@ namespace cwipi {
 
       _interpolation_time = CWP_SPATIAL_INTERP_AT_RECV;
 
+      _reverse = 0;
+
+      char *env_var = NULL;
+      env_var = getenv("REVERSE_KNN");
+      if (env_var != NULL) {
+        _reverse = (int) atoi(env_var);
+      }
+
       //
       // Data for PDM_part_to_part_t
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
@@ -157,7 +166,6 @@ namespace cwipi {
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _closest_src_gnum[i_part] = NULL;
-        // _closest_src_dist[i_part] = NULL;
       }
 
       //
@@ -181,46 +189,6 @@ namespace cwipi {
 
 
     void SpatialInterpClosestPoint::weightsCompute() {
-//         // In case of withOutPart the user provided not null data only on the root rank (senderRank).
-//         if (!_both_codes_are_local) {
-//             if (_Texch_t == CWP_FIELD_EXCH_RECV && _pointsCloudLocation == CWP_DOF_LOCATION_USER) user_targets_gnum_compute();
-//         }
-//         else {
-//             if (_Texch_t == CWP_FIELD_EXCH_SEND) {
-//                 _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
-//                 if (_pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
-//             }
-//         }
-
-//         // Get informations about the local and the coupled meshes
-//         info_mesh();
-
-//         _id_pdm = PDM_closest_points_create(_pdm_cplComm, 5, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-// //        cout << cplComm_rank << ": PDM_closest_point created with id " << _id_pdm << endl;
-
-//         PDM_closest_points_n_part_cloud_set(_id_pdm, 1, _nb_part);
-// //        cout << cplComm_rank << ": PDM_closest_point n_part cloud set" << endl;
-
-//         for (int i_part = 0; i_part < _nb_part ; i_part++)
-//             PDM_closest_points_src_cloud_set(_id_pdm, i_part, _n_user_targets[i_part], _coords_user_targets[i_part], _gnum_user_targets[i_part]);
-// //        cout << cplComm_rank << ": PDM_closest_point src cloud set" << endl;
-
-//         for (int i_part = 0; i_part < _nb_part ; i_part++)
-//             PDM_closest_points_tgt_cloud_set(_id_pdm, i_part, _n_target[i_part], _coords_target[i_part], _gnum_target[i_part]);
-
-//         PDM_closest_points_compute(_id_pdm);
-// //        cout << cplComm_rank << ": PDM_closest_point computed" << endl;
-
-//         PDM_closest_points_dump_times(_id_pdm);
-// //        cout << cplComm_rank << ": PDM_closest_point times dumped" << _id_pdm << endl;
-
-//         for (int i_part = 0; i_part < _nb_part ; i_part++) {
-//             PDM_closest_points_get(_id_pdm, i_part, &closest_src_gnum, &closest_src_dstance);
-//         }
-// //        cout << cplComm_rank << ": PDM_closest_point got " << _id_pdm << endl;
-
-//         PDM_closest_points_free (_id_pdm);
-// //        cout << cplComm_rank << ": PDM_closest_point freed " << _id_pdm << endl;
       _coordinates_exchanged = 0;
 
       if (!_coupledCodeProperties->localCodeIs() ||
@@ -431,6 +399,12 @@ namespace cwipi {
           n_part_tgt  = _cplNPart;
         }
 
+        if (_reverse) {
+          int tmp = n_part_tgt;
+          n_part_tgt = n_part_src;
+          n_part_src = tmp;
+        }
+
         PDM_closest_points_n_part_cloud_set(_id_pdm,
                                             n_part_src,
                                             n_part_tgt);
@@ -460,18 +434,31 @@ namespace cwipi {
               n_src     =                       _cpl->userTargetNGet     (i_part);
             }
 
-            PDM_closest_points_src_cloud_set(_id_pdm,
-                                             i_part,
-                                             n_src,
-                             (double      *) src_coord,
-                             (PDM_g_num_t *) src_g_num);
-
+            if (_reverse) {
+              PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                               i_part,
+                                               n_src,
+                               (double      *) src_coord,
+                               (PDM_g_num_t *) src_g_num);
+            }
+            else {
+              PDM_closest_points_src_cloud_set(_id_pdm,
+                                               i_part,
+                                               n_src,
+                               (double      *) src_coord,
+                               (PDM_g_num_t *) src_g_num);
+            }
             _send_coord[i_part] = src_coord;
           }
         }
         else {
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            PDM_closest_points_src_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            if (_reverse) {
+              PDM_closest_points_tgt_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            }
+            else {
+              PDM_closest_points_src_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            }
             _send_coord[i_part] = NULL;
           }
         }
@@ -499,17 +486,31 @@ namespace cwipi {
               n_tgt     =                       _cpl->userTargetNGet     (i_part);
             }
 
-            PDM_closest_points_tgt_cloud_set(_id_pdm,
-                                             i_part,
-                                             n_tgt,
-                             (double      *) tgt_coord,
-                             (PDM_g_num_t *) tgt_g_num);
+            if (_reverse) {
+              PDM_closest_points_src_cloud_set(_id_pdm,
+                                               i_part,
+                                               n_tgt,
+                               (double      *) tgt_coord,
+                               (PDM_g_num_t *) tgt_g_num);
+            }
+            else {
+              PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                               i_part,
+                                               n_tgt,
+                               (double      *) tgt_coord,
+                               (PDM_g_num_t *) tgt_g_num);
+            }
 
           }
         }
         else {
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            PDM_closest_points_tgt_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            if (_reverse) {
+              PDM_closest_points_src_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            }
+            else {
+              PDM_closest_points_tgt_cloud_set(_id_pdm, i_part, 0, NULL, NULL);
+            }
           }
         }
 
@@ -552,6 +553,12 @@ namespace cwipi {
             n_part_tgt  = _cplNPart;
           }
 
+          if (_reverse) {
+            int tmp = n_part_tgt;
+            n_part_tgt = n_part_src;
+            n_part_src = tmp;
+          }
+
           PDM_closest_points_n_part_cloud_set(_id_pdm,
                                               n_part_src,
                                               n_part_tgt);
@@ -582,12 +589,20 @@ namespace cwipi {
                 n_src     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              PDM_closest_points_src_cloud_set(_id_pdm,
-                                               i_part,
-                                               n_src,
-                               (double      *) src_coord,
-                               (PDM_g_num_t *) src_g_num);
-
+              if (_reverse) {
+                PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_src,
+                                 (double      *) src_coord,
+                                 (PDM_g_num_t *) src_g_num);
+              }
+              else {
+                PDM_closest_points_src_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_src,
+                                 (double      *) src_coord,
+                                 (PDM_g_num_t *) src_g_num);
+              }
               _send_coord[i_part] = src_coord;
             }
 
@@ -624,11 +639,20 @@ namespace cwipi {
                 n_src     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              PDM_closest_points_src_cloud_set(_id_pdm,
-                                               i_part,
-                                               n_src,
-                               (double      *) src_coord,
-                               (PDM_g_num_t *) src_g_num);
+              if (_reverse) {
+                PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_src,
+                                 (double      *) src_coord,
+                                 (PDM_g_num_t *) src_g_num);
+              }
+              else {
+                PDM_closest_points_src_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_src,
+                                 (double      *) src_coord,
+                                 (PDM_g_num_t *) src_g_num);
+              }
 
               cpl_spatial_interp->_send_coord[i_part] = src_coord;
             }
@@ -657,12 +681,20 @@ namespace cwipi {
                 n_tgt     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              PDM_closest_points_tgt_cloud_set(_id_pdm,
-                                               i_part,
-                                               n_tgt,
-                               (double      *) tgt_coord,
-                               (PDM_g_num_t *) tgt_g_num);
-
+              if (_reverse) {
+                PDM_closest_points_src_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_tgt,
+                                 (double      *) tgt_coord,
+                                 (PDM_g_num_t *) tgt_g_num);
+              }
+              else {
+                PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_tgt,
+                                 (double      *) tgt_coord,
+                                 (PDM_g_num_t *) tgt_g_num);
+              }
             }
           }
           else {
@@ -690,12 +722,20 @@ namespace cwipi {
                 n_tgt     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              PDM_closest_points_tgt_cloud_set(_id_pdm,
-                                               i_part,
-                                               n_tgt,
-                               (double      *) tgt_coord,
-                               (PDM_g_num_t *) tgt_g_num);
-
+              if (_reverse) {
+                PDM_closest_points_src_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_tgt,
+                                 (double      *) tgt_coord,
+                                 (PDM_g_num_t *) tgt_g_num);
+              }
+              else {
+                PDM_closest_points_tgt_cloud_set(_id_pdm,
+                                                 i_part,
+                                                 n_tgt,
+                                 (double      *) tgt_coord,
+                                 (PDM_g_num_t *) tgt_g_num);
+              }
             }
           }
         }
@@ -745,9 +785,11 @@ namespace cwipi {
 
       /* Get PDM part_to_part object */
       if (_id_pdm != NULL) {
-        PDM_closest_points_part_to_part_get(_id_pdm,
-                                            &_ptsp,
-                                            PDM_OWNERSHIP_USER);
+        if (!_reverse) {
+          PDM_closest_points_part_to_part_get(_id_pdm,
+                                              &_ptsp,
+                                              PDM_OWNERSHIP_USER);
+        }
 
         // if (0) {
         //   int  *n_ref_gnum2;
@@ -780,46 +822,72 @@ namespace cwipi {
       if (!_coupledCodeProperties->localCodeIs()) {
         for (int i_part = 0; i_part < _nPart; i_part++) {
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-            PDM_closest_points_tgt_in_src_get(_id_pdm,
-                                              i_part,
-                                              &(_tgt_in_src_idx [i_part]),
-                                              &(_tgt_in_src_gnum[i_part]));
-            PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
-                                                   i_part,
-                                                   &(_tgt_in_src_idx [i_part]),
-                                                   &(_tgt_in_src_dist[i_part]));
 
-            _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
-            _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
-
-            int count = 0;
-            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-              if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
-                _involved_sources_tgt[i_part][count] = i + 1;
-                ++count;
-              }
+            if (_reverse) {
+              _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_closest_pts,
+                                                                                _src_n_gnum[i_part]);
+              PDM_closest_points_get(_id_pdm,
+                                     i_part,
+                                     &(_tgt_in_src_gnum[i_part]),
+                                     &(_tgt_in_src_dist[i_part]));
             }
+            else {
+              PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                i_part,
+                                                &(_tgt_in_src_idx [i_part]),
+                                                &(_tgt_in_src_gnum[i_part]));
+              PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                     i_part,
+                                                     &(_tgt_in_src_idx [i_part]),
+                                                     &(_tgt_in_src_dist[i_part]));
+            }
+            // TO DO WITH PTP
+            // _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
+            // _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
-            _n_involved_sources_tgt[i_part] = count;
-            _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
+            // int count = 0;
+            // for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+            //   if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
+            //     _involved_sources_tgt[i_part][count] = i + 1;
+            //     ++count;
+            //   }
+            // }
+
+            // _n_involved_sources_tgt[i_part] = count;
+            // _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
 
           }
           else {
             _tgt_in_src_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
             _tgt_in_src_idx[i_part][0] = 0;
 
-            PDM_closest_points_get(_id_pdm,
-                                   i_part,
-                                   &(_closest_src_gnum[i_part]),
-                                   &(_weights[i_part]));
-
-            _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
-            _n_uncomputed_tgt[i_part] = 0;
-
-            _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
-            for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
-              _computed_tgt[i_part][i] = i + 1;
+            if (_reverse) {
+              int *tgt_to_src_idx = NULL;
+              PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                i_part,
+                                                &tgt_to_src_idx,
+                                                &(_closest_src_gnum[i_part]));
+              PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                     i_part,
+                                                     &tgt_to_src_idx,
+                                                     &(_weights[i_part]));
             }
+            else {
+              PDM_closest_points_get(_id_pdm,
+                                     i_part,
+                                     &(_closest_src_gnum[i_part]),
+                                     &(_weights[i_part]));
+
+            }
+            // TO DO WITH PTP
+            // _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+            // _n_uncomputed_tgt[i_part] = 0;
+
+            // _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+            // for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
+            //   _computed_tgt[i_part][i] = i + 1;
+            // }
+
           }
 
         }
@@ -841,46 +909,69 @@ namespace cwipi {
 
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
             for (int i_part = 0; i_part < _nPart; i_part++) {
-              PDM_closest_points_tgt_in_src_get(_id_pdm,
-                                                i_part,
-                                                &(_tgt_in_src_idx [i_part]),
-                                                &(_tgt_in_src_gnum[i_part]));
-              PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
-                                                     i_part,
-                                                     &(_tgt_in_src_idx [i_part]),
-                                                     &(_tgt_in_src_dist[i_part]));
-
-              _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
-              _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
-
-              int count = 0;
-              for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-                if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
-                  _involved_sources_tgt[i_part][count] = i + 1;
-                  ++count;
-                }
+              if (_reverse) {
+                _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_closest_pts,
+                                                                                  _src_n_gnum[i_part]);
+                PDM_closest_points_get(_id_pdm,
+                                       i_part,
+                                       &(_tgt_in_src_gnum[i_part]),
+                                       &(_tgt_in_src_dist[i_part]));
               }
+              else {
+                PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                  i_part,
+                                                  &(_tgt_in_src_idx [i_part]),
+                                                  &(_tgt_in_src_gnum[i_part]));
+                PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                       i_part,
+                                                       &(_tgt_in_src_idx [i_part]),
+                                                       &(_tgt_in_src_dist[i_part]));
+              }
+              // TO DO WITH PTP
+              // _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
+              // _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
-              _n_involved_sources_tgt[i_part] = count;
-              _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
+              // int count = 0;
+              // for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+              //   if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
+              //     _involved_sources_tgt[i_part][count] = i + 1;
+              //     ++count;
+              //   }
+              // }
+
+              // _n_involved_sources_tgt[i_part] = count;
+              // _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
             }
 
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
               cpl_spatial_interp->_tgt_in_src_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
               cpl_spatial_interp->_tgt_in_src_idx[i_part][0] = 0;
 
-              PDM_closest_points_get(_id_pdm,
-                                     i_part,
-                                     &(cpl_spatial_interp->_closest_src_gnum[i_part]),
-                                     &(cpl_spatial_interp->_weights[i_part]));
-
-              cpl_spatial_interp->_n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
-              cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
-
-              cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
-              for (int i = 0; i < cpl_spatial_interp->_n_computed_tgt[i_part]; i++) {
-                cpl_spatial_interp->_computed_tgt[i_part][i] = i + 1;
+              if (_reverse) {
+                int *tgt_to_src_idx = NULL;
+                PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                  i_part,
+                                                  &tgt_to_src_idx,
+                                                  &(cpl_spatial_interp->_closest_src_gnum[i_part]));
+                PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                       i_part,
+                                                       &tgt_to_src_idx,
+                                                       &(cpl_spatial_interp->_weights[i_part]));
               }
+              else {
+                PDM_closest_points_get(_id_pdm,
+                                       i_part,
+                                       &(cpl_spatial_interp->_closest_src_gnum[i_part]),
+                                       &(cpl_spatial_interp->_weights[i_part]));
+              }
+              // TO DO WITH PTP
+              // cpl_spatial_interp->_n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+              // cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
+
+              // cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+              // for (int i = 0; i < cpl_spatial_interp->_n_computed_tgt[i_part]; i++) {
+              //   cpl_spatial_interp->_computed_tgt[i_part][i] = i + 1;
+              // }
             }
           }
           else {
@@ -888,43 +979,65 @@ namespace cwipi {
               _tgt_in_src_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
               _tgt_in_src_idx[i_part][0] = 0;
 
-              PDM_closest_points_get(_id_pdm,
-                                     i_part,
-                                     &(_closest_src_gnum[i_part]),
-                                     &(_weights[i_part]));
-
-              _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
-              _n_uncomputed_tgt[i_part] = 0;
-
-              _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
-              for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
-                _computed_tgt[i_part][i] = i + 1;
+              if (_reverse) {
+                int *tgt_to_src_idx = NULL;
+                PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                  i_part,
+                                                  &tgt_to_src_idx,
+                                                  &(_closest_src_gnum[i_part]));
+                PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                       i_part,
+                                                       &tgt_to_src_idx,
+                                                       &(_weights[i_part]));
               }
+              else {
+                PDM_closest_points_get(_id_pdm,
+                                       i_part,
+                                       &(_closest_src_gnum[i_part]),
+                                       &(_weights[i_part]));
+              }
+              // TO DO WITH PTP
+              // _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+              // _n_uncomputed_tgt[i_part] = 0;
+
+              // _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+              // for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
+              //   _computed_tgt[i_part][i] = i + 1;
+              // }
             }
 
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
-              PDM_closest_points_tgt_in_src_get(_id_pdm,
-                                                i_part,
-                                                &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
-                                                &(cpl_spatial_interp->_tgt_in_src_gnum[i_part]));
-              PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
-                                                     i_part,
-                                                     &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
-                                                     &(cpl_spatial_interp->_tgt_in_src_dist[i_part]));
-
-              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
-              cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
-
-              int count = 0;
-              for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
-                if (cpl_spatial_interp->_tgt_in_src_idx[i_part][i + 1] > cpl_spatial_interp->_tgt_in_src_idx[i_part][i]) {
-                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
-                  ++count;
-                }
+              if (_reverse) {
+                PDM_closest_points_get(_id_pdm,
+                                       i_part,
+                                       &(cpl_spatial_interp->_closest_src_gnum[i_part]),
+                                       &(cpl_spatial_interp->_weights[i_part]));
+              }
+              else {
+                PDM_closest_points_tgt_in_src_get(_id_pdm,
+                                                  i_part,
+                                                  &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
+                                                  &(cpl_spatial_interp->_tgt_in_src_gnum[i_part]));
+                PDM_closest_points_tgt_in_src_dist_get(_id_pdm,
+                                                       i_part,
+                                                       &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
+                                                       &(cpl_spatial_interp->_tgt_in_src_dist[i_part]));
               }
 
-              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
-              cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
+              // TO DO WITH PTP
+              // cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
+              // cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
+
+              // int count = 0;
+              // for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
+              //   if (cpl_spatial_interp->_tgt_in_src_idx[i_part][i + 1] > cpl_spatial_interp->_tgt_in_src_idx[i_part][i]) {
+              //     cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
+              //     ++count;
+              //   }
+              // }
+
+              // cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
+              // cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
             }
           }
         }
@@ -1017,9 +1130,56 @@ namespace cwipi {
 
         }
       }
+
+
+      if (_ptsp != NULL) {
+        int  *n_ref_tgt = NULL;
+        int **ref_tgt   = NULL;
+        PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
+
+        if (!_coupledCodeProperties->localCodeIs()) {
+
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+            for (int i_part = 0; i_part < _nPart; i_part++) {
+              _n_computed_tgt[i_part] = n_ref_tgt[i_part];
+              _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+              memcpy(_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * _n_computed_tgt[i_part]);
+            }
+          }
+
+        }
+        else {
+          if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+            SpatialInterpClosestPoint *cpl_spatial_interp;
+
+            if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+              cpl_spatial_interp = dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+              for (int i_part = 0; i_part < _cplNPart; i_part++) {
+                cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
+                cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+                memcpy(cpl_spatial_interp->_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+              }
+            }
+            else {
+              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+              cpl_spatial_interp = dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+              for (int i_part = 0; i_part < _nPart; i_part++) {
+                _n_computed_tgt[i_part] = n_ref_tgt[i_part];
+                _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+                memcpy(_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * _n_computed_tgt[i_part]);
+              }
+            }
+          }
+
+        }
+      }
+
     }
-
-
 
 
     void SpatialInterpClosestPoint::issend(Field *referenceField) {
@@ -1339,62 +1499,66 @@ namespace cwipi {
             double *tgt_value
      )
     {
-      /* Special case : coincident points */
-      const double eps_dist2 = 1e-24;
-
-      for (int i = 0; i < n_closest_pts; i++) {
-        if (src_dist2[i] < eps_dist2) {
-          for (int j = 0; j < stride; j++) {
-            tgt_value[j] = src_value[stride*i+j];
-          }
-          return;
-        }
-      }
-
-
+      int stat = 1;
       #define siz (1 + degree*3)
+      double c[siz*stride];
 
-      double A[siz*siz] = {0.};
-      double rhs[siz*stride] = {0.};
-      double b[siz];
+      if (n_closest_pts >= siz) {
 
-      for (int i = 0; i < n_closest_pts; i++) {
-        double wi = _weight_function(src_dist2[i]);
+        /* Special case : coincident points */
+        const double eps_dist2 = 1e-24;
 
-        _basis_vector(3,
-                      degree,
-                      src_coord + 3*i,
-                      tgt_coord,
-                      b);
-
-        for (int j = 0; j < siz; j++) {
-          for (int k = 0; k < stride; k++) {
-            rhs[stride*j+k] += wi * b[j] * src_value[stride*i+k];
-          }
-
-          for (int k = j; k < siz; k++) {
-            A[siz*j+k] += wi * b[j] * b[k];
-          }
-          for (int k = 0; k < j; k++) {
-            A[siz*j+k] = A[siz*k+j];
+        for (int i = 0; i < n_closest_pts; i++) {
+          if (src_dist2[i] < eps_dist2) {
+            for (int j = 0; j < stride; j++) {
+              tgt_value[j] = src_value[stride*i+j];
+            }
+            return;
           }
         }
+
+
+
+        double A[siz*siz] = {0.};
+        double rhs[siz*stride] = {0.};
+        double b[siz];
+
+        for (int i = 0; i < n_closest_pts; i++) {
+          double wi = _weight_function(src_dist2[i]);
+
+          _basis_vector(3,
+                        degree,
+                        src_coord + 3*i,
+                        tgt_coord,
+                        b);
+
+          for (int j = 0; j < siz; j++) {
+            for (int k = 0; k < stride; k++) {
+              rhs[stride*j+k] += wi * b[j] * src_value[stride*i+k];
+            }
+
+            for (int k = j; k < siz; k++) {
+              A[siz*j+k] += wi * b[j] * b[k];
+            }
+            for (int k = 0; k < j; k++) {
+              A[siz*j+k] = A[siz*k+j];
+            }
+          }
+        }
+
+        stat = PDM_linear_algebra_linsolve_svd(siz,
+                                               siz,
+                                               stride,
+                                               0.,
+                                    (double *) A,
+                                    (double *) rhs,
+                                               c);
       }
 
-      double c[siz*stride];
-      int stat = PDM_linear_algebra_linsolve_svd(siz,
-                                                 siz,
-                                                 stride,
-                                                 0.,
-                                      (double *) A,
-                                      (double *) rhs,
-                                                 c);
       if (stat == 0) {
-
         for (int j = 0; j < stride; j++) {
           tgt_value[j] = c[j];
         }
-
       }
       else {
         // log_trace("singular matrix! ");
@@ -1415,7 +1579,7 @@ namespace cwipi {
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
 
       int nComponent = referenceField->nComponentGet();
-      CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
+      // CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
       CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
       const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
@@ -1432,8 +1596,8 @@ namespace cwipi {
                                       i_part,
                                       _cpl->spatialInterpAlgoGet(),
                                       storage,
-                           (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                           (double *) buffer[i_part]);
+                           (double *) buffer[i_part],
+                           (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
           }
 
         }
@@ -1442,13 +1606,39 @@ namespace cwipi {
 
       else {
 
-        int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
+        // int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
         std::map<std::string, int> prop = _cpl->SpatialInterpPropertiesIntGet();
         std::map<std::string, int>::iterator it;
 
-        it = prop.find("n_closest_pts");
-        if (it != prop.end()) {
-          n_closest_pts = it->second;
+        // it = prop.find("n_closest_pts");
+        // if (it != prop.end()) {
+        //   n_closest_pts = it->second;
+        // }
+
+        int  *n_ref = NULL;
+        int **ref   = NULL;
+        PDM_part_to_part_ref_lnum2_get(_ptsp,
+                                       &n_ref,
+                                       &ref);
+
+        int  *n_unref = NULL;
+        int **unref   = NULL;
+        PDM_part_to_part_unref_lnum2_get(_ptsp,
+                                         &n_unref,
+                                         &unref);
+
+        int         **come_from_idx = NULL;
+        PDM_g_num_t **come_from     = NULL;
+        PDM_part_to_part_gnum1_come_from_get(_ptsp,
+                                             &come_from_idx,
+                                             &come_from);
+
+        int max_n_closest_pts = 0;
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          for (int i = 0; i < n_ref[i_part]; i++) {
+            max_n_closest_pts = std::max(max_n_closest_pts,
+                                         come_from_idx[i_part][i+1] - come_from_idx[i_part][i]);
+          }
         }
 
         int polyfit_degree = CWP_CLOSEST_POINTS_POLYFIT_DEGREE;
@@ -1465,7 +1655,7 @@ namespace cwipi {
         double *tgt_value = NULL;
 
         if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-          src_value = (double *) malloc(sizeof(double) * nComponent * n_closest_pts);
+          src_value = (double *) malloc(sizeof(double) * nComponent * max_n_closest_pts);
           tgt_value = (double *) malloc(sizeof(double) * nComponent);
         }
 
@@ -1473,16 +1663,32 @@ namespace cwipi {
 
           double *referenceData = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET);
 
-          int n_pts = 0;
-          if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
-            n_pts = _mesh->getPartNElts(i_part);
-          }
-          else if (referenceFieldType == CWP_DOF_LOCATION_NODE) {
-            n_pts = _mesh->getPartNVertex(i_part);
-          }
-          else {
-            n_pts = _cpl->userTargetNGet(i_part);
-            // PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");
+          // int n_pts = 0;
+          // if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
+          //   n_pts = _mesh->getPartNElts(i_part);
+          // }
+          // else if (referenceFieldType == CWP_DOF_LOCATION_NODE) {
+          //   n_pts = _mesh->getPartNVertex(i_part);
+          // }
+          // else {
+          //   n_pts = _cpl->userTargetNGet(i_part);
+          //   // PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");
+          // }
+          int n_tgt = n_ref[i_part] + n_unref[i_part];
+
+          /* Set values for uncomputed targets */
+          for (int i = 0; i < n_unref[i_part]; i++) {
+            int id = unref[i_part][i] - 1;
+            if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+              for (int j = 0; j < nComponent; j++) {
+                referenceData[n_tgt*j + id] = 0.;
+              }
+            }
+            else {
+              for (int j = 0; j < nComponent; j++) {
+                referenceData[nComponent*id + j] = 0.;
+              }
+            }
           }
 
           if (!use_idw_interpolation) {
@@ -1499,16 +1705,67 @@ namespace cwipi {
 
           src_coord = _recv_coord[i_part];
 
-          for (int i = 0; i < n_pts; i++) {
+
+
+
+
+          if (1) {
+            char filename[999];
+            sprintf(filename, "mapping.vtk");
+
+            int n_pts = n_tgt + come_from_idx[i_part][n_ref[i_part]];
+            double *coord = (double *) malloc(sizeof(double) * n_pts * 3);
+            PDM_g_num_t *gnum = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_pts);
+
+            memcpy(coord, tgt_coord, sizeof(double) * n_tgt * 3);
+            memcpy(coord + n_tgt*3, src_coord, sizeof(double) * come_from_idx[i_part][n_ref[i_part]] * 3);
+
+            memcpy(gnum, _tgt_gnum[i_part], sizeof(PDM_g_num_t) * n_tgt);
+            // memcpy(gnum + n_tgt, _closest_src_gnum[i_part], sizeof(PDM_g_num_t) * come_from_idx[n_ref[i_part]]);
+            for (int i = 0; i < come_from_idx[i_part][n_ref[i_part]]; i++) {
+              gnum[n_tgt+i] = -_closest_src_gnum[i_part][i];
+            }
+
+            int *connec = (int *) malloc(sizeof(int) * come_from_idx[i_part][n_ref[i_part]] * 2);
+            for (int i = 0; i < n_ref[i_part]; i++) {
+              for (int j = come_from_idx[i_part][i]; j < come_from_idx[i_part][i+1]; j++) {
+                connec[2*j  ] = ref[i_part][i];
+                connec[2*j+1] = n_tgt + j + 1;
+              }
+            }
+
+            PDM_vtk_write_std_elements(filename,
+                                       n_pts,
+                                       coord,
+                                       gnum,
+                                       PDM_MESH_NODAL_BAR2,
+                                       come_from_idx[i_part][n_ref[i_part]],
+                                       connec,
+                                       NULL,
+                                       0,
+                                       NULL,
+                                       NULL);
+            free(coord);
+            free(gnum);
+            free(connec);
+          }
+
+
+
+
+          for (int i = 0; i < n_ref[i_part]; i++) {
+            int id = ref[i_part][i] - 1;
             // log_trace("tgt pt %d / %d\n", i, n_pts);
 
+            int n_closest_pts = come_from_idx[i_part][i+1] - come_from_idx[i_part][i];
+
             if (0) {
-              for (int k = 0; k < n_closest_pts; k++) {
+              for (int k = come_from_idx[i_part][i]; k < come_from_idx[i_part][i+1]; k++) {
                 log_trace("src point " PDM_FMT_G_NUM " : %f %f %f\n",
-                          _closest_src_gnum[i_part][n_closest_pts*i + k],
-                          src_coord[3*(n_closest_pts*i+k)  ],
-                          src_coord[3*(n_closest_pts*i+k)+1],
-                          src_coord[3*(n_closest_pts*i+k)+2]);
+                          _closest_src_gnum[i_part][k],
+                          src_coord[3*k  ],
+                          src_coord[3*k+1],
+                          src_coord[3*k+2]);
               }
             }
 
@@ -1516,20 +1773,22 @@ namespace cwipi {
               // interlace src_value
               for (int k = 0; k < n_closest_pts; k++) {
                 for (int j = 0; j < nComponent; j++) {
-                  src_value[nComponent*k + j] = buffer[i_part][n_closest_pts*(n_pts*j + i) + k];
+                  abort();
+                  // TODO
+                  // src_value[nComponent*k + j] = buffer[i_part][n_closest_pts*(n_pts*j + i) + k];
                 }
               }
             }
             else {
-              src_value = buffer[i_part] + nComponent*n_closest_pts*i;
-              tgt_value = referenceData + nComponent*i;
+              src_value = buffer[i_part] + nComponent*come_from_idx[i_part][i];
+              tgt_value = referenceData + nComponent*id;
             }
 
             if (use_idw_interpolation) {
               _interp_idw(n_closest_pts,
                           nComponent,
                           src_value,
-                          _weights[i_part] + n_closest_pts*i,
+                          _weights[i_part] + come_from_idx[i_part][i],
                           tgt_value);
             }
             else {
@@ -1538,18 +1797,18 @@ namespace cwipi {
                                                n_closest_pts,
                                                nComponent,
                                                src_value,
-                                               src_coord + 3*n_closest_pts*i,
-                                               _weights[i_part] + n_closest_pts*i,
-                                               tgt_coord + 3*i,
+                                               src_coord + 3*come_from_idx[i_part][i],
+                                               _weights[i_part] + come_from_idx[i_part][i],
+                                               tgt_coord + 3*id,
                                                tgt_value);
               }
               else {
                 _interp_least_squares(n_closest_pts,
                                       nComponent,
                                       src_value,
-                                      src_coord + 3*n_closest_pts*i,
-                                      _weights[i_part] + n_closest_pts*i,
-                                      tgt_coord + 3*i,
+                                      src_coord + 3*come_from_idx[i_part][i],
+                                      _weights[i_part] + come_from_idx[i_part][i],
+                                      tgt_coord + 3*id,
                                       tgt_value);
               }
 
@@ -1557,7 +1816,7 @@ namespace cwipi {
               if (0) {
                 log_trace("recv :\n");
                 for (int k = 0; k < n_closest_pts; k++) {
-                  log_trace("  from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][n_closest_pts*i + k]);
+                  log_trace("  from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][come_from_idx[i_part][i] + k]);
                   PDM_log_trace_array_double(src_value + nComponent*k,
                                              nComponent,
                                              "");
@@ -1565,7 +1824,7 @@ namespace cwipi {
                 PDM_log_trace_array_double(tgt_value,
                                            nComponent,
                                            "interpolated : ");
-                PDM_log_trace_array_double(tgt_coord + 3*i,
+                PDM_log_trace_array_double(tgt_coord + 3*id,
                                            3,
                                            "tgt_coord    : ");
               }
@@ -1574,7 +1833,7 @@ namespace cwipi {
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
               // de-interlace tgt_value
               for (int j = 0; j < nComponent; j++) {
-                referenceData[n_pts*j + i] = tgt_value[j];
+                referenceData[n_tgt*j + id] = tgt_value[j];
               }
             }
 

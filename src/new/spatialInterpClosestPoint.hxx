@@ -64,7 +64,6 @@ namespace cwipi {
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 
         PDM_g_num_t **_closest_src_gnum;
-        // double      **_closest_src_dist;
 
         int         **_tgt_in_src_idx;
         PDM_g_num_t **_tgt_in_src_gnum;
@@ -77,6 +76,7 @@ namespace cwipi {
         int            _send_coord_request;
         int            _recv_coord_request;
 
+        int _reverse;
 
     protected:
       PDM_closest_point_t *_id_pdm;
