@@ -654,8 +654,11 @@ int main(int argc, char *argv[])
         CWP_Time_update(code_name[i_code],
                         recv_time);
       }
-      CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
+    }
 
+    // Separate loops to avoid deadlock if multiple codes on same MPI rank
+    for (int i_code = 0 ; i_code < n_code ; i_code++) {
+      CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
 
     recv_time += 1.;

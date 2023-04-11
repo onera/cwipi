@@ -117,29 +117,24 @@ namespace cwipi {
 
       //
       // Data for PDM_part_to_part_t
-      _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
             _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
-            _send_coord[i_part] = _mesh->eltCentersGet(i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
-            _send_coord[i_part] = _mesh->getVertexCoords(i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
-            _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
           }
         }
       }
       else {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-          _send_coord[i_part] = NULL;
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
             _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
@@ -176,6 +171,7 @@ namespace cwipi {
         _tgt_in_src_dist[i_part] = NULL;
       }
 
+      _send_coord = NULL;
       _recv_coord = NULL;
     }
 
@@ -1382,13 +1378,9 @@ namespace cwipi {
         }
 
 
-        CWP_Dynamic_mesh_t dyn_mesh = _cpl->DisplacementGet();
-
-        if (dyn_mesh != CWP_DYNAMIC_MESH_STATIC) {
-          if (_send_coord != NULL) {
-            free(_send_coord);
-            _send_coord = NULL;
-          }
+        if (_send_coord != NULL) {
+          free(_send_coord);
+          _send_coord = NULL;
         }
 
         if (_recv_coord != NULL) {
@@ -1480,12 +1472,9 @@ namespace cwipi {
           cpl_spatial_interp->_involved_sources_tgt  [i_part] = NULL;
         }
 
-        CWP_Dynamic_mesh_t cpl_dyn_mesh = cpl_cpl.DisplacementGet();
-        if (cpl_dyn_mesh != CWP_DYNAMIC_MESH_STATIC) {
-          if (cpl_spatial_interp->_send_coord != NULL) {
-            free(cpl_spatial_interp->_send_coord);
-            cpl_spatial_interp->_send_coord = NULL;
-          }
+        if (cpl_spatial_interp->_send_coord != NULL) {
+          free(cpl_spatial_interp->_send_coord);
+          cpl_spatial_interp->_send_coord = NULL;
         }
 
         if (cpl_spatial_interp->_recv_coord != NULL) {
@@ -1508,6 +1497,27 @@ namespace cwipi {
 
       if (!cond1 && !cond2) {
         return;
+      }
+
+
+      _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
+      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+        for (int i_part = 0 ; i_part < _nPart; i_part++) {
+          if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            _send_coord[i_part] = _mesh->eltCentersGet(i_part);
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            _send_coord[i_part] = _mesh->getVertexCoords(i_part);
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+            _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
+          }
+        }
+      }
+      else {
+        for (int i_part = 0 ; i_part < _nPart; i_part++) {
+          _send_coord[i_part] = NULL;
+        }
       }
 
 

@@ -52,9 +52,13 @@ static void
 _usage(int exit_code) {
   printf("\n"
          "  Usage: \n\n"
-         "  -f1             first filename.\n\n"
-         "  -f2             second filename.\n\n"
          "  -v              verbose.\n\n"
+         "  -n_rank1        number of MPI ranks for code1.\n\n"
+         "  -n_rank2        number of MPI ranks for code2.\n\n"
+         "  -v              verbose.\n\n"
+         "  -n1             square root of number of vertices for code1.\n\n"
+         "  -n2             square root of number of vertices for code2.\n\n"
+         "  -swap_codes     swap rank order of code1 and 2.\n\n"
          "  -h              this message.\n\n");
 
   exit(exit_code);
@@ -65,9 +69,6 @@ _usage(int exit_code) {
  *
  * Read args from the command line
  *
- * parameters:
- *   nVertex             <-- Number of vertices in bandwidth
- *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
 static void
@@ -306,7 +307,7 @@ main
                    CWP_COMM_PAR_WITH_PART,
                    CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES,
                    1,
-                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_DYNAMIC_MESH_DEFORMABLE,//CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
@@ -444,62 +445,87 @@ main
                                     "n_closest_pts",
                                     "int",
                                     "1");
-
-    CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
   }
 
-  for (int icode = 0; icode < n_code; icode++) {
-    if (code_id[icode] == 1) {
-      CWP_Field_issend(code_name[icode], cpl_name, field_name);
+  double recv_time = 0.;
+  for (int step = 0; step < 5; step++) {
+    if (i_rank == 0) {
+      printf("\n  Step %d\n", step);
     }
-    else {
-      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
-    }
+    for (int icode = 0; icode < n_code; icode++) {
 
-    if (code_id[icode] == 1) {
-      CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
-    }
-    else {
-      CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
-    }
-  }
+      for (int i = 0; i < n_vtx[icode]; i++) {
+        vtx_coord[icode][3*i+2] += 0.1*cos(4*vtx_coord[icode][3*i] + recv_time);
+      }
 
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Exchange fields OK\n");
-    fflush(stdout);
-  }
-
-  /* Check conservation */
-  double l_integral[2] = {0., 0.};
-
-  for (int icode = 0; icode < n_code; icode++) {
-    int n = 0;
-    if (code_id[icode] == 1) {
-      n = n_elt[icode];
-      field_ptr = send_val;
-    }
-    else {
-      n = n_vtx[icode];
-      field_ptr = recv_val;
+      CWP_next_recv_time_set(code_name[icode],
+                             cpl_name,
+                             recv_time);
+      if (step > 0) {
+        CWP_Time_update(code_name[icode],
+                        recv_time);
+      }
     }
 
-    for (int i = 0; i < n; i++) {
-      l_integral[code_id[icode]-1] += field_ptr[i];
+    // Separate loops to avoid deadlock if multiple codes on same MPI rank
+    for (int icode = 0; icode < n_code; icode++) {
+      CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
     }
-  }
 
-  double g_integral[2];
-  MPI_Allreduce(l_integral, g_integral, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    for (int icode = 0; icode < n_code; icode++) {
+      if (code_id[icode] == 1) {
+        CWP_Field_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+      }
+    }
 
-  if (i_rank == 0) {
-    printf("g_integral = %20.16e / %20.16e, relative diff = %e\n",
-           g_integral[0], g_integral[1], fabs(g_integral[0] - g_integral[1])/fabs(g_integral[1]));
+
+    for (int icode = 0; icode < n_code; icode++) {
+      if (code_id[icode] == 1) {
+        CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+      }
+    }
+
+    recv_time += 1.;
+
+
+    /* Check conservation */
+    double l_integral[2] = {0., 0.};
+
+    for (int icode = 0; icode < n_code; icode++) {
+      int n = 0;
+      if (code_id[icode] == 1) {
+        n = n_elt[icode];
+        field_ptr = send_val;
+      }
+      else {
+        n = n_vtx[icode];
+        field_ptr = recv_val;
+      }
+
+      for (int i = 0; i < n; i++) {
+        l_integral[code_id[icode]-1] += field_ptr[i];
+      }
+    }
+
+    double g_integral[2];
+    MPI_Allreduce(l_integral, g_integral, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    if (i_rank == 0) {
+      printf("g_integral = %20.16e / %20.16e, relative diff = %e\n",
+             g_integral[0], g_integral[1], fabs(g_integral[0] - g_integral[1])/fabs(g_integral[1]));
+    }
+
   }
 
 
   /* Finalize */
-   for (int icode = 0; icode < n_code; icode++) {
+  for (int icode = 0; icode < n_code; icode++) {
 
     if (code_id[icode] == 1) {
       free(send_val);
