@@ -510,29 +510,37 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
-  # remove .gcda and .gcno files if any
-  message(STATUS "Removing .o .o.d .gcov .gcno .gcda files form build directory")
-  # TO DO : use set_directory_properties ADDITIONAL_CLEAN_FILES
+  # remove .gcno
+  # TO DO : remove in make clean
   execute_process(COMMAND find . -type f -name '*.o' -exec rm {} +)
   execute_process(COMMAND find . -type f -name '*.o.d' -exec rm {} +)
   execute_process(COMMAND find . -type f -name '*.gcov' -exec rm {} +)
   execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
   execute_process(COMMAND find . -type f -name '*.gcda' -exec rm {} +)
-  # set_directory_properties( PROPERTIES APPEND ADDITIONAL_CLEAN_FILES '*.gcno' )
 
-  # prepare test list
-  # TO DO
-  set(BASE_CWP_LIST_TEST "")
-  foreach (TEST_NAME IN LISTS CWP_LIST_TEST)
-    get_filename_component(TEST_BASE_NAME "${TEST_NAME}" NAME )
-    list(APPEND BASE_CWP_LIST_TEST ${TEST_BASE_NAME})
-  endforeach()
+  # file (GLOB_RECURSE GCNO_LIST "*.gcno")
+
+  # foreach(GCNO_FILE ${GCNO_LIST})
+  #   if(EXISTS ${GCNO_FILE})
+  #     file (REMOVE_RECURSE ${GCNO_FILE})
+  #   endif()
+  # endforeach()
+
+  # add_custom_command(TARGET distclean POST_BUILD
+  #                    COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
+  #                    DEPENDS clean
+  #                    VERBATIM )
+
+  # list of tests
+  get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
+  get_property(TUTORIAL_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests/tutorial PROPERTY TESTS)
+  list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
 
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ctest -R c_new_api_dcube || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-                    DEPENDS ${BASE_CWP_LIST_TEST}
+                    DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
 
   # command to generate xml coverage summary
