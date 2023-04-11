@@ -512,24 +512,17 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
   # remove .gcno
   # TO DO : remove in make clean
-  execute_process(COMMAND find . -type f -name '*.o' -exec rm {} +)
-  execute_process(COMMAND find . -type f -name '*.o.d' -exec rm {} +)
-  execute_process(COMMAND find . -type f -name '*.gcov' -exec rm {} +)
-  execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
-  execute_process(COMMAND find . -type f -name '*.gcda' -exec rm {} +)
+  # execute_process(COMMAND find . -type f -name '*.o' -exec rm {} +)
+  # execute_process(COMMAND find . -type f -name '*.o.d' -exec rm {} +)
+  # execute_process(COMMAND find . -type f -name '*.gcov' -exec rm {} +)
+  # execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
+  # execute_process(COMMAND find . -type f -name '*.gcda' -exec rm {} +)
 
-  # file (GLOB_RECURSE GCNO_LIST "*.gcno")
-
-  # foreach(GCNO_FILE ${GCNO_LIST})
-  #   if(EXISTS ${GCNO_FILE})
-  #     file (REMOVE_RECURSE ${GCNO_FILE})
-  #   endif()
-  # endforeach()
-
-  # add_custom_command(TARGET distclean POST_BUILD
-  #                    COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
-  #                    DEPENDS clean
-  #                    VERBATIM )
+  add_custom_target (distclean @echo cleaning for source distribution)
+  add_custom_command(TARGET distclean POST_BUILD
+                     COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
+                     DEPENDS clean
+                     VERBATIM )
 
   # list of tests
   get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
