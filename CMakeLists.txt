@@ -518,11 +518,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   # execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
   # execute_process(COMMAND find . -type f -name '*.gcda' -exec rm {} +)
 
-  add_custom_target (distclean @echo cleaning for source distribution)
+  add_custom_target (distclean
+                     COMMENT "Remove .gcno files")
   add_custom_command(TARGET distclean POST_BUILD
                      COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
-                     DEPENDS clean
-                     VERBATIM )
+                     DEPENDS clean)
 
   # list of tests
   get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
@@ -531,7 +531,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ctest -R new --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
                     DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
@@ -552,7 +552,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
   # execute command
   if(EXISTS ${CMAKE_BINARY_DIR}/cwp_coverage.xml)
-    message(FATAL_ERROR "cwp_coverage.xml already exists, make clean before make again for a new coverage report")
+    message(FATAL_ERROR "cwp_coverage.xml already exists, make distclean and make clean before make again for a new coverage report")
   else()
     add_custom_command(TARGET cwp_coverage POST_BUILD
                        COMMAND ;
