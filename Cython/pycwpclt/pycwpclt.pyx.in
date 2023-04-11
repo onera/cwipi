@@ -32,6 +32,7 @@ from mpi4py import MPI
 # --> Cython
 cimport cython
 from libc.stdlib       cimport malloc, free
+from libc.stdint       cimport uintptr_t
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 from libc.stdio cimport FILE, fdopen, fopen
@@ -573,7 +574,7 @@ PARTDATA_SEND = CWP_PARTDATA_SEND
 PARTDATA_RECV = CWP_PARTDATA_RECV
 
 #-----------------------------------------------------------------------------
-# UTIL
+# UTILS
 
 cdef std_block_n_pts_get(int block_type):
   if (block_type == BLOCK_NODE):
@@ -657,31 +658,58 @@ cdef ho_n_vtx_get(int block_type, int order):
   if (block_type == BLOCK_CELL_PYRAMHO):
     return (order + 1) * (order + 2) * (2*order + 3) // 6
 
-# > Enable transfer of ownership between C and Python
 cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
 
-cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
+py_mem_domain = 42440
+
+cdef extern from "Python.h":
+  int PyTraceMalloc_Track(unsigned int domain, uintptr_t ptr, size_t size)
+  int PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
+
+# General
+cdef void dealloc_array_capsule(object capsule):
+    data = PyCapsule_GetPointer(capsule, NULL)
+    PyTraceMalloc_Untrack(py_mem_domain, <uintptr_t> data)
+    free(data)
+
+cdef create_numpy(void* array, int nptype, int size, bint flag_owndata=True):
     dim = <NPY.npy_intp> size
-    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT32, <void *> array)
-    if flag_owndata:
-        PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
+    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, nptype, array)
+    if flag_owndata and array != NULL:
+        # PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
+        capsule = PyCapsule_New(array, NULL, &dealloc_array_capsule)
+        NPY.set_array_base(nparray, capsule)
+        PyTraceMalloc_Track(py_mem_domain, <uintptr_t> array, nparray.nbytes)
     return nparray
+
+cdef create_numpy_or_none(void* array, int nptype, int size, bint flag_owndata=True):
+    if array == NULL:
+        return None
+    else:
+        return create_numpy(array, nptype, size, flag_owndata)
+
+
+# Typed
+cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
+    return create_numpy(<void *> array, NPY.NPY_INT32, size, flag_owndata)
 
 cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
-    dim = <NPY.npy_intp> size
-    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT64, <void *> array)
-    if flag_owndata:
-        PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
-    return nparray
+    return create_numpy(<void *> array, NPY.NPY_INT64, size, flag_owndata)
 
 cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
-    dim = <NPY.npy_intp> size
-    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_DOUBLE, <void *> array)
-    if flag_owndata:
-        PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
-    return nparray
+    return create_numpy(<void *> array, NPY.NPY_DOUBLE, size, flag_owndata)
 
+cdef create_numpy_or_none_i(int* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, NPY.NPY_INT32, size, flag_owndata)
+
+cdef create_numpy_or_none_l(long int* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, NPY.NPY_INT64, size, flag_owndata)
+
+cdef create_numpy_or_none_d(double* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, NPY.NPY_DOUBLE, size, flag_owndata)
+
+# Other
 cdef void** np_list_to_void_pointers(list datas):
   cdef NPY.ndarray numpy_void
   cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
