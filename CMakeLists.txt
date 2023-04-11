@@ -531,7 +531,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
   # run test
   add_custom_target(cwp_test ALL
-                    COMMAND ctest -R c_new_api_dcube || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ctest -R new || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
                     DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
