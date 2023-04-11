@@ -76,6 +76,7 @@ _read_args
   int                    argc,
   char                 **argv,
   int                   *verbose,
+  int                   *swap_codes,
   PDM_g_num_t            all_n_vtx_seg[],
   int                    all_n_rank[],
   int                   *visu
@@ -90,6 +91,9 @@ _read_args
     }
     else if (strcmp(argv[i], "-v") == 0) {
       *verbose = 1;
+    }
+    else if (strcmp(argv[i], "-swap_codes") == 0) {
+      *swap_codes = 1;
     }
     else if (strcmp(argv[i], "-n1") == 0) {
       i++;
@@ -181,13 +185,13 @@ _my_interpolation
         buffer_out[n_components*id + k] += buffer_in[n_components*j + k];
       }
     }
-    PDM_log_trace_array_double(buffer_in + n_components*tgt_come_from_src_idx[i],
-                               n_components*(tgt_come_from_src_idx[i+1] - tgt_come_from_src_idx[i]),
-                               "buffer_in  : ");
-    PDM_log_trace_array_double(buffer_out + n_components*id,
-                               n_components,
-                               "buffer_out : ");
-    log_trace("\n");
+    // PDM_log_trace_array_double(buffer_in + n_components*tgt_come_from_src_idx[i],
+    //                            n_components*(tgt_come_from_src_idx[i+1] - tgt_come_from_src_idx[i]),
+    //                            "buffer_in  : ");
+    // PDM_log_trace_array_double(buffer_out + n_components*id,
+    //                            n_components,
+    //                            "buffer_out : ");
+    // log_trace("\n");
   }
 }
 
@@ -207,6 +211,7 @@ main
  )
 {
   int         verbose          = 0;
+  int         swap_codes       = 0;
   PDM_g_num_t all_n_vtx_seg[2] = {10, 5};
   int         all_n_rank   [2] = {-1};
   int         visu             = 0;
@@ -214,6 +219,7 @@ main
   _read_args(argc,
              argv,
              &verbose,
+             &swap_codes,
              all_n_vtx_seg,
              all_n_rank,
              &visu);
@@ -244,6 +250,12 @@ main
   has_code[0] = i_rank <  all_n_rank[0];
   has_code[1] = i_rank >= n_rank - all_n_rank[1];
 
+  if (swap_codes) {
+    int tmp = has_code[0];
+    has_code[0] = has_code[1];
+    has_code[1] = tmp;
+  }
+
   int n_code = has_code[0] + has_code[1];
 
   int           *code_id           = malloc(sizeof(int         ) * n_code);
@@ -252,7 +264,7 @@ main
   CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
   double        *time_init         = malloc(sizeof(double      ) * n_code);
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
-
+  PDM_g_num_t   *n_vtx_seg         = malloc(sizeof(PDM_g_num_t ) * n_code);
 
   n_code = 0;
   for (int icode = 0; icode < 2; icode++) {
@@ -262,6 +274,7 @@ main
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       is_active_rank   [n_code] = CWP_STATUS_ON;
       time_init        [n_code] = 0.;
+      n_vtx_seg        [n_code] = all_n_vtx_seg[icode];
 
       if (verbose) {
         log_trace("Running %s, coupled with %s\n",
@@ -298,7 +311,6 @@ main
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
-
   }
 
 
@@ -328,6 +340,7 @@ main
     PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
 
     PDM_generate_mesh_rectangle_simplified(mesh_comm,
+                                           n_vtx_seg   [icode],
                                            &n_vtx      [icode],
                                            &n_elt      [icode],
                                            &vtx_coord  [icode],
@@ -366,7 +379,7 @@ main
 
   /* Field */
   CWP_Status_t visu_status = CWP_STATUS_ON;
-  const char *field_name = "force";
+  const char *field_name = "my_field";
 
   double *field_ptr = NULL;
   double *send_val  = NULL;
@@ -401,7 +414,6 @@ main
       map_type     = CWP_FIELD_MAP_TARGET;
       field_ptr    = recv_val;
       dof_location = CWP_DOF_LOCATION_NODE;
-
     }
 
     CWP_Field_create(code_name[icode],
@@ -452,9 +464,6 @@ main
     }
     else {
       CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
-      PDM_log_trace_array_double(recv_val,
-                                 n_vtx[icode],
-                                 "recv_val : ");
     }
   }
 
@@ -524,7 +533,7 @@ main
   free(is_active_rank);
   free(intra_comm);
   free(time_init);
-
+  free(n_vtx_seg);
 
   CWP_Finalize();
 

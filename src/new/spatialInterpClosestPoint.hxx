@@ -61,6 +61,10 @@ namespace cwipi {
          CWP_Dof_location_t          cplCodeDofLOcation,
          SpatialInterpExchDirection  exchDirection) override;
 
+        void reset();
+
+        void set_PDM_object();
+
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 
         PDM_g_num_t **_closest_src_gnum;

@@ -3029,7 +3029,7 @@ namespace cwipi {
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;
 
           it2 = _spatial_interp_send.find(newKey);
-          cpl_it2 = cpl_cpl._spatial_interp_recv.find(newKey);
+          cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
             PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
@@ -3124,7 +3124,7 @@ namespace cwipi {
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;
 
           it2 = _spatial_interp_send.find(newKey);
-          cpl_it2 = cpl_cpl._spatial_interp_recv.find(newKey);
+          cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
             PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
@@ -3228,7 +3228,7 @@ namespace cwipi {
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;
 
           it2 = _spatial_interp_recv.find(newKey);
-          cpl_it2 = cpl_cpl._spatial_interp_send.find(newKey);
+          cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
             PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
@@ -3332,7 +3332,7 @@ namespace cwipi {
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;
 
           it2 = _spatial_interp_recv.find(newKey);
-          cpl_it2 = cpl_cpl._spatial_interp_send.find(newKey);
+          cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
             PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
