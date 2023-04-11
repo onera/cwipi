@@ -572,7 +572,7 @@ int main
   int              rotate           = 0;
   int              randomize        = 0;
   // CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
   CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   // CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_IDENTITY;
   PDM_Mesh_nodal_elt_t all_elt_type[2] = {PDM_MESH_NODAL_HEXA8, PDM_MESH_NODAL_HEXA8};
@@ -839,7 +839,7 @@ int main
 
   /* Map source to target */
   for (int icode = 0; icode < n_code; icode++) {
-    // if (spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+    // if (spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
     //   CWP_Spatial_interp_property_set(code_name[icode],
     //                                   cpl_name,
     //                                   "n_closest_pts",

@@ -612,7 +612,8 @@ CWP_Init
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
   factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES);
+  factorySpatialInterp.Register<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.Register<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES);
   factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   /*
@@ -2601,7 +2602,8 @@ CWP_Interp_closest_points_distances_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
@@ -2641,7 +2643,8 @@ CWP_Interp_closest_points_coord_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 

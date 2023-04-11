@@ -224,9 +224,6 @@ main
              all_n_rank,
              &visu);
 
-  setenv("REVERSE_KNN", "1", 1);
-
-
   // Initialize MPI
   MPI_Init(&argc, &argv);
 
@@ -307,7 +304,7 @@ main
                    coupled_code_name[icode],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-                   CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES,
+                   CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);

@@ -117,7 +117,7 @@ program testf
       case ("-location")
         spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
       case ("-closest_pt")
-        spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES
+        spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES
       case ("-identity")
         spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_IDENTITY
       case ("-algo")

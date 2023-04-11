@@ -549,7 +549,7 @@ main
   // Create coupling and visu
   const char *cpl_name = "c_new_api_disjoint_comms";
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 

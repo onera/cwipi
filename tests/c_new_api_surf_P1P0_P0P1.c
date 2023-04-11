@@ -501,7 +501,7 @@ main(int argc, char *argv[]) {
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1";
   int nb_part = 1;
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   CWP_Cpl_create(code_name[0],                                          // Code name
                  cpl_name,                                              // Coupling id

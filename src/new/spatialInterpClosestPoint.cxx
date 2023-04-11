@@ -115,14 +115,6 @@ namespace cwipi {
 
       _interpolation_time = CWP_SPATIAL_INTERP_AT_RECV;
 
-      _reverse = 0;
-
-      char *env_var = NULL;
-      env_var = getenv("REVERSE_KNN");
-      if (env_var != NULL) {
-        _reverse = (int) atoi(env_var);
-      }
-
       //
       // Data for PDM_part_to_part_t
       _send_coord = (const double **) malloc(sizeof(double *) * _nPart);

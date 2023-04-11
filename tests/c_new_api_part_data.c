@@ -170,7 +170,7 @@ main(int argc, char *argv[]) {
 
     // Create coupling
     const char *coupling_name = "couplage";
-    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
 
     CWP_Cpl_create(code_name[0],
                    coupling_name,
@@ -564,7 +564,7 @@ main(int argc, char *argv[]) {
     // Create coupling
     const char *coupling_name = "c_surf_cpl_P1P1";
 
-    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
     CWP_Cpl_create(code_name[0],
                    coupling_name,
                    coupled_code_name[0],

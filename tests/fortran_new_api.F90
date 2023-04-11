@@ -108,7 +108,7 @@ program new_api
     cpl_id5 = "cpl5_code1_code4";
     cpl_id6 = "cpl6_code2_code4";
 
-    interp_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES
+    interp_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES
 
     ! cpl1
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then

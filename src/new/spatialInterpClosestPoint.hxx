@@ -80,12 +80,32 @@ namespace cwipi {
         int            _send_coord_request;
         int            _recv_coord_request;
 
-        int _reverse;
 
     protected:
       PDM_closest_point_t *_id_pdm;
+      int _reverse;
 
       // _closest_points_interp_method_t _interpolation_method; // (W)LS, IDW, RBF?
+    };
+
+
+    class SpatialInterpClosestSources : public SpatialInterpClosestPoint {
+    public:
+        SpatialInterpClosestSources() {
+          _reverse = 0;
+        };
+
+        ~SpatialInterpClosestSources() override = default;
+    };
+
+
+    class SpatialInterpClosestTargets : public SpatialInterpClosestPoint {
+    public:
+        SpatialInterpClosestTargets() {
+          _reverse = 1;
+        };
+
+        ~SpatialInterpClosestTargets() override = default;
     };
 }
 
