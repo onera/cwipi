@@ -474,6 +474,8 @@ void surfMeshGenerator::computeMesh() {
 #else
 #ifdef PDM_HAVE_PTSCOTCH
     PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#else
+    PDM_part_split_t method  = PDM_PART_SPLIT_HILBERT;  
 #endif
 #endif
     int have_dCellPart = 0;
