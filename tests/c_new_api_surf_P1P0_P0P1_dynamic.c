@@ -299,7 +299,7 @@ _gen_mesh
                                         PDM_CONNECTIVITY_TYPE_EDGE_VTX,
                                         &edge_vtx,
                                         &edge_vtx_idx,
-                                        PDM_OWNERSHIP_USER);
+                                        PDM_OWNERSHIP_KEEP);
 
     double *vtx_coord = NULL;
     int n_vtx = PDM_multipart_part_vtx_coord_get(mpart,
@@ -332,6 +332,7 @@ _gen_mesh
                                                      face_edge,
                                                      edge_vtx,
                                                      *pface_vtx + i_part);
+    free(face_edge);
 
     (*pface_ln_to_gn)[i_part] = face_ln_to_gn;
   }
