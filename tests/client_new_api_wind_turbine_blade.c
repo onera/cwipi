@@ -790,6 +790,14 @@ main(int argc, char *argv[]) {
   }
 
   // free
+  CWP_client_Mesh_interf_del(code_name[0],
+                             cpl_name);
+  CWP_client_Field_del(code_name[0],
+                       cpl_name,
+                       vtx_field_name[0]);
+  CWP_client_Cpl_del(code_name[0],
+                     cpl_name);
+
   for (int ipart = 0; ipart < n_part; ipart++) {
     free(pface_vtx_idx [ipart]);
     free(pface_vtx     [ipart]);
@@ -825,9 +833,10 @@ main(int argc, char *argv[]) {
   free(pvtx_field_value);
 
 
-  free(code_name      );
-  free(times_init     );
-  free(is_coupled_rank);
+  free(code_name        );
+  free(times_init       );
+  free(is_coupled_rank  );
+  free(coupled_code_name);
 
   // CWP_Finalize
   CWP_client_Finalize();

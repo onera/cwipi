@@ -235,6 +235,10 @@ main
       code_ids[i] = i;
     }
   }
+  for (int i = 0; i < n_rank; i++) {
+    free(post_code_names[i]);
+  }
+  free(post_code_names);
 
   MPI_Barrier(comm);
 

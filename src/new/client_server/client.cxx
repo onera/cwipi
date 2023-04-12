@@ -64,6 +64,7 @@
 #include <pdm_io.h>
 #include <pdm_version.h>
 #include <pdm_printf.h>
+#include <pdm_logging.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -4778,7 +4779,6 @@ CWP_client_Field_data_set
   if (map_type == CWP_FIELD_MAP_TARGET) {
     clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
     clt_cwp.coupling[s1].field[s2].data[i_part] = data;
-    printf("set clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
   }
 
   // send map with data
@@ -5282,7 +5282,6 @@ CWP_client_Field_wait_irecv
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) n_computed_tgts, sizeof(int) * clt_cwp.coupling[s1].n_part);
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
     if (clt_cwp.coupling[s1].field[s2].n_entities[i_part] != -1) {
-      printf("wait_irecv clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
       CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
     }
   }

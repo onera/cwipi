@@ -59,6 +59,7 @@
 #include "cwp_priv.h"
 
 #include <pdm_error.h>
+#include <pdm_logging.h>
 #include <pdm_mpi.h>
 
 #ifdef __cplusplus
@@ -4264,10 +4265,8 @@ CWP_server_Field_wait_irecv
                                                         tgt_field_id,
                                                         i_part);
 
-      data[i_part] = (double *) malloc(sizeof(double) * n_computed_tgts[i_part] * n_components);
-    } else {
-      data[i_part] = NULL;
     }
+    data[i_part] = NULL;
   }
 
   // launch CWP_Field_data_get to retreive field and send to Client
@@ -4308,9 +4307,6 @@ CWP_server_Field_wait_irecv
   if (n_computed_tgts != NULL) free(n_computed_tgts);
   if (n_entities != NULL) free(n_entities);
   if (data != NULL) {
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      if (data[i_part] != NULL) free(data[i_part]);
-    }
     free(data);
   }
 
