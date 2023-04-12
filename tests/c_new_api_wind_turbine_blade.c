@@ -474,7 +474,7 @@ _gen_part_data
                                                      (*pvtx_coord)[ipart][3*i+2]);
         }
         else {
-          if (0) {
+          if (1) {
             (*pvtx_field_value)[0][ipart][i] = _paper((*pvtx_coord)[ipart][3*i  ],
                                                       (*pvtx_coord)[ipart][3*i+1],
                                                       (*pvtx_coord)[ipart][3*i+2]);
@@ -502,7 +502,7 @@ main(int argc, char *argv[]) {
 
   int     verbose = 0;
   char   *all_file_names[2] = {NULL};
-  int     all_n_rank    [2] = {-1};
+  int     all_n_rank    [2] = {-1, -1};
   double  tolerance         = 1e-2;
   int     n_closest_pts     = 5;
   int     visu              = 0;
@@ -528,7 +528,7 @@ main(int argc, char *argv[]) {
   }
 
   if (all_file_names[1] == NULL) {
-    all_file_names[1] = (char *) CWP_MESH_DIR"blade_0.06.vtk";
+    all_file_names[1] = (char *) CWP_MESH_DIR"blade_0.006.vtk";
   }
 
   // Initialize MPI
@@ -693,7 +693,7 @@ main(int argc, char *argv[]) {
     CWP_Mesh_interf_finalize(code_name[icode], cpl_name);
   }
 
-   MPI_Barrier(comm);
+  MPI_Barrier(comm);
   if (i_rank == 0) {
     printf("Set mesh OK\n");
     fflush(stdout);

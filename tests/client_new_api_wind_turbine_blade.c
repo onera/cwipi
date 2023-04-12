@@ -38,6 +38,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "cwp.h"
+#include "cwipi_config.h"
+#include "cwp_priv.h"
 #include "client_server/client.h"
 
 #include "pdm.h"
@@ -48,6 +50,7 @@
 
 #include "pdm_dmesh_nodal.h"
 #include "pdm_block_to_part.h"
+#include "pdm_part_to_block.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_vtk.h"
@@ -196,6 +199,7 @@ _paper
  *
  *---------------------------------------------------------------------*/
 
+CWP_GCC_SUPPRESS_WARNING("-Wcast-qual")
 static void
 _gen_part_data
 (
@@ -296,13 +300,55 @@ _gen_part_data
                                                        &(*pface_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
 
+    int *_face_vtx;
+    int *_face_vtx_idx;
     PDM_multipart_part_connectivity_get(mpart,
                                         0,
                                         ipart,
                                         PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                        &(*pface_vtx)[ipart],
-                                        &(*pface_vtx_idx)[ipart],
-                                        PDM_OWNERSHIP_USER);
+                                        &_face_vtx,
+                                        &_face_vtx_idx,
+                                        PDM_OWNERSHIP_KEEP);
+
+    if (_face_vtx != NULL) {
+      (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
+      memcpy((*pface_vtx_idx)[ipart], _face_vtx_idx, sizeof(int) * ((*pn_face)[ipart]+1));
+
+      (*pface_vtx)[ipart] = malloc(sizeof(int) * _face_vtx_idx[(*pn_face)[ipart]]);
+      memcpy((*pface_vtx)[ipart], _face_vtx, sizeof(int) * _face_vtx_idx[(*pn_face)[ipart]]);
+    }
+
+    else {
+      int *_face_edge;
+      int *_face_edge_idx;
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          ipart,
+                                          PDM_CONNECTIVITY_TYPE_FACE_EDGE,
+                                          &_face_edge,
+                                          &_face_edge_idx,
+                                          PDM_OWNERSHIP_KEEP);
+
+      int *_edge_vtx;
+      int *_edge_vtx_idx;
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          ipart,
+                                          PDM_CONNECTIVITY_TYPE_EDGE_VTX,
+                                          &_edge_vtx,
+                                          &_edge_vtx_idx,
+                                          PDM_OWNERSHIP_KEEP);
+
+      (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
+      memcpy((*pface_vtx_idx)[ipart], _face_edge_idx, sizeof(int) * ((*pn_face)[ipart]+1));
+
+
+      PDM_compute_face_vtx_from_face_and_edge((*pn_face)[ipart],
+                                              _face_edge_idx,
+                                              _face_edge,
+                                              _edge_vtx,
+                                              &(*pface_vtx)[ipart]);
+    }
 
   }
   PDM_multipart_free(mpart);
@@ -411,7 +457,7 @@ int
 main(int argc, char *argv[]) {
 
   char   *mesh_filenames[2] = {NULL};
-  int     code_n_rank   [2] = {-1};
+  int     code_n_rank   [2] = {1, 1};
   int     visu              = 0;
 
   _read_args (argc,
@@ -419,6 +465,14 @@ main(int argc, char *argv[]) {
               mesh_filenames,
               code_n_rank,
               &visu);
+
+  if (mesh_filenames[0] == NULL) {
+    mesh_filenames[0] = (char *) CWP_MESH_DIR"blade_0.01.vtk";
+  }
+
+  if (mesh_filenames[1] == NULL) {
+    mesh_filenames[1] = (char *) CWP_MESH_DIR"blade_0.006.vtk";
+  }
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -433,7 +487,7 @@ main(int argc, char *argv[]) {
   assert(code_n_rank[0] + code_n_rank[1] == n_rank);
 
   // Configuration file
-  char *config     = NULL;
+  char *config = NULL;
   if (i_rank == 0) {
     config = (char *) "client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt";
   }
@@ -449,8 +503,8 @@ main(int argc, char *argv[]) {
     system("rm -f ./client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt");
 
     char str[999];
-    sprintf(str, "mpiexec -n %d ../bin/cwp_server -cn code0 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt\" \
-                  : -n %d  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &",
+    sprintf(str, "mpiexec -n %d ../bin/cwp_server -cn code1 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt\" \
+                  : -n %d  ../bin/cwp_server -cn code2 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &",
                   code_n_rank[0], 49100, 49100 + code_n_rank[0] - 1, code_n_rank[1], 49100 + code_n_rank[0],  49100 + code_n_rank[0] + code_n_rank[1] - 1);
     system(str);
   }
@@ -567,7 +621,7 @@ main(int argc, char *argv[]) {
                                    i_part,
                                    pn_vtx       [i_part],
                                    pvtx_coord   [i_part],
-                            pvtx_ln_to_gn[i_part]);
+                                   pvtx_ln_to_gn[i_part]);
 
     CWP_client_Mesh_interf_f_poly_block_set(code_name[0],
                                             cpl_name,
@@ -575,8 +629,8 @@ main(int argc, char *argv[]) {
                                             block_id,
                                             pn_face       [i_part],
                                             pface_vtx_idx [i_part],
-                                     pface_vtx     [i_part],
-                                     pface_ln_to_gn[i_part]);
+                                            pface_vtx     [i_part],
+                                            pface_ln_to_gn[i_part]);
   }
 
   CWP_client_Mesh_interf_finalize(code_name[0],
@@ -593,14 +647,14 @@ main(int argc, char *argv[]) {
     map_type  = CWP_FIELD_MAP_SOURCE;
     field_ptr = pvtx_field_value[0];
   } else {
-    exch_type = CWP_FIELD_EXCH_RECV;
-    map_type  = CWP_FIELD_MAP_TARGET;
-    field_ptr = recv_val;
-
     recv_val = malloc(sizeof(double *) * n_part);
     for (int i_part = 0; i_part < n_part; i_part++) {
       recv_val[i_part] = malloc(sizeof(double) * pn_vtx[i_part]);
     }
+
+    exch_type = CWP_FIELD_EXCH_RECV;
+    map_type  = CWP_FIELD_MAP_TARGET;
+    field_ptr = recv_val;
   }
 
   CWP_client_Field_create(code_name[0],
@@ -624,19 +678,19 @@ main(int argc, char *argv[]) {
   }
 
   // Compute weights
-  CWP_Spatial_interp_property_set(code_name[0],
-                                  cpl_name,
-                                  "tolerance",
-                                  "double",
-                                  "0.1");
+  CWP_client_Spatial_interp_property_set(code_name[0],
+                                         cpl_name,
+                                         "tolerance",
+                                         "double",
+                                         "0.1");
 
-  CWP_Spatial_interp_property_set(code_name[0],
-                                  cpl_name,
-                                  "n_closest_pts",
-                                  "int",
-                                  "1");
+  CWP_client_Spatial_interp_property_set(code_name[0],
+                                         cpl_name,
+                                         "n_closest_pts",
+                                         "int",
+                                         "1");
 
-  CWP_Spatial_interp_weights_compute(code_name[0],
+  CWP_client_Spatial_interp_weights_compute(code_name[0],
                                      cpl_name);
 
   // Exchange field
@@ -660,9 +714,120 @@ main(int argc, char *argv[]) {
                                  vtx_field_name[0]);
   }
 
+  MPI_Barrier(comm);
+  if (i_rank == 0) {
+    printf("Field exchange ok\n");
+    fflush(stdout);
+  }
+
   // Check interpolation error
+  double linf_error = 0.;
+  double l2_error   = 0.;
+  double **pvtx_error = NULL;
+  if (!code1) {
+    int i_rank_intra;
+    int n_rank_intra;
+    MPI_Comm_rank(intra_comm, &i_rank_intra);
+    MPI_Comm_size(intra_comm, &n_rank_intra);
+
+    pvtx_error = malloc(sizeof(double *) * n_part);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      pvtx_error[ipart] = malloc(sizeof(double) * pn_vtx[ipart]);
+      for (int i = 0; i < pn_vtx[ipart] * vtx_field_stride[0]; i++) {
+        double err = ABS(pvtx_field_value[0][ipart][i] - recv_val[ipart][i]);
+        pvtx_error[ipart][i] = err;
+        linf_error = MAX(linf_error, err);
+      }
+    }
+
+    PDM_part_to_block_t *ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                        PDM_PART_TO_BLOCK_POST_CLEANUP,
+                                                        1.,
+                                                        pvtx_ln_to_gn,
+                                                        NULL,
+                                                        pn_vtx,
+                                                        n_part,
+                                                        PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm));
+
+    double *dvtx_error = NULL;
+    PDM_part_to_block_exch(ptb,
+                           sizeof(double),
+                           PDM_STRIDE_CST_INTERLACED,
+                           1,
+                           NULL,
+                           (void **) pvtx_error,
+                           NULL,
+                           (void **) &dvtx_error);
+
+    int dn_vtx = PDM_part_to_block_n_elt_block_get(ptb);
+    for (int i = 0; i < dn_vtx; i++) {
+      l2_error += dvtx_error[i]*dvtx_error[i];
+    }
+    free(dvtx_error);
+
+    double gl2_error = 0;
+    MPI_Allreduce(&l2_error, &gl2_error, 1, MPI_DOUBLE, MPI_SUM, intra_comm);
+
+    PDM_g_num_t *distrib_vtx = PDM_part_to_block_distrib_index_get(ptb);
+    gl2_error = sqrt(gl2_error/distrib_vtx[n_rank_intra]);
+
+    PDM_part_to_block_free(ptb);
+
+    if (i_rank_intra == 0) {
+      printf("l2_error   = %e\n", gl2_error);
+      fflush(stdout);
+    }
+  }
+
+
+  double glinf_error = 0;
+  MPI_Allreduce(&linf_error, &glinf_error, 1, MPI_DOUBLE, MPI_MAX, comm);
+
+
+  if (i_rank == 0) {
+    printf("linf_error = %e\n", glinf_error);
+    fflush(stdout);
+  }
 
   // free
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    free(pface_vtx_idx [ipart]);
+    free(pface_vtx     [ipart]);
+    free(pvtx_coord    [ipart]);
+    free(pface_ln_to_gn[ipart]);
+    free(pvtx_ln_to_gn [ipart]);
+    if (!code1) {
+      free(pvtx_error[ipart]);
+      free(recv_val  [ipart]);
+    }
+  }
+  if (!code1) {
+    free(pvtx_error);
+    free(recv_val  );
+  }
+  for (int ifield = 0; ifield < n_vtx_field; ifield++) {
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      free(pvtx_field_value[ifield][ipart]);
+    }
+    free(vtx_field_name  [ifield]);
+    free(pvtx_field_value[ifield]);
+  }
+  free(pn_face         );
+  free(pn_vtx          );
+  free(pface_vtx_idx   );
+  free(pface_vtx       );
+  free(pvtx_coord      );
+  free(pface_ln_to_gn  );
+  free(pvtx_ln_to_gn   );
+  free(vtx_field_name  );
+  free(vtx_field_type  );
+  free(vtx_field_stride);
+  free(pvtx_field_value);
+
+
+  free(code_name      );
+  free(times_init     );
+  free(is_coupled_rank);
 
   // CWP_Finalize
   CWP_client_Finalize();
