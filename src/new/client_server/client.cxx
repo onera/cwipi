@@ -793,7 +793,7 @@ CWP_client_connect
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void*) &endian_flags, sizeof(int));
 
   // free
-  free(svr_info);
+  freeaddrinfo(svr_info);
 
   return 0;
 

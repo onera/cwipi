@@ -5520,6 +5520,7 @@ CWP_server_create
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
   free(dst);
+  freeaddrinfo(svr_info);
 
   CWP_UNUSED(status);
 
