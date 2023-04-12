@@ -477,7 +477,16 @@ namespace cwipi {
     if (!_coupledCodeProperties->localCodeIs() ||
         (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
       PDM_mesh_intersection_compute(_id_pdm);
-      // PDM_mesh_intersection_dump_times(_id_pdm); // not implemented
+
+      int dump_times = 0;
+      char *env_var = NULL;
+      env_var = getenv ("CWP_DUMP_TIMES");
+      if (env_var != NULL) {
+        dump_times = atoi(env_var);
+      }
+      if (dump_times) {
+        // PDM_mesh_intersection_dump_times(_id_pdm); // not implemented
+      }
     }
 
     /* Reset part_to_part object */

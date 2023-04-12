@@ -24,8 +24,9 @@
 #include <time.h>
 #include <math.h>
 
-#include "cwp_priv.h"
 #include "cwp.h"
+#include "cwipi_config.h"
+#include "cwp_priv.h"
 
 #include "pdm.h"
 #include "pdm_multipart.h"
@@ -59,6 +60,13 @@ _usage(int exit_code) {
          "  -f1             first filename.\n\n"
          "  -f2             second filename.\n\n"
          "  -v              verbose.\n\n"
+         "  -n_rank1        number of MPI ranks for code1.\n\n"
+         "  -n_rank2        number of MPI ranks for code2.\n\n"
+         "  -tol            geometrical tolerance for mesh location.\n\n"
+         "  -n_cls          number of closest sources for interpolation.\n\n"
+         "  -polyfit_degree polynomial degree for LS interpolation.\n\n"
+         "  -algo           spatial interpolation algorithm.\n\n"
+         "  -visu           visualize interpolation error.\n\n"
          "  -h              this message.\n\n");
 
   exit(exit_code);
@@ -515,11 +523,12 @@ main(int argc, char *argv[]) {
               &spatial_interp,
               &visu);
 
-  for (int i = 0; i < 2; i++) {
-    if (all_file_names[i] == NULL) {
-      printf("Both filenames must be specified\n");
-      return 0;
-    }
+  if (all_file_names[0] == NULL) {
+    all_file_names[0] = (char *) CWP_MESH_DIR"blade_0.01.vtk";
+  }
+
+  if (all_file_names[1] == NULL) {
+    all_file_names[1] = (char *) CWP_MESH_DIR"blade_0.06.vtk";
   }
 
   // Initialize MPI

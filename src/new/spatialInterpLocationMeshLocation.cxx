@@ -313,7 +313,15 @@ namespace cwipi {
 
       PDM_mesh_location_compute(_id_pdm);
 
-      PDM_mesh_location_dump_times(_id_pdm);
+      int dump_times = 0;
+      char *env_var = NULL;
+      env_var = getenv ("CWP_DUMP_TIMES");
+      if (env_var != NULL) {
+        dump_times = atoi(env_var);
+      }
+      if (dump_times) {
+        PDM_mesh_location_dump_times(_id_pdm);
+      }
 
     }
 
@@ -322,7 +330,15 @@ namespace cwipi {
 
         PDM_mesh_location_compute(_id_pdm);
 
-        PDM_mesh_location_dump_times(_id_pdm);
+        int dump_times = 0;
+        char *env_var = NULL;
+        env_var = getenv ("CWP_DUMP_TIMES");
+        if (env_var != NULL) {
+          dump_times = atoi(env_var);
+        }
+        if (dump_times) {
+          PDM_mesh_location_dump_times(_id_pdm);
+        }
 
       }
     }

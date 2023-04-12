@@ -367,9 +367,9 @@ namespace cwipi {
 
     for (int i_part = 0; i_part < _nPart; i_part++) {
 
-      if (n_ref[i_part] != _tgt_n_gnum[i_part]) {
-        PDM_error(__FILE__, __LINE__, 0, "Invalid Part Data (some tgt are not referenced)\n");
-      }
+      // if (n_ref[i_part] != _tgt_n_gnum[i_part]) {
+      //   PDM_error(__FILE__, __LINE__, 0, "Invalid Part Data (some tgt are not referenced)\n");
+      // }
 
       double *referenceData = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET);
 

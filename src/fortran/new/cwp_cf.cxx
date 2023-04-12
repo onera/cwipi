@@ -33,8 +33,6 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_logging.h"
-#include "surfMeshGenerator.hxx"
-#include "surfMeshGeneratorDB.hxx"
 #include "spatialInterpClosestPoint.hxx"
 #include "spatialInterpIntersection.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"

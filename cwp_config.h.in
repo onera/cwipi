@@ -34,4 +34,7 @@
 
 #cmakedefine CWP_HAVE_NOT_FORTRAN_IN_C @CWP_HAVE_NOT_FORTRAN_IN_C@
 
+#define CWP_MESH_DIR "@PROJECT_BINARY_DIR@/tests/meshes/"
+
+
 #endif /* __CWP_CONFIG_H__ */

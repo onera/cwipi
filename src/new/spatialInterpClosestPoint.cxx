@@ -190,7 +190,16 @@ namespace cwipi {
       if (!_coupledCodeProperties->localCodeIs() ||
           (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
         PDM_closest_points_compute(_id_pdm);
-        PDM_closest_points_dump_times(_id_pdm);
+
+        int dump_times = 0;
+        char *env_var = NULL;
+        env_var = getenv ("CWP_DUMP_TIMES");
+        if (env_var != NULL) {
+          dump_times = atoi(env_var);
+        }
+        if (dump_times) {
+          PDM_closest_points_dump_times(_id_pdm);
+        }
       }
 
 
