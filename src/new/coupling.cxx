@@ -1523,6 +1523,8 @@ namespace cwipi {
   Coupling::exportMesh(Coupling &cpl)
   {
     log_trace(">> exportMesh\n");
+    log_trace("cpl._writer : %p\n", cpl._writer);
+
     if (cpl._writer != NULL) {
 
       /* First, create geometry and variables if necessary */
@@ -1533,11 +1535,15 @@ namespace cwipi {
                                                                      "geom",
                                                                      cpl._mesh.getPdmNodalIndex());
 
+        log_trace("cpl._id_geom_writer : %d\n", cpl._id_geom_writer);
+
         if (_userTargetN != nullptr) {
 
           cpl._id_user_tgt_geom_writer = PDM_writer_geom_create(cpl._writer,
                                                                 "user_tgt_geom",
                                                                 cpl._nPart);
+
+          log_trace("cpl._id_user_tgt_geom_writer : %d\n", cpl._id_user_tgt_geom_writer);
 
           int block_id = PDM_writer_geom_bloc_add(cpl._writer,
                                                   cpl._id_user_tgt_geom_writer,
