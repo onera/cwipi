@@ -92,7 +92,8 @@ _read_args
   double                *tolerance,
   int                   *n_closest_pts,
   CWP_Spatial_interp_t  *spatial_interp_algo,
-  int                   *visu
+  int                   *visu,
+  int                   *point_interface
 )
 {
   int i = 1;
@@ -179,6 +180,9 @@ _read_args
     }
     else if (strcmp(argv[i], "-visu") == 0) {
       *visu = 1;
+    }
+    else if (strcmp(argv[i], "-point_interface") == 0) {
+      *point_interface = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -506,6 +510,7 @@ main(int argc, char *argv[]) {
   double  tolerance         = 1e-2;
   int     n_closest_pts     = 5;
   int     visu              = 0;
+  int     point_interface   = 0;
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
@@ -521,7 +526,8 @@ main(int argc, char *argv[]) {
               &tolerance,
               &n_closest_pts,
               &spatial_interp,
-              &visu);
+              &visu,
+              &point_interface);
 
   if (all_file_names[0] == NULL) {
     all_file_names[0] = (char *) CWP_MESH_DIR"blade_0.01.vtk";
@@ -605,13 +611,19 @@ main(int argc, char *argv[]) {
   const char *cpl_name = "c_new_api_wind_turbine_blade";
 
 
+  CWP_Interface_t interface_dim = CWP_INTERFACE_SURFACE;
+  if (point_interface) {
+    assert(spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES ||
+           spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES);
+    interface_dim = CWP_INTERFACE_POINT;
+  }
 
 
   for (int icode = 0; icode < n_code; icode++) {
     CWP_Cpl_create(code_name[icode],
                    cpl_name,
                    coupled_code_name[icode],
-                   CWP_INTERFACE_SURFACE,
+                   interface_dim,
                    CWP_COMM_PAR_WITH_PART,
                    spatial_interp,
                    n_part[icode],
@@ -648,6 +660,11 @@ main(int argc, char *argv[]) {
   int           **vtx_field_stride = malloc(sizeof(int           *) * n_code);
   double      ****pvtx_field_value = malloc(sizeof(double      ***) * n_code);
 
+  int          ***point_connec     = NULL;
+  if (point_interface) {
+    point_connec = malloc(sizeof(int **) * n_code);
+  }
+
   for (int icode = 0; icode < n_code; icode++) {
     PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
 
@@ -668,9 +685,18 @@ main(int argc, char *argv[]) {
                    &vtx_field_stride[icode],
                    &pvtx_field_value[icode]);
 
-    int block_id = CWP_Mesh_interf_block_add(code_name[icode],
-                                             cpl_name,
-                                             CWP_BLOCK_FACE_POLY);
+    int block_id = -1;
+    if (point_interface) {
+      block_id = CWP_Mesh_interf_block_add(code_name[icode],
+                                           cpl_name,
+                                           CWP_BLOCK_NODE);
+      point_connec[icode] = malloc(sizeof(int *) * n_part[icode]);
+    }
+    else {
+      block_id = CWP_Mesh_interf_block_add(code_name[icode],
+                                           cpl_name,
+                                           CWP_BLOCK_FACE_POLY);
+    }
 
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
       CWP_Mesh_interf_vtx_set(code_name[icode],
@@ -680,14 +706,29 @@ main(int argc, char *argv[]) {
                               pvtx_coord   [icode][ipart],
                               pvtx_ln_to_gn[icode][ipart]);
 
-      CWP_Mesh_interf_f_poly_block_set(code_name[icode],
-                                       cpl_name,
-                                       ipart,
-                                       block_id,
-                                       pn_face       [icode][ipart],
-                                       pface_vtx_idx [icode][ipart],
-                                       pface_vtx     [icode][ipart],
-                                       pface_ln_to_gn[icode][ipart]);
+      if (point_interface) {
+        point_connec[icode][ipart] = malloc(sizeof(int) * pn_vtx[icode][ipart]);
+        for (int i = 0; i < pn_vtx[icode][ipart]; i++) {
+          point_connec[icode][ipart][i] = i + 1;
+        }
+        CWP_Mesh_interf_block_std_set(code_name[icode],
+                                      cpl_name,
+                                      ipart,
+                                      block_id,
+                                      pn_vtx       [icode][ipart],
+                                      point_connec [icode][ipart],
+                                      pvtx_ln_to_gn[icode][ipart]);
+      }
+      else {
+        CWP_Mesh_interf_f_poly_block_set(code_name[icode],
+                                         cpl_name,
+                                         ipart,
+                                         block_id,
+                                         pn_face       [icode][ipart],
+                                         pface_vtx_idx [icode][ipart],
+                                         pface_vtx     [icode][ipart],
+                                         pface_ln_to_gn[icode][ipart]);
+      }
     }
 
     CWP_Mesh_interf_finalize(code_name[icode], cpl_name);
@@ -910,10 +951,16 @@ main(int argc, char *argv[]) {
       if (code_id[icode] == 2) {
         free(pvtx_error[ipart]);
       }
+      if (point_interface) {
+        free(point_connec[icode][ipart]);
+      }
     }
     if (code_id[icode] == 2) {
       free(pvtx_error);
     }
+    if (point_interface) {
+        free(point_connec[icode]);
+      }
     for (int ifield = 0; ifield < n_vtx_field[icode]; ifield++) {
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
         free(pvtx_field_value[icode][ifield][ipart]);
@@ -947,6 +994,9 @@ main(int argc, char *argv[]) {
   free(vtx_field_stride);
   free(pvtx_field_value);
   free(recv_val        );
+  if (point_interface) {
+    free(point_connec);
+  }
 
   free(code_id);
   free(n_part);

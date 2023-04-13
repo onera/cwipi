@@ -1530,7 +1530,10 @@ namespace cwipi {
   {
     CWP_Interface_t ed = _cpl->entitiesDimGet();
 
-    if (ed == CWP_INTERFACE_LINEAR) {
+    if (ed == CWP_INTERFACE_POINT) {
+      return PDM_part_mesh_nodal_n_elmts_get(_pdmNodal_handle_index, PDM_GEOMETRY_KIND_CORNER, id_part);
+    }
+    else if (ed == CWP_INTERFACE_LINEAR) {
       return PDM_part_mesh_nodal_n_elmts_get(_pdmNodal_handle_index, PDM_GEOMETRY_KIND_RIDGE, id_part);
     }
     else if (ed == CWP_INTERFACE_SURFACE) {
