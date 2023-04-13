@@ -15,6 +15,9 @@ if (MPI_Fortran_COMPILER)
 endif()
 
 unset(LINK_LIBRARIES)
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  list(APPEND LINK_LIBRARIES "m")
+endif()
 
 if (NOT MPI_C_COMPILER)
   if (MPI_C_LIBRARIES)

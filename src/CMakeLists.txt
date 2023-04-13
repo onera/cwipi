@@ -200,6 +200,9 @@ endif ()
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  list(APPEND LINK_LIBRARIES "m")
+endif()
 
 # Add Fortran dependencies if Fortran is called in C 
 # --------------------------------------------------
