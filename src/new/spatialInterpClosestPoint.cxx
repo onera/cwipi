@@ -106,7 +106,6 @@ namespace cwipi {
      SpatialInterpExchDirection  exchDirection
      )
     {
-      log_trace(">> init\n");
       SpatialInterp::init (coupling,
                            localCodeDofLocation,
                            cplCodeDofLocation,
@@ -1500,7 +1499,6 @@ namespace cwipi {
 
 
     void SpatialInterpClosestPoint::set_PDM_object() {
-      log_trace(">> set_PDM_object\n");
 
       int cond1 = !_coupledCodeProperties->localCodeIs();
       int cond2 = !cond1 && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet());
