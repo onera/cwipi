@@ -18,6 +18,8 @@ Summary
 
 :ref:`Old CWIPI <old_cwipi>` is the documentation of the 0.* version of CWIPI. It describes most of the high level APIs provided by CWIPI.
 
+:ref:`Old to New <old_to_new>` is allows to find equivalences between functions of the old version and the new version of CWIPI.
+
 :ref:`New CWIPI <new_cwipi>` is the documentation of the 1.* version of CWIPI. It describes most of the high level APIs provided by CWIPI.
 
 :ref:`Client-Server <client_server_cwipi>` is the documentation of a client-server mode of CWIPI (based upon the 1.* API).
@@ -35,5 +37,6 @@ Summary
   old_cwipi/old_cwipi
   new_cwipi/new_cwipi
   client_server_cwipi/client_server_cwipi
+  old_to_new/old_to_new
 
 
