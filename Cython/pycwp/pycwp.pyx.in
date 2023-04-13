@@ -130,6 +130,7 @@ cdef extern from "cwp.h":
       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT
       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE
+      CWP_SPATIAL_INTERP_FROM_IDENTITY
 
   ctypedef enum CWP_Interface_t:
       CWP_INTERFACE_POINT
@@ -623,7 +624,8 @@ SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES         = CWP_SPATIAL_INTERP_F
 SPATIAL_INTERP_FROM_INTERSECTION                          = CWP_SPATIAL_INTERP_FROM_INTERSECTION
 SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT
 SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE         = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
-SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE        = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE
+SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE        = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE
+SPATIAL_INTERP_FROM_IDENTITY                              = CWP_SPATIAL_INTERP_FROM_IDENTITY
 
 INTERFACE_POINT   = CWP_INTERFACE_POINT
 INTERFACE_LINEAR  = CWP_INTERFACE_LINEAR
@@ -858,11 +860,27 @@ cdef void interp_callback(const char           *local_code_name,
                             &(c_referenced_tgt),
                             &(c_tgt_come_from_src_idx))
 
-    # TO DO : adapt depending on spatial_interp_algorithm the array size
+    cdef int size_in;
+    cdef int size_out;
 
-    buffer_in_a = create_numpy_d(buffer_in, n_components * n_elt_src)
+    if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES or
+        spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES or
+        spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
+        spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
 
-    buffer_out_a = create_numpy_d(buffer_out, n_components * n_elt_tgt)
+      size_in  = n_components * n_elt_src
+      size_out = n_components * c_src_to_tgt_idx[n_elt_src]
+
+    elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
+             spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
+             spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+
+      size_in  = n_components * c_tgt_come_from_src_idx[n_referenced_tgt]
+      size_out = n_components * n_elt_tgt
+
+    buffer_in_a = create_numpy_d(buffer_in, size_in)
+
+    buffer_out_a = create_numpy_d(buffer_out, size_out)
 
     (<object> g_interp_fct[current_cpl_id]) (local_code_name,
                                              cpl_id,
