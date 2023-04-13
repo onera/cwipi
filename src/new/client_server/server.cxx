@@ -1295,9 +1295,6 @@ CWP_server_Cpl_del
   if (svr_cwp.coupling[s].ijk_grid != NULL) free(svr_cwp.coupling[s].ijk_grid);
   if (svr_cwp.coupling[s].usr_coord != NULL) free(svr_cwp.coupling[s].usr_coord);
   if (svr_cwp.coupling[s].usr_global_num != NULL) free(svr_cwp.coupling[s].usr_global_num);
-  if (svr_cwp.coupling[s].property_name != NULL) free(svr_cwp.coupling[s].property_name);
-  if (svr_cwp.coupling[s].property_type != NULL) free(svr_cwp.coupling[s].property_type);
-  if (svr_cwp.coupling[s].property_value != NULL) free(svr_cwp.coupling[s].property_value);
 
   if (!svr_cwp.coupling[s].field.empty()) {
     std::map<std::string, t_field>::iterator it_f = svr_cwp.coupling[s].field.begin();
@@ -1312,6 +1309,16 @@ CWP_server_Cpl_del
     while (it_gd != svr_cwp.coupling[s].global_data.end()) {
       if ((it_gd->second).send_data != NULL) free((it_gd->second).send_data);
       it_gd = svr_cwp.coupling[s].global_data.erase(it_gd);
+    }
+  }
+
+  if (!svr_cwp.coupling[s].property.empty()) {
+    std::map<std::string, t_property>::iterator it_p = svr_cwp.coupling[s].property.begin();
+    while (it_p != svr_cwp.coupling[s].property.end()) {
+      if ((it_p->second).property_name != NULL) free((it_p->second).property_name);
+      if ((it_p->second).property_type != NULL) free((it_p->second).property_type);
+      if ((it_p->second).property_value != NULL) free((it_p->second).property_value);
+      it_p = svr_cwp.coupling[s].property.erase(it_p);
     }
   }
 
@@ -2292,18 +2299,39 @@ CWP_server_Spatial_interp_property_set
   read_name(&cpl_id, svr);
 
   // read property name
-  std::string s(cpl_id);
-
-  svr_cwp.coupling[s].property_name = (char *) malloc(sizeof(char));
-  read_name(&svr_cwp.coupling[s].property_name, svr);
+  char *property_name = (char *) malloc(sizeof(char));
+  read_name(&property_name, svr);
 
   // read property type
-  svr_cwp.coupling[s].property_type = (char *) malloc(sizeof(char));
-  read_name(&svr_cwp.coupling[s].property_type, svr);
+  char *property_type = (char *) malloc(sizeof(char));
+  read_name(&property_type, svr);
 
   // read property value
-  svr_cwp.coupling[s].property_value = (char *) malloc(sizeof(char));
-  read_name(&svr_cwp.coupling[s].property_value, svr);
+  char *property_value = (char *) malloc(sizeof(char));
+  read_name(&property_value, svr);
+
+  // add name to free or not
+  std::string s1(cpl_id);
+  std::string s2(property_name);
+
+  if (svr_cwp.coupling[s1].property.find(s2) == svr_cwp.coupling[s1].property.end()) {
+    // not found thus create
+    t_property property = t_property();
+    svr_cwp.coupling[s1].property.insert(std::make_pair(s2, property));
+
+    svr_cwp.coupling[s1].property[s2].property_name  = property_name;
+    svr_cwp.coupling[s1].property[s2].property_type  = property_type;
+    svr_cwp.coupling[s1].property[s2].property_value = property_value;
+
+  } else {
+
+    free(svr_cwp.coupling[s1].property[s2].property_value);
+    svr_cwp.coupling[s1].property[s2].property_value = property_value;
+
+    free(property_name);
+    free(property_type);
+
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -2317,9 +2345,9 @@ CWP_server_Spatial_interp_property_set
   // launch
   CWP_Spatial_interp_property_set(local_code_name,
                                   cpl_id,
-                                  svr_cwp.coupling[s].property_name,
-                                  svr_cwp.coupling[s].property_type,
-                                  svr_cwp.coupling[s].property_value);
+                                  svr_cwp.coupling[s1].property[s2].property_name,
+                                  svr_cwp.coupling[s1].property[s2].property_type,
+                                  svr_cwp.coupling[s1].property[s2].property_value);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);

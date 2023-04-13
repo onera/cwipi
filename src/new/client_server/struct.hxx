@@ -131,6 +131,20 @@ struct t_part_data
   void **recv_data;
 };
 
+struct t_property
+{
+  t_property() {
+    property_name  = NULL;
+    property_type  = NULL;
+    property_value = NULL;
+  }
+
+  char *property_name;
+  char *property_type;
+  char *property_value;
+
+};
+
 struct t_coupling
 {
   // Mesh_interf_vtx_set
@@ -171,13 +185,11 @@ struct t_coupling
   double *usr_coord;
   CWP_g_num_t *usr_global_num;
 
-  // Spatial_interp_property_set
-  char *property_name;
-  char *property_type;
-  char *property_value;
-
   // Cpl_create
   int n_part;
+
+  // Spatial_interp_property_set
+  std::map<std::string, t_property> property;
 
   // field_id
   std::map<std::string, t_field> field;
