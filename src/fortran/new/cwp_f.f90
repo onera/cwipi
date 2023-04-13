@@ -39,8 +39,7 @@ module cwp
     enum, bind(c)
         enumerator :: &
                 CWP_COMM_PAR_WITH_PART, &
-                CWP_COMM_PAR_WITHOUT_PART, &
-                CWP_COMM_SEQ
+                CWP_COMM_PAR_WITHOUT_PART
                 ! CWP_COMM_INTERNAL
     end enum
 

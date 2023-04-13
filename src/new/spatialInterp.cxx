@@ -151,8 +151,6 @@ namespace cwipi {
     _send_request.resize(_cpl->fieldsGet()->size()); /*!< Send request (size = n_field) */
     _recv_request.resize(_cpl->fieldsGet()->size()); /*!< Recv request (size = n_field) */
 
-    _send_adler.reserve(_cpl->fieldsGet()->size());
-    _recv_adler.reserve(_cpl->fieldsGet()->size());
 
     for (size_t i = 0; i < _cpl->fieldsGet()->size(); i++) {
       _send_buffer[i]  = NULL;
@@ -305,42 +303,6 @@ namespace cwipi {
       }
 
 
-      MPI_Aint  *maxTagTmp;
-      int flag; 
-
-      MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
-      int maxTag = (int) *maxTagTmp; 
-
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
-        referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
-
-      if ((int) _send_adler.size() != 0) {
-        int idx = PDM_binary_search_uint32t (mpi_tag,
-                                             &(_send_adler[0]),
-                                             (int) _send_adler.size());
-
-        while (idx != -1) {
-          mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
-
-          idx = PDM_binary_search_uint32t(mpi_tag,
-                                          &(_send_adler[0]),
-                                          (int) _send_adler.size());
-          }
-      }
-
-      std::vector<uint32_t>::iterator it  = _send_adler.begin();
-      std::vector<uint32_t>::iterator it2 = _send_adler.end();
-  
-      while(it != _send_adler.end()) {
-        if (*it > mpi_tag) {
-          it2 = it;
-          break;
-        }
-        it++;
-      }
-
-      _send_adler.insert (it2, mpi_tag);
-
       // Fake receive
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
@@ -419,42 +381,6 @@ namespace cwipi {
           }
         }
 
-
-        MPI_Aint  *maxTagTmp;
-        int flag; 
-
-        MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
-        int maxTag = (int) *maxTagTmp; 
-
-        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
-
-        if ((int) _send_adler.size() != 0) {
-          int idx = PDM_binary_search_uint32t(mpi_tag,
-                                              &(_send_adler[0]),
-                                              _send_adler.size());
-
-          while (idx != -1) {
-
-            mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
-
-            idx = PDM_binary_search_uint32t(mpi_tag,
-                                            &(_send_adler[0]),
-                                            _send_adler.size());
-          }
-        }
-
-        std::vector<uint32_t>::iterator it  = _send_adler.begin();
-        std::vector<uint32_t>::iterator it2 = _send_adler.end();
-    
-        while(it != _send_adler.end()) {
-          if (*it > mpi_tag) {
-            it2 = it;
-            break;
-          }
-          it++;
-        }
-
-        _send_adler.insert (it2, mpi_tag);
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
@@ -851,42 +777,6 @@ namespace cwipi {
         _send_buffer[intId][i] = nullptr;
       }
 
-      MPI_Aint  *maxTagTmp;
-      int flag; 
-
-      MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
-      int maxTag = (int) *maxTagTmp; 
-
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
-        referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
-
-      if ((int) _recv_adler.size() != 0) {
-        int idx = PDM_binary_search_uint32t(mpi_tag,
-                                            &(_recv_adler[0]),
-                                            (int) _recv_adler.size());
-
-        while (idx != -1) {
-          mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
-
-          idx = PDM_binary_search_uint32t(mpi_tag,
-                                          &(_recv_adler[0]),
-                                          (int) _recv_adler.size());
-        }
-      }
-
-      std::vector<uint32_t>::iterator it  = _recv_adler.begin();
-      std::vector<uint32_t>::iterator it2 = _recv_adler.end();
-  
-      while(it != _recv_adler.end()) {
-        if (*it > mpi_tag) {
-          it2 = it;
-          break;
-        }
-        it++;
-      }
-
-      _recv_adler.insert (it2, mpi_tag);
-
       // Fake receive
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
@@ -933,42 +823,6 @@ namespace cwipi {
                                               &gnum1_come_from_idx,
                                               &gnum1_come_from);
 
-
-        MPI_Aint  *maxTagTmp;
-        int flag; 
-
-        MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
-        int maxTag = (int) *maxTagTmp; 
-
-        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
-          referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
-
-        if ((int) _recv_adler.size() != 0) {
-          int idx = PDM_binary_search_uint32t(mpi_tag,
-                                              &(_recv_adler[0]),
-                                              (int) _recv_adler.size());
-
-          while (idx != -1) {
-            mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
-
-            idx = PDM_binary_search_uint32t(mpi_tag,
-                                            &(_recv_adler[0]),
-                                            (int) _recv_adler.size());
-          }
-        }
-
-        std::vector<uint32_t>::iterator it  = _recv_adler.begin();
-        std::vector<uint32_t>::iterator it2 = _recv_adler.end();
-    
-        while(it != _recv_adler.end()) {
-          if (*it > mpi_tag) {
-            it2 = it;
-            break;
-          }
-          it++;
-        }
-
-        _recv_adler.insert (it2, mpi_tag);
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
@@ -1365,27 +1219,6 @@ namespace cwipi {
 
       } // if local rank has to work
     } // end if joint
-  }
-
-  
-  uint32_t SpatialInterp::_adler32 
-  (
-    const void *buf,
-    size_t buflength
-  )
-  {
-
-    const uint8_t * buffer = (const uint8_t *)buf;
-
-    uint32_t s1 = 1;
-    uint32_t s2 = 0;
-
-    for (size_t n = 0; n < buflength; n++) {
-      s1 = (s1 + buffer[n]) % 65521;
-      s2 = (s2 + s1) % 65521;
-    }
-
-    return (s2 << 16) | s1;
   }
 
 
