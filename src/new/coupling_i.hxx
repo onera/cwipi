@@ -22,6 +22,7 @@
 #include "pdm.h"
 #include "pdm_error.h"
 #include "pdm_printf.h"
+#include "pdm_logging.h"
 #include "mesh.hxx"
 #include "field.hxx"
 
@@ -1473,9 +1474,19 @@ namespace cwipi {
     const int         iPart
   )
   {
+    log_trace("  >>> userTargetGNumGet %d\n", iPart);
+    if (_userTargetN != NULL) {
+      log_trace("   _userTargetN[%d] = %d\n", iPart, _userTargetN[iPart]);
+    }
+    else {
+      log_trace("   _userTargetN : %p\n", (void *) _userTargetN);
+    }
+    log_trace("   > _userTargetGnum : %p\n", (void *) _userTargetGnum);
     if (! _userTargetGnum) {
+      log_trace("   >> userTargetGnumCompute\n");
       userTargetGnumCompute();
     }
+    log_trace("   < _userTargetGnum : %p\n", (void *) _userTargetGnum);
     return _userTargetGnum[iPart];
   }
 

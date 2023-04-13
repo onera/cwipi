@@ -197,6 +197,19 @@ _my_interpolation
 }
 
 
+static void _deform
+(
+       double *x,
+       double *y,
+       double *z,
+ const double  t
+ )
+{
+  CWP_UNUSED(y);
+  *z = 0.2*cos(*x + t);
+}
+
+
 
 /*----------------------------------------------------------------------
  *
@@ -333,6 +346,8 @@ main
   double **vtx_coord   = malloc(sizeof(double *) * n_code);
   int    **elt_vtx_idx = malloc(sizeof(int    *) * n_code);
   int    **elt_vtx     = malloc(sizeof(int    *) * n_code);
+  int      n_tgt       = 0;
+  double  *tgt_coord   = NULL;
 
   for (int icode = 0; icode < n_code; icode++) {
     PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
@@ -355,6 +370,21 @@ main
                             n_vtx    [icode],
                             vtx_coord[icode],
                             NULL);
+
+    if (code_id[icode] == 2) {
+      tgt_coord = malloc(sizeof(double) * (n_vtx[icode]/2) * 3);
+      for (int i = 1; i < n_vtx[icode]; i += 2) {
+        memcpy(&tgt_coord[3*n_tgt], &vtx_coord[icode][3*i], sizeof(double) * 3);
+        n_tgt++;
+      }
+
+      CWP_User_tgt_pts_set(code_name[icode],
+                           cpl_name,
+                           0,
+                           n_tgt,
+                           tgt_coord,
+                           NULL);
+    }
 
     CWP_Mesh_interf_f_poly_block_set(code_name[icode],
                                      cpl_name,
@@ -411,7 +441,7 @@ main
       exch_type    = CWP_FIELD_EXCH_RECV;
       map_type     = CWP_FIELD_MAP_TARGET;
       field_ptr    = recv_val;
-      dof_location = CWP_DOF_LOCATION_NODE;
+      dof_location = CWP_DOF_LOCATION_USER;//CWP_DOF_LOCATION_NODE;
     }
 
     CWP_Field_create(code_name[icode],
@@ -448,14 +478,29 @@ main
   }
 
   double recv_time = 0.;
-  for (int step = 0; step < 5; step++) {
+  for (int step = 0; step < 15; step++) {
     if (i_rank == 0) {
       printf("\n  Step %d\n", step);
+    }
+    if (verbose) {
+      log_trace("\n  Step %d\n", step);
     }
     for (int icode = 0; icode < n_code; icode++) {
 
       for (int i = 0; i < n_vtx[icode]; i++) {
-        vtx_coord[icode][3*i+2] += 0.1*cos(4*vtx_coord[icode][3*i] + recv_time);
+        _deform(&vtx_coord[icode][3*i  ],
+                &vtx_coord[icode][3*i+1],
+                &vtx_coord[icode][3*i+2],
+                recv_time);
+      }
+
+      if (code_id[icode] == 2) {
+        for (int i = 0; i < n_tgt; i++) {
+          _deform(&tgt_coord[3*i  ],
+                  &tgt_coord[3*i+1],
+                  &tgt_coord[3*i+2],
+                  recv_time);
+        }
       }
 
       CWP_next_recv_time_set(code_name[icode],
@@ -491,7 +536,7 @@ main
       }
     }
 
-    recv_time += 1.;
+    recv_time += 0.2;
 
 
     /* Check conservation */
@@ -532,6 +577,7 @@ main
     }
     else {
       free(recv_val);
+      free(tgt_coord);
     }
 
     free(vtx_coord  [icode]);
