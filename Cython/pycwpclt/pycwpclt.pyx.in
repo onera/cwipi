@@ -1580,7 +1580,7 @@ cdef class Field (object):
                                                             self.field_id,
                                                             i_part)
 
-      py_unc_tgt = create_numpy_i(unc_tgt, n_unc_tgt)
+      py_unc_tgt = create_numpy_or_none_i(unc_tgt, n_unc_tgt)
 
       return py_unc_tgt
 
@@ -1625,7 +1625,7 @@ cdef class Field (object):
                                                         self.field_id,
                                                         i_part)
 
-      py_c_tgt = create_numpy_i(c_tgt, n_c_tgt)
+      py_c_tgt = create_numpy_or_none_i(c_tgt, n_c_tgt)
 
       return py_c_tgt
 
@@ -1670,7 +1670,7 @@ cdef class Field (object):
                                                           self.field_id,
                                                           i_part)
 
-      py_i_src = create_numpy_i(i_src, n_i_src)
+      py_i_src = create_numpy_or_none_i(i_src, n_i_src)
 
       return py_i_src
 
@@ -2308,10 +2308,7 @@ cdef class Coupling (object):
                                              &(connec),
                                              &(global_num))
 
-        if (global_num is NULL):
-          py_global_num = None
-        else :
-          py_global_num = create_numpy_l(global_num, n_elts)
+        py_global_num = create_numpy_or_none_l(global_num, n_elts)
 
         cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
                                                                     self.cpl_id,
@@ -2392,10 +2389,7 @@ cdef class Coupling (object):
                                                 &(connec),
                                                 &(global_num))
 
-        if (global_num is NULL):
-          py_global_num = None
-        else :
-          py_global_num = create_numpy_l(global_num, n_elts)
+        py_global_num = create_numpy_or_none_l(global_num, n_elts)
 
         return {
                 'n_elts'     : n_elts,
@@ -2494,10 +2488,7 @@ cdef class Coupling (object):
                                                 &(connec_cells),
                                                 &(global_num))
 
-        if (global_num is NULL):
-          py_global_num = None
-        else :
-          py_global_num = create_numpy_l(global_num, n_elts)
+        py_global_num = create_numpy_or_none_l(global_num, n_elts)
 
         return {
                 'n_elts'           : n_elts,
@@ -2579,10 +2570,8 @@ cdef class Coupling (object):
                                           &(n_elts),
                                           &(connec),
                                           &(global_num))
-      if (global_num is NULL):
-        py_global_num = None
-      else :
-        py_global_num = create_numpy_l(global_num, n_elts)
+
+      py_global_num = create_numpy_or_none_l(global_num, n_elts)
 
       cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
                                                                   self.cpl_id,
