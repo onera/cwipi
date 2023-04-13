@@ -348,7 +348,6 @@ namespace cwipi {
             cpl_spatial_interp = dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
           }
 
-          log_trace("_exchDirection = %d\n", _exchDirection);
 
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
             for (int i_part = 0; i_part < _nPart; i_part++) {
@@ -1610,6 +1609,7 @@ namespace cwipi {
           int n_tgt = 0;
 
           if (cond2) {
+            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
             if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
               tgt_g_num = (const PDM_g_num_t *) cpl_mesh->GNumEltsGet  (i_part);
               tgt_coord =                       cpl_mesh->eltCentersGet(i_part);
@@ -1621,9 +1621,9 @@ namespace cwipi {
               n_tgt     =                       cpl_mesh->getPartNVertex (i_part);
             }
             else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-              tgt_g_num = (const PDM_g_num_t *) _cpl->userTargetGNumGet  (i_part);
-              tgt_coord =                       _cpl->userTargetCoordsGet(i_part);
-              n_tgt     =                       _cpl->userTargetNGet     (i_part);
+              tgt_g_num = (const PDM_g_num_t *) cpl_cpl.userTargetGNumGet  (i_part);
+              tgt_coord =                       cpl_cpl.userTargetCoordsGet(i_part);
+              n_tgt     =                       cpl_cpl.userTargetNGet     (i_part);
             }
           }
 
@@ -1646,6 +1646,7 @@ namespace cwipi {
           int n_src = 0;
 
           if (cond2) {
+            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
             if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
               src_g_num = (const PDM_g_num_t *) cpl_mesh->GNumEltsGet  (i_part);
               src_coord =                       cpl_mesh->eltCentersGet(i_part);
@@ -1657,9 +1658,9 @@ namespace cwipi {
               n_src     =                       cpl_mesh->getPartNVertex (i_part);
             }
             else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-              src_g_num = (const PDM_g_num_t *) _cpl->userTargetGNumGet  (i_part);
-              src_coord =                       _cpl->userTargetCoordsGet(i_part);
-              n_src     =                       _cpl->userTargetNGet     (i_part);
+              src_g_num = (const PDM_g_num_t *) cpl_cpl.userTargetGNumGet  (i_part);
+              src_coord =                       cpl_cpl.userTargetCoordsGet(i_part);
+              n_src     =                       cpl_cpl.userTargetNGet     (i_part);
             }
           }
 

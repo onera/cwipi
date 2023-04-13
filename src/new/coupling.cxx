@@ -1532,7 +1532,7 @@ namespace cwipi {
                                                                      "geom",
                                                                      cpl._mesh.getPdmNodalIndex());
 
-        if (_userTargetN != nullptr) {
+        if (cpl._userTargetN != nullptr) {
 
           cpl._id_user_tgt_geom_writer = PDM_writer_geom_create(cpl._writer,
                                                                 "user_tgt_geom",
@@ -1600,8 +1600,7 @@ namespace cwipi {
                                                              PDMfieldType,
                                                              "ranking");
 
-        if (_userTargetN != nullptr) {
-
+        if (cpl._userTargetN != nullptr) {
           cpl._id_user_tgt_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
                                                                              st_dep_tps,
                                                                              PDMfieldComp,
@@ -1613,7 +1612,6 @@ namespace cwipi {
                                                                         PDMfieldComp,
                                                                         PDMfieldType,
                                                                         "user_tgt_ranking");
-
         } // end if there is a user target
       }
 
@@ -1635,7 +1633,7 @@ namespace cwipi {
         // Geometry
         PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
 
-        if (_userTargetN != nullptr) {
+        if (cpl._userTargetN != nullptr) {
 
           PDM_writer_geom_write(cpl._writer,
                               cpl._id_user_tgt_geom_writer);
@@ -1664,25 +1662,24 @@ namespace cwipi {
           partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
           ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
 
-          if (_userTargetN != nullptr) {
-            user_tgt_partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
-            user_tgt_ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
-          } // end if there is a user target
-
           for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
             ranking_field_data[i_part][i_elt] = (double) i_rank;
-
-            if (_userTargetN != nullptr) {
-              user_tgt_partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-              user_tgt_ranking_field_data[i_part][i_elt] = (double) i_rank;
-            } // end if there is a user target
           }
+
+          if (cpl._userTargetN != nullptr) {
+            user_tgt_partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+            user_tgt_ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+            for(int i = 0; i < cpl._userTargetN[i_part]; i++) {
+              user_tgt_partitioning_field_data[i_part][i] = (double) (i_part + g_n_part);
+              user_tgt_ranking_field_data     [i_part][i] = (double) i_rank;
+            }
+          } // end if there is a user target
 
           PDM_writer_var_set(cpl._writer, cpl._id_field_partitioning_writer, cpl._id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
           PDM_writer_var_set(cpl._writer, cpl._id_field_ranking_writer     , cpl._id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
 
-          if (_userTargetN != nullptr) {
+          if (cpl._userTargetN != nullptr) {
             PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_partitioning_writer, cpl._id_user_tgt_geom_writer, i_part, (double *) user_tgt_partitioning_field_data[i_part]);
             PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_ranking_writer     , cpl._id_user_tgt_geom_writer, i_part, (double *) user_tgt_ranking_field_data     [i_part]);
           } // end if there is a user target
@@ -1694,7 +1691,7 @@ namespace cwipi {
         PDM_writer_var_data_free(cpl._writer, cpl._id_field_partitioning_writer);
         PDM_writer_var_data_free(cpl._writer, cpl._id_field_ranking_writer);
 
-        if (_userTargetN != nullptr) {
+        if (cpl._userTargetN != nullptr) {
           PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
           PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
 
@@ -1708,7 +1705,7 @@ namespace cwipi {
           partitioning_field_data[i_part] = nullptr;
           ranking_field_data     [i_part] = nullptr;
 
-          if (_userTargetN != nullptr) {
+          if (cpl._userTargetN != nullptr) {
             free (user_tgt_partitioning_field_data[i_part]);
             free (user_tgt_ranking_field_data     [i_part]);
             user_tgt_partitioning_field_data[i_part] = nullptr;
@@ -1727,7 +1724,7 @@ namespace cwipi {
                                                cpl._id_geom_writer,
                                                cpl._mesh.getPdmNodalIndex());
 
-          if (_userTargetN != nullptr) {
+          if (cpl._userTargetN != nullptr) {
 
             int block_id = PDM_writer_geom_bloc_add(cpl._writer,
                                                     cpl._id_user_tgt_geom_writer,
@@ -1771,7 +1768,7 @@ namespace cwipi {
 
         PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
 
-        if (_userTargetN != nullptr) {
+        if (cpl._userTargetN != nullptr) {
 
           PDM_writer_geom_write(cpl._writer, cpl._id_user_tgt_geom_writer);
 
@@ -1799,25 +1796,24 @@ namespace cwipi {
           partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
           ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
 
-          if (_userTargetN != nullptr) {
-            user_tgt_partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
-            user_tgt_ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
-          } // end if there is a user target
-
           for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-            ranking_field_data[i_part][i_elt] = (double) i_rank;
-
-            if (_userTargetN != nullptr) {
-              user_tgt_partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-              user_tgt_ranking_field_data[i_part][i_elt] = (double) i_rank;
-            } // end if there is a user target
+            ranking_field_data     [i_part][i_elt] = (double) i_rank;
           }
+
+          if (cpl._userTargetN != nullptr) {
+            user_tgt_partitioning_field_data[i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+            user_tgt_ranking_field_data     [i_part] = (double*) malloc(cpl._userTargetN[i_part] * sizeof(double) );
+            for(int i = 0; i < cpl._userTargetN[i_part]; i++) {
+              user_tgt_partitioning_field_data[i_part][i] = (double) (i_part + g_n_part);
+              user_tgt_ranking_field_data     [i_part][i] = (double) i_rank;
+            }
+          } // end if there is a user target
 
           PDM_writer_var_set(cpl._writer, cpl._id_field_partitioning_writer, cpl._id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
           PDM_writer_var_set(cpl._writer, cpl._id_field_ranking_writer     , cpl._id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
 
-          if (_userTargetN != nullptr) {
+          if (cpl._userTargetN != nullptr) {
             PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_partitioning_writer, cpl._id_user_tgt_geom_writer, i_part, (double *) user_tgt_partitioning_field_data[i_part]);
             PDM_writer_var_set(cpl._writer, cpl._id_user_tgt_field_ranking_writer     , cpl._id_user_tgt_geom_writer, i_part, (double *) user_tgt_ranking_field_data     [i_part]);
           } // end if there is a user target
@@ -1829,7 +1825,7 @@ namespace cwipi {
         PDM_writer_var_data_free(cpl._writer, cpl._id_field_partitioning_writer);
         PDM_writer_var_data_free(cpl._writer, cpl._id_field_ranking_writer);
 
-        if (_userTargetN != nullptr) {
+        if (cpl._userTargetN != nullptr) {
           PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_partitioning_writer);
           PDM_writer_var_write(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
 
@@ -1843,7 +1839,7 @@ namespace cwipi {
           partitioning_field_data[i_part] = nullptr;
           ranking_field_data     [i_part] = nullptr;
 
-          if (_userTargetN != nullptr) {
+          if (cpl._userTargetN != nullptr) {
             free (user_tgt_partitioning_field_data[i_part]);
             free (user_tgt_ranking_field_data     [i_part]);
             user_tgt_partitioning_field_data[i_part] = nullptr;

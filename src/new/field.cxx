@@ -313,6 +313,7 @@ CWP_Field_exch_t exch_type
             }
           }
 
+
           PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(_fieldLocation), i_part, comp_data[i_part]);
         } // end loop n_part
 

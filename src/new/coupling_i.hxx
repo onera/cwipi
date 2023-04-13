@@ -22,6 +22,7 @@
 #include "pdm.h"
 #include "pdm_error.h"
 #include "pdm_printf.h"
+#include "pdm_logging.h"
 #include "mesh.hxx"
 #include "field.hxx"
 

@@ -120,9 +120,6 @@ typedef enum {
   CWP_COMM_PAR_WITHOUT_PART, /*!< Parallel communication
                                   on unpartitioned source mesh defined on
                                   all processes */
-  CWP_COMM_SEQ              /*!< Parallel communication
-                                  on unpartitioned source mesh defined on
-                                  master processes */
 //  CWP_COMM_INTERNAL         /*!< Internal communication within a process */
 
 } CWP_Comm_t;

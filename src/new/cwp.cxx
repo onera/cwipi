@@ -57,7 +57,6 @@
 #include "coupling_i.hxx"
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
-#include "commSeq.hxx"
 #include "field.hxx"
 #include "pdm.h"
 #include "pdm_printf.h"
@@ -367,7 +366,6 @@ CWP_Init
 
   factoryComm.Register<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
   factoryComm.Register<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
-  factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
 
   /*
    * Create spatial interpolation abstract factory

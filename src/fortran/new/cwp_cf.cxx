@@ -27,7 +27,6 @@
 #include "coupling_i.hxx"
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
-#include "commSeq.hxx"
 #include "field.hxx"
 #include "pdm.h"
 #include "pdm_printf.h"
