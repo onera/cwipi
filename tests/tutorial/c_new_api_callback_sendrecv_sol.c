@@ -32,7 +32,7 @@
 
 /*----------------------------------------------------------------------
  *
- * Main : advanced test : Callback (code 1)
+ * Main : advanced test : Callback (codeC)
  *
  *---------------------------------------------------------------------*/
 
@@ -58,7 +58,7 @@ main
   double       *time_init      = malloc(sizeof(double) * n_code);
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
-  code_name[0]      = "code 1";
+  code_name[0]      = "codeC";
   is_active_rank[0] = CWP_STATUS_ON;
   time_init[0]      = 0.;
 
@@ -71,11 +71,11 @@ main
 
   // Create the coupling with code 2 :
   int n_part = 1;
-  const char  *coupling12_name     = "coupling_12";
+  const char  *coupling_name     = "coupling_C_Python";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-  coupled_code_name[0] = "code 2";
+  coupled_code_name[0] = "codePython";
   CWP_Cpl_create(code_name[0],
-                 coupling12_name,
+                 coupling_name,
                  coupled_code_name[0],
                  CWP_INTERFACE_SURFACE,
                  CWP_COMM_PAR_WITH_PART,
@@ -100,18 +100,18 @@ main
 
   // Set mesh :
   CWP_Mesh_interf_vtx_set(code_name[0],
-                          coupling12_name,
+                          coupling_name,
                           0,
                           n_vtx,
                           coords,
                           NULL);
 
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
-                                           coupling12_name,
+                                           coupling_name,
                                            CWP_BLOCK_FACE_POLY);
 
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
-                                   coupling12_name,
+                                   coupling_name,
                                    0,
                                    block_id,
                                    n_elt,
@@ -120,11 +120,11 @@ main
                                    NULL);
 
   CWP_Mesh_interf_finalize(code_name[0],
-                           coupling12_name);
+                           coupling_name);
 
   // Create and set field :
   CWP_Field_create(code_name[0],
-                   coupling12_name,
+                   coupling_name,
                    send_field_name,
                    CWP_DOUBLE,
                    CWP_FIELD_STORAGE_INTERLACED,
@@ -134,14 +134,14 @@ main
                    CWP_STATUS_ON);
 
   CWP_Field_data_set(code_name[0],
-                     coupling12_name,
+                     coupling_name,
                      send_field_name,
                      0,
                      CWP_FIELD_MAP_SOURCE,
                      send_field_data);
 
   CWP_Field_data_set(code_name[0],
-                     coupling12_name,
+                     coupling_name,
                      send_field_name,
                      0,
                      CWP_FIELD_MAP_SOURCE,
@@ -151,7 +151,7 @@ main
 
   // Delete the coupling :
   CWP_Cpl_del(code_name[0],
-              coupling12_name);
+              coupling_name);
 
   // free
 
