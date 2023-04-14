@@ -734,7 +734,10 @@ namespace cwipi {
             SpatialInterpClosestPoint *cpl_spatial_interp =
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
-
+            log_trace("cpl_spatial_interp->_send_coord : %p\n",
+                      (void *) cpl_spatial_interp->_send_coord);
+            log_trace("cpl_spatial_interp->_send_coord[0] : %p\n",
+                      (void *) cpl_spatial_interp->_send_coord[0]);
             PDM_part_to_part_iexch(_ptsp,
                                    PDM_MPI_COMM_KIND_P2P,
                                    PDM_STRIDE_CST_INTERLACED,
@@ -1507,28 +1510,6 @@ namespace cwipi {
         return;
       }
 
-
-      _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
-      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-        for (int i_part = 0 ; i_part < _nPart; i_part++) {
-          if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            _send_coord[i_part] = _mesh->eltCentersGet(i_part);
-          }
-          else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            _send_coord[i_part] = _mesh->getVertexCoords(i_part);
-          }
-          else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
-          }
-        }
-      }
-      else {
-        for (int i_part = 0 ; i_part < _nPart; i_part++) {
-          _send_coord[i_part] = NULL;
-        }
-      }
-
-
       SpatialInterpClosestPoint *cpl_spatial_interp = NULL;
       cwipi::Mesh *cpl_mesh = NULL;
 
@@ -1548,6 +1529,48 @@ namespace cwipi {
         cpl_spatial_interp->_id_pdm = _id_pdm;
         cpl_mesh = cpl_cpl.meshGet();
       }
+
+
+      _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
+      if (cond2) {
+        cpl_spatial_interp->_send_coord = (const double **) malloc(sizeof(double *) * _cplNPart);
+      }
+      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+        for (int i_part = 0 ; i_part < _nPart; i_part++) {
+          if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            _send_coord[i_part] = _mesh->eltCentersGet(i_part);
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            _send_coord[i_part] = _mesh->getVertexCoords(i_part);
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+            _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
+          }
+        }
+      }
+      else {
+        for (int i_part = 0 ; i_part < _nPart; i_part++) {
+          _send_coord[i_part] = NULL;
+        }
+
+        if (cond2) {
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+          for (int i_part = 0 ; i_part < _nPart; i_part++) {
+            if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+              cpl_spatial_interp->_send_coord[i_part] = cpl_mesh->eltCentersGet(i_part);
+            }
+            else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+              cpl_spatial_interp->_send_coord[i_part] = cpl_mesh->getVertexCoords(i_part);
+            }
+            else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
+              cpl_spatial_interp->_send_coord[i_part] = cpl_cpl.userTargetCoordsGet(i_part);
+            }
+          }
+        }
+      }
+
+
+
 
       int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
       std::map<std::string, int> prop = _cpl->SpatialInterpPropertiesIntGet();

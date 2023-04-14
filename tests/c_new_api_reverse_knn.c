@@ -227,7 +227,7 @@ main
   int         verbose          = 0;
   int         swap_codes       = 0;
   PDM_g_num_t all_n_vtx_seg[2] = {10, 5};
-  int         all_n_rank   [2] = {-1};
+  int         all_n_rank   [2] = {-1, -1};
   int         visu             = 0;
 
   _read_args(argc,
@@ -462,7 +462,7 @@ main
                        field_ptr);
 
     CWP_Interp_function_set(code_name[icode],
-                            cpl_name,
+                             cpl_name,
                             field_name,
                             _my_interpolation);
   }
