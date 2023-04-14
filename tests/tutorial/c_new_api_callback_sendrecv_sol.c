@@ -49,28 +49,51 @@ my_interpolation
  double               *buffer_out
 )
 {
-  PDM_UNUSED(spatial_interp_algorithm);
-  PDM_UNUSED(storage);
+  if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
+    if (storage == CWP_FIELD_STORAGE_INTERLACED) {
 
-  int           n_elt_src       = 0;
-  int          *src_to_tgt_idx  = NULL;
-  CWP_Interp_src_data_get(local_code_name,
-                          cpl_id,
-                          field_id,
-                          i_part,
-                          &n_elt_src,
-                          &src_to_tgt_idx);
+      // Get interpolation information :
+      // Interpolation is done on the target side for this KNN algorithm
+      int  n_elt_tgt        = -1;
+      int  n_referenced_tgt = -1;
+      int *referenced_tgt        = NULL;
+      int *tgt_come_from_src_ids = NULL;
+      CWP_Interp_tgt_data_get(local_code_name,
+                              cpl_id,
+                              field_id,
+                              i_part,
+                              &n_elt_tgt,
+                              &n_referenced_tgt,
+                              &referenced_tgt,
+                              &tgt_come_from_src_ids);
 
-  int n_components = CWP_Interp_field_n_components_get(local_code_name,
-                                                       cpl_id,
-                                                       field_id);
+      // Get point location information :
+      // For each target, this array gives the squared distance to its closest sources
+      double *d2 = NULL;
+      CWP_Interp_closest_points_distances_get(local_code_name,
+                                              cpl_id,
+                                              field_id,
+                                              i_part,
+                                              &d2);
 
-  int ival = 0;
-  for (int i = 0; i < n_elt_src; i++) {
-    for (int j = src_to_tgt_idx[i]; j < src_to_tgt_idx[i+1]; j++) {
-      for (int k1 = 0; k1 < n_components; k1++) {
-        buffer_out[ival++] = buffer_in[i*n_components + k1];
+      for (int i = 0; i < n_referenced_tgt; i++) {
+
+        int    j_closest  = tgt_come_from_src_ids[i];
+        double d2_closest = d2[j_closest];
+
+        for (int j = tgt_come_from_src_ids[i]; j < tgt_come_from_src_ids[i+1]; j++) {
+
+          if (d2[j] < d2_closest) {
+            j_closest  = j;
+            d2_closest = d2[j];
+          }
+
+        }
+
+        buffer_out[i] = buffer_in[j_closest];
+
       }
+
     }
   }
 }
@@ -164,6 +187,15 @@ main
                                    elt_vtx,
                                    NULL);
 
+  // Set user targets :
+  // For simplicity we locate them at nodes here but they could be located anywhere
+  CWP_User_tgt_pts_set(code_name[0],
+                       coupling_name,
+                       0,
+                       n_vtx,
+                       coords,
+                       NULL);
+
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
 
@@ -176,7 +208,7 @@ main
                    CWP_DOUBLE,
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
-                   CWP_DOF_LOCATION_NODE,
+                   CWP_DOF_LOCATION_USER,
                    CWP_FIELD_EXCH_SENDRECV,
                    CWP_STATUS_ON);
 
