@@ -32,6 +32,51 @@
 
 /*----------------------------------------------------------------------
  *
+ * User Interpolation function (callback)
+ *
+ *---------------------------------------------------------------------*/
+
+static void
+my_interpolation
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ int                   i_part,
+ CWP_Spatial_interp_t  spatial_interp_algorithm,
+ CWP_Field_storage_t   storage,
+ double               *buffer_in,
+ double               *buffer_out
+)
+{
+  PDM_UNUSED(spatial_interp_algorithm);
+  PDM_UNUSED(storage);
+
+  int           n_elt_src       = 0;
+  int          *src_to_tgt_idx  = NULL;
+  CWP_Interp_src_data_get(local_code_name,
+                          cpl_id,
+                          field_id,
+                          i_part,
+                          &n_elt_src,
+                          &src_to_tgt_idx);
+
+  int n_components = CWP_Interp_field_n_components_get(local_code_name,
+                                                       cpl_id,
+                                                       field_id);
+
+  int ival = 0;
+  for (int i = 0; i < n_elt_src; i++) {
+    for (int j = src_to_tgt_idx[i]; j < src_to_tgt_idx[i+1]; j++) {
+      for (int k1 = 0; k1 < n_components; k1++) {
+        buffer_out[ival++] = buffer_in[i*n_components + k1];
+      }
+    }
+  }
+}
+
+/*----------------------------------------------------------------------
+ *
  * Main : advanced test : Callback (codeC)
  *
  *---------------------------------------------------------------------*/
@@ -123,37 +168,79 @@ main
                            coupling_name);
 
   // Create and set field :
+  const char *field_name   = "coord_x";
+  int         n_components = 1;
   CWP_Field_create(code_name[0],
                    coupling_name,
-                   send_field_name,
+                   field_name,
                    CWP_DOUBLE,
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
                    CWP_DOF_LOCATION_NODE,
-                   CWP_FIELD_EXCH_SEND,
+                   CWP_FIELD_EXCH_SENDRECV,
                    CWP_STATUS_ON);
 
+  double *send_field_data = malloc(sizeof(double) * n_vtx);
+  for (int i = 0; i < n_vtx; i++) {
+    send_field_data[i] = coords[3*i];
+  }
   CWP_Field_data_set(code_name[0],
                      coupling_name,
-                     send_field_name,
+                     field_name,
                      0,
                      CWP_FIELD_MAP_SOURCE,
                      send_field_data);
 
+  double *recv_field_data = malloc(sizeof(double) * n_vtx);
   CWP_Field_data_set(code_name[0],
                      coupling_name,
-                     send_field_name,
+                     field_name,
                      0,
-                     CWP_FIELD_MAP_SOURCE,
-                     send_field_data);
+                     CWP_FIELD_MAP_TARGET,
+                     recv_field_data);
+
+  // Set user interpolation function :
+  CWP_Interp_function_set(code_name[0], coupling_name, field_name, my_interpolation);
+
+  // Set interpolation property and compute weights
+  CWP_Spatial_interp_property_set(code_name[0],
+                                  coupling_name,
+                                  "n_closest_pts",
+                                  "int",
+                                  "3");
+
+  CWP_Spatial_interp_weights_compute(code_name[0],
+                                     coupling_name);
 
   // Exchange
+  CWP_Field_issend(code_name[0], coupling_name, field_name);
+  CWP_Field_irecv(code_name[0], coupling_name, field_name);
+
+  CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+  CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+
+  // Delete field :
+  CWP_Field_del(code_name[0],
+                coupling_name,
+                field_name);
+
+  // Delete Mesh :
+  CWP_Mesh_interf_del(code_name[0],
+                      coupling_name);
 
   // Delete the coupling :
   CWP_Cpl_del(code_name[0],
               coupling_name);
 
   // free
+  free(code_name);
+  free(is_active_rank);
+  free(time_init);
+  free(intra_comm);
+  free(coupled_code_name);
+  free(coords);
+  free(elt_vtx_idx);
+  free(elt_vtx);
 
   // Finalize CWIPI :
   CWP_Finalize();
