@@ -271,10 +271,13 @@ namespace cwipi {
       for (int i = 0; i < _nPart; i++) {
         _send_buffer[intId][i] = 
           (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
+          log_trace("size_out = %d\n", stride * selected_part2_idx[i][n_elt1[i]]);
+          log_trace("avant _send_buffer[intId][i] : %p\n", (void *) _send_buffer[intId][i]);
       }
 
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
         interpolate (referenceField, _send_buffer[intId]);
+        log_trace("après _send_buffer[intId][0] : %p\n", (void *) _send_buffer[intId][0]);
       }
       else {
         // send source field (copy?)
@@ -1020,8 +1023,8 @@ namespace cwipi {
       if (_recv_buffer[intId] != NULL) {
         for (int i = 0; i < _nPart; i++) {
           if (_recv_buffer[intId][i] != NULL) {
-            free (_recv_buffer[intId][i]);
-            _recv_buffer[intId][i] = NULL;
+            // free (_recv_buffer[intId][i]);
+            // _recv_buffer[intId][i] = NULL;
           }
         }
         free (_recv_buffer[intId]);

@@ -31,12 +31,22 @@ def my_interpolation(local_code_name,
                      buffer_in,
                      buffer_out):
 
-  n_comp = interp_field_n_components_get(local_code_name,
+  try:
+    from pycwp import pycwp
+  except:
+    if i_rank == 0:
+      print("      Error : CWIPI module not found (update PYTHONPATH variable)")
+      print(f"cwp : {pycwp.__file__}")
+      sys.exit(1)
+
+  print("in a user interpolation function !")
+
+  n_comp = pycwp.interp_field_n_components_get(local_code_name,
                                          cpl_id,
                                          field_id)
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES:
-    tgt_data = interp_tgt_data_get(local_code_name,
+    tgt_data = pycwp.interp_tgt_data_get(local_code_name,
                                    cpl_id,
                                    field_id,
                                    i_part)
@@ -44,14 +54,16 @@ def my_interpolation(local_code_name,
     ref_tgt        = tgt_data["referenced_tgt"]
     tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
 
-    distance2 = interp_closest_points_distances_get(local_code_name,
+    distance2 = pycwp.interp_closest_points_distances_get(local_code_name,
                                                     cpl_id,
                                                     field_id,
                                                     i_part)
 
-    for i, itgt in enumerate(ref_tgt):
+    for i, jtgt in enumerate(ref_tgt):
+      itgt = jtgt-1
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] = 0
       sum_w = 0
+      # TO DO : some tgt have zero src???
       for isrc in range(tgt_to_src_idx[itgt], tgt_to_src_idx[itgt+1]):
         w = 1./max(1.e-24, distance2[isrc])
         sum_w += w
@@ -63,19 +75,19 @@ def my_interpolation(local_code_name,
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] / sum_w
 
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-    src_data = interp_src_data_get(local_code_name,
+    src_data = pycwp.interp_src_data_get(local_code_name,
                                    cpl_id,
                                    field_id,
                                    i_part)
     n_src = src_data["n_elt_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
-    weight = interp_location_weights_get(local_code_name,
+    weight = pycwp.interp_location_weights_get(local_code_name,
                                          cpl_id,
                                          field_id,
                                          i_part)
 
-    cell_data = interp_location_internal_cell_vtx_get(local_code_name,
+    cell_data = pycwp.interp_location_internal_cell_vtx_get(local_code_name,
                                                       cpl_id,
                                                       field_id,
                                                       i_part)
@@ -219,7 +231,7 @@ def run_coupling():
 
 
   # Spatial interpolation
-  cpl_CP.spatial_interp_property_set("n_closest_points",
+  cpl_CP.spatial_interp_property_set("n_closest_pts",
                                      "int",
                                      "3")
 
@@ -320,6 +332,8 @@ def run_coupling():
 
   # Finalize CWIPI
   pycwp.finalize()
+
+  print(f"Python rank {i_rank} FINISHED :D")
 
   # Finalize MPI
   MPI.Finalize()

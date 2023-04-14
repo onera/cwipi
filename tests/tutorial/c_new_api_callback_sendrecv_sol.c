@@ -301,6 +301,8 @@ main
   // Finalize CWIPI :
   CWP_Finalize();
 
+  printf("C rank %d FINISHED :D\n", i_rank);
+
   // Finalize MPI :
   MPI_Finalize();
 

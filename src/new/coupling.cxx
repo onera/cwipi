@@ -1376,14 +1376,17 @@ namespace cwipi {
   {
     map <string, Field *>::iterator it  = _fields.find(name);
     if (it != _fields.end()) {
+      log_trace("it != _fields.end()\n");
       CWP_Dof_location_t localFieldLocation = it->second->locationGet();
       CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
 
       std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+      log_trace("localFieldLocation = %d, cplFieldLocation = %d\n", localFieldLocation, cplFieldLocation);
 
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_recv.find(newKey);
 
       if (it2 != _spatial_interp_recv.end()) {
+        log_trace("it2 != _spatial_interp_recv.end()\n");
         PDM_part_to_part_t *ptp = it2->second->ptp_get();
 
         int  n_part_src = 0;

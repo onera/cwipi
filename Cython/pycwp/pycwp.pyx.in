@@ -841,25 +841,11 @@ cdef void interp_callback(const char           *local_code_name,
                                                               field_id)
     cdef int  n_elt_src
     cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_src),
-                            &(c_src_to_tgt_idx))
 
     cdef int  n_elt_tgt;
     cdef int  n_referenced_tgt;
     cdef int *c_referenced_tgt;
     cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(c_referenced_tgt),
-                            &(c_tgt_come_from_src_idx))
 
     cdef int size_in;
     cdef int size_out;
@@ -868,20 +854,51 @@ cdef void interp_callback(const char           *local_code_name,
         spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES or
         spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
         spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
-
-      size_in  = n_components * n_elt_src
-      size_out = n_components * c_src_to_tgt_idx[n_elt_src]
-
-    elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
-             spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
-             spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+      CWP_Interp_tgt_data_get(local_code_name,
+                              cpl_id,
+                              field_id,
+                              i_part,
+                              &(n_elt_tgt),
+                              &(n_referenced_tgt),
+                              &(c_referenced_tgt),
+                              &(c_tgt_come_from_src_idx))
 
       size_in  = n_components * c_tgt_come_from_src_idx[n_referenced_tgt]
       size_out = n_components * n_elt_tgt
 
-    buffer_in_a = create_numpy_d(buffer_in, size_in)
+    elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
+          spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
+          spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+      CWP_Interp_src_data_get(local_code_name,
+                              cpl_id,
+                              field_id,
+                              i_part,
+                              &(n_elt_src),
+                              &(c_src_to_tgt_idx))
 
-    buffer_out_a = create_numpy_d(buffer_out, size_out)
+      size_in  = n_components * n_elt_src
+      size_out = n_components * c_src_to_tgt_idx[n_elt_src]
+      print(f"size_in {size_in}, size_out = {size_out}")
+
+    #buffer_in_a = create_numpy_d(buffer_in, size_in)
+
+    #buffer_out_a = create_numpy_d(buffer_out, size_out)
+
+    dims = <NPY.npy_intp>(size_in)
+    buffer_in_a = NPY.PyArray_SimpleNewFromData(1,
+                                               &dims,
+                                               NPY.NPY_DOUBLE,
+                                               <void *> buffer_in)
+
+    dims = <NPY.npy_intp>(size_out)
+    buffer_out_a = NPY.PyArray_SimpleNewFromData(1,
+                                                &dims,
+                                                NPY.NPY_DOUBLE,
+                                                <void *> buffer_out)
+
+
+    print(f"current_cpl_id = {current_cpl_id}")
+    print(f"in g_interp_fct ? {current_cpl_id in g_interp_fct}")
 
     (<object> g_interp_fct[current_cpl_id]) (local_code_name,
                                              cpl_id,
@@ -3871,7 +3888,7 @@ cdef class Coupling (object):
                                 self.c_cpl_id,
                                 c_src_field_id,
                                 interp_callback)
-        current_cpl_id = ""
+        # current_cpl_id = "" # Test with multiple simultaneous couplings
 
 #-----------------------------------------------------------------------------
 # EXTERN
