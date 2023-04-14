@@ -62,10 +62,6 @@ def my_interpolation(local_code_name,
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] = \
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] / sum_w
 
-
-
-    for itgt in range()
-
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
     src_data = interp_src_data_get(local_code_name,
                                    cpl_id,
