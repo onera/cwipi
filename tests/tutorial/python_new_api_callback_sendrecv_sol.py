@@ -179,10 +179,10 @@ def run_coupling():
   # Define field
   field_name = "coord_x"
 
-  cpl_CP.field_create(field_name
+  cpl_CP.field_create(field_name,
                       pycwp.DOUBLE,
                       pycwp.FIELD_STORAGE_INTERLACED,
-                      1
+                      1,
                       pycwp.DOF_LOCATION_NODE,
                       pycwp.FIELD_EXCH_SENDRECV,
                       pycwp.STATUS_ON)
@@ -266,10 +266,10 @@ def run_coupling():
   # Define field
   field_name = "coord_x"
 
-  cpl_PF.field_create(field_name
+  cpl_PF.field_create(field_name,
                       pycwp.DOUBLE,
                       pycwp.FIELD_STORAGE_INTERLACED,
-                      1
+                      1,
                       pycwp.DOF_LOCATION_NODE,
                       pycwp.FIELD_EXCH_SENDRECV,
                       pycwp.STATUS_ON)
