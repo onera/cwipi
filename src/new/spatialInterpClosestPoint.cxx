@@ -734,10 +734,6 @@ namespace cwipi {
             SpatialInterpClosestPoint *cpl_spatial_interp =
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
-            log_trace("cpl_spatial_interp->_send_coord : %p\n",
-                      (void *) cpl_spatial_interp->_send_coord);
-            log_trace("cpl_spatial_interp->_send_coord[0] : %p\n",
-                      (void *) cpl_spatial_interp->_send_coord[0]);
             PDM_part_to_part_iexch(_ptsp,
                                    PDM_MPI_COMM_KIND_P2P,
                                    PDM_STRIDE_CST_INTERLACED,
