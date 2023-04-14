@@ -20,7 +20,7 @@ program fortran_new_api_callback_sendrecv_sol
   integer                                     :: ierr
   integer                                     :: i_rank, n_rank
   integer(c_long), parameter                  :: n_vtx_seg = 10
-  integer(c_int),  parameter                  :: n_part = 1
+  integer(c_int),  parameter                  :: n_part    = 1
 
   ! Coupling
   integer                                     :: n_code
@@ -47,10 +47,9 @@ program fortran_new_api_callback_sendrecv_sol
   double precision,                   pointer :: recv_field_data(:) => null()
 
   integer                                     :: i, j
-
   !--------------------------------------------------------------------
 
-  ! MPI Initialization
+  ! Initialize MPI
   call MPI_Init(ierr)
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
@@ -96,7 +95,7 @@ program fortran_new_api_callback_sendrecv_sol
                     CWP_VISU_FORMAT_ENSIGHT, &
                     "text")
 
-  ! Define interface mesh
+  ! Generate mesh
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
                                               n_vtx_seg,      &
                                               n_vtx,          &
@@ -105,6 +104,7 @@ program fortran_new_api_callback_sendrecv_sol
                                               elt_vtx_idx,    &
                                               elt_vtx)
 
+  ! Set mesh vertices
   call CWP_Mesh_interf_vtx_set(code_names(1), &
                                coupling_name, &
                                0,             &
@@ -112,6 +112,7 @@ program fortran_new_api_callback_sendrecv_sol
                                vtx_coord,     &
                                vtx_g_num)
 
+  ! Set mesh elements
   id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                        coupling_name,       &
                                        CWP_BLOCK_FACE_POLY)
@@ -125,6 +126,7 @@ program fortran_new_api_callback_sendrecv_sol
                                         elt_vtx,       &
                                         elt_g_num)
 
+  ! Finalize mesh
   call CWP_Mesh_interf_finalize(code_names(1), &
                                 coupling_name)
 
@@ -167,6 +169,12 @@ program fortran_new_api_callback_sendrecv_sol
                           0,                    &
                           CWP_FIELD_MAP_TARGET, &
                           recv_field_data)
+
+  ! Set user-defined interpolation function
+  call CWP_Interp_function_set(code_names(1), &
+                               coupling_name, &
+                               field_name,    &
+                               my_interpolation)
 
 
   ! Spatial interpolation
@@ -224,10 +232,58 @@ program fortran_new_api_callback_sendrecv_sol
   call pdm_fortran_free_c(c_loc(elt_vtx_idx))
   call pdm_fortran_free_c(c_loc(elt_vtx))
 
-  ! Finalize CWIPI :
+  ! Finalize CWIPI
   call CWP_Finalize()
 
-  ! Finalize MPI :
+  ! Finalize MPI
   call MPI_Finalize(ierr)
+
+
+contains
+
+  subroutine my_interpolation(local_code_name,          &
+                              cpl_id,                   &
+                              field_id,                 &
+                              i_part,                   &
+                              spatial_interp_algorithm, &
+                              storage,                  &
+                              buffer_in,                &
+                              buffer_out)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = 1)   :: local_code_name, cpl_id, field_id
+    integer(kind = c_int)               :: i_part
+    integer(kind = c_int)               :: spatial_interp_algorithm
+    integer(kind = c_int)               :: storage
+    real(kind = c_double), dimension(*) :: buffer_in
+    real(kind = c_double), dimension(*) :: buffer_out
+
+    integer(c_int)                      :: n_components
+    integer(c_int)                      :: n_elt_src
+    integer(c_int),             pointer :: src_to_tgt_idx(:) => null()
+    integer                             :: i, j, k
+
+
+    n_components = CWP_Interp_field_n_components_get(local_code_name, &
+                                                     cpl_id,          &
+                                                     field_id)
+
+    call CWP_Interp_src_data_get(local_code_name, &
+                                 cpl_id,          &
+                                 field_id,        &
+                                 i_part,          &
+                                 n_elt_src,       &
+                                 src_to_tgt_idx)
+
+    do i = 1, n_elt_src
+      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+        do k = 1, n_components
+          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+          enddo
+      enddo
+    enddo
+
+  end subroutine my_interpolation
 
 end program fortran_new_api_callback_sendrecv_sol
