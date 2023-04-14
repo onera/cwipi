@@ -88,8 +88,6 @@ endif()
 
 option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
 
-option(CWP_ENABLE_NEW_API  "Build new API (under construction)" ON)
-
 # MKL, BLAS, LAPACK
 # -----------------
 
@@ -470,13 +468,63 @@ set(CWP_LIST_TEST "")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_NEW_API)
-  if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm")
-  add_subdirectory(external/paradigm)
-#  add_subdirectory(paradigm)
-#  add_subdirectory(paradigm/doc)
-  endif()
-endif()
+# Extensions
+# ----------
+
+set (PDM_ENABLE_EXTENSION_PDMA OFF)
+
+# OpenMP
+# ------
+
+set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
+
+# Enable long for absolute number
+# -------------------------------
+
+set(PDM_ENABLE_LONG_G_NUM ON)
+
+# Pt-scotch
+# ---------
+
+set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
+
+# ParMetis
+# --------
+
+set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
+
+# Shared libraries
+# ----------------
+
+set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
+
+# Static libraries
+# ----------------
+
+set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
+
+# Check MPI Wrapper
+# -----------------
+
+#set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
+
+# Python Bindings
+# ---------------
+
+set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+
+# Fortran interface
+# -----------------
+
+set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
+
+set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
+
+set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
+
+set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
+
+add_subdirectory(external/paradigm)
 
 add_subdirectory(src)
 
@@ -488,10 +536,8 @@ if (CWP_ENABLE_SPACE_NODAL_BASIS)
  add_subdirectory(spaceBasis)
 endif ()
 
-if (CWP_ENABLE_NEW_API)
-  if (CWP_ENABLE_CLIENT_SERVER)
-    add_subdirectory(bin)
-  endif()
+if (CWP_ENABLE_CLIENT_SERVER)
+  add_subdirectory(bin)
 endif()
 
 add_subdirectory(tests)

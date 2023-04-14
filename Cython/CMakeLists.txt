@@ -37,13 +37,10 @@ endif ()
 
 add_subdirectory(cwipi)
 
-if (CWP_ENABLE_NEW_API)
+add_subdirectory(pycwp)
 
-  add_subdirectory(pycwp)
+if (CWP_ENABLE_CLIENT_SERVER)
+  add_subdirectory(pycwpclt)
 
-  if (CWP_ENABLE_CLIENT_SERVER)
-    add_subdirectory(pycwpclt)
+endif()
 
-  endif()
-
-endif ()
