@@ -1,13 +1,11 @@
-
-
 #==============================================================================
 #
 #                Top level CMakeLists.txt file for CWIPI
 #
 #==============================================================================
 
-cmake_minimum_required(VERSION 3.0)
-cmake_policy(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
+cmake_policy(VERSION 3.16)
 
 enable_testing()
 
@@ -23,8 +21,8 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 #set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-#set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake")
-set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
+set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules")
+#set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 project(CWP VERSION 0.0.0 LANGUAGES C CXX Fortran)
 
@@ -97,11 +95,13 @@ option(CWP_ENABLE_NEW_API  "Build new API (under construction)" ON)
 
 option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
 
-if (CWP_ENABLE_BLAS)
+if (CWP_ENABLE_BLASLAPACK)
+
   if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-    set (BLA_VENDOR "Intel10_64lp_seq")
+    set (BLA_VENDOR "Intel10_64lp")
     find_package(BLAS)
-    if (BLAS_FOUND)
+    find_package(LAPACK)
+    if (BLAS_FOUND AND LAPACK_FOUND)
       set(CWP_HAVE_MKL 1)
     endif()
     unset (BLA_VENDOR)
@@ -111,15 +111,19 @@ if (CWP_ENABLE_BLAS)
     find_package(BLAS)
   endif()
 
-  find_package(LAPACK)
+  if (NOT LAPACK_FOUND)
+    find_package(LAPACK)
+  endif()
 
+  if (BLAS_FOUND)
+    set(CWP_HAVE_BLAS 1)
+  endif()
+
+  if (LAPACK_FOUND)
+    set(CWP_HAVE_LAPACK 1)
+  endif()
 
 endif()
-
-if (BLAS_FOUND)
-  set(CWP_HAVE_BLAS 1)
-endif()
-
 
 # High order (Nodal bases from SPACE)
 # -----------------
@@ -177,7 +181,7 @@ endif()
 # Default compiler flags
 #------------------------------------------------------------------------------
 
-include(${CMAKE_MODULE_PATH}/default_flags.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/default_flags.cmake)
 
 #------------------------------------------------------------------------------
 # ADD "-DDEBUG_CLASSE" in Debug
@@ -346,7 +350,7 @@ mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
 # -----------------
 
 if (CWP_ENABLE_MPI_CHECK)
-  include(${CMAKE_MODULE_PATH}/CheckMPI.cmake)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/CheckMPI.cmake)
 endif()
 
 # Checck SCOTCH an ParMETIS
@@ -371,17 +375,23 @@ endif()
 
 if (CWP_ENABLE_OPENMP)
   find_package(OpenMP)
+  if (OPENMP_FOUND)
+    set(CWP_HAVE_OPENMP 1)
+  endif()
 endif()
 
 # Python bindings
 # ---------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
+  # NB: cython module must use mpicxx to avoid "mpi.h" not found.
   find_package(MPI REQUIRED COMPONENTS CXX)
 
   find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
   find_package(Mpi4Py REQUIRED)
+
   include(UseCython)
+
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
 
      set (CMAKE_CWP_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
