@@ -293,6 +293,10 @@ CWP_Init
  MPI_Comm                *intra_comms
 )
 {
+  int i_rank, n_rank;
+  MPI_Comm_rank(global_comm, &i_rank);
+  MPI_Comm_size(global_comm, &n_rank);
+  log_trace("global_comm : %d, i_rank %d/%d\n", (int) global_comm, i_rank, n_rank);
   const int n_param_max_default = 100;
   const int str_size_max_default = 80;
 
@@ -321,9 +325,10 @@ CWP_Init
   /*
    * Get application properties
    */
-
+  log_trace("avant getInstance\n");
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
+  log_trace("après getInstance\n");
 
   int my_rank;  
   MPI_Comm_rank (global_comm, &my_rank);
@@ -339,7 +344,7 @@ CWP_Init
   /*
    * Builds application communicator
    */
-
+  log_trace("avant properties.init\n");
   properties.init (global_comm,
                    n_code,
                    code_names,
@@ -351,18 +356,18 @@ CWP_Init
   /*
    * Create default parameters
    */
-
+  log_trace("avant Barrier1\n");
   MPI_Barrier(global_comm);
-
+  log_trace("après Barrier1\n");
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i];
     properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
-
+  log_trace("avant Barrier2\n");
   MPI_Barrier(global_comm);
-
+  log_trace("après Barrier2\n");
   /*
    * Create communication abstract factory
    */
@@ -411,9 +416,9 @@ CWP_Init
   factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
   factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
   factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
-
+  log_trace("avant Barrier3\n");
   MPI_Barrier(global_comm);
-
+  log_trace("après Barrier3\n");
 }
 
 /*============================================================================*

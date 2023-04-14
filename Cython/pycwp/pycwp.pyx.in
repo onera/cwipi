@@ -931,6 +931,8 @@ def init(MPI.Comm global_comm,
 
     # MPI communicator
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
+    #print(f"c_global_comm {c_global_comm}")
+    print("coucou")
 
     cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
@@ -1638,6 +1640,7 @@ def param_reduce(CWP_Op_t    op,
     cdef int int_res = -1
     cdef double dbl_res = -1
     cdef char *str_res = NULL
+
 
     if (data_type == CWP_INT):
       CWP_Param_reduce(op,

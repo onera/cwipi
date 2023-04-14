@@ -79,6 +79,8 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 
 
 def runTest():
+  print(f"pdm : {PDM.__file__}")
+
   try:
     from pycwp import pycwp
   except:

@@ -130,12 +130,18 @@ main
   is_active_rank[0] = CWP_STATUS_ON;
   time_init[0]      = 0.;
 
+  printf("C : %d/%d je suis là\n", i_rank, n_rank);
+  fflush(stdout);
+
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_name,
            is_active_rank,
            time_init,
            intra_comm);
+
+  printf("C : %d/%d CWP_Init OK\n", i_rank, n_rank);
+  fflush(stdout);
 
   // Create the coupling with code 2 :
   int n_part = 1;
@@ -151,6 +157,18 @@ main
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
+
+  CWP_Visu_set(code_name[0],
+               coupling_name,
+               1,
+               CWP_VISU_FORMAT_ENSIGHT,
+               "text");
+
+  // MPI_Barrier(MPI_COMM_WORLD);
+  if (i_rank == 0) {
+    printf("C : CWP_Cpl_create OK\n");
+    fflush(stdout);
+  }
 
   // Create mesh :
   int     n_vtx = 0;
@@ -198,6 +216,12 @@ main
 
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
+
+  // MPI_Barrier(MPI_COMM_WORLD);
+  if (i_rank == 0) {
+    printf("C : CWP_Mesh_interf_finalize OK\n");
+    fflush(stdout);
+  }
 
   // Create and set field :
   const char *field_name   = "coord_x";

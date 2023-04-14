@@ -106,10 +106,11 @@ def run_coupling():
 
   # Load Python PDM module
   try:
-    from pypdm import pypdm
+    from Pypdm import Pypdm
   except:
     if i_rank == 0:
       print("      Error : PDM module not found (update PYTHONPATH variable)")
+      print(f"pdm : {Pypdm.__file__}")
       sys.exit(1)
 
   # Load Python CWIPI module
@@ -118,7 +119,10 @@ def run_coupling():
   except:
     if i_rank == 0:
       print("      Error : CWIPI module not found (update PYTHONPATH variable)")
+      print(f"cwp : {pycwp.__file__}")
       sys.exit(1)
+
+  print(f"Python : {i_rank}/{n_rank} je suis là")
 
 
   # Initialize CWIPI
@@ -135,21 +139,27 @@ def run_coupling():
                           is_active_rank,
                           time_init)
 
+  print(f"Python : {i_rank}/{n_rank} CWP_Init OK")
+
   n_part = 1
 
   # Generate mesh
-  mesh = pypdm.generate_mesh_rectangle_simplified(comm,
+  mesh = Pypdm.generate_mesh_rectangle_simplified(intra_comm[0],
                                                   20)
+  print(f"Python : {i_rank}/{n_rank} generate_mesh_rectangle_simplified OK")
+
   # Create first coupling C <-> Python
   cpl_CP = pycwp.Coupling(code_name[0],
                           "coupling_C_Python",
-                          ["codeC"],
+                          "codeC",
                           pycwp.INTERFACE_SURFACE,
                           pycwp.COMM_PAR_WITH_PART,
                           pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES,
                           n_part,
                           pycwp.DYNAMIC_MESH_STATIC,
                           pycwp.TIME_EXCH_USER_CONTROLLED)
+
+  print(f"Python : {i_rank}/{n_rank} Coupling OK")
 
 
   # Set coupling visualisation
@@ -175,6 +185,8 @@ def run_coupling():
 
   # Finalize mesh
   cpl_CP.mesh_interf_finalize()
+
+  print(f"Python : {i_rank}/{n_rank} mesh_interf_finalize OK")
 
   # Define field
   field_name = "coord_x"
@@ -209,7 +221,7 @@ def run_coupling():
   # Spatial interpolation
   cpl_CP.spatial_interp_property_set("n_closest_points",
                                      "int",
-                                     "5")
+                                     "3")
 
   cpl_CP.spatial_interp_weights_compute()
 
@@ -226,85 +238,85 @@ def run_coupling():
 
 
 
-  # Create second coupling Python <-> Fortran
-  cpl_PF = pycwp.Coupling(code_name[0],
-                          "coupling_Python_Fortran",
-                          ["codeC"],
-                          pycwp.INTERFACE_SURFACE,
-                          pycwp.COMM_PAR_WITH_PART,
-                          pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                          n_part,
-                          pycwp.DYNAMIC_MESH_STATIC,
-                          pycwp.TIME_EXCH_USER_CONTROLLED)
+  # # Create second coupling Python <-> Fortran
+  # cpl_PF = pycwp.Coupling(code_name[0],
+  #                         "coupling_Python_Fortran",
+  #                         ["codeC"],
+  #                         pycwp.INTERFACE_SURFACE,
+  #                         pycwp.COMM_PAR_WITH_PART,
+  #                         pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+  #                         n_part,
+  #                         pycwp.DYNAMIC_MESH_STATIC,
+  #                         pycwp.TIME_EXCH_USER_CONTROLLED)
 
 
-  # Set coupling visualisation
-  cpl_PF.visu_set(1,
-                  pycwp.VISU_FORMAT_ENSIGHT,
-                  "text")
+  # # Set coupling visualisation
+  # cpl_PF.visu_set(1,
+  #                 pycwp.VISU_FORMAT_ENSIGHT,
+  #                 "text")
 
-  # Set the mesh vertices
-  cpl_PF.mesh_interf_vtx_set(0,
-                             mesh["n_vtx"],
-                             mesh["coords"],
-                             None)
+  # # Set the mesh vertices
+  # cpl_PF.mesh_interf_vtx_set(0,
+  #                            mesh["n_vtx"],
+  #                            mesh["coords"],
+  #                            None)
 
-  # Set the mesh elements
-  block_id = cpl_PF.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+  # # Set the mesh elements
+  # block_id = cpl_PF.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
-  cpl_PF.mesh_interf_f_poly_block_set(0,
-                                      block_id,
-                                      mesh["n_elt"],
-                                      mesh["elt_vtx_idx"],
-                                      mesh["elt_vtx"],
-                                      None)
+  # cpl_PF.mesh_interf_f_poly_block_set(0,
+  #                                     block_id,
+  #                                     mesh["n_elt"],
+  #                                     mesh["elt_vtx_idx"],
+  #                                     mesh["elt_vtx"],
+  #                                     None)
 
-  # Finalize mesh
-  cpl_PF.mesh_interf_finalize()
-
-
-  # Define field
-  field_name = "coord_x"
-
-  cpl_PF.field_create(field_name,
-                      pycwp.DOUBLE,
-                      pycwp.FIELD_STORAGE_INTERLACED,
-                      1,
-                      pycwp.DOF_LOCATION_NODE,
-                      pycwp.FIELD_EXCH_SENDRECV,
-                      pycwp.STATUS_ON)
-
-  cpl_PF.field_set(field_name,
-                   0,
-                   pycwp.FIELD_MAP_SOURCE,
-                   send_field_data)
-
-  cpl_PF.field_set(field_name,
-                   0,
-                   pycwp.FIELD_MAP_TARGET,
-                   recv_field_data)
-
-  # Set user-defined interpolation function
-  cpl_PF.interp_function_set(field_name,
-                             my_interpolation)
+  # # Finalize mesh
+  # cpl_PF.mesh_interf_finalize()
 
 
-  # Spatial interpolation
-  cpl_PF.spatial_interp_property_set("tolerance",
-                                     "double",
-                                     "0.1")
+  # # Define field
+  # field_name = "coord_x"
 
-  cpl_PF.spatial_interp_weights_compute()
+  # cpl_PF.field_create(field_name,
+  #                     pycwp.DOUBLE,
+  #                     pycwp.FIELD_STORAGE_INTERLACED,
+  #                     1,
+  #                     pycwp.DOF_LOCATION_NODE,
+  #                     pycwp.FIELD_EXCH_SENDRECV,
+  #                     pycwp.STATUS_ON)
 
-  # Exchange interpolated fields
-  cpl_PF.field_issend(field_name)
-  cpl_PF.field_irecv (field_name)
+  # cpl_PF.field_set(field_name,
+  #                  0,
+  #                  pycwp.FIELD_MAP_SOURCE,
+  #                  send_field_data)
 
-  cpl_PF.field_wait_issend(field_name)
-  cpl_PF.field_wait_irecv (field_name)
+  # cpl_PF.field_set(field_name,
+  #                  0,
+  #                  pycwp.FIELD_MAP_TARGET,
+  #                  recv_field_data)
 
-  # Delete Mesh
-  cpl_PF.mesh_interf_del()
+  # # Set user-defined interpolation function
+  # cpl_PF.interp_function_set(field_name,
+  #                            my_interpolation)
+
+
+  # # Spatial interpolation
+  # cpl_PF.spatial_interp_property_set("tolerance",
+  #                                    "double",
+  #                                    "0.1")
+
+  # cpl_PF.spatial_interp_weights_compute()
+
+  # # Exchange interpolated fields
+  # cpl_PF.field_issend(field_name)
+  # cpl_PF.field_irecv (field_name)
+
+  # cpl_PF.field_wait_issend(field_name)
+  # cpl_PF.field_wait_irecv (field_name)
+
+  # # Delete Mesh
+  # cpl_PF.mesh_interf_del()
 
   # Finalize CWIPI
   pycwp.finalize()
@@ -314,5 +326,6 @@ def run_coupling():
 
 
 if __name__ == '__main__':
+  print("C'est parti!")
   run_coupling()
 

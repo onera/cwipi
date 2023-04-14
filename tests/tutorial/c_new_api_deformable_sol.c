@@ -44,19 +44,21 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 
-  // Check running on correct number of MPI ranks :
-  int n_partition = 0;
-  while(2 * pow(n_partition, 2) < n_rank) n_partition++;
+  printf("C rank %d/%d\n", i_rank, n_rank);
 
-  const int two = 2;
-  int n2 = two * (int) pow(n_partition, two);
+  // // Check running on correct number of MPI ranks :
+  // int n_partition = 0;
+  // while(2 * pow(n_partition, 2) < n_rank) n_partition++;
 
-  if (n2 != n_rank) {
-    if (i_rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
-    exit(1);
-    return EXIT_SUCCESS;
-  }
+  // const int two = 2;
+  // int n2 = two * (int) pow(n_partition, two);
+
+  // if (n2 != n_rank) {
+  //   if (i_rank == 0)
+  //     printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
+  //   exit(1);
+  //   return EXIT_SUCCESS;
+  // }
 
   // Initialize CWIPI :
   int n_code = 1;
