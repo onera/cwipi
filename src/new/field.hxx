@@ -327,8 +327,10 @@ namespace cwipi {
     CWP_Dof_location_t                       _linkedFieldLocation; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
     CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
     CWP_Status_t                             _visuStatus;     /*!< Visualization status */
-    std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
-    std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
+    // std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
+    // std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
+    void                                   **_data_src;
+    void                                   **_data_tgt;
     CWP_Type_t                               _dataType;
     std::string                              _fieldID;
     int                                      _fieldIDInt;

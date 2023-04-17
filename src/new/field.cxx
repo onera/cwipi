@@ -44,8 +44,10 @@ Field::Field (std::string            field_id    ,
 {
   _mesh = cpl->meshGet();
   _n_part = _mesh->getNPart();
-  _data_tgt.resize(_n_part,NULL);
-  _data_src.resize(_n_part,NULL);
+  // _data_tgt.resize(_n_part,NULL);
+  // _data_src.resize(_n_part,NULL);
+  _data_tgt = (void **) malloc(sizeof(void *) * _n_part);
+  _data_src = (void **) malloc(sizeof(void *) * _n_part);
   _sendBuffer = NULL;
   _recvBuffer = NULL;
   _dataTypeSize = 0;
@@ -164,8 +166,10 @@ Field::Field (std::string            field_id    ,
 
 Field::~Field()
 {
-  _data_tgt.clear();
-  _data_src.clear();
+  // _data_tgt.clear();
+  // _data_src.clear();
+  free(_data_tgt);
+  free(_data_src);
 
   if (_id_writer_var_send != nullptr) {
     free (_id_writer_var_send);
@@ -215,7 +219,8 @@ CWP_Field_exch_t exch_type
 
   // Get data depending on exchange type
   int *id_writer_var;
-  std::vector<void* > &data_var = _data_src;
+  // std::vector<void* > &data_var = _data_tgt;
+  void **data_var = NULL;
 
   if (exch_type == CWP_FIELD_EXCH_SEND) {
     id_writer_var = _id_writer_var_send;

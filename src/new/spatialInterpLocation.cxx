@@ -613,7 +613,9 @@ namespace cwipi {
       if (interpolationFunction != NULL) {
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-
+          log_trace(">> interpolationFunction : %ld\n", interpolationFunction);
+          log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
+          log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
           (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
                                     _cpl->IdGet().c_str(),
                                     referenceField->fieldIDGet().c_str(),
@@ -622,6 +624,7 @@ namespace cwipi {
                                     storage,
                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
                          (double *) buffer[i_part]);
+          log_trace("<< interpolationFunction\n");
         }
     
       }

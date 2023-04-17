@@ -19,7 +19,7 @@ program fortran_new_api_callback_sendrecv_sol
   !--------------------------------------------------------------------
   integer                                     :: ierr
   integer                                     :: i_rank, n_rank
-  integer(c_long), parameter                  :: n_vtx_seg = 10
+  integer(c_long), parameter                  :: n_vtx_seg = 4
   integer(c_int),  parameter                  :: n_part    = 1
 
   ! Coupling
@@ -47,6 +47,7 @@ program fortran_new_api_callback_sendrecv_sol
   double precision,                   pointer :: recv_field_data(:) => null()
 
   integer                                     :: i, j
+  character :: strnum
   !--------------------------------------------------------------------
 
   ! Initialize MPI
@@ -150,9 +151,10 @@ program fortran_new_api_callback_sendrecv_sol
   do i = 1, n_elt
     send_field_data(i) = 0.d0
     do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
-      send_field_data(i) = send_field_data(i) + vtx_coord(3*(elt_vtx(j)-1))
+      send_field_data(i) = send_field_data(i) + vtx_coord(3*(elt_vtx(j)-1)+1)
     enddo
     send_field_data(i) = send_field_data(i) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+    ! print *, "elt ", i, " : ", send_field_data(i)
   enddo
 
 
@@ -171,6 +173,7 @@ program fortran_new_api_callback_sendrecv_sol
                           recv_field_data)
 
   ! Set user-defined interpolation function
+  print *, "my_interpolation : ", loc(my_interpolation)
   call CWP_Interp_function_set(code_names(1), &
                                coupling_name, &
                                field_name,    &
@@ -184,15 +187,18 @@ program fortran_new_api_callback_sendrecv_sol
                                        "double",      &
                                        "0.1")
 
+  print *, "Fortran ", i_rank, " >> CWP_Spatial_interp_weights_compute"
+
   call CWP_Spatial_interp_weights_compute(code_names(1), &
                                           coupling_name)
+
+  print *, "Fortran ", i_rank, " << CWP_Spatial_interp_weights_compute"
 
 
   ! Exchange interpolated fields
   call CWP_Field_irecv(code_names(1), &
                        coupling_name, &
                        field_name)
-
   call CWP_Field_issend(code_names(1), &
                         coupling_name, &
                         field_name)
@@ -200,10 +206,20 @@ program fortran_new_api_callback_sendrecv_sol
   call CWP_Field_wait_irecv(code_names(1), &
                             coupling_name, &
                             field_name)
-
   call CWP_Field_wait_issend(code_names(1), &
                              coupling_name, &
                              field_name)
+
+  write (strnum, '(i1)') i_rank
+  call visu("check_Fortran_"//strnum//".vtk", &
+            n_vtx,                                 &
+            vtx_coord,                             &
+            n_elt,                                 &
+            elt_vtx_idx,                           &
+            elt_vtx,                               &
+            send_field_data,                       &
+            recv_field_data)
+
 
   ! Delete field
   call CWP_Field_Del(code_names(1), &
@@ -235,6 +251,8 @@ program fortran_new_api_callback_sendrecv_sol
   ! Finalize CWIPI
   call CWP_Finalize()
 
+  print *, "Fortran ", i_rank, " FINISHED :D"
+
   ! Finalize MPI
   call MPI_Finalize(ierr)
 
@@ -247,8 +265,8 @@ contains
                               i_part,                   &
                               spatial_interp_algorithm, &
                               storage,                  &
-                              buffer_in,                &
-                              buffer_out)
+                              c_buffer_in,              &
+                              c_buffer_out)
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -256,13 +274,17 @@ contains
     integer(kind = c_int)               :: i_part
     integer(kind = c_int)               :: spatial_interp_algorithm
     integer(kind = c_int)               :: storage
-    real(kind = c_double), dimension(*) :: buffer_in
-    real(kind = c_double), dimension(*) :: buffer_out
+    type(c_ptr), value                  :: c_buffer_in
+    type(c_ptr), value                  :: c_buffer_out
 
     integer(c_int)                      :: n_components
     integer(c_int)                      :: n_elt_src
     integer(c_int),             pointer :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer      :: buffer_in(:)  => null()
+    real(kind = c_double), pointer      :: buffer_out(:) => null()
     integer                             :: i, j, k
+
+    print *, ">> my_interpolation"
 
 
     n_components = CWP_Interp_field_n_components_get(local_code_name, &
@@ -276,14 +298,72 @@ contains
                                  n_elt_src,       &
                                  src_to_tgt_idx)
 
+    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
+    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
+
     do i = 1, n_elt_src
+      print *, "i = ", i
       do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+        print *, "  j = ", j
         do k = 1, n_components
           buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
-          enddo
+        enddo
       enddo
     enddo
 
   end subroutine my_interpolation
+
+
+
+  subroutine visu(filename,    &
+                  n_vtx,       &
+                  vtx_coord,   &
+                  n_elt,       &
+                  elt_vtx_idx, &
+                  elt_vtx,     &
+                  send_field,  &
+                  recv_field)
+    implicit none
+    character(*),  intent(in) :: filename
+    integer,       intent(in) :: n_vtx, n_elt
+    double precision, pointer :: vtx_coord(:), send_field(:), recv_field(:)
+    integer(c_int),   pointer :: elt_vtx_idx(:), elt_vtx(:)
+
+    integer                   :: fid = 13, i, j
+
+    open(unit=fid, file=filename, action='write')
+    write (fid,'(A26)') '# vtk DataFile Version 2.0'
+    write (fid,*) filename
+    write (fid,'(A5)') 'ASCII'
+    write (fid,'(A16)') 'DATASET POLYDATA'
+
+    write (fid,'(A6,1x,I0,1x,A6)') 'POINTS', n_vtx, 'double'
+    do i = 1, n_vtx
+      write (fid, *) vtx_coord(3*(i-1)+1:3*i)
+    enddo
+
+    write (fid,'(A8,1x,I0,1x,I0)') 'POLYGONS', n_elt, n_elt + elt_vtx_idx(n_elt+1)
+    do i = 1, n_elt
+      write (fid,'(I0,1x)', advance="no") elt_vtx_idx(i+1) - elt_vtx_idx(i)
+      do j = elt_vtx_idx(i)+1,elt_vtx_idx(i+1)
+        write (fid,'(I0,1x)', advance="no") elt_vtx(j) - 1
+      enddo
+      write (fid, *) ""
+    enddo
+
+    write (fid,'(A9,1x,I0)') 'CELL_DATA', n_elt
+    write (fid,'(A17)') 'FIELD elt_field 2'
+    write (fid,'(a12,1x,i0,1x,a6)') 'send_field 1', n_elt, 'double'
+    do i = 1, n_elt
+      write (fid, '(f20.16)') send_field(i)
+    enddo
+    write (fid,'(a12,1x,i0,1x,a6)') 'recv_field 1', n_elt, 'double'
+    do i = 1, n_elt
+      write (fid, '(f20.16)') recv_field(i)
+    enddo
+
+    close(fid)
+
+  end subroutine visu
 
 end program fortran_new_api_callback_sendrecv_sol

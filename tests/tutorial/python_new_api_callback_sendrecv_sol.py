@@ -22,6 +22,9 @@ import mpi4py.MPI as MPI
 import numpy as np
 import sys
 
+sys.path.append("/stck/bandrieu/Public/adaptation/cavity_operator3_v3/")
+from mod_vtk import *
+
 def my_interpolation(local_code_name,
                      cpl_id,
                      field_id,
@@ -39,32 +42,29 @@ def my_interpolation(local_code_name,
       print(f"cwp : {pycwp.__file__}")
       sys.exit(1)
 
-  print("in a user interpolation function !")
-
   n_comp = pycwp.interp_field_n_components_get(local_code_name,
-                                         cpl_id,
-                                         field_id)
+                                               cpl_id,
+                                               field_id)
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES:
     tgt_data = pycwp.interp_tgt_data_get(local_code_name,
-                                   cpl_id,
-                                   field_id,
-                                   i_part)
+                                         cpl_id,
+                                         field_id,
+                                         i_part)
     n_tgt          = tgt_data["n_elt_tgt"]
     ref_tgt        = tgt_data["referenced_tgt"]
     tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
 
     distance2 = pycwp.interp_closest_points_distances_get(local_code_name,
-                                                    cpl_id,
-                                                    field_id,
-                                                    i_part)
+                                                          cpl_id,
+                                                          field_id,
+                                                          i_part)
 
     for i, jtgt in enumerate(ref_tgt):
       itgt = jtgt-1
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] = 0
       sum_w = 0
-      # TO DO : some tgt have zero src???
-      for isrc in range(tgt_to_src_idx[itgt], tgt_to_src_idx[itgt+1]):
+      for isrc in range(tgt_to_src_idx[i], tgt_to_src_idx[i+1]):
         w = 1./max(1.e-24, distance2[isrc])
         sum_w += w
         buffer_out[n_comp*itgt:n_comp*(itgt+1)] = \
@@ -76,21 +76,21 @@ def my_interpolation(local_code_name,
 
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
     src_data = pycwp.interp_src_data_get(local_code_name,
-                                   cpl_id,
-                                   field_id,
-                                   i_part)
+                                         cpl_id,
+                                         field_id,
+                                         i_part)
     n_src = src_data["n_elt_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
     weight = pycwp.interp_location_weights_get(local_code_name,
-                                         cpl_id,
-                                         field_id,
-                                         i_part)
+                                               cpl_id,
+                                               field_id,
+                                               i_part)
 
     cell_data = pycwp.interp_location_internal_cell_vtx_get(local_code_name,
-                                                      cpl_id,
-                                                      field_id,
-                                                      i_part)
+                                                            cpl_id,
+                                                            field_id,
+                                                            i_part)
     cell_vtx_idx = cell_data["cell_vtx_idx"]
     cell_vtx     = cell_data["cell_vtx"]
 
@@ -157,8 +157,13 @@ def run_coupling():
 
   # Generate mesh
   mesh = Pypdm.generate_mesh_rectangle_simplified(intra_comm[0],
-                                                  20)
+                                                  5)
   print(f"Python : {i_rank}/{n_rank} generate_mesh_rectangle_simplified OK")
+  # send_field_data = mesh["coords"][0::3] # does not work for some reason...
+  send_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
+  for i in range(mesh["n_vtx"]):
+    send_field_data[i] = mesh["coords"][3*i]
+  recv_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
 
   # Create first coupling C <-> Python
   cpl_CP = pycwp.Coupling(code_name[0],
@@ -171,7 +176,7 @@ def run_coupling():
                           pycwp.DYNAMIC_MESH_STATIC,
                           pycwp.TIME_EXCH_USER_CONTROLLED)
 
-  print(f"Python : {i_rank}/{n_rank} Coupling OK")
+  print(f"Python : {i_rank}/{n_rank} Coupling C OK")
 
 
   # Set coupling visualisation
@@ -212,9 +217,6 @@ def run_coupling():
                       pycwp.STATUS_ON)
 
 
-  send_field_data = mesh["coords"][0::3]
-  recv_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
-
   cpl_CP.field_set(field_name,
                    0,
                    pycwp.FIELD_MAP_SOURCE,
@@ -248,87 +250,96 @@ def run_coupling():
   cpl_CP.mesh_interf_del()
 
 
+  # Create second coupling Python <-> Fortran
+  cpl_PF = pycwp.Coupling(code_name[0],
+                          "coupling_Python_Fortran",
+                          "codeFortran",
+                          pycwp.INTERFACE_SURFACE,
+                          pycwp.COMM_PAR_WITH_PART,
+                          pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                          n_part,
+                          pycwp.DYNAMIC_MESH_STATIC,
+                          pycwp.TIME_EXCH_USER_CONTROLLED)
+
+  print(f"Python : {i_rank}/{n_rank} Coupling F OK")
 
 
-  # # Create second coupling Python <-> Fortran
-  # cpl_PF = pycwp.Coupling(code_name[0],
-  #                         "coupling_Python_Fortran",
-  #                         ["codeC"],
-  #                         pycwp.INTERFACE_SURFACE,
-  #                         pycwp.COMM_PAR_WITH_PART,
-  #                         pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-  #                         n_part,
-  #                         pycwp.DYNAMIC_MESH_STATIC,
-  #                         pycwp.TIME_EXCH_USER_CONTROLLED)
+  # Set coupling visualisation
+  cpl_PF.visu_set(1,
+                  pycwp.VISU_FORMAT_ENSIGHT,
+                  "text")
+
+  # Set the mesh vertices
+  cpl_PF.mesh_interf_vtx_set(0,
+                             mesh["n_vtx"],
+                             mesh["coords"],
+                             None)
+
+  # Set the mesh elements
+  block_id = cpl_PF.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+
+  cpl_PF.mesh_interf_f_poly_block_set(0,
+                                      block_id,
+                                      mesh["n_elt"],
+                                      mesh["elt_vtx_idx"],
+                                      mesh["elt_vtx"],
+                                      None)
+
+  # Finalize mesh
+  cpl_PF.mesh_interf_finalize()
 
 
-  # # Set coupling visualisation
-  # cpl_PF.visu_set(1,
-  #                 pycwp.VISU_FORMAT_ENSIGHT,
-  #                 "text")
+  # Define field
+  field_name = "coord_x"
 
-  # # Set the mesh vertices
-  # cpl_PF.mesh_interf_vtx_set(0,
-  #                            mesh["n_vtx"],
-  #                            mesh["coords"],
-  #                            None)
+  cpl_PF.field_create(field_name,
+                      pycwp.DOUBLE,
+                      pycwp.FIELD_STORAGE_INTERLACED,
+                      1,
+                      pycwp.DOF_LOCATION_NODE,
+                      pycwp.FIELD_EXCH_SENDRECV,
+                      pycwp.STATUS_ON)
 
-  # # Set the mesh elements
-  # block_id = cpl_PF.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+  cpl_PF.field_set(field_name,
+                   0,
+                   pycwp.FIELD_MAP_SOURCE,
+                   send_field_data)
 
-  # cpl_PF.mesh_interf_f_poly_block_set(0,
-  #                                     block_id,
-  #                                     mesh["n_elt"],
-  #                                     mesh["elt_vtx_idx"],
-  #                                     mesh["elt_vtx"],
-  #                                     None)
+  cpl_PF.field_set(field_name,
+                   0,
+                   pycwp.FIELD_MAP_TARGET,
+                   recv_field_data)
 
-  # # Finalize mesh
-  # cpl_PF.mesh_interf_finalize()
-
-
-  # # Define field
-  # field_name = "coord_x"
-
-  # cpl_PF.field_create(field_name,
-  #                     pycwp.DOUBLE,
-  #                     pycwp.FIELD_STORAGE_INTERLACED,
-  #                     1,
-  #                     pycwp.DOF_LOCATION_NODE,
-  #                     pycwp.FIELD_EXCH_SENDRECV,
-  #                     pycwp.STATUS_ON)
-
-  # cpl_PF.field_set(field_name,
-  #                  0,
-  #                  pycwp.FIELD_MAP_SOURCE,
-  #                  send_field_data)
-
-  # cpl_PF.field_set(field_name,
-  #                  0,
-  #                  pycwp.FIELD_MAP_TARGET,
-  #                  recv_field_data)
-
-  # # Set user-defined interpolation function
+  # Set user-defined interpolation function
   # cpl_PF.interp_function_set(field_name,
   #                            my_interpolation)
 
 
-  # # Spatial interpolation
-  # cpl_PF.spatial_interp_property_set("tolerance",
-  #                                    "double",
-  #                                    "0.1")
+  # Spatial interpolation
+  cpl_PF.spatial_interp_property_set("tolerance",
+                                     "double",
+                                     "0.1")
 
-  # cpl_PF.spatial_interp_weights_compute()
+  cpl_PF.spatial_interp_weights_compute()
 
-  # # Exchange interpolated fields
-  # cpl_PF.field_issend(field_name)
-  # cpl_PF.field_irecv (field_name)
+  # Exchange interpolated fields
+  cpl_PF.field_issend(field_name)
+  cpl_PF.field_irecv (field_name)
 
-  # cpl_PF.field_wait_issend(field_name)
-  # cpl_PF.field_wait_irecv (field_name)
+  cpl_PF.field_wait_issend(field_name)
+  cpl_PF.field_wait_irecv (field_name)
 
-  # # Delete Mesh
-  # cpl_PF.mesh_interf_del()
+
+  if True:
+    vtk_write_polydata(f"check_Python_{i_rank}.vtk",
+                       [mesh["coords"][3*i:3*(i+1)] for i in range(mesh["n_vtx"])],
+                       [mesh["elt_vtx"][mesh["elt_vtx_idx"][i]:mesh["elt_vtx_idx"][i+1]]-1 for i in range(mesh["n_elt"])],
+                       vtx_fields={
+                       "send_field": send_field_data,
+                       "recv_field": recv_field_data})
+
+  # Delete Mesh
+  cpl_PF.mesh_interf_del()
 
   # Finalize CWIPI
   pycwp.finalize()

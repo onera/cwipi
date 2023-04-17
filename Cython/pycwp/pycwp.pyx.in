@@ -1877,10 +1877,10 @@ def interp_tgt_data_get(str local_code_name,
                             &(tgt_come_from_src_idx))
 
     return {
-            'n_elt_tgt'     : n_elt_tgt,
-            'n_referenced_tgt'     : n_referenced_tgt,
-            'referenced_tgt' : create_numpy_i(referenced_tgt, n_referenced_tgt+1, False),
-            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1, False)
+            'n_elt_tgt'             : n_elt_tgt,
+            'n_referenced_tgt'      : n_referenced_tgt,
+            'referenced_tgt'        : create_numpy_i(referenced_tgt,        n_referenced_tgt),
+            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_referenced_tgt+1)
            }
 
 def interp_location_weights_get(str local_code_name,

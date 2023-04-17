@@ -1013,8 +1013,8 @@ module cwp
             integer(kind = c_int)               :: i_part
             integer(kind = c_int)               :: spatial_interp_algorithm
             integer(kind = c_int)               :: storage
-            real(kind = c_double), dimension(*) :: buffer_in
-            real(kind = c_double), dimension(*) :: buffer_out
+            type(c_ptr), value                  :: buffer_in
+            type(c_ptr), value                  :: buffer_out
           end subroutine user_interpolation_fct
         end interface
 
@@ -3747,8 +3747,8 @@ contains
           integer(kind = c_int)               :: i_part
           integer(kind = c_int)               :: spatial_interp_algorithm
           integer(kind = c_int)               :: storage
-          real(kind = c_double), dimension(*) :: buffer_in
-          real(kind = c_double), dimension(*) :: buffer_out
+          type(c_ptr), value                  :: buffer_in
+          type(c_ptr), value                  :: buffer_out
         end subroutine user_interpolation_fct
     end interface
 
@@ -3757,6 +3757,8 @@ contains
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
+
+    print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct)
 
     call CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & src_field_id, l_src_field_id, user_interpolation_fct)
