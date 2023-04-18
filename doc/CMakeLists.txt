@@ -42,7 +42,8 @@ if(CWP_ENABLE_DOCUMENTATION)
     # - The Sphinx config has been updated
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                        COMMAND
-                         ${SPHINX_EXECUTABLE} -b html
+                         ${SPHINX_EXECUTABLE} -Q -b html # -Q to suppress warning output
+                         #-w sphinx_build_warnings.log
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
                        ${SPHINX_SOURCE} ${SPHINX_BUILD}

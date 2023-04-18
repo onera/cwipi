@@ -139,19 +139,24 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
 
+# Suppress the warnings.
+suppress_warnings = [ 'autodoc', 'autosummary', 'ref' ]
+
 # If true, keep warnings as "system message" paragraphs in the built documents.
-# keep_warnings = False
+keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
+todo_include_todos = False
+
+# autodoc_warningiserror = False # use -W
 
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
     "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
-                                 "../test/tutorial/c_new_api_polygon_sol.c",
-                                 "../test/tutorial/fortran_new_api_polygon_sol.F90",
-                                 "../test/tutorial/python_new_api_polygon_sol.py"] )
+                                 "../tests/tutorial/c_new_api_polygon_sol.c",
+                                 "../tests/tutorial/fortran_new_api_polygon_sol.F90",
+                                 "../tests/tutorial/python_new_api_polygon_sol.py"] )
 }
 
 breathe_default_project = "cwipi"
@@ -206,7 +211,7 @@ html_logo = "./images/logo-cwipi.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

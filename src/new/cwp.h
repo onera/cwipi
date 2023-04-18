@@ -676,26 +676,6 @@ CWP_Cpl_del
 );
 
 /**
- * \brief Get coupling communicator and coupling ranks.
- *
- * \param [in]  local_code_name      Local code name
- * \param [in]  cpl_id               Coupling identifier
- * \param [out] cpl_comm             Coupling communicator
- * \param [out] cpl_ranks            Coupling ranks
- *
- * \return Size of \ref cpl_ranks vector
- *
- */
-// int
-// CWP_Cpl_comm_get
-// (
-// const char *local_code_name,
-// const char *cpl_id,
-// MPI_Comm   *cpl_comm,
-// int       **cpl_ranks
-// );
-
-/**
  *
  * \brief Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode)
  *
