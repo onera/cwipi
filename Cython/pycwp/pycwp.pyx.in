@@ -739,15 +739,18 @@ cdef extern from "Python.h":
 cdef void dealloc_array_capsule(object capsule):
     data = PyCapsule_GetPointer(capsule, NULL)
     PyTraceMalloc_Untrack(py_mem_domain, <uintptr_t> data)
+    # Here we choose free() because the arrays were allocated in C
     free(data)
 
 cdef create_numpy(void* array, int nptype, int size, bint flag_owndata=True):
     dim = <NPY.npy_intp> size
     nparray = NPY.PyArray_SimpleNewFromData(1, &dim, nptype, array)
     if flag_owndata and array != NULL:
-        # PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
+        # Create a capsule linked to the numpy array to choose how its
+        # data will be freed
         capsule = PyCapsule_New(array, NULL, &dealloc_array_capsule)
         NPY.set_array_base(nparray, capsule)
+        # Use tracemalloc Python module to trace memory allocations
         PyTraceMalloc_Track(py_mem_domain, <uintptr_t> array, nparray.nbytes)
     return nparray
 
@@ -1495,7 +1498,7 @@ def interp_src_data_get(char             *local_code_name,
 
     return {
             'n_elt_src'     : n_elt_src,
-            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_elt_src+1)
+            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_elt_src+1, False)
            }
 
 def interp_tgt_data_get(char             *local_code_name,
@@ -1533,8 +1536,8 @@ def interp_tgt_data_get(char             *local_code_name,
     return {
             'n_elt_tgt'     : n_elt_tgt,
             'n_referenced_tgt'     : n_referenced_tgt,
-            'referenced_tgt' : create_numpy_i(referenced_tgt, n_referenced_tgt+1),
-            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1)
+            'referenced_tgt' : create_numpy_i(referenced_tgt, n_referenced_tgt+1, False),
+            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1, False)
            }
 
 def interp_location_weights_get(char                  *local_code_name,
@@ -1572,8 +1575,6 @@ def interp_location_weights_get(char                  *local_code_name,
                             &(n_cell),
                             &(c_src_to_tgt_idx))
 
-    src_to_tgt_idx = create_numpy_i(c_src_to_tgt_idx, n_cell+1)
-
     cdef int *c_cell_vtx_idx;
     cdef int *c_cell_vtx;
     CWP_Interp_location_internal_cell_vtx_get(local_code_name,
@@ -1583,17 +1584,15 @@ def interp_location_weights_get(char                  *local_code_name,
                                               &(c_cell_vtx_idx),
                                               &(c_cell_vtx))
 
-    cell_vtx_idx = create_numpy_i(c_cell_vtx_idx, n_cell+1)
-
     cdef int size  = 0
     cdef int n_vtx = 0
     cdef int n_pts = 0
     for i in range(n_cell):
-      n_vtx = cell_vtx_idx  [i+1] - cell_vtx_idx  [i];
-      n_pts = src_to_tgt_idx[i+1] - src_to_tgt_idx[i];
+      n_vtx = c_cell_vtx_idx  [i+1] - c_cell_vtx_idx  [i];
+      n_pts = c_src_to_tgt_idx[i+1] - c_src_to_tgt_idx[i];
       size += n_vtx * n_pts;
 
-    return create_numpy_d(weights, size)
+    return create_numpy_d(weights, size, False)
 
 def interp_location_point_data_get(char                  *local_code_name,
                                    char                  *cpl_id,
@@ -1639,13 +1638,11 @@ def interp_location_point_data_get(char                  *local_code_name,
                             &(n_elt_src),
                             &(c_src_to_tgt_idx))
 
-    src_to_tgt_idx = create_numpy_i(c_src_to_tgt_idx, n_elt_src+1)
-
     return {
-            'points_coords' : create_numpy_d(points_coords, src_to_tgt_idx[n_elt_src]),
-            'points_uvw' : create_numpy_d(points_uvw, src_to_tgt_idx[n_elt_src]),
-            'points_dist2' : create_numpy_d(points_dist2, src_to_tgt_idx[n_elt_src]),
-            'points_projected_coords' : create_numpy_d(points_projected_coords, src_to_tgt_idx[n_elt_src])
+            'points_coords' : create_numpy_d(points_coords, c_src_to_tgt_idx[n_elt_src], False),
+            'points_uvw' : create_numpy_d(points_uvw, c_src_to_tgt_idx[n_elt_src], False),
+            'points_dist2' : create_numpy_d(points_dist2, c_src_to_tgt_idx[n_elt_src], False),
+            'points_projected_coords' : create_numpy_d(points_projected_coords, c_src_to_tgt_idx[n_elt_src], False)
            }
 
 def interp_location_internal_cell_vtx_get(char                  *local_code_name,
@@ -1687,8 +1684,8 @@ def interp_location_internal_cell_vtx_get(char                  *local_code_name
                             &(c_src_to_tgt_idx))
 
     return {
-            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell),
-            'cell_vtx' : create_numpy_i(cell_vtx, cell_vtx_idx[n_cell])
+            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell, False),
+            'cell_vtx' : create_numpy_i(cell_vtx, cell_vtx_idx[n_cell], False)
            }
 
 def interp_intersection_volumes_get(char                  *local_code_name,
@@ -1730,9 +1727,7 @@ def interp_intersection_volumes_get(char                  *local_code_name,
                             &(c_referenced_tgt),
                             &(c_tgt_come_from_src_idx))
 
-    tgt_come_from_src_idx = create_numpy_i(c_tgt_come_from_src_idx, n_referenced_tgt+1)
-
-    return create_numpy_d(volumes, tgt_come_from_src_idx[n_referenced_tgt])
+    return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
 def interp_closest_points_distances_get(char                  *local_code_name,
                                         char                  *cpl_id,
@@ -1773,9 +1768,7 @@ def interp_closest_points_distances_get(char                  *local_code_name,
                             &(c_referenced_tgt),
                             &(c_tgt_come_from_src_idx))
 
-    tgt_come_from_src_idx = create_numpy_i(c_tgt_come_from_src_idx, n_referenced_tgt+1)
-
-    return create_numpy_d(distances2, tgt_come_from_src_idx[n_referenced_tgt])
+    return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
 
 
@@ -2140,9 +2133,7 @@ cdef class Field (object):
                                                      self.field_id,
                                                      i_part)
 
-      py_unc_tgt = create_numpy_or_none_i(unc_tgt, n_unc_tgt)
-
-      return py_unc_tgt
+      return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
 
     def n_computed_tgts_get(self,
                               int   i_part):
@@ -2185,9 +2176,7 @@ cdef class Field (object):
                                                  self.field_id,
                                                  i_part)
 
-      py_c_tgt = create_numpy_or_none_i(c_tgt, n_c_tgt)
-
-      return py_c_tgt
+      return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
 
     def n_involved_srcs_get(self,
                             int   i_part):
@@ -2230,9 +2219,7 @@ cdef class Field (object):
                                                    self.field_id,
                                                    i_part)
 
-      py_i_src = create_numpy_or_none_i(i_src, n_i_src)
-
-      return py_i_src
+      return create_numpy_or_none_i(i_src, n_i_src, False)
 
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
@@ -2872,16 +2859,14 @@ cdef class Coupling (object):
                                       &(connec),
                                       &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
                                                              self.cpl_id,
                                                              block_id)
         cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
                 'n_elts'     : n_elts,
-                'connec'     : create_numpy_i(connec, size),
-                'global_num' : py_global_num
+                'connec'     : create_numpy_i(connec, size, False),
+                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
     def mesh_interf_f_poly_block_set(self,
@@ -2953,13 +2938,11 @@ cdef class Coupling (object):
                                          &(connec),
                                          &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         return {
                 'n_elts'     : n_elts,
-                'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
-                'connec'     : create_numpy_i(connec, connec_idx[n_elts]),
-                'global_num' : py_global_num
+                'connec_idx' : create_numpy_i(connec_idx, n_elts+1, False),
+                'connec'     : create_numpy_i(connec, connec_idx[n_elts], False),
+                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
     def mesh_interf_c_poly_block_set(self,
@@ -3052,16 +3035,14 @@ cdef class Coupling (object):
                                          &(connec_cells),
                                          &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         return {
                 'n_elts'           : n_elts,
                 'n_faces'          : n_faces,
-                'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1),
-                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]),
-                'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
-                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]),
-                'global_num'       : py_global_num
+                'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1, False),
+                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces], False),
+                'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1, False),
+                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts], False),
+                'global_num'       : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
 
@@ -3136,8 +3117,6 @@ cdef class Coupling (object):
                                    &(connec),
                                    &(global_num))
 
-      py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
       cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
                                                            self.cpl_id,
                                                            block_id)
@@ -3145,8 +3124,8 @@ cdef class Coupling (object):
       return {
               'n_elts'     : n_elts,
               'order'      : order,
-              'connec'     : create_numpy_i(connec, size),
-              'global_num' : py_global_num
+              'connec'     : create_numpy_i(connec, size, False),
+              'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
              }
 
 

@@ -59,7 +59,7 @@ if(CWP_ENABLE_DOCUMENTATION)
 
     add_custom_command(TARGET Sphinx POST_BUILD
                        COMMAND ;
-                       COMMENT "Sphinx documentation can be found at ${CMAKE_CURRENT_BINARY_DIR}/doc/sphinx/html. Open index.html")
+                       COMMENT "Sphinx documentation can be found at ${CMAKE_BINARY_DIR}/doc/sphinx/html. Open index.html")
 
     install(DIRECTORY ${SPHINX_BUILD}
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/cwp)
