@@ -220,9 +220,7 @@ main
   }
 
 
-  /* Initialization
-   * -------------- */
-
+  // Init
   int n_code = 0;
   const char **code_names = NULL;
   double *times_init = NULL;
@@ -257,7 +255,6 @@ main
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, id_code, rank, &intra_comm);
 
-  printf("CWIPI Initialization rank %i\n", rank);
   CWP_client_Init(intra_comm,
                   config,
                   n_code,
@@ -265,12 +262,7 @@ main
                   is_coupled_rank,
                   times_init);
 
-  /* Finalize
-   * -------- */
-
   char cpl_id1[] = "cpl_code1_code2";
-
-  printf("Coupling creation\n");
 
   if (rank == 0) {
     CWP_client_Cpl_create("code1_cell_faces", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
@@ -283,7 +275,6 @@ main
                           CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE, 1,
                           CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
-  printf("Coupling created \n");
 
   /* Building of the local mesh */
 
@@ -299,8 +290,6 @@ main
   int    *face_vtx      = NULL;
   int    *cell_face_idx = NULL;
   int    *cell_face     = NULL;
-
-  if (rank == 0) printf("        Read mesh\n");
 
   FILE *mesh_file;
   mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
@@ -336,16 +325,13 @@ main
 
   if (rank == 0) {
 
-    printf("Visu Setting\n");
     CWP_client_Visu_set("code1_cell_faces", cpl_id1, 1.0, CWP_VISU_FORMAT_ENSIGHT, "binary");
-    printf("Visu Set\n");
 
     CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_vtx);
     for (int i = 0; i < n_vtx; i++) {
       global_num_vtx[i] = i + 1;
     }
 
-    printf("vtx_set\n");
     CWP_client_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1, 0, n_vtx, coords, global_num_vtx);
 
     CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elmt);
@@ -353,7 +339,6 @@ main
       global_num[i] = i + 1;
     }
 
-    printf("Cell_face Add and Setting\n");
     CWP_client_Mesh_interf_from_cellface_set("code1_cell_faces",
                                              cpl_id1,
                                              0,
@@ -369,9 +354,7 @@ main
     free(global_num_vtx);
     free(global_num);
 
-    printf("Interface Mesh deletion\n");
     CWP_client_Mesh_interf_del("code1_cell_faces", cpl_id1);
-    printf("Interface Mesh deleted\n");
   }
 
 
