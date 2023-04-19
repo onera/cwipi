@@ -1578,9 +1578,7 @@ cdef class Field (object):
                                                             self.field_id,
                                                             i_part)
 
-      py_unc_tgt = create_numpy_or_none_i(unc_tgt, n_unc_tgt)
-
-      return py_unc_tgt
+      return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
 
     def n_computed_tgts_get(self,
                               int   i_part):
@@ -1623,9 +1621,7 @@ cdef class Field (object):
                                                         self.field_id,
                                                         i_part)
 
-      py_c_tgt = create_numpy_or_none_i(c_tgt, n_c_tgt)
-
-      return py_c_tgt
+      return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
 
     def n_involved_srcs_get(self,
                             int   i_part):
@@ -1668,9 +1664,7 @@ cdef class Field (object):
                                                           self.field_id,
                                                           i_part)
 
-      py_i_src = create_numpy_or_none_i(i_src, n_i_src)
-
-      return py_i_src
+      return create_numpy_or_none_i(i_src, n_i_src, False)
 
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
@@ -2306,16 +2300,14 @@ cdef class Coupling (object):
                                              &(connec),
                                              &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
                                                                     self.cpl_id,
                                                                     block_id)
         cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
                 'n_elts'     : n_elts,
-                'connec'     : create_numpy_i(connec, size),
-                'global_num' : py_global_num
+                'connec'     : create_numpy_i(connec, size, False),
+                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
     def mesh_interf_f_poly_block_set(self,
@@ -2387,13 +2379,11 @@ cdef class Coupling (object):
                                                 &(connec),
                                                 &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         return {
                 'n_elts'     : n_elts,
-                'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
-                'connec'     : create_numpy_i(connec, connec_idx[n_elts]),
-                'global_num' : py_global_num
+                'connec_idx' : create_numpy_i(connec_idx, n_elts+1, False),
+                'connec'     : create_numpy_i(connec, connec_idx[n_elts], False),
+                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
     def mesh_interf_c_poly_block_set(self,
@@ -2486,16 +2476,14 @@ cdef class Coupling (object):
                                                 &(connec_cells),
                                                 &(global_num))
 
-        py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
         return {
                 'n_elts'           : n_elts,
                 'n_faces'          : n_faces,
-                'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1),
-                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]),
-                'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
-                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]),
-                'global_num'       : py_global_num
+                'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1, False),
+                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces], False),
+                'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1, False),
+                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts], False),
+                'global_num'       : create_numpy_or_none_l(global_num, n_elts, False)
                }
 
     def mesh_interf_block_ho_set(self,
@@ -2569,8 +2557,6 @@ cdef class Coupling (object):
                                           &(connec),
                                           &(global_num))
 
-      py_global_num = create_numpy_or_none_l(global_num, n_elts)
-
       cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
                                                                   self.cpl_id,
                                                                   block_id)
@@ -2578,8 +2564,8 @@ cdef class Coupling (object):
       return {
               'n_elts'     : n_elts,
               'order'      : order,
-              'connec'     : create_numpy_i(connec, size),
-              'global_num' : py_global_num
+              'connec'     : create_numpy_i(connec, size, False),
+              'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
              }
 
 
