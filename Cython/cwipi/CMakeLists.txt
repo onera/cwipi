@@ -18,7 +18,9 @@ include(UseCython)
 cython_add_module (cwipi
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
                    INCLUDE_DIRECTORIES ${include_dirs}
-                   DEPENDS ${SOURCE_PXI})
+                   DEPENDS ${SOURCE_PXI} cwp_shared)
+
+set_target_properties(cwipi PROPERTIES PREFIX "") # do not prefix by lib
 
 get_target_property(CWP_INC cwipi INCLUDE_DIRECTORIES)
 target_include_directories(cwipi PUBLIC ${CWP_INC})
@@ -45,13 +47,13 @@ if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
 endif()
 
 
-set(SETUP_PY_OLD "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-set(OUTPUT       "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
-set(DEPS_OLD    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py")
-add_custom_command(OUTPUT ${OUTPUT}
-                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OLD} --quiet build
-                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                   DEPENDS ${DEPS_OLD})
+#set(SETUP_PY_OLD "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+#set(OUTPUT       "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
+#set(DEPS_OLD    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py")
+#add_custom_command(OUTPUT ${OUTPUT}
+#                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OLD} --quiet build
+#                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+#                   DEPENDS ${DEPS_OLD})
 
 
 

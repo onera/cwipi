@@ -20,6 +20,8 @@ cython_add_module (pycwp
                  INCLUDE_DIRECTORIES ${include_dirs}
                  DEPENDS ${SOURCE_PXI})
 
+set_target_properties(pycwp PROPERTIES PREFIX "") # do not prefix by lib
+
 get_target_property(CWP_INC pycwp INCLUDE_DIRECTORIES)
 target_include_directories(pycwp PUBLIC ${CWP_INC})
 
