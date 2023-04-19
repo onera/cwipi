@@ -541,6 +541,9 @@ main(int argc, char *argv[]) {
                   is_coupled_rank,
                   times_init);
 
+  // EXIT_SUCCESS ?
+  int exit_check = 0;
+
   // CWP_Cpl_create
   const char  *cpl_name          = "c_new_api_wind_turbine_blade";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
@@ -714,12 +717,6 @@ main(int argc, char *argv[]) {
                                  vtx_field_name[0]);
   }
 
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Field exchange ok\n");
-    fflush(stdout);
-  }
-
   // Check interpolation error
   double linf_error = 0.;
   double l2_error   = 0.;
@@ -773,10 +770,11 @@ main(int argc, char *argv[]) {
 
     PDM_part_to_block_free(ptb);
 
-    if (i_rank_intra == 0) {
-      printf("l2_error   = %e\n", gl2_error);
-      fflush(stdout);
+    // --> check
+    if (!(gl2_error < 0.1)) {
+      exit_check = 1;
     }
+
   }
 
 
@@ -784,9 +782,9 @@ main(int argc, char *argv[]) {
   MPI_Allreduce(&linf_error, &glinf_error, 1, MPI_DOUBLE, MPI_MAX, comm);
 
 
-  if (i_rank == 0) {
-    printf("linf_error = %e\n", glinf_error);
-    fflush(stdout);
+  // --> check
+  if (!(glinf_error < 0.2)) {
+    exit_check = 1;
   }
 
   // free
@@ -845,7 +843,7 @@ main(int argc, char *argv[]) {
   MPI_Comm_free(&intra_comm);
   MPI_Finalize();
 
-  return 0;
+  return exit_check;
 }
 
 #ifdef __cplusplus
