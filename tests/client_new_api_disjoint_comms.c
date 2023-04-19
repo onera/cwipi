@@ -44,12 +44,6 @@
 #include "cwp_priv.h"
 
 /*=============================================================================
- * Macro definitions
- *============================================================================*/
-
-#define CWP_HEADER_SIZE    32
-
-/*=============================================================================
  * Private functions definitions
  *============================================================================*/
 
@@ -1064,12 +1058,12 @@ main
   MPI_Barrier(intra_comm);
 
   // Delete field
-  // for (int i_code = 0 ; i_code < n_code ; i_code++) {
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
-  //   CWP_client_Field_del(code_names[i_code], cpl_name, field_name);
+    CWP_client_Field_del(code_names[i_code], cpl_name, field_name);
 
-  //   printf("%d : %s --- Field deleted\n", rank, code_names[i_code]);
-  // }
+    printf("%d : %s --- Field deleted\n", rank, code_names[i_code]);
+  }
 
   // Delete interf
   for (int i_code = 0 ; i_code < n_code ; i_code++) {

@@ -39,12 +39,6 @@
 #include "cwp_priv.h"
 
 /*=============================================================================
- * Macro definitions
- *============================================================================*/
-
-#define CWP_HEADER_SIZE    32
-
-/*=============================================================================
  * Util functions
  *============================================================================*/
 
@@ -418,9 +412,6 @@ main
   }
 
   printf("%d - Before compute\n", rank);
-  // CWP_next_recv_time_set(code_name[0],
-  //                        cpl_name,
-  //                        0.);
   CWP_client_Spatial_interp_weights_compute(code_name[0], cpl_name);
 
   int n_uncomputed = 0;
