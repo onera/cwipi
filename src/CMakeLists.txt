@@ -61,59 +61,25 @@ if (CWP_ENABLE_Fortran)
 endif()
 
 
-if (CWP_ENABLE_NEW_API)
-
-  file(GLOB SOURCESF
-       CONFIGURE_DEPENDS 
-      # --> old fortran
-      fortran/cwipi_cf.cxx
-      fortran/cwipi_f.f90
-      fortran/cwipi_printfort_cf.cxx
-      fortran/cwipi_printfort.f90
-      fortran/cwipi_set_output_logical_unit.f90
-      fortran/printfort.f90
-      fortran/mod_fvmc_ho_basis.f90
-      fortran/new/appelle_toto.F90
-      # --> new fortran
-      # fortran/cwp_output_fortran_unit_set.f90
-      # fortran/cwp_printfort_cf.cxx
-      # new/cwp_f.f90
-      fortran/new/cwp_cf.cxx
-      fortran/new/cwp_f.f90
-      fortran/new/cwp_printfort_cf.cxx
-      fortran/new/cwp_printfort.f90)
-
-else()
-
-  file(GLOB SOURCESF
-       CONFIGURE_DEPENDS 
-      # --> old fortran
-      fortran/cwipi_cf.cxx
-      fortran/cwipi_f.f90
-      fortran/cwipi_printfort_cf.cxx
-      fortran/cwipi_printfort.f90
-      fortran/cwipi_set_output_logical_unit.f90
-      fortran/printfort.f90
-      fortran/mod_fvmc_ho_basis.f90)
-
 file(GLOB SOURCESF
      CONFIGURE_DEPENDS
-    # --> old fortran
-    fortran/cwipi_cf.cxx
-    fortran/cwipi_f.f90
-    fortran/cwipi_printfort_cf.cxx
-    fortran/cwipi_printfort.f90
-    fortran/cwipi_set_output_logical_unit.f90
-    fortran/printfort.f90
-    fortran/mod_fvmc_ho_basis.f90
-    # --> new fortran
-    # fortran/cwp_output_fortran_unit_set.f90
-    # fortran/cwp_printfort_cf.cxx
-    # new/cwp_f.f90
-    fortran/new/cwp_cf.cxx
-    fortran/new/cwp_f.f90
-    fortran/new/cwp_printfort_cf.cxx
-    fortran/new/cwp_printfort.f90)
+     # --> old fortran
+     fortran/cwipi_cf.cxx
+     fortran/cwipi_f.f90
+     fortran/cwipi_printfort_cf.cxx
+     fortran/cwipi_printfort.f90
+     fortran/cwipi_set_output_logical_unit.f90
+     fortran/printfort.f90
+     fortran/mod_fvmc_ho_basis.f90
+     fortran/new/appelle_toto.F90
+     # --> new fortran
+     # fortran/cwp_output_fortran_unit_set.f90
+     # fortran/cwp_printfort_cf.cxx
+     # new/cwp_f.f90
+     fortran/new/cwp_cf.cxx
+     fortran/new/cwp_f.f90
+     fortran/new/cwp_printfort_cf.cxx
+     fortran/new/cwp_printfort.f90)
 
 
 add_library(cwp OBJECT ${SOURCES})
