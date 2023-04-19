@@ -219,10 +219,27 @@ namespace cwipi {
       _interpolationFunction = fct;
     }
 
+    void interpFunctionFSet(CWP_Interp_function_t fct)
+    {
+      _interpolationType       = CWP_INTERPOLATION_USER ;
+      _interpolationFunction_f = fct;
+    }
+
+    CWP_Interp_function_t interpFunctionFGet()
+    {
+      return _interpolationFunction_f;
+    }
+
     void interpFunctionUnSet()
     {
       _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
       _interpolationFunction = NULL;
+    }
+
+    void interpFunctionFUnSet()
+    {
+      _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
+      _interpolationFunction_f = NULL;
     }
 
     CWP_Interp_function_t interpolationFunctionGet() {
@@ -349,8 +366,9 @@ namespace cwipi {
     int                                      _dataTypeSize;
     CWP_Interp_function_t                    _interpolationFunction;
     CWP_Interpolation_t                      _interpolationType;
+    CWP_Interp_function_t                    _interpolationFunction_f;
 
-    Field &operator=(const Field &other);       /*!< Assigment operator not available */
+    Field &operator=(const Field &other);       /*!< Assignment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
 
     int                                      _current_step_was_exchanged;

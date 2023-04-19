@@ -1369,6 +1369,12 @@ namespace cwipi {
       CWP_Interp_function_t fct
     );
 
+    inline void
+    interpFunctionFSet (
+      const string field_id,
+      CWP_Interp_function_t fct
+    );
+
     /**
      *
      * \brief Unsetting of an user interpolation function.
@@ -1377,6 +1383,11 @@ namespace cwipi {
 
     inline void
     interpFunctionUnSet (
+      const string field_id
+    );
+
+    inline void
+    interpFunctionFUnSet (
       const string field_id
     );
 

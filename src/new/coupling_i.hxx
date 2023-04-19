@@ -1161,6 +1161,23 @@ namespace cwipi {
     }
   }
 
+  void
+  Coupling::interpFunctionFSet (
+    const string                     field_id,
+          CWP_Interp_function_t      fct
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFunctionFSet(fct);
+    }
+  }
+
+
   /**
    *
    * \brief Unsetting of an user interpolation function.
@@ -1179,6 +1196,21 @@ namespace cwipi {
     }
     else {
       It -> second -> interpFunctionUnSet();
+    }
+  }
+
+  inline void
+  Coupling::interpFunctionFUnSet (
+    const string field_id
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFunctionFUnSet();
     }
   }
 

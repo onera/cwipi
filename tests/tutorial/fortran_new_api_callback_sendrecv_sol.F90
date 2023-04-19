@@ -174,10 +174,10 @@ program fortran_new_api_callback_sendrecv_sol
 
   ! Set user-defined interpolation function
   print *, "my_interpolation : ", loc(my_interpolation)
-  call CWP_Interp_function_set(code_names(1), &
-                               coupling_name, &
-                               field_name,    &
-                               my_interpolation)
+  ! call CWP_Interp_function_set(code_names(1), &
+  !                              coupling_name, &
+  !                              field_name,    &
+  !                              my_interpolation)
 
 
   ! Spatial interpolation
@@ -196,9 +196,11 @@ program fortran_new_api_callback_sendrecv_sol
 
 
   ! Exchange interpolated fields
+  print *, "Fortran ", i_rank, " > irecv"
   call CWP_Field_irecv(code_names(1), &
                        coupling_name, &
                        field_name)
+  print *, "Fortran ", i_rank, " > issend"
   call CWP_Field_issend(code_names(1), &
                         coupling_name, &
                         field_name)
@@ -206,18 +208,20 @@ program fortran_new_api_callback_sendrecv_sol
   call CWP_Field_wait_irecv(code_names(1), &
                             coupling_name, &
                             field_name)
+  print *, "Fortran ", i_rank, " < wait_irecv"
   call CWP_Field_wait_issend(code_names(1), &
                              coupling_name, &
                              field_name)
+  print *, "Fortran ", i_rank, " < wait_issend"
 
   write (strnum, '(i1)') i_rank
   call visu("check_Fortran_"//strnum//".vtk", &
-            n_vtx,                                 &
-            vtx_coord,                             &
-            n_elt,                                 &
-            elt_vtx_idx,                           &
-            elt_vtx,                               &
-            send_field_data,                       &
+            n_vtx,                            &
+            vtx_coord,                        &
+            n_elt,                            &
+            elt_vtx_idx,                      &
+            elt_vtx,                          &
+            send_field_data,                  &
             recv_field_data)
 
 
@@ -266,23 +270,24 @@ contains
                               spatial_interp_algorithm, &
                               storage,                  &
                               c_buffer_in,              &
-                              c_buffer_out)
+                              c_buffer_out)             &
+    bind(c)
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = 1)   :: local_code_name, cpl_id, field_id
-    integer(kind = c_int)               :: i_part
-    integer(kind = c_int)               :: spatial_interp_algorithm
-    integer(kind = c_int)               :: storage
-    type(c_ptr), value                  :: c_buffer_in
-    type(c_ptr), value                  :: c_buffer_out
+    character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int)             :: i_part
+    integer(kind = c_int)             :: spatial_interp_algorithm
+    integer(kind = c_int)             :: storage
+    type(c_ptr), value                :: c_buffer_in
+    type(c_ptr), value                :: c_buffer_out
 
-    integer(c_int)                      :: n_components
-    integer(c_int)                      :: n_elt_src
-    integer(c_int),             pointer :: src_to_tgt_idx(:) => null()
-    real(kind = c_double), pointer      :: buffer_in(:)  => null()
-    real(kind = c_double), pointer      :: buffer_out(:) => null()
-    integer                             :: i, j, k
+    integer(kind = c_int)             :: n_components
+    integer(kind = c_int)             :: n_elt_src
+    integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer    :: buffer_in(:)      => null()
+    real(kind = c_double), pointer    :: buffer_out(:)     => null()
+    integer                           :: i, j, k
 
     print *, ">> my_interpolation"
 

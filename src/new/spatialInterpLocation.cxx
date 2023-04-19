@@ -25,39 +25,39 @@
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-extern "C" {
-  void PROCF(callfortlocinterpfct, CALLFORTLOCINTERPFCT)
-  (
-    int    *interface_type,
-    char   *code_name,
-    int    *src_n_block,
-    int    *src_blocks_type,
-    int    *src_i_part,
-    int    *src_n_vtx,
-    double *src_vtx_coords,
-    int    *src_vtx_global_num,
-    int    *src_n_elts,
-    int    *src_id_block,
-    int    *src_elt_in_block,
-    int    *src_elt_vtx_idx,
-    int    *src_elt_vtx,
-    int    *src_elts_global_num,
-    int    *tgt_n_pts,
-    int    *tgt_pts_elt_idx,
-    double *tgt_pts_coords,
-    double *tgt_pts_dist,
-    double *tgt_pts_uvw,
-    int    *tgt_pts_weights_idx,
-    double *tgt_pts_weights,
-    int    *stride,
-    int    *src_field_dof_location,
-    void   *src_field,
-    void   *tgt_field,
-    void   *ptFortranLocInterpolationFct
-  );
-}
-#endif
+// #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+// extern "C" {
+//   void PROCF(callfortlocinterpfct, CALLFORTLOCINTERPFCT)
+//   (
+//     int    *interface_type,
+//     char   *code_name,
+//     int    *src_n_block,
+//     int    *src_blocks_type,
+//     int    *src_i_part,
+//     int    *src_n_vtx,
+//     double *src_vtx_coords,
+//     int    *src_vtx_global_num,
+//     int    *src_n_elts,
+//     int    *src_id_block,
+//     int    *src_elt_in_block,
+//     int    *src_elt_vtx_idx,
+//     int    *src_elt_vtx,
+//     int    *src_elts_global_num,
+//     int    *tgt_n_pts,
+//     int    *tgt_pts_elt_idx,
+//     double *tgt_pts_coords,
+//     double *tgt_pts_dist,
+//     double *tgt_pts_uvw,
+//     int    *tgt_pts_weights_idx,
+//     double *tgt_pts_weights,
+//     int    *stride,
+//     int    *src_field_dof_location,
+//     void   *src_field,
+//     void   *tgt_field,
+//     void   *ptFortranLocInterpolationFct
+//   );
+// }
+// #endif
 
 /**
  * \cond
@@ -608,14 +608,14 @@ namespace cwipi {
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
 
-      CWP_Interp_function_t interpolationFunction = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t interpolationFunction  = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t interpolationFunctionF = referenceField->interpFunctionFGet();
 
       if (interpolationFunction != NULL) {
-
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-          log_trace(">> interpolationFunction : %ld\n", interpolationFunction);
-          log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
-          log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
+          // log_trace(">> interpolationFunction : %ld\n", interpolationFunction);
+          // log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
+          // log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
           (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
                                     _cpl->IdGet().c_str(),
                                     referenceField->fieldIDGet().c_str(),
@@ -624,9 +624,35 @@ namespace cwipi {
                                     storage,
                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
                          (double *) buffer[i_part]);
-          log_trace("<< interpolationFunction\n");
+          // log_trace("<< interpolationFunction\n");
         }
-    
+
+      }
+
+      else if (interpolationFunctionF != NULL) {
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+          log_trace(">> interpolationFunctionF : %ld, sizeof = %zu, * = %zu\n", interpolationFunctionF, sizeof(CWP_Interp_function_t), sizeof(CWP_Interp_function_t *));
+          log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
+          log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
+          log_trace("args : %s, %s, %s, %d, %d, %d\n",
+                    _localCodeProperties->nameGet().c_str(),
+                    _cpl->IdGet().c_str(),
+                    referenceField->fieldIDGet().c_str(),
+                    i_part,
+                    _cpl->spatialInterpAlgoGet(),
+                    storage);
+
+          (*interpolationFunctionF)(_localCodeProperties->nameGet().c_str(),
+                                    _cpl->IdGet().c_str(),
+                                    referenceField->fieldIDGet().c_str(),
+                                    i_part,
+                                    _cpl->spatialInterpAlgoGet(),
+                                    storage,
+                         (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                         (double *) buffer[i_part]);
+
+          log_trace("<< interpolationFunctionF\n");
+        }
       }
 
     }

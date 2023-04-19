@@ -880,21 +880,21 @@ cdef void interp_callback(const char           *local_code_name,
       size_out = n_components * c_src_to_tgt_idx[n_elt_src]
       print(f"size_in {size_in}, size_out = {size_out}")
 
-    #buffer_in_a = create_numpy_d(buffer_in, size_in)
+    buffer_in_a = create_numpy_d(buffer_in, size_in, flag_owndata=False)
 
-    #buffer_out_a = create_numpy_d(buffer_out, size_out)
+    buffer_out_a = create_numpy_d(buffer_out, size_out, flag_owndata=False)
 
-    dims = <NPY.npy_intp>(size_in)
-    buffer_in_a = NPY.PyArray_SimpleNewFromData(1,
-                                               &dims,
-                                               NPY.NPY_DOUBLE,
-                                               <void *> buffer_in)
+    # dims = <NPY.npy_intp>(size_in)
+    # buffer_in_a = NPY.PyArray_SimpleNewFromData(1,
+    #                                            &dims,
+    #                                            NPY.NPY_DOUBLE,
+    #                                            <void *> buffer_in)
 
-    dims = <NPY.npy_intp>(size_out)
-    buffer_out_a = NPY.PyArray_SimpleNewFromData(1,
-                                                &dims,
-                                                NPY.NPY_DOUBLE,
-                                                <void *> buffer_out)
+    # dims = <NPY.npy_intp>(size_out)
+    # buffer_out_a = NPY.PyArray_SimpleNewFromData(1,
+    #                                             &dims,
+    #                                             NPY.NPY_DOUBLE,
+    #                                             <void *> buffer_out)
 
 
     print(f"current_cpl_id = {current_cpl_id}")
@@ -1879,8 +1879,8 @@ def interp_tgt_data_get(str local_code_name,
     return {
             'n_elt_tgt'             : n_elt_tgt,
             'n_referenced_tgt'      : n_referenced_tgt,
-            'referenced_tgt'        : create_numpy_i(referenced_tgt,        n_referenced_tgt),
-            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_referenced_tgt+1)
+            'referenced_tgt'        : create_numpy_i(referenced_tgt,        n_referenced_tgt,   flag_owndata=False),
+            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_referenced_tgt+1, flag_owndata=False)
            }
 
 def interp_location_weights_get(str local_code_name,

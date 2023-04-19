@@ -154,6 +154,12 @@ program testf
                 time_init,       &
                 intra_comms)
 
+  print *, "> CWP_set_toto", loc(mon_toto)
+  call CWP_set_toto(mon_toto)
+  print *, "> CWP_call_toto"
+  call CWP_call_toto()
+  print *, "OK!"
+
   !-->>
   if (debug) then
     write(iiunit,*) "n_code =", CWP_Codes_nb_get()
@@ -345,6 +351,14 @@ program testf
                                        "tolerance",   &
                                        "double",      &
                                        "1e-3")
+
+  !! Set user-defined interpolation function
+  ! if (code_names(1) == "code1") then
+  !   call CWP_Interp_function_set(code_names(1), &
+  !                                coupling_name, &
+  !                                field_name,    &
+  !                                my_interpolation)
+  ! endif
 
   !! Compute spatial interpolation weights
   call CWP_Spatial_interp_weights_compute(code_names(1), &
@@ -756,6 +770,77 @@ subroutine gen_mesh(xmin, xmax, &
   ! end do
 
 end subroutine gen_mesh
+
+
+  subroutine my_interpolation(local_code_name,          &
+                              cpl_id,                   &
+                              field_id,                 &
+                              i_part,                   &
+                              spatial_interp_algorithm, &
+                              storage,                  &
+                              c_buffer_in,              &
+                              c_buffer_out)             &
+    bind(c)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int)             :: i_part
+    integer(kind = c_int)             :: spatial_interp_algorithm
+    integer(kind = c_int)             :: storage
+    type(c_ptr), value                :: c_buffer_in
+    type(c_ptr), value                :: c_buffer_out
+
+    integer(kind = c_int)             :: n_components
+    integer(kind = c_int)             :: n_elt_src
+    integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer    :: buffer_in(:)      => null()
+    real(kind = c_double), pointer    :: buffer_out(:)     => null()
+    integer                           :: i, j, k
+
+    print *, ">> my_interpolation"
+
+
+    n_components = CWP_Interp_field_n_components_get(local_code_name, &
+                                                     cpl_id,          &
+                                                     field_id)
+
+    call CWP_Interp_src_data_get(local_code_name, &
+                                 cpl_id,          &
+                                 field_id,        &
+                                 i_part,          &
+                                 n_elt_src,       &
+                                 src_to_tgt_idx)
+
+    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
+    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
+
+    do i = 1, n_elt_src
+      print *, "i = ", i
+      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+        print *, "  j = ", j
+        do k = 1, n_components
+          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+        enddo
+      enddo
+    enddo
+
+  end subroutine my_interpolation
+
+
+
+  subroutine mon_toto(i) bind(c)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_int), value, intent(in) :: i
+    print *, "Toto i = ", i
+    ! print *, "Coucou toto!"
+  end subroutine mon_toto
+
+
+
+
+
 
 
 end program testf

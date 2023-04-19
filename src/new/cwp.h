@@ -371,6 +371,9 @@ typedef void (*CWP_Interp_function_t)
  double               *buffer_out
 );
 
+typedef void (*ma_fonction_t)( void );
+
+
 /*=============================================================================
  * Static global variables
  *============================================================================*/
@@ -2737,6 +2740,14 @@ CWP_Field_gradient_data_set
  const CWP_Field_storage_t  storage_type,
  double                  data[]
 );
+
+void
+CWP_call_toto(void);
+
+void
+CWP_set_toto(ma_fonction_t f);
+
+void appelle_toto(void *, int i);
 
 #include "fortran/new/cwp_cf.h"
 

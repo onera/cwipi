@@ -297,6 +297,8 @@ main
   free(coords);
   free(elt_vtx_idx);
   free(elt_vtx);
+  free(send_field_data);
+  free(recv_field_data);
 
   // Finalize CWIPI :
   CWP_Finalize();
