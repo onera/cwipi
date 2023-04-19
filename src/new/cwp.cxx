@@ -115,6 +115,12 @@ using namespace std;
 
 static FILE* _cwipi_output_listing;
 
+/*----------------------------------------------------------------------------
+ * Output listing File (C printing)
+ *----------------------------------------------------------------------------*/
+
+char *properties[3] = {"n_closest_pts", "polyfit_degree", "tolerance"};
+
 /*============================================================================
  * Private function definitions
  *============================================================================*/
@@ -1204,7 +1210,7 @@ CWP_Spatial_interp_weights_compute
  * \brief Set a property of the spatial interpolation algorithm.
  *
  * Use "n_closest_pts" and "polyfit_degree" for the closest point
- * algorithm. Use tolerance" for the location algorithm.
+ * algorithm. Use "tolerance" for the location algorithm.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1223,20 +1229,35 @@ CWP_Spatial_interp_property_set (
  const char     *property_value
 )
 {
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  int is_property = 0;
 
-  if (strcmp(property_type, "double") == 0) {
-    cpl.spatialInterpPropertyDoubleSet(string(property_name),
-                                       atof(property_value));
+  for (int i = 0 ; i < 3; i++) {
+    if (strcmp(property_name, properties[i]) == 0) {
+      is_property = 1;
+      break;
+    }
   }
 
-  else if (strcmp(property_type, "int") == 0) {
-    cpl.spatialInterpPropertyIntSet(string(property_name),
-                                    atoi(property_value));
-  }
+  if (is_property) {
 
-  else {
-    printf("Warning: invalid property type '%s'\n", property_type);
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+    if (strcmp(property_type, "double") == 0) {
+      cpl.spatialInterpPropertyDoubleSet(string(property_name),
+                                         atof(property_value));
+    }
+
+    else if (strcmp(property_type, "int") == 0) {
+      cpl.spatialInterpPropertyIntSet(string(property_name),
+                                      atoi(property_value));
+    }
+
+    else {
+      printf("Warning: invalid property type '%s'\n", property_type);
+    }
+
+  } else {
+    printf("Warning: invalid property name '%s'\n", property_name);
   }
 }
 
