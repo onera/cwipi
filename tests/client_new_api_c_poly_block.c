@@ -269,9 +269,6 @@ main
   else
     srcBaseName = srcName;
 
-  if (rank == 0)
-    printf("\nSTART: %s\n", srcBaseName);
-
 
   /* Initialization
    * -------------- */
@@ -325,10 +322,11 @@ main
                   is_coupled_rank,
                   times_init);
 
+  // EXIT_SUCCESS ?
+  int exit_check = 0;
+
   char cpl_id1[] = "cpl_code1_code2";
 
-  printf("Coupling creation\n");
-  fflush(stdout);
   if (rank == 0) {
     CWP_client_Cpl_create("cpoly", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
                           CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, 1,
@@ -340,8 +338,6 @@ main
                           CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, 1,
                           CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
-  printf("Coupling created\n");
-  fflush(stdout);
 
   /* Building of the local mesh */
 
@@ -357,11 +353,6 @@ main
   int    *faceVertex    = NULL;
   int    *cellFaceIdx   = NULL;
   int    *cellFace      = NULL;
-
-  if (rank == 0) {
-    printf("        Read mesh\n");
-    fflush(stdout);
-  }
 
   read_mesh_dim(meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
 
@@ -387,33 +378,12 @@ main
   fclose(meshFile);
 
   if (rank == 0) {
-    printf("Visu Setting\n");
-    fflush(stdout);
     CWP_client_Visu_set("cpoly", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "binary");
-    printf("Visu Set\n");
-    fflush(stdout);
 
-    // CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nVertex);
-    // for (int i = 0; i < nVertex; i++) {
-    //   global_num_vtx[i] = i + 1;
-    // }
-
-    printf("vtx_set\n");
-    fflush(stdout);
     CWP_client_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);
-    // global_num_vtx or try with gnum NULL
 
-    printf("3D Cell Polyhedra Block Add\n");
-    fflush(stdout);
     int block_id = CWP_client_Mesh_interf_block_add("cpoly", cpl_id1, CWP_BLOCK_CELL_POLY);
 
-    // CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElements);
-    // for (int i = 0; i < nElements; i++) {
-    //   global_num[i] = i + 1;
-    // }
-
-    printf("3D Cell Polyhedra Block Set\n");
-    fflush(stdout);
     CWP_client_Mesh_interf_c_poly_block_set("cpoly", cpl_id1, 0, block_id,
                                             nElements,
                                             nFace,
@@ -430,8 +400,6 @@ main
     int *getFaceVertex    = NULL;
     int *getCellFaceIdx   = NULL;
     int *getCellFace      = NULL;
-    printf("before get\n");
-    fflush(stdout);
     CWP_client_Mesh_interf_c_poly_block_get("cpoly", cpl_id1, 0, block_id,
                                             &getNElements,
                                             &getNFace,
@@ -441,58 +409,46 @@ main
                                             &getCellFace,
                                             &cellGnum);
 
-    // Check output
-    printf("nElements same ? %d\n", getNElements == nElements);
-    printf("nFaces same ? %d\n", getNFace == nFace);
-    int equal = -1;
-    for (int i = 0; i < nFace + 1; i++) {
-      equal = (getFaceVertexIdx[i] == faceVertexIdx[i]);
-      if (equal == 0) {
-        break;
-      }
+    // --> check
+    if (!(getNElements == nElements)) {
+      exit_check = 1;
     }
-    printf("FaceVertexIdx same ? %d\n", equal);
-    equal = -1;
-    for (int i = 0; i < faceVertexIdx[nFace]; i++) {
-      equal = (getFaceVertex[i] == faceVertex[i]);
-      // printf("getFaceVertex[i] = %d vs. faceVertex[i] = %d\n", getFaceVertex[i], faceVertex[i]);
-      if (equal == 0) {
-        break;
-      }
-    }
-    printf("FaceVertex same ? %d\n", equal);
-    equal = -1;
-    for (int i = 0; i < nElements + 1; i++) {
-      equal = (getCellFaceIdx[i] == cellFaceIdx[i]);
-      // printf("getCellFaceIdx[i] = %d vs. cellFaceIdx[i] = %d\n", getCellFaceIdx[i], cellFaceIdx[i]);
-      if (equal == 0) {
-        break;
-      }
-    }
-    printf("CellFaceIdx same ? %d\n", equal);
-    equal = -1;
-    // printf("cellFaceIdx[nFace] = %d\n", cellFaceIdx[nFace]);
-    for (int i = 0; i < cellFaceIdx[nElements]; i++) {
-      equal = (getCellFace[i] == cellFace[i]);
-      if (equal == 0) {
-        break;
-      }
-    }
-    printf("CellFace same ? %d\n", equal);
 
-    if (cellGnum == NULL) {
-      printf("NULL gnum\n");
-    } else {
-      printf("non NULL gnum\n");
+    if (!(getNFace == nFace)) {
+      exit_check = 1;
+    }
+
+    for (int i = 0; i < nFace + 1; i++) {
+      if (!(getFaceVertexIdx[i] == faceVertexIdx[i])) {
+        exit_check = 1;
+        break;
+      }
+    }
+
+    for (int i = 0; i < faceVertexIdx[nFace]; i++) {
+      if (!(getFaceVertex[i] == faceVertex[i])) {
+        exit_check = 1;
+        break;
+      }
+    }
+
+    for (int i = 0; i < nElements + 1; i++) {
+      if (!(getCellFaceIdx[i] == cellFaceIdx[i])) {
+        exit_check = 1;
+        break;
+      }
+    }
+
+    for (int i = 0; i < cellFaceIdx[nElements]; i++) {
+      if (!(getCellFace[i] == cellFace[i])) {
+        exit_check = 1;
+        break;
+      }
     }
 
     if (cellGnum != NULL) free(cellGnum    );
 
-    printf("Interface Mesh deletion\n");
-    CWP_client_Mesh_interf_del("cpoly", cpl_id1);
-    printf("Interface Mesh deleted\n");
-    fflush(stdout);
-  }
+    CWP_client_Mesh_interf_del("cpoly", cpl_id1);  }
 
   if (rank == 0) {
     CWP_client_Cpl_del("cpoly", cpl_id1);
@@ -519,5 +475,5 @@ main
   free(is_coupled_rank);
   free(times_init);
 
-  return 0;
+  return exit_check;
 }

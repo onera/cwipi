@@ -2131,10 +2131,7 @@ CWP_client_Cpl_del
 
     std::map<std::string, t_global_data>::iterator it_gd = clt_cwp.coupling[s].global_data.begin();
     while (it_gd != clt_cwp.coupling[s].global_data.end()) {
-      // if ((it_gd->second).recv_data   != NULL) {
-      //   free((it_gd->second).recv_data);
-      //   (it_gd->second).recv_data = NULL;
-      // }
+      // user handles recv_data
       it_gd = clt_cwp.coupling[s].global_data.erase(it_gd);
     }
   }
