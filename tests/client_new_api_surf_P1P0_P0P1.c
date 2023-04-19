@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -189,7 +189,9 @@ main
                   is_active_rank,
                   time_init);
 
-  printf("%d - Create coupling\n", rank);
+  // EXIT_SUCCESS ?
+  int exit_check = 0;
+
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1";
   int nb_part = 1;
   CWP_client_Cpl_create(code_name[0],                                          // Code name
@@ -202,7 +204,6 @@ main
                  CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
                  CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
 
-  printf("%d - Set visu\n", rank);
   CWP_client_Visu_set(code_name[0],            // Code name
                cpl_name,                // Coupling id
                1,                       // Postprocessing frequency
@@ -210,7 +211,6 @@ main
                "text");                 // Postprocessing option
 
   // Mesh definition
-  printf("%d - Create mesh\n", rank);
 
   int nVertex;
   double **coords = NULL;
@@ -267,9 +267,6 @@ main
               intra_comm);
   }
 
-  printf("%d - Number of vertex   : %d\n", rank, nVertex);
-  printf("%d - Number of elements : %d\n", rank, nElts);
-
   CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nVertex);
   for (int i = 0; i < nVertex; i++) {
     global_num_vtx[i] = i + 1;
@@ -307,35 +304,34 @@ main
                                           &GETeltsConnec,
                                           &GETglobal_num);
 
-  printf("GETnElts == nElts: %d\n", GETnElts == nElts);
-  int equal = -1;
+
+  // --> check
+  if (!(GETnElts == nElts)) {
+    exit_check = 1;
+  }
+
   for (int i = 0; i < (nElts + 1); i++) {
-    equal = (GETeltsConnecPointer[i] == eltsConnecPointer[0][i]);
-    if (equal == 0) {
+    if (!(GETeltsConnecPointer[i] == eltsConnecPointer[0][i])) {
+      exit_check = 1;
       break;
     }
   }
-  printf("eltsConnecPointer equal: %d\n", equal);
-  equal = -1;
+
   for (int i = 0; i < 4 * nElts; i++) {
-    equal = (GETeltsConnec[i] == eltsConnec[0][i]);
-    if (equal == 0) {
+    if (!(GETeltsConnec[i] == eltsConnec[0][i])) {
+      exit_check = 1;
       break;
     }
   }
-  printf("eltsConnec equal: %d\n", equal);
-  equal = -1;
+
   for (int i = 0; i < nElts; i++) {
-    equal = (global_num[i] == GETglobal_num[i]);
-    if (equal == 0) {
+    if (!(global_num[i] == GETglobal_num[i])) {
+      exit_check = 1;
       break;
     }
   }
-  printf("global_num equal: %d\n", equal);
 
   CWP_client_Mesh_interf_finalize(code_name[0], cpl_name);
-
-  printf("%d - Exchange Code1 <-> Code2\n", rank);
 
   double **sendValues = (double **) malloc(sizeof(double *) * n_code);
   double **recvValues = (double **) malloc(sizeof(double *) * n_code);
@@ -362,26 +358,25 @@ main
   const char *field_name2 = "rank";
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
-  printf("%d - Defining fields\n", rank);
   if (strcmp(code_name[0], "code1") == 0) {
     CWP_client_Field_create(code_name[0],
-                     cpl_name,
-                     field_name1,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_SEND,
-                     visu_status);
+                            cpl_name,
+                            field_name1,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            1,
+                            CWP_DOF_LOCATION_NODE,
+                            CWP_FIELD_EXCH_SEND,
+                            visu_status);
     CWP_client_Field_create(code_name[0],
-                     cpl_name,
-                     field_name2,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_CELL_CENTER,
-                     CWP_FIELD_EXCH_RECV,
-                     visu_status);
+                            cpl_name,
+                            field_name2,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            1,
+                            CWP_DOF_LOCATION_CELL_CENTER,
+                            CWP_FIELD_EXCH_RECV,
+                            visu_status);
 
     CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, nVertex, sendValues[0]);
     CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, nElts, recvValues[0]);
@@ -389,29 +384,28 @@ main
   
   else if (strcmp(code_name[0], "code2") == 0) {
     CWP_client_Field_create(code_name[0],
-                     cpl_name,
-                     field_name1,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_RECV,
-                     visu_status);
+                            cpl_name,
+                            field_name1,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            1,
+                            CWP_DOF_LOCATION_NODE,
+                            CWP_FIELD_EXCH_RECV,
+                            visu_status);
     CWP_client_Field_create(code_name[0],
-                     cpl_name,
-                     field_name2,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_CELL_CENTER,
-                     CWP_FIELD_EXCH_SEND,
-                     visu_status);
+                            cpl_name,
+                            field_name2,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            1,
+                            CWP_DOF_LOCATION_CELL_CENTER,
+                            CWP_FIELD_EXCH_SEND,
+                            visu_status);
 
     CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, nElts, sendValues[0]);
     CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, nVertex, recvValues[0]);
   }
 
-  printf("%d - Before compute\n", rank);
   CWP_client_Spatial_interp_weights_compute(code_name[0], cpl_name);
 
   int n_uncomputed = 0;
@@ -424,7 +418,10 @@ main
     n_uncomputed = CWP_client_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
   }
 
-  printf("%d - After compute %d\n", rank, n_uncomputed);
+  // --> check
+  if (!(n_uncomputed == 0)) {
+    exit_check = 1;
+  }
 
   if (strcmp(code_name[0], "code1") == 0) {
     CWP_client_Field_issend(code_name[0], cpl_name, field_name1);
@@ -496,10 +493,8 @@ main
                                            part_pedge_vtx[0],
                                            global_num);
 
-  printf("%d - Delete mesh\n", rank);
   CWP_client_Mesh_interf_del(code_name[0], cpl_name);
 
-  printf("%d - Delete coupling\n", rank);
   CWP_client_Cpl_del(code_name[0], cpl_name);
 
   // Freeing memory
@@ -514,6 +509,9 @@ main
   free(sendValues[0]);
   free(sendValues);
 
+  free(recvValues[0]);
+  free(recvValues);
+
   free(code_name);
   free(coupled_code_name);
   free(is_active_rank);
@@ -526,6 +524,11 @@ main
   free(distrib_elt);
   free(distrib_vtx);
   free(edge_vtx_idx );
+
+  free(part_pface_edge_idx[0]);
+  free(part_pface_edge[0]);
+  free(part_pedge_vtx[0]);
+  free(part_pedge_ln_to_gn[0]);
 
   free(part_pface_edge_idx);
   free(part_pface_edge    );
@@ -540,5 +543,6 @@ main
   MPI_Comm_free(&intra_comm);
 
   MPI_Finalize();
-  return EXIT_SUCCESS;
+
+  return exit_check;
 }

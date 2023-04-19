@@ -725,9 +725,7 @@ namespace cwipi {
     std::vector<int>                        _nEdge;
     std::vector<int*>                       _edgeVtxIdx;
     std::vector<int*>                       _edgeVtx;
-    std::vector<int*>                       _edgeVtxNb;
     std::vector<int*>                       _faceVtxNb;
-    std::vector<int*>                       _faceEdgeNb;
     std::vector<int*>                       _cellFaceNb;
 
     std::vector<CWP_g_num_t*>               _faceLNToGN;

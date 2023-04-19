@@ -121,8 +121,6 @@ namespace cwipi {
     _edgeVtx     .resize(npart,NULL);
 
     _cellFaceNb  .resize(npart,NULL);
-    _edgeVtxNb   .resize(npart,NULL);
-    _faceEdgeNb  .resize(npart,NULL);
     _faceVtxNb   .resize(npart,NULL);
 
     _faceLNToGN  .resize(npart,NULL);
@@ -629,7 +627,7 @@ namespace cwipi {
 
           for (int j = 0; j < _nFace[i_part]; j++) {
             int idx = _faceEdgeIdx[i_part][j];
-            int nb = _faceEdgeNb[i_part][j];
+            int nb = _faceEdgeIdx[i_part][j+1]-_faceEdgeIdx[i_part][j];
 
             for (int k = idx; k < idx + nb; k++) {
               int iEdge = _faceEdge[i_part][k] - 1;
@@ -1504,25 +1502,13 @@ namespace cwipi {
   {
     _faceEdgeMethod = 1;
 
-    _faceLNToGN[i_part] = global_num;
-    _edgeVtxIdx[i_part] = edge_vtx_idx;
+    _faceLNToGN[i_part]  = global_num;
+    _edgeVtxIdx[i_part]  = edge_vtx_idx;
     _faceEdgeIdx[i_part] = face_edge_idx;
-    _edgeVtx[i_part] = edge_vtx;
-    _faceEdge[i_part] = face_edge;
-
-    _edgeVtxNb[i_part] = (int *) malloc(sizeof(int) * n_edges);
-    for (int i = 0 ; i < n_edges ; i++) {
-      _edgeVtxNb[i_part][i] = edge_vtx_idx[i + 1] - edge_vtx_idx[i];
-    }
-
-    _faceEdgeNb[i_part] = (int *) malloc(sizeof(int) * n_faces);
-
-    for (int i = 0; i < n_faces; i++) {
-      _faceEdgeNb[i_part][i] = face_edge_idx[i + 1] - face_edge_idx[i];
-    }
-
-    _nEdge[i_part] = n_edges;
-    _nFace[i_part] = n_faces;
+    _edgeVtx[i_part]     = edge_vtx;
+    _faceEdge[i_part]    = face_edge;
+    _nEdge[i_part]       = n_edges;
+    _nFace[i_part]       = n_faces;
   }
 
 

@@ -1299,7 +1299,13 @@ CWP_server_Cpl_del
   if (!svr_cwp.coupling[s].field.empty()) {
     std::map<std::string, t_field>::iterator it_f = svr_cwp.coupling[s].field.begin();
     while (it_f != svr_cwp.coupling[s].field.end()) {
-      if ((it_f->second).data != NULL) free((it_f->second).data);
+      if ((it_f->second).data != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_f->second).data[i_part] != NULL) free((it_f->second).data[i_part]);
+          (it_f->second).data[i_part] = NULL;
+        }
+        free((it_f->second).data);
+      }
       it_f = svr_cwp.coupling[s].field.erase(it_f);
     }
   }

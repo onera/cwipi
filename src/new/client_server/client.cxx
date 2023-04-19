@@ -2123,6 +2123,10 @@ CWP_client_Cpl_del
        free((it_f->second).data);
        (it_f->second).data = NULL;
       }
+      if ((it_f->second).n_entities != NULL  ) {
+        free((it_f->second).n_entities);
+        (it_f->second).n_entities = NULL;
+      }
       it_f = clt_cwp.coupling[s].field.erase(it_f);
     }
   }
