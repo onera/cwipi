@@ -529,6 +529,8 @@ else ()
 
   set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
 
+  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+
   add_subdirectory(external/paradigm)
 
 endif()
