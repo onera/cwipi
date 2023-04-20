@@ -149,6 +149,9 @@ main(int argc, char *argv[]) {
     if (it == itdeb) {
 
       // Set the mesh vertices coordinates :
+      // If the global numbering array is available, it can be given instead
+      // of the last NULL argument. If not given, CWIPI will compute it
+      // for you in CWP_Mesh_interf_finalize.
       CWP_Mesh_interf_vtx_set(code_name[0],
                               coupling_name,
                               0,
@@ -157,10 +160,17 @@ main(int argc, char *argv[]) {
                               NULL);
 
       // Set the mesh polygons connectivity :
+      // Since the mesh elements are triangles, CWP_BLOCK_FACE_TRIA3 could
+      // be used instead of CWP_BLOCK_FACE_POLY.
       int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                                coupling_name,
                                                CWP_BLOCK_FACE_POLY);
 
+      // CWP_Mesh_interf_from_faceedge_set is not used here since the
+      // mesh is in the form of an face->vertex connectivity. If the mesh
+      // is only available with face->edge and edge->vertex connectivity,
+      // the faceedge function should be used. The input of one does
+      // not distinguish per element type. CWIPI filters that later.
       CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                        coupling_name,
                                        0,
@@ -234,7 +244,10 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_weights_compute(code_name[0],
                                        coupling_name);
 
-    // Exchange
+    // Exchange field values :
+    // If the codes operate a cross exchange, a deadlock could occur if
+    // CWP_Field_wait_issend/CWP_Field_wait_irecv calls are mixed with
+    // CWP_Field_issend/CWP_Field_irecv calls.
     CWP_Field_issend(code_name[0],
                      coupling_name,
                      send_field_name);

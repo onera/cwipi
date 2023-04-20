@@ -228,7 +228,7 @@ program fortran_new_api_deformable_sol
     else
 
       ! Find the correct CWIPI function to inform CWIPI that the
-      ! the time step has been incremented.
+      ! the time step has been updated.
       ! ------------------------------------------------------- To fill in
 
       ! ---------------------------------------------------- End To fill in

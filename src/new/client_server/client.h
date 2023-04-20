@@ -801,10 +801,12 @@ CWP_client_Mesh_interf_block_std_set
 /**
  * \brief Mesh_interf_block_std_get CWIPI.
  *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Partition identifier
- * \param [in]  block_id         Block identifier
+ * /!\ Pointers given here are freed by `CWP_client_Cpl_del`
+ *
+ * \param [in]   local_code_name  Local code name
+ * \param [in]   cpl_id           Coupling identifier
+ * \param [in]   i_part           Partition identifier
+ * \param [in]   block_id         Block identifier
  * \param [out]  n_elts           Number of elements
  * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
  * \param [out]  global_num       Pointer to global element number (or NULL)
@@ -871,6 +873,8 @@ CWP_client_Mesh_interf_f_poly_block_set
 
 /**
  * \brief Mesh_interf_f_poly_block_get CWIPI.
+ *
+ * /!\ Pointers given here are freed by `CWP_client_Cpl_del`
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -940,6 +944,8 @@ CWP_client_Mesh_interf_c_poly_block_set
 
 /**
  * \brief Mesh_interf_c_poly_block_get CWIPI.
+ *
+ * /!\ Pointers given here are freed by `CWP_client_Cpl_del`
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
