@@ -725,7 +725,6 @@ namespace cwipi {
           int         face_edge_idx[],
           int         face_edge[],
     const int         n_edges,
-          int         edge_vtx_idx[],
           int         edge_vtx[],
           CWP_g_num_t parent_num[]
   )
@@ -736,7 +735,6 @@ namespace cwipi {
                               face_edge_idx,
                               face_edge,
                               n_edges,
-                              edge_vtx_idx,
                               edge_vtx,
                               parent_num);
     }
@@ -746,7 +744,6 @@ namespace cwipi {
                               NULL,
                               NULL,
                               0,
-                              NULL,
                               NULL,
                               NULL);
     }

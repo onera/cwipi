@@ -360,7 +360,6 @@ cdef extern from "cwp.h":
                                          int            *face_edge_idx,
                                          int            *face_edge,
                                          int             n_edges,
-                                         int            *edge_vtx_idx,
                                          int            *edge_vtx,
                                          long           *global_num)
 
@@ -3211,7 +3210,6 @@ cdef class Coupling (object):
                                       NPY.ndarray[NPY.int32_t] face_edge_idx not None,
                                       NPY.ndarray[NPY.int32_t] face_edge not None,
                                       n_edges,
-                                      NPY.ndarray[NPY.int32_t] edge_vtx_idx not None,
                                       NPY.ndarray[NPY.int32_t] edge_vtx not None,
                                       NPY.ndarray[NPY.int64_t] global_num):
         """
@@ -3223,8 +3221,7 @@ cdef class Coupling (object):
           face_edge_idx (NPY.ndarray[NPY.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
           face_edge     (NPY.ndarray[NPY.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
           n_edges       (int)                      : Number of edges
-          edge_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron edge to vertex index  (edge_vtx_idx[0] = 0 and size = n_edges + 1)
-          edge_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = edge_vtx_idx[n_edges])
+          edge_vtx      (NPY.ndarray[NPY.int32_t]) : Edge to vertex connectivity (size = 2*n_edges)
           global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
         """
 
@@ -3236,7 +3233,6 @@ cdef class Coupling (object):
                                             <int *> face_edge_idx.data,
                                             <int *> face_edge.data,
                                             n_edges,
-                                            <int *> edge_vtx_idx.data,
                                             <int *> edge_vtx.data,
                                             NULL)
         else:
@@ -3247,7 +3243,6 @@ cdef class Coupling (object):
                                             <int *> face_edge_idx.data,
                                             <int *> face_edge.data,
                                             n_edges,
-                                            <int *> edge_vtx_idx.data,
                                             <int *> edge_vtx.data,
                                             <long *> global_num.data)
 

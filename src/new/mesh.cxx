@@ -117,11 +117,7 @@ namespace cwipi {
     _faceVtxIdx  .resize(npart,NULL);
     _faceVtx     .resize(npart,NULL);
     _nEdge       .resize(npart,0)   ;
-    _edgeVtxIdx  .resize(npart,NULL);
     _edgeVtx     .resize(npart,NULL);
-
-    _cellFaceNb  .resize(npart,NULL);
-    _faceVtxNb   .resize(npart,NULL);
 
     _faceLNToGN  .resize(npart,NULL);
     _cellLNToGN  .resize(npart,NULL);
@@ -172,15 +168,6 @@ namespace cwipi {
 
       if (_isVtxGnumComputed) {
         free (_global_num_vtx[i]); 
-      }
-
-
-      if (_faceVtxNb[i] != NULL) {
-        free(_faceVtxNb[i]);
-      }
-
-      if (_cellFaceNb[i] != NULL) {
-        free(_cellFaceNb[i]);
       }
     }
 
@@ -669,15 +656,12 @@ namespace cwipi {
 
         PDM_part_mesh_nodal_face2d_faceedge_add(_pdmNodal_handle_index,
                                                 i_part,
-                                                _nFace[i_part],
-                                                _nEdge[i_part]    ,
-                                                // _edgeVtxIdx[i_part] ,
-                                                // _edgeVtxNb[i_part]  , //Number of vertices for each edge
-                                                _edgeVtx[i_part]    ,
+                                                _nFace      [i_part],
+                                                _nEdge      [i_part],
+                                                _edgeVtx    [i_part],
                                                 _faceEdgeIdx[i_part],
-                                                // _faceEdgeNb[i_part] , //Number of edges for each faces
-                                                _faceEdge[i_part]   ,
-                                                _faceLNToGN[i_part],
+                                                _faceEdge   [i_part],
+                                                _faceLNToGN [i_part],
                                                 PDM_OWNERSHIP_USER);
 
       }//end i_part loop
@@ -773,14 +757,14 @@ namespace cwipi {
 
             int weights = 0;
             int idx_face = _cellFaceIdx[i_part][j];
-            int nb_face = _cellFaceNb[i_part][j];
+            int nb_face = _cellFaceIdx[i_part][j] - idx_face;
 
             for (int j1 = idx_face; j1 < idx_face + nb_face; j1++) {
 
               int i_face = std::abs(_cellFace[i_part][j1]) - 1;
 
               int idx = _faceVtxIdx[i_part][i_face];
-              int nb = _faceVtxNb[i_part][i_face];
+              int nb = _faceVtxIdx[i_part][i_face] - idx;
 
               for (int k = idx; k < idx + nb; k++) {
 
@@ -825,11 +809,9 @@ namespace cwipi {
                                                 _nCells[i_part],
                                                 _nFace[i_part]    ,
                                                 _faceVtxIdx[i_part],
-                                                // _faceVtxNb[i_part],
                                                 _faceVtx[i_part],
                                                 _faceLNToGN[i_part],//NULL,
                                                 _cellFaceIdx[i_part],
-                                                // _cellFaceNb[i_part],
                                                 _cellFace[i_part],
                                                 _cellLNToGN[i_part],
                                                 PDM_OWNERSHIP_KEEP);//USER);
@@ -1471,16 +1453,6 @@ namespace cwipi {
     _faceVtx[i_part] = face_vtx;
     _cellFace[i_part] = cell_face;
 
-    _faceVtxNb[i_part] = (int *) malloc(sizeof(int) * n_faces);
-    for (int i = 0; i < n_faces; i++) {
-      _faceVtxNb[i_part][i] = face_vtx_idx[i + 1] - face_vtx_idx[i];
-    }
-
-    _cellFaceNb[i_part] = (int *) malloc(sizeof(int) * n_cells);
-    for (int i = 0; i < n_cells; i++) {
-      _cellFaceNb[i_part][i] = cell_face_idx[i + 1] - cell_face_idx[i];
-    }
-
     _nFace[i_part] = n_faces;
     _nCells[i_part] = n_cells;
 
@@ -1495,7 +1467,6 @@ namespace cwipi {
     int         face_edge_idx[],
     int         face_edge[],
     const int   n_edges,
-    int         edge_vtx_idx[],
     int         edge_vtx[],
     CWP_g_num_t global_num[]
   )
@@ -1503,7 +1474,6 @@ namespace cwipi {
     _faceEdgeMethod = 1;
 
     _faceLNToGN[i_part]  = global_num;
-    _edgeVtxIdx[i_part]  = edge_vtx_idx;
     _faceEdgeIdx[i_part] = face_edge_idx;
     _edgeVtx[i_part]     = edge_vtx;
     _faceEdge[i_part]    = face_edge;

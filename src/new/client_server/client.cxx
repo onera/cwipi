@@ -4483,7 +4483,6 @@ CWP_client_Mesh_interf_from_faceedge_set
  int                   face_edge_idx[],
  int                   face_edge[],
  const int             n_edges,
- int                   edge_vtx_idx[],
  int                   edge_vtx[],
  CWP_g_num_t           global_num[]
 )
@@ -4546,12 +4545,6 @@ CWP_client_Mesh_interf_from_faceedge_set
   CWP_swap_endian_4bytes(&endian_n_edges, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_edges, sizeof(int));
 
-  // send edge->vertex connectivity index
-  int *endian_edge_vtx_idx = (int *) malloc(sizeof(int) * (n_edges+1));
-  memcpy(endian_edge_vtx_idx, edge_vtx_idx, sizeof(int) * (n_edges+1));
-  CWP_swap_endian_4bytes(endian_edge_vtx_idx, n_edges + 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_edge_vtx_idx, sizeof(int) * (n_edges+1));
-
   // send edge->vertex connectivity
   int *endian_edge_vtx = (int *) malloc(sizeof(int) * 2 * n_edges);
   memcpy(endian_edge_vtx, edge_vtx, sizeof(int) * 2 * n_edges);
@@ -4597,7 +4590,6 @@ CWP_client_Mesh_interf_from_faceedge_set
   // free
   free(endian_face_edge_idx);
   free(endian_face_edge);
-  free(endian_edge_vtx_idx);
   free(endian_edge_vtx);
   if (endian_global_num != NULL) free(endian_global_num);
 }

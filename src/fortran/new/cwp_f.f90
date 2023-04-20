@@ -925,13 +925,13 @@ module cwp
       end subroutine CWP_Mesh_interf_from_cellface_set_cf
 
       subroutine CWP_Mesh_interf_from_faceedge_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_faces, &
-            face_edge_idx, face_edge, n_edges, edge_vtx_idx, edge_vtx, parent_num) &
+            face_edge_idx, face_edge, n_edges, edge_vtx, parent_num) &
             bind(c, name = 'CWP_Mesh_interf_from_faceedge_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(c_int), value :: i_part, n_faces, n_edges
-        type(c_ptr), value :: face_edge_idx, face_edge, edge_vtx_idx, edge_vtx, parent_num
+        type(c_ptr), value :: face_edge_idx, face_edge, edge_vtx, parent_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_faceedge_set_cf
 
@@ -3292,11 +3292,8 @@ contains
   !! \param [in]  face_edge         Face to edge connectivity
   !!                                (size = \p face_edge_idx[\p n_faces])
   !! \param [in]  n_edges           Number of faces
-  !! \param [in]  edge_vtx_idx      Polyhedron face to vertex index
-  !!                                (\p edge_vtx_idx[0] = 0 and
-  !!                                 size = \p n_edges + 1)
-  !! \param [in]  edge_vtx          Face to vertex connectivity
-  !!                                (size = \p edge_vtx_idx[\p n_edges])
+  !! \param [in]  edge_vtx          Edge to vertex connectivity
+  !!                                (size = 2 * \p n_edges)
   !! \param [in]  global_num        Pointer to parent element number (or NULL)
   !!
 
@@ -3307,7 +3304,6 @@ contains
                                                 face_edge_idx,   &
                                                 face_edge,       &
                                                 n_edges,         &
-                                                edge_vtx_idx,    &
                                                 edge_vtx,        &
                                                 global_num)
 
@@ -3316,7 +3312,7 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, n_faces, n_edges
-    integer(c_int), dimension(:), pointer :: face_edge_idx, face_edge, edge_vtx_idx, edge_vtx
+    integer(c_int), dimension(:), pointer :: face_edge_idx, face_edge, edge_vtx
     integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
@@ -3340,7 +3336,6 @@ contains
                                                c_loc(face_edge_idx),&
                                                c_loc(face_edge),    &
                                                n_edges,             &
-                                               c_loc(edge_vtx_idx), &
                                                c_loc(edge_vtx),     &
                                                c_global_num)
 

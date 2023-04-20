@@ -1285,7 +1285,6 @@ CWP_server_Cpl_del
   if (svr_cwp.coupling[s].elt_global_num != NULL) free(svr_cwp.coupling[s].elt_global_num);
   if (svr_cwp.coupling[s].face_edge_idx != NULL) free(svr_cwp.coupling[s].face_edge_idx);
   if (svr_cwp.coupling[s].face_edge != NULL) free(svr_cwp.coupling[s].face_edge);
-  if (svr_cwp.coupling[s].edge_vtx_idx != NULL) free(svr_cwp.coupling[s].edge_vtx_idx);
   if (svr_cwp.coupling[s].edge_vtx != NULL) free(svr_cwp.coupling[s].edge_vtx);
   if (svr_cwp.coupling[s].face_global_num != NULL) free(svr_cwp.coupling[s].face_global_num);
   if (svr_cwp.coupling[s].std_connec != NULL) free(svr_cwp.coupling[s].std_connec);
@@ -3599,13 +3598,9 @@ CWP_server_Mesh_interf_from_faceedge_set
   int n_edges;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_edges, sizeof(int));
 
-  // read connectivity edges index
-   svr_cwp.coupling[s].edge_vtx_idx = (int *) malloc(sizeof(int) * (n_edges+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].edge_vtx_idx, sizeof(int) * (n_edges+1));
-
   // read connectivity edges
-   svr_cwp.coupling[s].edge_vtx = (int *) malloc(sizeof(int) *  svr_cwp.coupling[s].edge_vtx_idx[n_edges]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].edge_vtx, sizeof(int) *  svr_cwp.coupling[s].edge_vtx_idx[n_edges]);
+   svr_cwp.coupling[s].edge_vtx = (int *) malloc(sizeof(int) * 2 * n_edges);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].edge_vtx, sizeof(int) * 2 * n_edges);
 
   // read global number
   int NULL_flag;
@@ -3627,11 +3622,10 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                       svr_cwp.coupling[s].face_edge_idx,
-                                       svr_cwp.coupling[s].face_edge,
+                                      svr_cwp.coupling[s].face_edge_idx,
+                                      svr_cwp.coupling[s].face_edge,
                                       n_edges,
-                                       svr_cwp.coupling[s].edge_vtx_idx,
-                                       svr_cwp.coupling[s].edge_vtx,
+                                      svr_cwp.coupling[s].edge_vtx,
                                       NULL);
   }
   else {
@@ -3654,7 +3648,6 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       svr_cwp.coupling[s].face_edge_idx,
                                       svr_cwp.coupling[s].face_edge,
                                       n_edges,
-                                      svr_cwp.coupling[s].edge_vtx_idx,
                                       svr_cwp.coupling[s].edge_vtx,
                                       svr_cwp.coupling[s].face_global_num);
   }

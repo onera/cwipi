@@ -396,9 +396,6 @@ namespace cwipi {
      *                                (size = face_edge_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
      * \param [in]  n_edges           Number of edges
-     * \param [in]  edge_vtx_idx      Vertices to edges connectivity index
-     *                                (edge_vtx_idx[0] = 0 and
-     *                                size_idx = max(edge_vtx) + 1)
      * \param [in]  edge_vtx          Polygon vertices to edges connectivity
      *                                (size = edge_vtx_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
@@ -410,7 +407,6 @@ namespace cwipi {
                            int         face_edge_idx[],
                            int         face_edge[],
                            const int   n_edges,
-                           int         edge_vtx_idx[],
                            int         edge_vtx[],
                            CWP_g_num_t parent_num[]);
 
@@ -723,10 +719,7 @@ namespace cwipi {
     std::vector<int*>                       _faceVtx;
 
     std::vector<int>                        _nEdge;
-    std::vector<int*>                       _edgeVtxIdx;
     std::vector<int*>                       _edgeVtx;
-    std::vector<int*>                       _faceVtxNb;
-    std::vector<int*>                       _cellFaceNb;
 
     std::vector<CWP_g_num_t*>               _faceLNToGN;
     std::vector<CWP_g_num_t*>               _cellLNToGN;
@@ -885,10 +878,6 @@ namespace cwipi {
 
   int *Mesh::getFaceVtx(int i_part) {
       return _faceVtx[i_part];
-  }
-
-  int *Mesh::getEdgeVtxIndex(int i_part) {
-      return _edgeVtxIdx[i_part];
   }
 
   int *Mesh::getEdgeVtx(int i_part) {

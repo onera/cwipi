@@ -1870,11 +1870,8 @@ CWP_Mesh_interf_from_cellface_set
  * \param [in]  face_edge         Face to edge connectivity
  *                                (size = \p face_edge_idx[\p n_faces])
  * \param [in]  n_edges           Number of faces
- * \param [in]  edge_vtx_idx      Polyhedron face to vertex index
- *                                (\p edge_vtx_idx[0] = 0 and
- *                                 size = \p n_edges + 1)
- * \param [in]  edge_vtx          Face to vertex connectivity
- *                                (size = \p edge_vtx_idx[\p n_edges])
+ * \param [in]  edge_vtx          Edge to vertex connectivity
+ *                                (size = 2 * \p n_edges)
  * \param [in]  parent_num        Pointer to parent element number (or NULL)
  *
  */
@@ -1882,27 +1879,25 @@ CWP_Mesh_interf_from_cellface_set
 void
 CWP_Mesh_interf_from_faceedge_set
 (
- const char           *local_code_name,
- const char           *cpl_id,
- const int             i_part,
- const int             n_faces,
- int             face_edge_idx[],
- int             face_edge[],
- const int             n_edges,
- int             edge_vtx_idx[],
- int             edge_vtx[],
- CWP_g_num_t     parent_num[]
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          n_faces,
+       int          face_edge_idx[],
+       int          face_edge[],
+ const int          n_edges,
+       int          edge_vtx[],
+       CWP_g_num_t  parent_num[]
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.meshFromFacesEdgeSet(i_part,
-                        n_faces,
-                        face_edge_idx,
-                        face_edge,
-                        n_edges,
-                        edge_vtx_idx,
-                        edge_vtx,
-                        parent_num);
+                           n_faces,
+                           face_edge_idx,
+                           face_edge,
+                           n_edges,
+                           edge_vtx,
+                           parent_num);
 }
 
 

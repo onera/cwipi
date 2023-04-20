@@ -166,7 +166,6 @@ struct t_coupling
   // Mesh_interf_from_faceedge_set
   int *face_edge_idx;
   int *face_edge;
-  int *edge_vtx_idx;
   int *edge_vtx;
   CWP_g_num_t *face_global_num;
 

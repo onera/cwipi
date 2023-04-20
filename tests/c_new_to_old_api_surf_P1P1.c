@@ -1080,7 +1080,6 @@ main(int argc, char *argv[]) {
                                       faceEdgeIdx[0],
                                       faceEdge[0],
                                       nEdge[0],
-                                      edgeVtxIdx[0],
                                       edgeVtx[0],
                                       faceLNToGN[0]);
 
