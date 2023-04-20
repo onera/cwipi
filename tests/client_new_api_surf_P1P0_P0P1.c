@@ -253,29 +253,27 @@ main
 
   // Initialization
   int n_code = 1;
-  const char   **code_name         = malloc(sizeof(char *)       * n_code);
-  const char   **coupled_code_name = malloc(sizeof(char *)       * n_code);
-  CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
-  double        *time_init         = malloc(sizeof(double)       * n_code);
+  const char   *code_name         = NULL;
+  const char   *coupled_code_name = NULL;
+  CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
+  double        time_init         = 0.;
 
-  is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0] = 0.;
-  int                  n_part;
-  PDM_g_num_t          n_vtx_seg;
+  int           n_part;
+  PDM_g_num_t   n_vtx_seg;
   PDM_Mesh_nodal_elt_t elt_type;
   if (is_code1) {
-    code_name[0]         = "code1";
-    coupled_code_name[0] = "code2";
-    n_part               = code_n_part[0];
-    n_vtx_seg            = code_n_vtx_seg[0];
-    elt_type             = code_elt_type[0];
+    code_name         = "code1";
+    coupled_code_name = "code2";
+    n_part            = code_n_part[0];
+    n_vtx_seg         = code_n_vtx_seg[0];
+    elt_type          = code_elt_type[0];
   }
   else {
-    code_name[0]         = "code2";
-    coupled_code_name[0] = "code1";
-    n_part               = code_n_part[1];
-    n_vtx_seg            = code_n_vtx_seg[1];
-    elt_type             = code_elt_type[1];
+    code_name         = "code2";
+    coupled_code_name = "code1";
+    n_part            = code_n_part[1];
+    n_vtx_seg         = code_n_vtx_seg[1];
+    elt_type          = code_elt_type[1];
   }
   assert(n_part > 0);
 
@@ -289,8 +287,7 @@ main
 
   CWP_client_Init(intra_comm,
                   config,
-                  n_code,
-  (const char **) code_name,
+                  code_name,
                   is_active_rank,
                   time_init);
 
@@ -298,9 +295,9 @@ main
   int exit_check = 0;
 
   const char *cpl_name = "client_new_api_surf_P1P0_P0P1";
-  CWP_client_Cpl_create(code_name[0],                                          // Code name
+  CWP_client_Cpl_create(code_name,                                             // Code name
                         cpl_name,                                              // Coupling id
-                        coupled_code_name[0],                                  // Coupled application id
+                        coupled_code_name,                                     // Coupled application id
                         CWP_INTERFACE_SURFACE,
                         CWP_COMM_PAR_WITH_PART,                                // Coupling type
                         CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
@@ -308,7 +305,7 @@ main
                         CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
                         CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
 
-  CWP_client_Visu_set(code_name[0],            // Code name
+  CWP_client_Visu_set(code_name,            // Code name
                       cpl_name,                // Coupling id
                       1,                       // Postprocessing frequency
                       CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
@@ -357,20 +354,20 @@ main
                                             &pface_vtx    [ipart]);
   }
 
-  int block_id = CWP_client_Mesh_interf_block_add(code_name[0],
+  int block_id = CWP_client_Mesh_interf_block_add(code_name,
                                                   cpl_name,
                                                   CWP_BLOCK_FACE_POLY);
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
-    CWP_client_Mesh_interf_vtx_set(code_name[0],
+    CWP_client_Mesh_interf_vtx_set(code_name,
                                    cpl_name,
                                    ipart,
                                    pn_vtx       [ipart],
                                    pvtx_coord   [ipart],
                                    pvtx_ln_to_gn[ipart]);
 
-    CWP_client_Mesh_interf_f_poly_block_set(code_name[0],
+    CWP_client_Mesh_interf_f_poly_block_set(code_name,
                                             cpl_name,
                                             ipart,
                                             block_id,
@@ -384,7 +381,7 @@ main
     int *GETeltsConnecPointer  = NULL;
     int *GETeltsConnec         = NULL;
     CWP_g_num_t *GETglobal_num = NULL;
-    CWP_client_Mesh_interf_f_poly_block_get(code_name[0],
+    CWP_client_Mesh_interf_f_poly_block_get(code_name,
                                             cpl_name,
                                             ipart,
                                             block_id,
@@ -424,7 +421,7 @@ main
   }
 
 
-  CWP_client_Mesh_interf_finalize(code_name[0], cpl_name);
+  CWP_client_Mesh_interf_finalize(code_name, cpl_name);
 
   double **send_values = malloc(sizeof(double *) * n_part);
   double **recv_values = malloc(sizeof(double *) * n_part);
@@ -458,7 +455,7 @@ main
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
   if (is_code1) {
-    CWP_client_Field_create(code_name[0],
+    CWP_client_Field_create(code_name,
                             cpl_name,
                             field_name1,
                             CWP_DOUBLE,
@@ -467,7 +464,7 @@ main
                             CWP_DOF_LOCATION_NODE,
                             CWP_FIELD_EXCH_SEND,
                             visu_status);
-    CWP_client_Field_create(code_name[0],
+    CWP_client_Field_create(code_name,
                             cpl_name,
                             field_name2,
                             CWP_DOUBLE,
@@ -478,14 +475,14 @@ main
                             visu_status);
 
     for (int ipart = 0; ipart < n_part; ipart++) {
-      CWP_client_Field_data_set(code_name[0],
+      CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name1,
                                 0,
                                 CWP_FIELD_MAP_SOURCE,
                                 pn_vtx[ipart],
                                 send_values[ipart]);
-      CWP_client_Field_data_set(code_name[0],
+      CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name2,
                                 0,
@@ -495,7 +492,7 @@ main
     }
   }
   else {
-    CWP_client_Field_create(code_name[0],
+    CWP_client_Field_create(code_name,
                             cpl_name,
                             field_name1,
                             CWP_DOUBLE,
@@ -504,7 +501,7 @@ main
                             CWP_DOF_LOCATION_NODE,
                             CWP_FIELD_EXCH_RECV,
                             visu_status);
-    CWP_client_Field_create(code_name[0],
+    CWP_client_Field_create(code_name,
                             cpl_name,
                             field_name2,
                             CWP_DOUBLE,
@@ -515,14 +512,14 @@ main
                             visu_status);
 
     for (int ipart = 0; ipart < n_part; ipart++) {
-      CWP_client_Field_data_set(code_name[0],
+      CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name2,
                                 ipart,
                                 CWP_FIELD_MAP_SOURCE,
                                 pn_face[ipart],
                                 send_values[ipart]);
-      CWP_client_Field_data_set(code_name[0],
+      CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name1,
                                 ipart,
@@ -532,16 +529,16 @@ main
     }
   }
 
-  CWP_client_Spatial_interp_weights_compute(code_name[0], cpl_name);
+  CWP_client_Spatial_interp_weights_compute(code_name, cpl_name);
 
   for (int ipart = 0; ipart < n_part; ipart++) {
     int n_uncomputed = 0;
 
     if (is_code1) {
-      n_uncomputed = CWP_client_N_uncomputed_tgts_get(code_name[0], cpl_name, field_name2, ipart);
+      n_uncomputed = CWP_client_N_uncomputed_tgts_get(code_name, cpl_name, field_name2, ipart);
     }
     else {
-      n_uncomputed = CWP_client_N_uncomputed_tgts_get(code_name[0], cpl_name, field_name1, ipart);
+      n_uncomputed = CWP_client_N_uncomputed_tgts_get(code_name, cpl_name, field_name1, ipart);
     }
 
     // --> check
@@ -551,26 +548,26 @@ main
   }
 
   if (is_code1) {
-    CWP_client_Field_issend(code_name[0], cpl_name, field_name1);
-    CWP_client_Field_irecv (code_name[0], cpl_name, field_name2);
+    CWP_client_Field_issend(code_name, cpl_name, field_name1);
+    CWP_client_Field_irecv (code_name, cpl_name, field_name2);
   }
   else {
-    CWP_client_Field_irecv (code_name[0], cpl_name, field_name1);
-    CWP_client_Field_issend(code_name[0], cpl_name, field_name2);
+    CWP_client_Field_irecv (code_name, cpl_name, field_name1);
+    CWP_client_Field_issend(code_name, cpl_name, field_name2);
   }
 
   if (is_code1) {
-    CWP_client_Field_wait_issend(code_name[0], cpl_name, field_name1);
-    CWP_client_Field_wait_irecv (code_name[0], cpl_name, field_name2);
+    CWP_client_Field_wait_issend(code_name, cpl_name, field_name1);
+    CWP_client_Field_wait_irecv (code_name, cpl_name, field_name2);
   }
   else {
-    CWP_client_Field_wait_irecv (code_name[0], cpl_name, field_name1);
-    CWP_client_Field_wait_issend(code_name[0], cpl_name, field_name2);
+    CWP_client_Field_wait_irecv (code_name, cpl_name, field_name1);
+    CWP_client_Field_wait_issend(code_name, cpl_name, field_name2);
   }
 
   // Mesh_interf_from_faceedge_set
   for (int ipart = 0; ipart < n_part; ipart++) {
-    CWP_client_Mesh_interf_from_faceedge_set(code_name[0],
+    CWP_client_Mesh_interf_from_faceedge_set(code_name,
                                              cpl_name,
                                              ipart,
                                              pn_face       [ipart],
@@ -582,9 +579,9 @@ main
   }
 
 
-  CWP_client_Mesh_interf_del(code_name[0], cpl_name);
+  CWP_client_Mesh_interf_del(code_name, cpl_name);
 
-  CWP_client_Cpl_del(code_name[0], cpl_name);
+  CWP_client_Cpl_del(code_name, cpl_name);
 
   // Freeing memory
   for (int ipart = 0; ipart < n_part; ipart++) {
@@ -612,11 +609,6 @@ main
   free(pface_ln_to_gn);
   free(send_values   );
   free(recv_values   );
-
-  free(code_name);
-  free(coupled_code_name);
-  free(is_active_rank);
-  free(time_init);
 
   // Finalize
   CWP_client_Finalize();

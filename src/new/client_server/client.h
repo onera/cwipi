@@ -66,25 +66,23 @@ typedef struct t_client
 
 /**
  * \brief Initialize CWIPI.
- *        /!\ n_code == 1 in client-server mode
  *
- * \param [in]  n_code         Number of codes on the current rank
- * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
- * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
- * \param [in]  time_init      Initial time (size = \p n_code)
- * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
+ * \param [in]  comm           MPI intra communicators of each code
+ * \param [in]  config         Configuration file name
+ * \param [in]  code_name      Name of the code on current rank
+ * \param [in]  is_active_rank Does current rank have to be used by CWIPI
+ * \param [in]  time_init      Initial time
  *
  */
 
 void
 CWP_client_Init
 (
-  MPI_Comm                  comm,
-  char                    *config,
-  const int                n_code,
-  const char             **code_names,
-  const CWP_Status_t      *is_active_rank,
-  const double            *time_init
+        MPI_Comm           comm,
+        char              *config,
+  const char              *code_name,
+  const CWP_Status_t       is_active_rank,
+  const double             time_init
 );
 
 /**
