@@ -119,7 +119,7 @@ static FILE* _cwipi_output_listing;
  * Output listing File (C printing)
  *----------------------------------------------------------------------------*/
 
-char *properties[3] = {"n_closest_pts", "polyfit_degree", "tolerance"};
+const char *acceptable_properties[3] = {"n_closest_pts", "polyfit_degree", "tolerance"};
 
 /*============================================================================
  * Private function definitions
@@ -1232,7 +1232,7 @@ CWP_Spatial_interp_property_set (
   int is_property = 0;
 
   for (int i = 0 ; i < 3; i++) {
-    if (strcmp(property_name, properties[i]) == 0) {
+    if (strcmp(property_name, acceptable_properties[i]) == 0) {
       is_property = 1;
       break;
     }
