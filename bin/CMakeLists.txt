@@ -29,37 +29,33 @@ if (NOT MPI_CXX_COMPILER)
 endif ()
 
 if (CWP_ENABLE_STATIC)
-  if (CWP_ENABLE_NEW_API)
-     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-       list(APPEND LINK_LIBRARIES
-            pdm_mpi_static
-            pdm_static)
-     endif()
-   endif()
    list(APPEND LINK_LIBRARIES cwp_static)
+   if (CWP_ENABLE_EXTERNAL_PDM)
+     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
+   else ()
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_static
+          pdm_static)
+   endif()       
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 else ()
-  if (CWP_ENABLE_NEW_API)
-     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-       list(APPEND LINK_LIBRARIES
-            pdm_mpi_shared
-            pdm_shared)
-     endif()
-   endif()
    list(APPEND LINK_LIBRARIES cwp_shared)
+   if (CWP_ENABLE_EXTERNAL_PDM)
+     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
+   else ()
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_shared
+          pdm_shared)
+   endif() 
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 endif()
 
 # add executable
 
-if (CWP_ENABLE_NEW_API)
-  if (CWP_ENABLE_CLIENT_SERVER)
-    add_executable (cwp_server server_main.c)
-    target_include_directories(cwp_server PRIVATE ${CMAKE_SOURCE_DIR}
-                               PRIVATE ${CMAKE_BINARY_DIR}
-                               PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable (cwp_server server_main.c)
+target_include_directories(cwp_server PRIVATE ${CMAKE_SOURCE_DIR}
+                           PRIVATE ${CMAKE_BINARY_DIR}
+                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-    target_link_libraries(cwp_server ${LINK_LIBRARIES})
-    install(TARGETS cwp_server DESTINATION bin)
-  endif()
-endif()
+target_link_libraries(cwp_server ${LINK_LIBRARIES})
+install(TARGETS cwp_server DESTINATION bin)

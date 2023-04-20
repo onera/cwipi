@@ -30,12 +30,14 @@ project(CWP VERSION 0.0.0 LANGUAGES C CXX Fortran)
 # Enable languages
 #------------------------------------------------------------------------------
 
-set(PDM_IN_CWP 1)
-set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
-
 #------------------------------------------------------------------------------
 # User option Definition
 #------------------------------------------------------------------------------
+
+# OpenMP
+# ------
+
+option(CWP_ENABLE_EXTERNAL_PDM "Use an external ParaDiGM library" OFF)
 
 # OpenMP
 # ------
@@ -82,11 +84,6 @@ option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
 if (CWP_ENABLE_Fortran_MPI_MODULE)
   set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
 endif()
-
-# New to old API
-# -----------------
-
-option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
 
 # MKL, BLAS, LAPACK
 # -----------------
@@ -344,10 +341,6 @@ endif()
 
 mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
 
-#find_package(PARADIGM 1.2.1
-#             REQUIRED PARADIGM_LIBRARIES PARADIGM_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES 
-#             OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES)
-
 # Check MPI Wrapper
 # -----------------
 
@@ -472,63 +465,73 @@ set(CWP_LIST_TEST "")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-# Extensions
-# ----------
+if (CWP_ENABLE_EXTERNAL_PDM) 
 
-set (PDM_ENABLE_EXTENSION_PDMA OFF)
+  find_package(PARADIGM 2.3.0
+               REQUIRED PARADIGM_LIBRARIES PARADIGM_FORTRAN_LIBRARIES PARADIGM_INCLUDE_DIRS  
+               OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES)
 
-# OpenMP
-# ------
+else ()
 
-set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
+  # Extensions
+  # ----------
 
-# Enable long for absolute number
-# -------------------------------
+  set (PDM_ENABLE_EXTENSION_PDMA OFF)
 
-set(PDM_ENABLE_LONG_G_NUM ON)
+  # OpenMP
+  # ------
 
-# Pt-scotch
-# ---------
+  set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
 
-set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
+  # Enable long for absolute number
+  # -------------------------------
 
-# ParMetis
-# --------
+  set(PDM_ENABLE_LONG_G_NUM ON)
 
-set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
+  # Pt-scotch
+  # ---------
 
-# Shared libraries
-# ----------------
+  set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
 
-set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
+  # ParMetis
+  # --------
 
-# Static libraries
-# ----------------
+  set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
 
-set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
+  # Shared libraries
+  # ----------------
 
-# Check MPI Wrapper
-# -----------------
+  set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
 
-#set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
+  # Static libraries
+  # ----------------
 
-# Python Bindings
-# ---------------
+  set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
 
-set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+  # Check MPI Wrapper
+  # -----------------
 
-# Fortran interface
-# -----------------
+  #set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
 
-set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
+  # Python Bindings
+  # ---------------
 
-set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
+  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
-set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
+  # Fortran interface
+  # -----------------
 
-set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
+  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
 
-add_subdirectory(external/paradigm)
+  set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
+
+  set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
+
+  set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
+
+  add_subdirectory(external/paradigm)
+
+endif()
 
 add_subdirectory(src)
 
