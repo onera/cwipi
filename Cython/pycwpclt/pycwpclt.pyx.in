@@ -154,10 +154,9 @@ cdef extern from "client_server/client.h":
   # --> general functions
   void CWP_client_Init(MPI.MPI_Comm       global_comm,
                        char              *config,
-                       int                n_code,
-                       char             **code_names,
-                       CWP_Status_t      *is_active_rank,
-                       double            *time_init)
+                       char              *code_name,
+                       CWP_Status_t       is_active_rank,
+                       double             time_init)
   void CWP_client_Finalize()
 
   # --> functions about current code properties
@@ -736,8 +735,8 @@ cdef long** np_list_to_long_pointers(list datas):
 def init(MPI.Comm global_comm,
          char*    config,
          char*    code_name,
-         NPY.ndarray[NPY.int32_t] is_active_rank not None,
-         NPY.ndarray[NPY.double_t] time_init not None):
+         int      is_active_rank,
+         double   time_init):
     """
     Initialize CWIPI library and create intra-communicator.
 
@@ -747,24 +746,22 @@ def init(MPI.Comm global_comm,
       global_comm    (MPI.Comm)  : MPI global communicator
       config         (char*   )  : path to server configuration file
       code_name      (char*   )  : name of local code
-      is_active_rank (int*)      : Is current rank have to be used by CWIPI (size = n_code)
-      time_init      (double*)   : Initial time (size = n_code)
+      is_active_rank (int)       : Does current rank have to be used by CWIPI
+      time_init      (double)    : Initial time
     """
 
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
-    cdef char **c_code_names = <char**> malloc(sizeof(char*))
-    c_code_names[0] = <char *> malloc(sizeof(char) * len(code_name))
+    cdef char *c_code_name = <char *> malloc(sizeof(char) * len(code_name))
 
     py_byte_code_name = code_name.encode('UTF-8')
-    c_code_names[0] = py_byte_code_name
+    c_code_names = py_byte_code_name
 
     CWP_client_Init(c_global_comm,
                     config,
-                    1,
-                    c_code_names,
-   <CWP_Status_t *> is_active_rank.data,
-         <double *> time_init.data)
+                    c_code_name,
+     <CWP_Status_t> is_active_rank,
+                    time_init)
 
 def finalize():
     """

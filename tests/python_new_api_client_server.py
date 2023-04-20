@@ -80,8 +80,8 @@ def runTest():
 
     intra_comm = comm.Split(i_rank)
 
-    is_active_rank = np.array([1], dtype=np.int32)
-    time_init = np.array([0.], dtype=np.double)
+    is_active_rank = 1
+    time_init = 0.
     out = pycwpclt.init(intra_comm,
                         config,
                         code_name,
