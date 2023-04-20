@@ -193,7 +193,7 @@ _read_args
 int
 main
 (
- int   argc,
+ int argc,
  char *argv[]
 )
 {
@@ -273,18 +273,32 @@ main
   /* Initialization
    * -------------- */
 
-  const char *codeName = NULL;
+  int n_code_name = 0;
+  const char **codeNames = NULL;
+  double *times_init = NULL;
+  CWP_Status_t *is_coupled_rank = NULL;
 
   if (rank == 0) {
-    codeName = "cpoly";
+    n_code_name = 1;
+    codeNames = malloc(sizeof(char *) * n_code_name);
+    codeNames[0] = "cpoly";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (rank == 1) {
-    codeName = "code2";
+    n_code_name = 1;
+    codeNames = malloc(sizeof(char *) * n_code_name);
+    codeNames[0] = "code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
-  CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
-  double       time_init       = 0.;
+  times_init = malloc(sizeof(double) * n_code_name);
+
+  for (int i = 0 ; i < n_code_name ; i++) {
+    times_init[i] = 0;
+  }
 
   // Outputfile
   if (rank == 0) {
@@ -303,9 +317,10 @@ main
 
   CWP_client_Init(intra_comm,
                   config,
-                  codeName,
+                  n_code_name,
+                  codeNames,
                   is_coupled_rank,
-                  time_init);
+                  times_init);
 
   // EXIT_SUCCESS ?
   int exit_check = 0;
@@ -456,6 +471,9 @@ main
   MPI_Finalize();
 
   free(srcName);
+  free(codeNames);
+  free(is_coupled_rank);
+  free(times_init);
 
   return exit_check;
 }

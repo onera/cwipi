@@ -516,16 +516,19 @@ main(int argc, char *argv[]) {
 
   // CWP_Init
   int code1 = i_rank < code_n_rank[0];
-  const char *code_name;
+  int n_code = 1;
+  const char   **code_name       = malloc(sizeof(char *) * n_code);
+  double        *times_init      = malloc(sizeof(double) * n_code);
+  CWP_Status_t  *is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
 
   if (code1) {
-    code_name = "code1";
+    code_name[0] = "code1";
   } else {
-    code_name = "code2";
+    code_name[0] = "code2";
   }
 
-  double       time_init       = 0;
-  CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
+  times_init[0] = 0;
+  is_coupled_rank[0] = CWP_STATUS_ON;
 
   // Client intra-communicator
   MPI_Comm intra_comm;
@@ -533,28 +536,29 @@ main(int argc, char *argv[]) {
 
   CWP_client_Init(intra_comm,
                   config,
-                  code_name,
+                  n_code,
+                  (const char **) code_name,
                   is_coupled_rank,
-                  time_init);
+                  times_init);
 
   // EXIT_SUCCESS ?
   int exit_check = 0;
 
   // CWP_Cpl_create
-  const char *cpl_name = "c_new_api_wind_turbine_blade";
-  const char *coupled_code_name;
+  const char  *cpl_name          = "c_new_api_wind_turbine_blade";
+  const char **coupled_code_name = malloc(sizeof(char *) * n_code);
 
   if (code1) {
-    coupled_code_name = "code2";
+    coupled_code_name[0] = "code2";
   } else {
-    coupled_code_name = "code1";
+    coupled_code_name[0] = "code1";
   }
 
   int n_part = 1;
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
-  CWP_client_Cpl_create(code_name,
+  CWP_client_Cpl_create(code_name[0],
                         cpl_name,
-                        coupled_code_name,
+                        coupled_code_name[0],
                         CWP_INTERFACE_SURFACE,
                         CWP_COMM_PAR_WITH_PART,
                         spatial_interp,
@@ -562,7 +566,7 @@ main(int argc, char *argv[]) {
                         CWP_DYNAMIC_MESH_STATIC,
                         CWP_TIME_EXCH_USER_CONTROLLED);
 
-  CWP_client_Visu_set(code_name,
+  CWP_client_Visu_set(code_name[0],
                       cpl_name,
                       1,
                       CWP_VISU_FORMAT_ENSIGHT,
@@ -610,19 +614,19 @@ main(int argc, char *argv[]) {
                  &pvtx_field_value);
 
   // Set mesh
-  int block_id = CWP_client_Mesh_interf_block_add(code_name,
+  int block_id = CWP_client_Mesh_interf_block_add(code_name[0],
                                                   cpl_name,
                                                   CWP_BLOCK_FACE_POLY);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
-    CWP_client_Mesh_interf_vtx_set(code_name,
+    CWP_client_Mesh_interf_vtx_set(code_name[0],
                                    cpl_name,
                                    i_part,
                                    pn_vtx       [i_part],
                                    pvtx_coord   [i_part],
                                    pvtx_ln_to_gn[i_part]);
 
-    CWP_client_Mesh_interf_f_poly_block_set(code_name,
+    CWP_client_Mesh_interf_f_poly_block_set(code_name[0],
                                             cpl_name,
                                             i_part,
                                             block_id,
@@ -632,7 +636,7 @@ main(int argc, char *argv[]) {
                                             pface_ln_to_gn[i_part]);
   }
 
-  CWP_client_Mesh_interf_finalize(code_name,
+  CWP_client_Mesh_interf_finalize(code_name[0],
                                   cpl_name);
 
   // Create field
@@ -656,7 +660,7 @@ main(int argc, char *argv[]) {
     field_ptr = recv_val;
   }
 
-  CWP_client_Field_create(code_name,
+  CWP_client_Field_create(code_name[0],
                           cpl_name,
                           vtx_field_name[0],
                           CWP_DOUBLE,
@@ -667,7 +671,7 @@ main(int argc, char *argv[]) {
                           CWP_STATUS_ON);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
-    CWP_client_Field_data_set(code_name,
+    CWP_client_Field_data_set(code_name[0],
                               cpl_name,
                               vtx_field_name[0],
                               i_part,
@@ -677,38 +681,38 @@ main(int argc, char *argv[]) {
   }
 
   // Compute weights
-  CWP_client_Spatial_interp_property_set(code_name,
+  CWP_client_Spatial_interp_property_set(code_name[0],
                                          cpl_name,
                                          "tolerance",
                                          "double",
                                          "0.1");
 
-  CWP_client_Spatial_interp_property_set(code_name,
+  CWP_client_Spatial_interp_property_set(code_name[0],
                                          cpl_name,
                                          "n_closest_pts",
                                          "int",
                                          "1");
 
-  CWP_client_Spatial_interp_weights_compute(code_name,
+  CWP_client_Spatial_interp_weights_compute(code_name[0],
                                      cpl_name);
 
   // Exchange field
   if (code1) {
-    CWP_client_Field_issend(code_name,
+    CWP_client_Field_issend(code_name[0],
                             cpl_name,
                             vtx_field_name[0]);
   } else {
-    CWP_client_Field_irecv (code_name,
+    CWP_client_Field_irecv (code_name[0],
                             cpl_name,
                             vtx_field_name[0]);
   }
 
   if (code1) {
-    CWP_client_Field_wait_issend(code_name,
+    CWP_client_Field_wait_issend(code_name[0],
                                  cpl_name,
                                  vtx_field_name[0]);
   } else {
-    CWP_client_Field_wait_irecv (code_name,
+    CWP_client_Field_wait_irecv (code_name[0],
                                  cpl_name,
                                  vtx_field_name[0]);
   }
@@ -784,12 +788,12 @@ main(int argc, char *argv[]) {
   }
 
   // free
-  CWP_client_Mesh_interf_del(code_name,
+  CWP_client_Mesh_interf_del(code_name[0],
                              cpl_name);
-  CWP_client_Field_del(code_name,
+  CWP_client_Field_del(code_name[0],
                        cpl_name,
                        vtx_field_name[0]);
-  CWP_client_Cpl_del(code_name,
+  CWP_client_Cpl_del(code_name[0],
                      cpl_name);
 
   for (int ipart = 0; ipart < n_part; ipart++) {
@@ -825,6 +829,12 @@ main(int argc, char *argv[]) {
   free(vtx_field_type  );
   free(vtx_field_stride);
   free(pvtx_field_value);
+
+
+  free(code_name        );
+  free(times_init       );
+  free(is_coupled_rank  );
+  free(coupled_code_name);
 
   // CWP_Finalize
   CWP_client_Finalize();

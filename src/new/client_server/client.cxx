@@ -833,28 +833,21 @@ CWP_client_disconnect
  * Client CWIPI function interfaces
  *============================================================================*/
 
-/**
- * \brief Initialize CWIPI.
- *
- * \param [in]  comm           MPI intra communicators of each code
- * \param [in]  config         Configuration file name
- * \param [in]  code_name      Name of the code on current rank
- * \param [in]  is_active_rank Does current rank have to be used by CWIPI
- * \param [in]  time_init      Initial time
- *
- */
-
 void
 CWP_client_Init
 (
-        MPI_Comm           comm,
-        char              *config,
-  const char              *code_name,
-  const CWP_Status_t       is_active_rank,
-  const double             time_init
+  MPI_Comm                  comm,
+  char                    *config,
+  const int                n_code,
+  const char             **code_names,
+  const CWP_Status_t      *is_active_rank,
+  const double            *time_init
 )
 {
-  const int n_code = 1;
+  // one code par rank in client-server mode
+  if (n_code != 1) {
+    PDM_error(__FILE__, __LINE__, 0, "Expected 1 code per rank in client-server mode, got %d\n", n_code);
+  }
 
   /*intra communicators */
 
@@ -864,7 +857,7 @@ CWP_client_Init
   MPI_Comm_size(comm, &total_rank);
 
   // --> get local code name size
-  int i_rank_size = strlen(code_name) + 1;
+  int i_rank_size = strlen(code_names[0]) + 1;
   int *j_rank_size = NULL;
 
   if (my_rank == 0) {
@@ -900,7 +893,7 @@ CWP_client_Init
 
   MPI_Barrier(comm);
 
-  MPI_Gatherv((const void *) code_name, i_rank_size, MPI_CHAR,
+  MPI_Gatherv((const void *) code_names[0], i_rank_size, MPI_CHAR,
              (void *)       j_rank_code_names, j_rank_size, j_rank_idx, MPI_CHAR,
              0, comm);
 
@@ -1066,9 +1059,9 @@ CWP_client_Init
   }
 
   // code name
-  clt->code_name = (char *) malloc(sizeof(char) * (strlen(code_name)+1));
-  memset(clt->code_name, 0, strlen(code_name)+1);
-  memcpy(clt->code_name, code_name, strlen(code_name));
+  clt->code_name = (char *) malloc(sizeof(char) * (strlen(code_names[0])+1));
+  memset(clt->code_name, 0, strlen(code_names[0])+1);
+  memcpy(clt->code_name, code_names[0], strlen(code_names[0]));
 
   // free
   free(buffer);
@@ -1105,18 +1098,22 @@ CWP_client_Init
   }
 
   // endian swap
-  int          endian_n_code         = n_code;
-  CWP_Status_t endian_is_active_rank = is_active_rank;
-  double       endian_time_init      = time_init;
+  int           endian_n_code         = n_code;
+  CWP_Status_t *endian_is_active_rank = (CWP_Status_t *) malloc(sizeof(int) * n_code);
+  double       *endian_time_init      = (double *) malloc(sizeof(double) * n_code);
+  memcpy(endian_is_active_rank, is_active_rank, sizeof(CWP_Status_t) * n_code);
+  memcpy(endian_time_init, time_init, sizeof(double) * n_code);
   CWP_swap_endian_4bytes(&endian_n_code, 1);
-  CWP_swap_endian_4bytes((int *) &endian_is_active_rank, 1);
-  CWP_swap_endian_8bytes(&endian_time_init, n_code);
+  CWP_swap_endian_4bytes((int *) endian_is_active_rank, n_code);
+  CWP_swap_endian_8bytes(endian_time_init, n_code);
 
   // send arguments
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_code, sizeof(int));
-  write_name(code_name);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_is_active_rank, n_code * sizeof(CWP_Status_t));
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_time_init, n_code * sizeof(double));
+  for (int i = 0; i < n_code; i++) {
+    write_name(code_names[i]);
+  }
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_is_active_rank, n_code * sizeof(CWP_Status_t));
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_time_init, n_code * sizeof(double));
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -1133,6 +1130,10 @@ CWP_client_Init
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // free
+  free(endian_is_active_rank);
+  free(endian_time_init);
 
   // standard cwipi init message
   if (clt->i_rank == 0) {

@@ -151,20 +151,27 @@ int main ( int argc, char *argv[] )
   sleep(5);
 
   // CWP_Init
+  int n_code  = 1;
   int id_code = 0;
 
-  const char  *code_name       = NULL;
-  double       time_init       = 0.;
-  CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
+  const char  **code_names      = malloc(sizeof(char *) * n_code);
+  double       *times_init      = malloc(sizeof(double) * n_code);
+  CWP_Status_t *is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
 
   if (i_rank == 0) {
     id_code = 0;
-    code_name = "code1";
+
+    code_names[0]      = "code1";
+    times_init[0]      = 0.;
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (i_rank == 1) {
     id_code = 1;
-    code_name = "code2";
+
+    code_names[0]      = "code2";
+    times_init[0]      = 0.;
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   // Outputfile
@@ -187,9 +194,10 @@ int main ( int argc, char *argv[] )
 
   CWP_client_Init(intra_comm,
                   config,
-                  code_name,
+                  n_code,
+                  (const char **) code_names,
                   is_coupled_rank,
-                  time_init);
+                  times_init);
 
   // CWP_User_structure_*
   CWP_client_User_structure_set("code1", NULL);
@@ -208,7 +216,7 @@ int main ( int argc, char *argv[] )
   int    n_Loc_codes  = CWP_client_Loc_codes_nb_get();
   char **LoccodeNames = (char **) CWP_client_Loc_codes_list_get();
   // --> check
-  if (!(n_Loc_codes == 1 && strcmp(LoccodeNames[0], code_name) == 0)) {
+  if (!(n_Loc_codes == 1 && strcmp(LoccodeNames[0], code_names[0]) == 0)) {
     exit_check = 1;
   }
 
@@ -324,18 +332,18 @@ int main ( int argc, char *argv[] )
   // reduce
   double res = 0;
   char **g_code_names = malloc(sizeof(char *) * 2);
-  g_code_names = malloc(sizeof(char) * 99);
+  g_code_names[0] = malloc(sizeof(char) * 99);
   g_code_names[1] = malloc(sizeof(char) * 99);
   char test1[6] = "code1";
   strcpy(g_code_names[0], test1);
   char test2[6] = "code2";
   strcpy(g_code_names[1], test2);
-  g_code_names[6] = '\0';
+  g_code_names[0][6] = '\0';
   g_code_names[1][6] = '\0';
 
   CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2, (const char **) g_code_names);
 
-  free(g_code_names);
+  free(g_code_names[0]);
   free(g_code_names[1]);
   free(g_code_names);
 
@@ -616,7 +624,7 @@ int main ( int argc, char *argv[] )
   MPI_Barrier(comm);
 
   // HO mesh
-  int block_id = CWP_client_Mesh_interf_block_add(code_name,
+  int block_id = CWP_client_Mesh_interf_block_add(code_names[0],
                                                   cpl_id1,
                                                   CWP_BLOCK_FACE_TRIAHO);
 
@@ -644,7 +652,7 @@ int main ( int argc, char *argv[] )
   node_coord[15] = 0.5;
   node_coord[16] = 0.5;
   node_coord[17] = 0.;
-  CWP_client_Mesh_interf_vtx_set(code_name,
+  CWP_client_Mesh_interf_vtx_set(code_names[0],
                                  cpl_id1,
                                  0,
                                  6,
@@ -656,7 +664,7 @@ int main ( int argc, char *argv[] )
     elt_node[i] = i+1;
   }
 
-  CWP_client_Mesh_interf_block_ho_set(code_name,
+  CWP_client_Mesh_interf_block_ho_set(code_names[0],
                                       cpl_id1,
                                       0,
                                       block_id,
@@ -683,14 +691,14 @@ int main ( int argc, char *argv[] )
 
   ijk[10] = 1;
   ijk[11] = 1;
-  CWP_client_Mesh_interf_ho_ordering_from_IJK_set(code_name,
+  CWP_client_Mesh_interf_ho_ordering_from_IJK_set(code_names[0],
                                                   cpl_id1,
                                                   CWP_BLOCK_FACE_TRIAHO,
                                                   2,
                                                   6,
                                                   ijk);
 
-  CWP_client_Mesh_interf_finalize(code_name, cpl_id1);
+  CWP_client_Mesh_interf_finalize(code_names[0], cpl_id1);
 
   MPI_Barrier(comm);
 
@@ -698,7 +706,7 @@ int main ( int argc, char *argv[] )
   int            order      = 0;
   int           *connec     = NULL;
   CWP_g_num_t   *global_num = NULL;
-  CWP_client_Mesh_interf_block_ho_get(code_name,
+  CWP_client_Mesh_interf_block_ho_get(code_names[0],
                                       cpl_id1,
                                       0,
                                       block_id,
@@ -734,6 +742,9 @@ int main ( int argc, char *argv[] )
   CWP_client_Finalize();
 
   // free
+  if (times_init != NULL) free(times_init);
+  if (code_names != NULL) free(code_names);
+  if (is_coupled_rank != NULL) free(is_coupled_rank);
   free(node_coord);
   free(elt_node);
   free(ijk);

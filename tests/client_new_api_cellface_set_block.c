@@ -160,7 +160,7 @@ _read_args
 int
 main
 (
- int   argc,
+ int argc,
  char *argv[]
 )
 {
@@ -221,31 +221,46 @@ main
 
 
   // Init
-  const char *code_name = NULL;
+  int n_code = 0;
+  const char **code_names = NULL;
+  double *times_init = NULL;
+  CWP_Status_t *is_coupled_rank = NULL;
   int id_code = 0;
 
   if (rank == 0) {
     id_code = 0;
-    code_name = "code1_cell_faces";
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1_cell_faces";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (rank == 1) {
     id_code = 1;
-    code_name = "code2";
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
 
-  CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
-  double       time_init       = 0.;
+  times_init = malloc(sizeof(double) * n_code);
+
+  for (int i = 0 ; i < n_code ; i++) {
+    times_init[i] = 0;
+  }
 
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, id_code, rank, &intra_comm);
 
   CWP_client_Init(intra_comm,
                   config,
-                  code_name,
+                  n_code,
+                  code_names,
                   is_coupled_rank,
-                  time_init);
+                  times_init);
 
   char cpl_id1[] = "cpl_code1_code2";
 
@@ -351,6 +366,9 @@ main
 
   MPI_Finalize();
 
+  free(code_names);
+  free(is_coupled_rank);
+  free(times_init);
   free(coords       );
   free(face_vtx_idx );
   free(face_vtx     );

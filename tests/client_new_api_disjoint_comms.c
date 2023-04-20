@@ -481,9 +481,10 @@ main
   // Init cwipi
   CWP_client_Init(intra_comm,
                   config,
-                  (const char *) code_names[0],
-                  is_active_rank[0],
-                  time_init[0]);
+                  n_code,
+                  (const char **) code_names,
+                  is_active_rank,
+                  time_init);
 
   MPI_Barrier(intra_comm);
 
