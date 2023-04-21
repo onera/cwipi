@@ -1215,6 +1215,7 @@ CWP_server_Cpl_create
   t_coupling coupling = t_coupling();
   svr_cwp.coupling.insert(std::make_pair(s, coupling));
   svr_cwp.coupling[s].n_part = n_part;
+  svr_cwp.coupling[s].mesh_dynamic = displacement;
 
   // free
   free(local_code_name);
@@ -1274,6 +1275,11 @@ CWP_server_Cpl_del
   std::string s(cpl_id);
 
   if (svr_cwp.coupling[s].ijk_grid != NULL) free(svr_cwp.coupling[s].ijk_grid);
+
+  if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    if (svr_cwp.coupling[s].n_user_vtx != NULL) free(svr_cwp.coupling[s].n_user_vtx);
+    if (svr_cwp.coupling[s].n_vtx != NULL) free(svr_cwp.coupling[s].n_vtx);
+  }
 
   // n_part
   if (svr_cwp.coupling[s].vtx_coord != NULL) {
@@ -1687,6 +1693,8 @@ CWP_server_Time_update
   // read current time
   double current_time = - 1.0;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
+
+  // TO DO : receive if deformable the arrays and set them to the pointers here
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -2575,6 +2583,7 @@ CWP_server_User_tgt_pts_set
   std::string s(cpl_id);
 
   if (svr_cwp.coupling[s].usr_coord == NULL) {
+    svr_cwp.coupling[s].n_user_vtx     = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].usr_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].usr_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
 
@@ -2582,6 +2591,10 @@ CWP_server_User_tgt_pts_set
       svr_cwp.coupling[s].usr_coord[j_part]      = NULL;
       svr_cwp.coupling[s].usr_global_num[j_part] = NULL;
     }
+  }
+
+  if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    svr_cwp.coupling[s].n_user_vtx[i_part] = n_pts;
   }
 
   svr_cwp.coupling[s].usr_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);
@@ -2736,6 +2749,7 @@ CWP_server_Mesh_interf_vtx_set
   std::string s(cpl_id);
 
   if (svr_cwp.coupling[s].vtx_coord == NULL) {
+    svr_cwp.coupling[s].n_vtx          = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].vtx_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].vtx_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
 
@@ -2743,6 +2757,10 @@ CWP_server_Mesh_interf_vtx_set
       svr_cwp.coupling[s].vtx_coord[j_part]      = NULL;
       svr_cwp.coupling[s].vtx_global_num[j_part] = NULL;
     }
+  }
+
+  if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    svr_cwp.coupling[s].n_vtx[i_part] = n_pts;
   }
 
   svr_cwp.coupling[s].vtx_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);

@@ -201,13 +201,17 @@ struct t_coupling
     face_vtx        = NULL;
     cell_global_num = NULL;
     ijk_grid        = NULL;
+    n_vtx           = NULL;
+    n_user_vtx      = NULL;
   }
 
   // Mesh_interf_vtx_set
+  int          *n_vtx;
   double      **vtx_coord;
   CWP_g_num_t **vtx_global_num;
 
   // User_tgt_pts_set
+  int          *n_user_vtx;
   double      **usr_coord;
   CWP_g_num_t **usr_global_num;
 
@@ -228,7 +232,8 @@ struct t_coupling
   int *ijk_grid;
 
   // Cpl_create
-  int n_part;
+  int                n_part;
+  CWP_Dynamic_mesh_t mesh_dynamic;
 
   // Spatial_interp_property_set
   std::map<std::string, t_property> property;
