@@ -1406,6 +1406,23 @@ namespace cwipi {
     if (_pdmNodal_handle_index != NULL) {
       PDM_part_mesh_nodal_free(_pdmNodal_handle_index);
     }
+    _pdmNodal_handle_index = NULL;
+
+    free(_blocksType);
+    _blocksType = NULL;
+    _nBlocks = 0;
+
+    for (int i = 0; i < _npart; i++) {
+      if (_elt_id_block[i] != NULL) {
+        free(_elt_id_block[i]);
+        _elt_id_block[i] = NULL;
+      }
+
+      if (_elt_in_block[i] != NULL) {
+        free(_elt_in_block[i]);
+        _elt_in_block[i] = NULL;
+      }
+    }
   }
 
 

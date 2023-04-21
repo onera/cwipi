@@ -74,7 +74,8 @@ _read_args
   int                   *n_vtx_seg2,
   PDM_split_dual_t      *part_method,
   double                *tolerance,
-  int                   *randomize
+  int                   *randomize,
+  int                   *variable_mesh
 )
 {
   int i = 1;
@@ -130,6 +131,9 @@ _read_args
     }
     else if (strcmp(argv[i], "-hilbert") == 0) {
       *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
+    }
+    else if (strcmp(argv[i], "-variable_mesh") == 0) {
+      *variable_mesh = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -365,6 +369,7 @@ int main(int argc, char *argv[])
   int    n_vtx_seg2            = 4;
   int    randomize             = 1;
   double tolerance             = 1e-2;
+  int    variable_mesh         = 0;
 
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
@@ -383,7 +388,8 @@ int main(int argc, char *argv[])
              &n_vtx_seg2,
              &part_method,
              &tolerance,
-             &randomize);
+             &randomize,
+             &variable_mesh);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -439,21 +445,25 @@ int main(int argc, char *argv[])
 
 
   // Create coupling
+  CWP_Dynamic_mesh_t displacement = CWP_DYNAMIC_MESH_DEFORMABLE;
+  if (variable_mesh) {
+    displacement = CWP_DYNAMIC_MESH_VARIABLE;
+  }
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_dynamic";
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Cpl_create(code_name[i_code],                                     // Code name
-                   cpl_name,                                              // Coupling id
-                   coupled_code_name[i_code],                             // Coupled application id
+    CWP_Cpl_create(code_name[i_code],              // Code name
+                   cpl_name,                       // Coupling id
+                   coupled_code_name[i_code],      // Coupled application id
                    CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,                                // Coupling type
+                   CWP_COMM_PAR_WITH_PART,         // Coupling type
                    spatial_interp,
-                   n_part,                                                // Partition number
-                   CWP_DYNAMIC_MESH_DEFORMABLE,                           // Mesh displacement type
-                   CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
+                   n_part,                         // Partition number
+                   displacement,                   // Mesh displacement type
+                   CWP_TIME_EXCH_USER_CONTROLLED); // Postprocessing frequency
   }
 
 
@@ -500,29 +510,29 @@ int main(int argc, char *argv[])
               &pvtx_ln_to_gn[i_code]);
 
 
-    CWP_Mesh_interf_vtx_set(code_name[i_code],
-                            cpl_name,
-                            0,
-                            pn_vtx[i_code][0],
-                            pvtx_coord[i_code][0],
-                            pvtx_ln_to_gn[i_code][0]);
+    if (!variable_mesh) {
+      CWP_Mesh_interf_vtx_set(code_name[i_code],
+                              cpl_name,
+                              0,
+                              pn_vtx[i_code][0],
+                              pvtx_coord[i_code][0],
+                              pvtx_ln_to_gn[i_code][0]);
 
-    int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
-                                             cpl_name,
-                                             CWP_BLOCK_FACE_POLY);
+      int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
+                                               cpl_name,
+                                               CWP_BLOCK_FACE_POLY);
 
-    CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
-                                     cpl_name,
-                                     0,
-                                     block_id,
-                                     pn_face[i_code][0],
-                                     pface_vtx_idx[i_code][0],
-                                     pface_vtx[i_code][0],
-                                     pface_ln_to_gn[i_code][0]);
-  }
+      CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
+                                       cpl_name,
+                                       0,
+                                       block_id,
+                                       pn_face[i_code][0],
+                                       pface_vtx_idx[i_code][0],
+                                       pface_vtx[i_code][0],
+                                       pface_ln_to_gn[i_code][0]);
 
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
+      CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
+    }
   }
 
   if (rank == 0) {
@@ -638,6 +648,7 @@ int main(int argc, char *argv[])
     if (rank == 0) {
       printf("  Step %d\n", step);
     }
+    log_trace("  Step %d\n", step);
 
 
     // Mesh rotation and new localisation
@@ -654,6 +665,37 @@ int main(int argc, char *argv[])
       if (step > 0) {
         CWP_Time_update(code_name[i_code],
                         recv_time);
+
+        if (variable_mesh) {
+          log_trace("> CWP_Mesh_interf_del\n");
+          CWP_Mesh_interf_del(code_name[i_code],
+                              cpl_name);
+        }
+      }
+
+      if (variable_mesh) {
+        CWP_Mesh_interf_vtx_set(code_name[i_code],
+                                cpl_name,
+                                0,
+                                pn_vtx[i_code][0],
+                                pvtx_coord[i_code][0],
+                                pvtx_ln_to_gn[i_code][0]);
+
+        int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
+                                                 cpl_name,
+                                                 CWP_BLOCK_FACE_POLY);
+        log_trace("block_id = %d\n", block_id);
+
+        CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
+                                         cpl_name,
+                                         0,
+                                         block_id,
+                                         pn_face[i_code][0],
+                                         pface_vtx_idx[i_code][0],
+                                         pface_vtx[i_code][0],
+                                         pface_ln_to_gn[i_code][0]);
+
+        CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
       }
     }
 
