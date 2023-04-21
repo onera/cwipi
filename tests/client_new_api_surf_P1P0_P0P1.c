@@ -251,7 +251,6 @@ main
   MPI_Barrier(comm);
 
   // Initialization
-  int n_code = 1;
   const char   *code_name         = NULL;
   const char   *coupled_code_name = NULL;
   CWP_Status_t  is_active_rank    = CWP_STATUS_ON;

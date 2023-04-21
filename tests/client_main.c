@@ -324,19 +324,19 @@ int main ( int argc, char *argv[] )
   // reduce
   double res = 0;
   char **g_code_names = malloc(sizeof(char *) * 2);
-  g_code_names = malloc(sizeof(char) * 99);
+  g_code_names[0] = malloc(sizeof(char) * 99);
   g_code_names[1] = malloc(sizeof(char) * 99);
   char test1[6] = "code1";
   strcpy(g_code_names[0], test1);
   char test2[6] = "code2";
   strcpy(g_code_names[1], test2);
-  g_code_names[6] = '\0';
+  g_code_names[0][6] = '\0';
   g_code_names[1][6] = '\0';
 
   CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2, (const char **) g_code_names);
 
-  free(g_code_names);
   free(g_code_names[1]);
+  free(g_code_names[0]);
   free(g_code_names);
 
   // --> check
