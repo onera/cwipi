@@ -1408,9 +1408,6 @@ namespace cwipi {
     }
     _pdmNodal_handle_index = NULL;
 
-    free(_blocksType);
-    _blocksType = NULL;
-    _nBlocks = 0;
 
     for (int i = 0; i < _npart; i++) {
       if (_elt_id_block[i] != NULL) {
@@ -1422,7 +1419,37 @@ namespace cwipi {
         free(_elt_in_block[i]);
         _elt_in_block[i] = NULL;
       }
+
+      for (int i_block = 0; i_block < _nBlocks; i_block++) {
+        _blockDB[i_block]->GNumMeshFree(i);
+      }
+
+      if (_isVtxGnumComputed) {
+        if (_global_num_vtx[i] != NULL) {
+          free(_global_num_vtx[i]);
+          _global_num_vtx[i] = NULL;
+        }
+      }
+
+      if (_isEltGnumComputed) {
+        if (_faceEdgeMethod == 1) {
+          if (_faceLNToGN[i] != NULL) {
+            free(_faceLNToGN[i]);
+            _faceLNToGN[i] = NULL;
+          }
+        }
+        else if (_cellFaceMethod == 1) {
+          if (_cellLNToGN[i] != NULL) {
+            free(_cellLNToGN[i]);
+            _cellLNToGN[i] = NULL;
+          }
+        }
+      }
     }
+
+    free(_blocksType);
+    _blocksType = NULL;
+    _nBlocks = 0;
   }
 
 

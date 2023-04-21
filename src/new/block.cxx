@@ -87,6 +87,16 @@ namespace cwipi {
     _owner_gnum = owner;
   }
 
+  void
+  Block::GNumMeshFree(int i_part) {
+    if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
+      if (_global_num[i_part] != NULL) {
+        free(_global_num[i_part]);
+        _global_num[i_part] = NULL;
+      }
+    }
+  }
+
 
   PDM_Mesh_nodal_elt_t Block::PdmBlockTypeFromCwpBlockType(
                                                            CWP_Block_t CWP_block_type

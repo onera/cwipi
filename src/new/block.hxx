@@ -154,6 +154,8 @@ namespace cwipi {
 
     void GNumMeshSet(int i_part, CWP_g_num_t* gnum, PDM_ownership_t owner);
 
+    void GNumMeshFree(int i_part);
+
 
     const double* eltCentersGet(int i_part);
 

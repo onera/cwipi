@@ -648,7 +648,6 @@ int main(int argc, char *argv[])
     if (rank == 0) {
       printf("  Step %d\n", step);
     }
-    log_trace("  Step %d\n", step);
 
 
     // Mesh rotation and new localisation
@@ -667,7 +666,6 @@ int main(int argc, char *argv[])
                         recv_time);
 
         if (variable_mesh) {
-          log_trace("> CWP_Mesh_interf_del\n");
           CWP_Mesh_interf_del(code_name[i_code],
                               cpl_name);
         }
@@ -684,7 +682,6 @@ int main(int argc, char *argv[])
         int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
                                                  cpl_name,
                                                  CWP_BLOCK_FACE_POLY);
-        log_trace("block_id = %d\n", block_id);
 
         CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
                                          cpl_name,
