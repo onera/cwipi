@@ -185,47 +185,114 @@ main
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
   // Create mesh with several blocks
-  int n_vtx = 9;
-  double coords[27] = {0., 0., 0.,   1., 0., 0.,   2., 0., 0.,   0., 1., 0.,
-                       1., 1., 0.,   2., 1., 0.,   0., 2., 0.,   1., 2., 0.,   2., 2., 0.};
+  // int n_vtx = 9;
+  // double coords[27] = {0., 0., 0.,   1., 0., 0.,   2., 0., 0.,   0., 1., 0.,
+  //                      1., 1., 0.,   2., 1., 0.,   0., 2., 0.,   1., 2., 0.,   2., 2., 0.};
+  // CWP_Mesh_interf_vtx_set(code_name,
+  //                         cpl_name,
+  //                         0,
+  //                         n_vtx,
+  //                         coords,
+  //                         NULL);
+
+  // int first_block_id = CWP_Mesh_interf_block_add(code_name,
+  //                                                cpl_name,
+  //                                                CWP_BLOCK_FACE_TRIA3);
+  // int n_first_elts = 4;
+  // int first_connec[12] = {1, 2, 5,   1, 5, 4,   5, 6, 9,   5, 9, 8};
+  // CWP_Mesh_interf_block_std_set(code_name,
+  //                               cpl_name,
+  //                               0,
+  //                               first_block_id,
+  //                               n_first_elts,
+  //                               first_connec,
+  //                               NULL);
+
+  // int second_block_id = CWP_Mesh_interf_block_add(code_name,
+  //                                                 cpl_name,
+  //                                                 CWP_BLOCK_FACE_QUAD4);
+
+  // int n_second_elts = 2;
+  // int second_connec[8] = {2, 3, 6, 5,   4, 5, 8, 7};
+  // CWP_Mesh_interf_block_std_set(code_name,
+  //                               cpl_name,
+  //                               0,
+  //                               second_block_id,
+  //                               n_second_elts,
+  //                               second_connec,
+  //                               NULL);
+  int          *pn_vtx         = NULL;
+  int          *pn_edge        = NULL;
+  int          *pn_face        = NULL;
+  double      **pvtx_coord     = NULL;
+  int         **pedge_vtx      = NULL;
+  int         **pface_edge_idx = NULL;
+  int         **pface_edge     = NULL;
+  PDM_g_num_t **pvtx_ln_to_gn  = NULL;
+  PDM_g_num_t **pedge_ln_to_gn = NULL;
+  PDM_g_num_t **pface_ln_to_gn = NULL;
+  PDM_generate_mesh_rectangle_ngon(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm),
+                                   PDM_MESH_NODAL_POLY_2D,
+                                   0.,
+                                   0.,
+                                   0.,
+                                   1.,
+                                   1.,
+                                   10,
+                                   10,
+                                   n_part,
+                                   PDM_SPLIT_DUAL_WITH_HILBERT,
+                                   &pn_vtx,
+                                   &pn_edge,
+                                   &pn_face,
+                                   &pvtx_coord,
+                                   &pedge_vtx,
+                                   &pface_edge_idx,
+                                   &pface_edge,
+                                   &pvtx_ln_to_gn,
+                                   &pedge_ln_to_gn,
+                                   &pface_ln_to_gn);
+
   CWP_Mesh_interf_vtx_set(code_name,
                           cpl_name,
                           0,
-                          n_vtx,
-                          coords,
+                          pn_vtx[0],
+                          pvtx_coord[0],
                           NULL);
 
-  int first_block_id = CWP_Mesh_interf_block_add(code_name,
-                                                 cpl_name,
-                                                 CWP_BLOCK_FACE_TRIA3);
-  int n_first_elts = 4;
-  int first_connec[12] = {1, 2, 5,   1, 5, 4,   5, 6, 9,   5, 9, 8};
-  CWP_Mesh_interf_block_std_set(code_name,
-                                cpl_name,
-                                0,
-                                first_block_id,
-                                n_first_elts,
-                                first_connec,
-                                NULL);
-
-  int second_block_id = CWP_Mesh_interf_block_add(code_name,
-                                                  cpl_name,
-                                                  CWP_BLOCK_FACE_QUAD4);
-
-  int n_second_elts = 2;
-  int second_connec[8] = {2, 3, 6, 5,   4, 5, 8, 7};
-  CWP_Mesh_interf_block_std_set(code_name,
-                                cpl_name,
-                                0,
-                                second_block_id,
-                                n_second_elts,
-                                second_connec,
-                                NULL);
+  CWP_Mesh_interf_from_faceedge_set(code_name,
+                                    cpl_name,
+                                    0,
+                                    pn_face[0],
+                                    pface_edge_idx[0],
+                                    pface_edge[0],
+                                    pn_edge[0],
+                                    pedge_vtx[0],
+                                    NULL);
 
   CWP_Mesh_interf_finalize(code_name, cpl_name);
 
   // Delete mesh
   CWP_Mesh_interf_del(code_name, cpl_name);
+
+  free(pvtx_coord    [0]);
+  free(pedge_vtx     [0]);
+  free(pface_edge_idx[0]);
+  free(pface_edge    [0]);
+  free(pvtx_ln_to_gn [0]);
+  free(pedge_ln_to_gn[0]);
+  free(pface_ln_to_gn[0]);
+
+  free(pn_vtx        );
+  free(pn_edge       );
+  free(pn_face       );
+  free(pvtx_coord    );
+  free(pedge_vtx     );
+  free(pface_edge_idx);
+  free(pface_edge    );
+  free(pvtx_ln_to_gn );
+  free(pedge_ln_to_gn);
+  free(pface_ln_to_gn);
 
 
   // Update time

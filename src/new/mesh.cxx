@@ -617,7 +617,7 @@ namespace cwipi {
             int nb = _faceEdgeIdx[i_part][j+1]-_faceEdgeIdx[i_part][j];
 
             for (int k = idx; k < idx + nb; k++) {
-              int iEdge = _faceEdge[i_part][k] - 1;
+              int iEdge = std::abs(_faceEdge[i_part][k]) - 1;
               for (int k1 = 0; k1 < 2; k1++) {
                 int ivtx = _edgeVtx[i_part][2*iEdge + k1] - 1;
                 for (int k2 = 0; k2 < 3; k2++) {
@@ -662,7 +662,7 @@ namespace cwipi {
                                                 _faceEdgeIdx[i_part],
                                                 _faceEdge   [i_part],
                                                 _faceLNToGN [i_part],
-                                                PDM_OWNERSHIP_USER);
+                                                PDM_OWNERSHIP_KEEP);
 
       }//end i_part loop
 
