@@ -1273,28 +1273,195 @@ CWP_server_Cpl_del
   // remove from map
   std::string s(cpl_id);
 
-  if (svr_cwp.coupling[s].vtx_coord != NULL) free(svr_cwp.coupling[s].vtx_coord);
-  if (svr_cwp.coupling[s].vtx_global_num != NULL) free(svr_cwp.coupling[s].vtx_global_num);
-  if (svr_cwp.coupling[s].connec_faces_idx != NULL) free(svr_cwp.coupling[s].connec_faces_idx);
-  if (svr_cwp.coupling[s].connec_faces != NULL) free(svr_cwp.coupling[s].connec_faces);
-  if (svr_cwp.coupling[s].connec_cells_idx != NULL) free(svr_cwp.coupling[s].connec_cells_idx);
-  if (svr_cwp.coupling[s].connec_cells != NULL) free(svr_cwp.coupling[s].connec_cells);
-  if (svr_cwp.coupling[s].cell_global_num != NULL) free(svr_cwp.coupling[s].cell_global_num);
-  if (svr_cwp.coupling[s].connec_idx != NULL) free(svr_cwp.coupling[s].connec_idx);
-  if (svr_cwp.coupling[s].connec != NULL) free(svr_cwp.coupling[s].connec);
-  if (svr_cwp.coupling[s].elt_global_num != NULL) free(svr_cwp.coupling[s].elt_global_num);
-  if (svr_cwp.coupling[s].face_edge_idx != NULL) free(svr_cwp.coupling[s].face_edge_idx);
-  if (svr_cwp.coupling[s].face_edge != NULL) free(svr_cwp.coupling[s].face_edge);
-  if (svr_cwp.coupling[s].edge_vtx != NULL) free(svr_cwp.coupling[s].edge_vtx);
-  if (svr_cwp.coupling[s].face_global_num != NULL) free(svr_cwp.coupling[s].face_global_num);
-  if (svr_cwp.coupling[s].std_connec != NULL) free(svr_cwp.coupling[s].std_connec);
-  if (svr_cwp.coupling[s].std_global_num != NULL) free(svr_cwp.coupling[s].std_global_num);
-  if (svr_cwp.coupling[s].ho_std_connec != NULL) free(svr_cwp.coupling[s].ho_std_connec);
-  if (svr_cwp.coupling[s].ho_std_global_num != NULL) free(svr_cwp.coupling[s].ho_std_global_num);
   if (svr_cwp.coupling[s].ijk_grid != NULL) free(svr_cwp.coupling[s].ijk_grid);
-  if (svr_cwp.coupling[s].usr_coord != NULL) free(svr_cwp.coupling[s].usr_coord);
-  if (svr_cwp.coupling[s].usr_global_num != NULL) free(svr_cwp.coupling[s].usr_global_num);
 
+  // n_part
+  if (svr_cwp.coupling[s].vtx_coord != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].vtx_coord[i_part] != NULL) free(svr_cwp.coupling[s].vtx_coord[i_part]);
+    }
+    free(svr_cwp.coupling[s].vtx_coord);
+  }
+
+  if (svr_cwp.coupling[s].vtx_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].vtx_global_num[i_part] != NULL) free(svr_cwp.coupling[s].vtx_global_num[i_part]);
+    }
+    free(svr_cwp.coupling[s].vtx_global_num);
+  }
+
+  if (svr_cwp.coupling[s].usr_coord != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].usr_coord[i_part] != NULL) free(svr_cwp.coupling[s].usr_coord[i_part]);
+    }
+    free(svr_cwp.coupling[s].usr_coord);
+  }
+
+  if (svr_cwp.coupling[s].usr_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].usr_global_num[i_part] != NULL) free(svr_cwp.coupling[s].usr_global_num[i_part]);
+    }
+    free(svr_cwp.coupling[s].usr_global_num);
+  }
+
+  if (svr_cwp.coupling[s].face_edge_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_edge_idx[i_part] != NULL) free(svr_cwp.coupling[s].face_edge_idx[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_edge_idx);
+  }
+
+  if (svr_cwp.coupling[s].face_edge != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_edge[i_part] != NULL) free(svr_cwp.coupling[s].face_edge[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_edge);
+  }
+
+  if (svr_cwp.coupling[s].edge_vtx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].edge_vtx[i_part] != NULL) free(svr_cwp.coupling[s].edge_vtx[i_part]);
+    }
+    free(svr_cwp.coupling[s].edge_vtx);
+  }
+
+  if (svr_cwp.coupling[s].face_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_global_num[i_part] != NULL) free(svr_cwp.coupling[s].face_global_num[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_global_num);
+  }
+
+  if (svr_cwp.coupling[s].cell_face_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_face_idx[i_part] != NULL) free(svr_cwp.coupling[s].cell_face_idx[i_part]);
+    }
+    free(svr_cwp.coupling[s].cell_face_idx);
+  }
+
+  if (svr_cwp.coupling[s].cell_face != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_face[i_part] != NULL) free(svr_cwp.coupling[s].cell_face[i_part]);
+    }
+    free(svr_cwp.coupling[s].cell_face);
+  }
+
+  if (svr_cwp.coupling[s].face_vtx_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_vtx_idx[i_part] != NULL) free(svr_cwp.coupling[s].face_vtx_idx[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_vtx_idx);
+  }
+
+  if (svr_cwp.coupling[s].face_vtx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_vtx[i_part] != NULL) free(svr_cwp.coupling[s].face_vtx[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_vtx);
+  }
+
+  if (svr_cwp.coupling[s].cell_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_global_num[i_part] != NULL) free(svr_cwp.coupling[s].cell_global_num[i_part]);
+    }
+    free(svr_cwp.coupling[s].cell_global_num);
+  }
+
+  // Block
+  if (!svr_cwp.coupling[s].block.empty()) {
+    std::map<std::string, t_block>::iterator it_b = svr_cwp.coupling[s].block.begin();
+    while (it_b != svr_cwp.coupling[s].block.end()) {
+
+      // n_part
+      if ((it_b->second).connec_faces_idx != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec_faces_idx[i_part] != NULL) free((it_b->second).connec_faces_idx[i_part]);
+        }
+        free((it_b->second).connec_faces_idx);
+      }
+
+      if ((it_b->second).connec_faces != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec_faces[i_part] != NULL) free((it_b->second).connec_faces[i_part]);
+        }
+        free((it_b->second).connec_faces);
+      }
+
+      if ((it_b->second).connec_cells_idx != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec_cells_idx[i_part] != NULL) free((it_b->second).connec_cells_idx[i_part]);
+        }
+        free((it_b->second).connec_cells_idx);
+      }
+
+      if ((it_b->second).connec_cells != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec_cells[i_part] != NULL) free((it_b->second).connec_cells[i_part]);
+        }
+        free((it_b->second).connec_cells);
+      }
+
+      if ((it_b->second).cell_global_num != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).cell_global_num[i_part] != NULL) free((it_b->second).cell_global_num[i_part]);
+        }
+        free((it_b->second).cell_global_num);
+      }
+
+      if ((it_b->second).connec_idx != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec_idx[i_part] != NULL) free((it_b->second).connec_idx[i_part]);
+        }
+        free((it_b->second).connec_idx);
+      }
+
+      if ((it_b->second).connec != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).connec[i_part] != NULL) free((it_b->second).connec[i_part]);
+        }
+        free((it_b->second).connec);
+      }
+
+      if ((it_b->second).elt_global_num != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).elt_global_num[i_part] != NULL) free((it_b->second).elt_global_num[i_part]);
+        }
+        free((it_b->second).elt_global_num);
+      }
+
+      if ((it_b->second).std_connec != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).std_connec[i_part] != NULL) free((it_b->second).std_connec[i_part]);
+        }
+        free((it_b->second).std_connec);
+      }
+
+      if ((it_b->second).std_global_num != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).std_global_num[i_part] != NULL) free((it_b->second).std_global_num[i_part]);
+        }
+        free((it_b->second).std_global_num);
+      }
+
+      if ((it_b->second).ho_std_connec != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).ho_std_connec[i_part] != NULL) free((it_b->second).ho_std_connec[i_part]);
+        }
+        free((it_b->second).ho_std_connec);
+      }
+
+      if ((it_b->second).ho_std_global_num != NULL) {
+        for (int i_part = 0; i_part < (it_b->second).n_part; i_part++) {
+          if ((it_b->second).ho_std_global_num[i_part] != NULL) free((it_b->second).ho_std_global_num[i_part]);
+        }
+        free((it_b->second).ho_std_global_num);
+      }
+
+      it_b = svr_cwp.coupling[s].block.erase(it_b);
+    }
+  }
+
+  // Field
   if (!svr_cwp.coupling[s].field.empty()) {
     std::map<std::string, t_field>::iterator it_f = svr_cwp.coupling[s].field.begin();
     while (it_f != svr_cwp.coupling[s].field.end()) {
@@ -1309,6 +1476,7 @@ CWP_server_Cpl_del
     }
   }
 
+  // Global Data
   if (!svr_cwp.coupling[s].global_data.empty()) {
     std::map<std::string, t_global_data>::iterator it_gd = svr_cwp.coupling[s].global_data.begin();
     while (it_gd != svr_cwp.coupling[s].global_data.end()) {
@@ -1317,6 +1485,7 @@ CWP_server_Cpl_del
     }
   }
 
+  // Properties
   if (!svr_cwp.coupling[s].property.empty()) {
     std::map<std::string, t_property>::iterator it_p = svr_cwp.coupling[s].property.begin();
     while (it_p != svr_cwp.coupling[s].property.end()) {
@@ -2405,7 +2574,17 @@ CWP_server_User_tgt_pts_set
   // read coord
   std::string s(cpl_id);
 
-  svr_cwp.coupling[s].usr_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
+  if (svr_cwp.coupling[s].usr_coord == NULL) {
+    svr_cwp.coupling[s].usr_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].usr_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      svr_cwp.coupling[s].usr_coord[i_part]      = NULL;
+      svr_cwp.coupling[s].usr_global_num[i_part] = NULL;
+    }
+  }
+
+  svr_cwp.coupling[s].usr_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].usr_coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
@@ -2428,11 +2607,11 @@ CWP_server_User_tgt_pts_set
                          cpl_id,
                          i_part,
                          n_pts,
-                         svr_cwp.coupling[s].usr_coord,
+                         svr_cwp.coupling[s].usr_coord[i_part],
                          NULL);
   }
   else {
-    svr_cwp.coupling[s].usr_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    svr_cwp.coupling[s].usr_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].usr_global_num, sizeof(CWP_g_num_t) * n_pts);
 
     // send status msg
@@ -2448,8 +2627,8 @@ CWP_server_User_tgt_pts_set
                          cpl_id,
                          i_part,
                          n_pts,
-                         svr_cwp.coupling[s].usr_coord,
-                         svr_cwp.coupling[s].usr_global_num);
+                         svr_cwp.coupling[s].usr_coord[i_part],
+                         svr_cwp.coupling[s].usr_global_num[i_part]);
   }
 
   // send status msg
@@ -2555,7 +2734,18 @@ CWP_server_Mesh_interf_vtx_set
 
   // read coord
   std::string s(cpl_id);
-  svr_cwp.coupling[s].vtx_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
+
+  if (svr_cwp.coupling[s].vtx_coord == NULL) {
+    svr_cwp.coupling[s].vtx_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].vtx_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      svr_cwp.coupling[s].vtx_coord[i_part]      = NULL;
+      svr_cwp.coupling[s].vtx_global_num[i_part] = NULL;
+    }
+  }
+
+  svr_cwp.coupling[s].vtx_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
@@ -2577,11 +2767,11 @@ CWP_server_Mesh_interf_vtx_set
                             cpl_id,
                             i_part,
                             n_pts,
-                            svr_cwp.coupling[s].vtx_coord,
+                            svr_cwp.coupling[s].vtx_coord[i_part],
                             NULL);
   }
   else {
-    svr_cwp.coupling[s].vtx_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    svr_cwp.coupling[s].vtx_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_global_num, sizeof(CWP_g_num_t) * n_pts);
 
     // send status msg
@@ -2597,8 +2787,8 @@ CWP_server_Mesh_interf_vtx_set
                             cpl_id,
                             i_part,
                             n_pts,
-                            svr_cwp.coupling[s].vtx_coord,
-                            svr_cwp.coupling[s].vtx_global_num);
+                            svr_cwp.coupling[s].vtx_coord[i_part],
+                            svr_cwp.coupling[s].vtx_global_num[i_part]);
   }
 
   // send status msg
@@ -2980,12 +3170,29 @@ CWP_server_Mesh_interf_f_poly_block_set
   // read connectivity index
   std::string s(cpl_id);
 
-  svr_cwp.coupling[s].connec_idx = (int *) malloc(sizeof(int) * (n_elts+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec_idx, sizeof(int) * (n_elts+1));
+  if (svr_cwp.coupling[s].block.find( block_id ) != svr_cwp.coupling[s].block.end()) {
+    t_block block = t_block();
+    svr_cwp.coupling[s].block.insert(std::make_pair(block_id, block));
+  }
+
+  if (svr_cwp.coupling[s].block[block_id].connec_idx == NULL) {
+    svr_cwp.coupling[s].block[block_id].connec_idx      = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].connec          = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].elt_global_num  = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t*) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
+      svr_cwp.coupling[s].block[block_id].connec_idx[i_part] = NULL;
+      svr_cwp.coupling[s].block[block_id].connec[i_part]     = NULL;
+      svr_cwp.coupling[s].block[block_id].elt_global_num[i_part] = NULL;
+    }
+  }
+
+  svr_cwp.coupling[s].block[block_id].connec_idx[i_part] = (int *) malloc(sizeof(int) * (n_elts+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec_idx[i_part], sizeof(int) * (n_elts+1));
 
   // read connectivity
-  svr_cwp.coupling[s].connec = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].connec_idx[n_elts]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec, sizeof(int) * svr_cwp.coupling[s].connec_idx[n_elts]);
+  svr_cwp.coupling[s].block[block_id].connec[i_part] = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_idx[i_part][n_elts]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec[i_part], sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_idx[i_part][n_elts]);
 
   // read global number
   int NULL_flag;
@@ -3008,13 +3215,13 @@ CWP_server_Mesh_interf_f_poly_block_set
                                      i_part,
                                      block_id,
                                      n_elts,
-                                     svr_cwp.coupling[s].connec_idx,
-                                     svr_cwp.coupling[s].connec,
+                                     svr_cwp.coupling[s].block[block_id].connec_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec[i_part],
                                      NULL);
   }
   else {
-    svr_cwp.coupling[s].elt_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].elt_global_num, sizeof(CWP_g_num_t) * n_elts);
+    svr_cwp.coupling[s].block[block_id].elt_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].elt_global_num[i_part], sizeof(CWP_g_num_t) * n_elts);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -3030,9 +3237,9 @@ CWP_server_Mesh_interf_f_poly_block_set
                                      i_part,
                                      block_id,
                                      n_elts,
-                                     svr_cwp.coupling[s].connec_idx,
-                                     svr_cwp.coupling[s].connec,
-                                     svr_cwp.coupling[s].elt_global_num);
+                                     svr_cwp.coupling[s].block[block_id].connec_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec[i_part],
+                                     svr_cwp.coupling[s].block[block_id].elt_global_num[i_part]);
   }
 
   // send status msg
@@ -3186,20 +3393,41 @@ CWP_server_Mesh_interf_c_poly_block_set
   // read connectivity faces index
   std::string s(cpl_id);
 
-  svr_cwp.coupling[s].connec_faces_idx = (int *) malloc(sizeof(int) * (n_faces+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec_faces_idx, sizeof(int) * (n_faces+1));
+  if (svr_cwp.coupling[s].block.find( block_id ) != svr_cwp.coupling[s].block.end()) {
+    t_block block = t_block();
+    svr_cwp.coupling[s].block.insert(std::make_pair(block_id, block));
+  }
+
+  if (svr_cwp.coupling[s].block[block_id].connec_faces_idx == NULL) {
+    svr_cwp.coupling[s].block[block_id].connec_faces_idx = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].connec_faces     = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].connec_cells_idx = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].connec_cells     = (int **) malloc(sizeof(int*) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].block[block_id].cell_global_num  = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t*) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
+      svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part] = NULL;
+      svr_cwp.coupling[s].block[block_id].connec_faces[i_part]     = NULL;
+      svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part] = NULL;
+      svr_cwp.coupling[s].block[block_id].connec_cells[i_part]     = NULL;
+      svr_cwp.coupling[s].block[block_id].cell_global_num[i_part]  = NULL;
+    }
+  }
+
+  svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part] = (int *) malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part], sizeof(int) * (n_faces+1));
 
   // read connectivity faces
-  svr_cwp.coupling[s].connec_faces = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].connec_faces_idx[n_faces]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec_faces, sizeof(int) * svr_cwp.coupling[s].connec_faces_idx[n_faces]);
+  svr_cwp.coupling[s].block[block_id].connec_faces[i_part] = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part][n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec_faces[i_part], sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part][n_faces]);
 
   // read connectivity index
-  svr_cwp.coupling[s].connec_cells_idx = (int *) malloc(sizeof(int) * (n_elts+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec_cells_idx, sizeof(int) * (n_elts+1));
+  svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part] = (int *) malloc(sizeof(int) * (n_elts+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part], sizeof(int) * (n_elts+1));
 
   // read connectivity
-  svr_cwp.coupling[s].connec_cells = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].connec_cells_idx[n_elts]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].connec_cells, sizeof(int) * svr_cwp.coupling[s].connec_cells_idx[n_elts]);
+  svr_cwp.coupling[s].block[block_id].connec_cells[i_part] = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part][n_elts]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].connec_cells[i_part], sizeof(int) * svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part][n_elts]);
 
   // read global number
   int NULL_flag;
@@ -3223,15 +3451,15 @@ CWP_server_Mesh_interf_c_poly_block_set
                                      block_id,
                                      n_elts,
                                      n_faces,
-                                     svr_cwp.coupling[s].connec_faces_idx,
-                                     svr_cwp.coupling[s].connec_faces,
-                                     svr_cwp.coupling[s].connec_cells_idx,
-                                     svr_cwp.coupling[s].connec_cells,
+                                     svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_faces[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_cells[i_part],
                                      NULL);
   }
   else {
-    svr_cwp.coupling[s].cell_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].cell_global_num, sizeof(CWP_g_num_t) * n_elts);
+    svr_cwp.coupling[s].block[block_id].cell_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].block[block_id].cell_global_num[i_part], sizeof(CWP_g_num_t) * n_elts);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -3248,11 +3476,11 @@ CWP_server_Mesh_interf_c_poly_block_set
                                      block_id,
                                      n_elts,
                                      n_faces,
-                                     svr_cwp.coupling[s].connec_faces_idx,
-                                     svr_cwp.coupling[s].connec_faces,
-                                     svr_cwp.coupling[s].connec_cells_idx,
-                                     svr_cwp.coupling[s].connec_cells,
-                                     svr_cwp.coupling[s].cell_global_num);
+                                     svr_cwp.coupling[s].block[block_id].connec_faces_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_faces[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_cells_idx[i_part],
+                                     svr_cwp.coupling[s].block[block_id].connec_cells[i_part],
+                                     svr_cwp.coupling[s].block[block_id].cell_global_num[i_part]);
   }
 
   // send status msg
@@ -3465,24 +3693,43 @@ CWP_server_Mesh_interf_from_cellface_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_cells, sizeof(int));
 
   // read connectivity cells index
-  int *cell_face_idx = (int *) malloc(sizeof(int) * (n_cells+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) cell_face_idx, sizeof(int) * (n_cells+1));
+  std::string s(cpl_id);
+
+  if (svr_cwp.coupling[s].cell_face_idx == NULL) {
+    svr_cwp.coupling[s].cell_face_idx   = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].cell_face       = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].face_vtx_idx    = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].face_vtx        = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].cell_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      svr_cwp.coupling[s].cell_face_idx[i_part]   = NULL;
+      svr_cwp.coupling[s].cell_face[i_part]       = NULL;
+      svr_cwp.coupling[s].face_vtx_idx[i_part]    = NULL;
+      svr_cwp.coupling[s].face_vtx[i_part]        = NULL;
+      svr_cwp.coupling[s].cell_global_num[i_part] = NULL;
+    }
+  }
+
+  // read connectivity cells index
+  svr_cwp.coupling[s].cell_face_idx[i_part] = (int *) malloc(sizeof(int) * (n_cells+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].cell_face_idx[i_part], sizeof(int) * (n_cells+1));
 
   // read connectivity cells
-  int *cell_face = (int *) malloc(sizeof(int) * cell_face_idx[n_cells]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) cell_face, sizeof(int) * cell_face_idx[n_cells]);
+  svr_cwp.coupling[s].cell_face[i_part] = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].cell_face_idx[i_part][n_cells]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].cell_face[i_part], sizeof(int) * svr_cwp.coupling[s].cell_face_idx[i_part][n_cells]);
 
   // read n_faces
   int n_faces;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_faces, sizeof(int));
 
   // read connectivity faces index
-  int *face_vtx_idx = (int *) malloc(sizeof(int) * (n_faces+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx_idx, sizeof(int) * (n_faces+1));
+  svr_cwp.coupling[s].face_vtx_idx[i_part] = (int *) malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].face_vtx_idx[i_part], sizeof(int) * (n_faces+1));
 
   // read connectivity faces
-  int *face_vtx = (int *) malloc(sizeof(int) * face_vtx_idx[n_faces]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
+  svr_cwp.coupling[s].face_vtx[i_part] = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].face_vtx_idx[i_part][n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].face_vtx[i_part], sizeof(int) * svr_cwp.coupling[s].face_vtx_idx[i_part][n_faces]);
 
   // read global number
   int NULL_flag;
@@ -3504,16 +3751,16 @@ CWP_server_Mesh_interf_from_cellface_set
                                       cpl_id,
                                       i_part,
                                       n_cells,
-                                      cell_face_idx,
-                                      cell_face,
+                                      svr_cwp.coupling[s].cell_face_idx[i_part],
+                                      svr_cwp.coupling[s].cell_face[i_part],
                                       n_faces,
-                                      face_vtx_idx,
-                                      face_vtx,
+                                      svr_cwp.coupling[s].face_vtx_idx[i_part],
+                                      svr_cwp.coupling[s].face_vtx[i_part],
                                       NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_cells);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_cells);
+    svr_cwp.coupling[s].cell_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_cells);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].cell_global_num[i_part], sizeof(CWP_g_num_t) * n_cells);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -3528,12 +3775,12 @@ CWP_server_Mesh_interf_from_cellface_set
                                       cpl_id,
                                       i_part,
                                       n_cells,
-                                      cell_face_idx,
-                                      cell_face,
+                                      svr_cwp.coupling[s].cell_face_idx[i_part],
+                                      svr_cwp.coupling[s].cell_face[i_part],
                                       n_faces,
-                                      face_vtx_idx,
-                                      face_vtx,
-                                      global_num);
+                                      svr_cwp.coupling[s].face_vtx_idx[i_part],
+                                      svr_cwp.coupling[s].face_vtx[i_part],
+                                      svr_cwp.coupling[s].cell_global_num[i_part]);
   }
 
   // send status msg
@@ -3587,20 +3834,34 @@ CWP_server_Mesh_interf_from_faceedge_set
   // read connectivity faces index
   std::string s(cpl_id);
 
-   svr_cwp.coupling[s].face_edge_idx = (int *) malloc(sizeof(int) * (n_faces+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_edge_idx, sizeof(int) * (n_faces+1));
+  if (svr_cwp.coupling[s].face_edge_idx == NULL) {
+    svr_cwp.coupling[s].face_edge_idx   = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].face_edge       = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].edge_vtx        = (int **) malloc(sizeof(int *) * svr_cwp.coupling[s].n_part);
+    svr_cwp.coupling[s].face_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
+
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      svr_cwp.coupling[s].face_edge_idx[i_part]   = NULL;
+      svr_cwp.coupling[s].face_edge[i_part]       = NULL;
+      svr_cwp.coupling[s].edge_vtx[i_part]        = NULL;
+      svr_cwp.coupling[s].face_global_num[i_part] = NULL;
+    }
+  }
+
+  svr_cwp.coupling[s].face_edge_idx[i_part] = (int *) malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_edge_idx[i_part], sizeof(int) * (n_faces+1));
 
   // read connectivity faces
-   svr_cwp.coupling[s].face_edge = (int *) malloc(sizeof(int) *  svr_cwp.coupling[s].face_edge_idx[n_faces]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_edge, sizeof(int) *  svr_cwp.coupling[s].face_edge_idx[n_faces]);
+  svr_cwp.coupling[s].face_edge[i_part] = (int *) malloc(sizeof(int) *  svr_cwp.coupling[s].face_edge_idx[i_part][n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_edge[i_part], sizeof(int) *  svr_cwp.coupling[s].face_edge_idx[i_part][n_faces]);
 
   // read n_edges
   int n_edges;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_edges, sizeof(int));
 
   // read connectivity edges
-   svr_cwp.coupling[s].edge_vtx = (int *) malloc(sizeof(int) * 2 * n_edges);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].edge_vtx, sizeof(int) * 2 * n_edges);
+  svr_cwp.coupling[s].edge_vtx[i_part] = (int *) malloc(sizeof(int) * 2 * n_edges);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].edge_vtx[i_part], sizeof(int) * 2 * n_edges);
 
   // read global number
   int NULL_flag;
@@ -3622,15 +3883,15 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                      svr_cwp.coupling[s].face_edge_idx,
-                                      svr_cwp.coupling[s].face_edge,
+                                      svr_cwp.coupling[s].face_edge_idx[i_part],
+                                      svr_cwp.coupling[s].face_edge[i_part],
                                       n_edges,
-                                      svr_cwp.coupling[s].edge_vtx,
+                                      svr_cwp.coupling[s].edge_vtx[i_part],
                                       NULL);
   }
   else {
-     svr_cwp.coupling[s].face_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_global_num, sizeof(CWP_g_num_t) * n_faces);
+    svr_cwp.coupling[s].face_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*)  svr_cwp.coupling[s].face_global_num[i_part], sizeof(CWP_g_num_t) * n_faces);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -3645,11 +3906,11 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                      svr_cwp.coupling[s].face_edge_idx,
-                                      svr_cwp.coupling[s].face_edge,
+                                      svr_cwp.coupling[s].face_edge_idx[i_part],
+                                      svr_cwp.coupling[s].face_edge[i_part],
                                       n_edges,
-                                      svr_cwp.coupling[s].edge_vtx,
-                                      svr_cwp.coupling[s].face_global_num);
+                                      svr_cwp.coupling[s].edge_vtx[i_part],
+                                      svr_cwp.coupling[s].face_global_num[i_part]);
   }
 
   // send status msg

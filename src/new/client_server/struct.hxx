@@ -145,44 +145,86 @@ struct t_property
 
 };
 
-struct t_coupling
+struct t_block
 {
-  // Mesh_interf_vtx_set
-  double *vtx_coord;
-  CWP_g_num_t *vtx_global_num;
+  t_block() {
+    connec_faces_idx  = NULL;
+    connec_faces      = NULL;
+    connec_cells_idx  = NULL;
+    connec_cells      = NULL;
+    cell_global_num   = NULL;
+    connec_idx        = NULL;
+    connec            = NULL;
+    elt_global_num    = NULL;
+    std_connec        = NULL;
+    std_global_num    = NULL;
+    ho_std_connec     = NULL;
+    ho_std_global_num = NULL;
+  }
 
   // Mesh_interf_c_poly_block_set
-  int *connec_faces_idx;
-  int *connec_faces;
-  int *connec_cells_idx;
-  int *connec_cells;
-  CWP_g_num_t *cell_global_num;
+  int         **connec_faces_idx;
+  int         **connec_faces;
+  int         **connec_cells_idx;
+  int         **connec_cells;
+  CWP_g_num_t **cell_global_num;
 
   // Mesh_interf_f_poly_block_set
-  int *connec_idx;
-  int *connec;
-  CWP_g_num_t *elt_global_num;
+  int         **connec_idx;
+  int         **connec;
+  CWP_g_num_t **elt_global_num;
+
+  // Mesh_interf_block_std_set : i_part, block_id
+  int         **std_connec;
+  CWP_g_num_t **std_global_num;
+
+  // Mesh_interf_block_ho_set : i_part, block_id
+  int         **ho_std_connec;
+  CWP_g_num_t **ho_std_global_num;
+};
+
+
+struct t_coupling
+{
+  t_coupling() {
+    vtx_coord       = NULL;
+    vtx_global_num  = NULL;
+    usr_coord       = NULL;
+    usr_global_num  = NULL;
+    face_edge_idx   = NULL;
+    face_edge       = NULL;
+    edge_vtx        = NULL;
+    face_global_num = NULL;
+    cell_face_idx   = NULL;
+    cell_face       = NULL;
+    face_vtx_idx    = NULL;
+    face_vtx        = NULL;
+    cell_global_num = NULL;
+  }
+
+  // Mesh_interf_vtx_set
+  double      **vtx_coord;
+  CWP_g_num_t **vtx_global_num;
+
+  // User_tgt_pts_set
+  double      **usr_coord;
+  CWP_g_num_t **usr_global_num;
 
   // Mesh_interf_from_faceedge_set
-  int *face_edge_idx;
-  int *face_edge;
-  int *edge_vtx;
-  CWP_g_num_t *face_global_num;
+  int         **face_edge_idx;
+  int         **face_edge;
+  int         **edge_vtx;
+  CWP_g_num_t **face_global_num;
 
-  // Mesh_interf_block_std_set
-  int *std_connec;
-  CWP_g_num_t *std_global_num;
-
-  // Mesh_interf_block_ho_set
-  int *ho_std_connec;
-  CWP_g_num_t *ho_std_global_num;
+  // Mesh_interf_from_cellface_set
+  int         **cell_face_idx;
+  int         **cell_face;
+  int         **face_vtx_idx;
+  int         **face_vtx;
+  CWP_g_num_t **cell_global_num;
 
   // Mesh_interf_ho_ordering_from_IJK_set
   int *ijk_grid;
-
-  // User_tgt_pts_set
-  double *usr_coord;
-  CWP_g_num_t *usr_global_num;
 
   // Cpl_create
   int n_part;
@@ -198,6 +240,9 @@ struct t_coupling
 
   // part_data_id
   std::map<std::string, t_part_data> part_data;
+
+  // block_id
+  std::map<int, t_block> block;
 };
 
 struct t_cwp
