@@ -222,13 +222,13 @@ main
 
   // Create mesh with several blocks
   int n_vtx = 9;
-  double coodrs[27] = {0., 0., 0.,   1., 0., 0.,   2., 0., 0.,   0., 1., 0.,
+  double coords[27] = {0., 0., 0.,   1., 0., 0.,   2., 0., 0.,   0., 1., 0.,
                        1., 1., 0.,   2., 1., 0.,   0., 2., 0.,   1., 2., 0.,   2., 2., 0.};
   CWP_client_Mesh_interf_vtx_set(code_name,
                                  cpl_name,
                                  0,
                                  n_vtx,
-                                 coodrs,
+                                 coords,
                                  NULL);
 
   int first_block_id = CWP_client_Mesh_interf_block_add(code_name,
@@ -263,14 +263,9 @@ main
   // Delete mesh
   CWP_client_Mesh_interf_del(code_name, cpl_name);
 
-  printf("dbg - 0");
-  fflush(stdout);
 
   // Update time
-  CWP_Time_update(code_name, 1.0);
-
-  printf("dbg - 1");
-  fflush(stdout);
+  CWP_client_Time_update(code_name, 1.0);
 
   // Create new mesh
   int n_second_vtx = 6;
@@ -283,15 +278,9 @@ main
                                  second_coodrs,
                                  NULL);
 
-  printf("dbg - 2");
-  fflush(stdout);
-
   int third_block_id = CWP_client_Mesh_interf_block_add(code_name,
                                                         cpl_name,
                                                         CWP_BLOCK_FACE_QUAD4);
-
-  printf("dbg - 3");
-  fflush(stdout);
 
   int n_third_elts = 2;
   int third_connec[8] = {1, 2, 5, 4,  2, 3, 6, 5};
@@ -303,14 +292,8 @@ main
                                        third_connec,
                                        NULL);
 
-  printf("dbg - 4");
-  fflush(stdout);
-
   // Delete mesh
   CWP_client_Mesh_interf_del(code_name, cpl_name);
-
-  printf("dbg - 5");
-  fflush(stdout);
 
   // Delete coupling
   CWP_client_Cpl_del(code_name, cpl_name);
