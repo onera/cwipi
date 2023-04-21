@@ -148,6 +148,16 @@ option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" OFF)
 
 option(CWP_ENABLE_DOCUMENTATION "Enable sphinx documentation" OFF)
 
+# Enable PDM tests
+# ----------------
+
+option(CWP_ENABLE_PDM_TESTS "Enable ParaDiGM Tests if ParaDiGM is embaded" OFF)
+
+# Enable tests
+# ----------------
+
+option(CWP_ENABLE_TESTS "Enable Tests" ON)
+
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------
@@ -477,6 +487,11 @@ if (CWP_ENABLE_EXTERNAL_PDM)
   #  list(APPEND REQUIRED_COMPONENTS PARADIGM_BINDING_PYTHON_PATH)
   #endif ()
 
+
+  # 
+  
+  #find_package(pdm CONFIG 2.3.0
+
   find_package(PARADIGM 2.3.0
                REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} 
                OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES)
@@ -541,6 +556,11 @@ else ()
 
   set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
+  # Enable Tests
+  # ------------
+
+  set(PDM_ENABLE_TESTS ${CWP_ENABLE_PDM_TESTS})
+
   add_subdirectory(external/paradigm)
 
 endif()
@@ -559,7 +579,9 @@ if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(bin)
 endif()
 
-add_subdirectory(tests)
+if (CWP_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()
 
 add_subdirectory(doc)
 
