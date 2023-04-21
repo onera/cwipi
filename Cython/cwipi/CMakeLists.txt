@@ -52,13 +52,13 @@ endif()
 #set(OUTPUT       "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
 #set(DEPS_OLD    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py")
 #add_custom_command(OUTPUT ${OUTPUT}
-#                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OLD} --quiet build
+#                   COMMAND ${Python_EXECUTABLE} ${SETUP_PY_OLD} --quiet build
 #                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
 #                   DEPENDS ${DEPS_OLD})
 
 
 
-set (SITE_PACKAGES_CWP_OLD "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
+set (SITE_PACKAGES_CWP_OLD "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/cwipi")
 
 if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR

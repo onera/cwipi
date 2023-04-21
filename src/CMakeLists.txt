@@ -94,7 +94,6 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
-message("tutu1=${PARADIGM_INCLUDE_DIRS}")
 if (CWP_ENABLE_EXTERNAL_PDM)
   message("tutu=${PARADIGM_INCLUDE_DIRS}")
   target_include_directories(cwp
