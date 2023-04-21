@@ -230,7 +230,6 @@ main
   // launch server
 
   if (i_rank == 0) {
-    // @Karmijn : /!\ if custom config file...
     char cmd[999];
     system("mkdir -p client_new_api_surf_P1P0_P0P1_o/code1");
     system("mkdir -p client_new_api_surf_P1P0_P0P1_o/code2");

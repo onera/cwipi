@@ -200,6 +200,7 @@ struct t_coupling
     face_vtx_idx    = NULL;
     face_vtx        = NULL;
     cell_global_num = NULL;
+    ijk_grid        = NULL;
   }
 
   // Mesh_interf_vtx_set

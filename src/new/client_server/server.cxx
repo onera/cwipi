@@ -2746,7 +2746,7 @@ CWP_server_Mesh_interf_vtx_set
   }
 
   svr_cwp.coupling[s].vtx_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_coord, sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_coord[i_part], sizeof(double) * 3 * n_pts);
 
   // read global_num
   int NULL_flag;
@@ -2772,7 +2772,7 @@ CWP_server_Mesh_interf_vtx_set
   }
   else {
     svr_cwp.coupling[s].vtx_global_num[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_global_num, sizeof(CWP_g_num_t) * n_pts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].vtx_global_num[i_part], sizeof(CWP_g_num_t) * n_pts);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);

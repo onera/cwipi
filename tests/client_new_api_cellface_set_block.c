@@ -357,6 +357,13 @@ main
     CWP_client_Mesh_interf_del("code1_cell_faces", cpl_id1);
   }
 
+  if (rank == 0) {
+    CWP_client_Cpl_del("code1_cell_faces", cpl_id1);
+  }
+
+  if (rank == 1) {
+    CWP_client_Cpl_del("code2", cpl_id1);
+  }
 
   fflush(stdout);
 
