@@ -3669,6 +3669,288 @@ CWP_server_Mesh_interf_del
   }
 
   // free
+  std::string s(cpl_id);
+
+  if (svr_cwp.coupling[s].ijk_grid != NULL) {
+    free(svr_cwp.coupling[s].ijk_grid);
+    svr_cwp.coupling[s].ijk_grid = NULL;
+  }
+
+  // n_part
+  if (svr_cwp.coupling[s].vtx_coord != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].vtx_coord[i_part] != NULL) {
+        free(svr_cwp.coupling[s].vtx_coord[i_part]);
+        svr_cwp.coupling[s].vtx_coord[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].vtx_coord);
+    svr_cwp.coupling[s].vtx_coord = NULL;
+  }
+
+  if (svr_cwp.coupling[s].vtx_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].vtx_global_num[i_part] != NULL) {
+        free(svr_cwp.coupling[s].vtx_global_num[i_part]);
+        svr_cwp.coupling[s].vtx_global_num[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].vtx_global_num);
+    svr_cwp.coupling[s].vtx_global_num = NULL;
+  }
+
+  if (svr_cwp.coupling[s].usr_coord != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].usr_coord[i_part] != NULL) {
+        free(svr_cwp.coupling[s].usr_coord[i_part]);
+        svr_cwp.coupling[s].usr_coord[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].usr_coord);
+    svr_cwp.coupling[s].usr_coord = NULL;
+  }
+
+  if (svr_cwp.coupling[s].usr_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].usr_global_num[i_part] != NULL) free(svr_cwp.coupling[s].usr_global_num[i_part]);
+    }
+    free(svr_cwp.coupling[s].usr_global_num);
+  }
+
+  if (svr_cwp.coupling[s].face_edge_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_edge_idx[i_part] != NULL) {
+        free(svr_cwp.coupling[s].face_edge_idx[i_part]);
+        svr_cwp.coupling[s].face_edge_idx[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].face_edge_idx);
+    svr_cwp.coupling[s].face_edge_idx = NULL;
+  }
+
+  if (svr_cwp.coupling[s].face_edge != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_edge[i_part] != NULL) {
+        free(svr_cwp.coupling[s].face_edge[i_part]);
+        svr_cwp.coupling[s].face_edge[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].face_edge);
+    svr_cwp.coupling[s].face_edge = NULL;
+  }
+
+  if (svr_cwp.coupling[s].edge_vtx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].edge_vtx[i_part] != NULL) {
+        free(svr_cwp.coupling[s].edge_vtx[i_part]);
+        svr_cwp.coupling[s].edge_vtx[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].edge_vtx);
+    svr_cwp.coupling[s].edge_vtx = NULL;
+  }
+
+  if (svr_cwp.coupling[s].face_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_global_num[i_part] != NULL) {
+        free(svr_cwp.coupling[s].face_global_num[i_part]);
+        svr_cwp.coupling[s].face_global_num[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].face_global_num);
+    svr_cwp.coupling[s].face_global_num = NULL;
+  }
+
+  if (svr_cwp.coupling[s].cell_face_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_face_idx[i_part] != NULL) {
+        free(svr_cwp.coupling[s].cell_face_idx[i_part]);
+        svr_cwp.coupling[s].cell_face_idx[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].cell_face_idx);
+    svr_cwp.coupling[s].cell_face_idx = NULL;
+  }
+
+  if (svr_cwp.coupling[s].cell_face != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_face[i_part] != NULL) {
+        free(svr_cwp.coupling[s].cell_face[i_part]);
+        svr_cwp.coupling[s].cell_face[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].cell_face);
+    svr_cwp.coupling[s].cell_face = NULL;
+  }
+
+  if (svr_cwp.coupling[s].face_vtx_idx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_vtx_idx[i_part] != NULL) free(svr_cwp.coupling[s].face_vtx_idx[i_part]);
+    }
+    free(svr_cwp.coupling[s].face_vtx_idx);
+    svr_cwp.coupling[s].face_vtx_idx = NULL;
+  }
+
+  if (svr_cwp.coupling[s].face_vtx != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].face_vtx[i_part] != NULL) {
+        free(svr_cwp.coupling[s].face_vtx[i_part]);
+        svr_cwp.coupling[s].face_vtx[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].face_vtx);
+    svr_cwp.coupling[s].face_vtx = NULL;
+  }
+
+  if (svr_cwp.coupling[s].cell_global_num != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+      if (svr_cwp.coupling[s].cell_global_num[i_part] != NULL) {
+        free(svr_cwp.coupling[s].cell_global_num[i_part]);
+        svr_cwp.coupling[s].cell_global_num[i_part] = NULL;
+      }
+    }
+    free(svr_cwp.coupling[s].cell_global_num);
+    svr_cwp.coupling[s].cell_global_num = NULL;
+  }
+
+  // Block
+  if (!svr_cwp.coupling[s].block.empty()) {
+    std::map<int, t_block>::iterator it_b = svr_cwp.coupling[s].block.begin();
+    while (it_b != svr_cwp.coupling[s].block.end()) {
+
+      // n_part
+      if ((it_b->second).connec_faces_idx != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_faces_idx[i_part] != NULL) {
+            free((it_b->second).connec_faces_idx[i_part]);
+            (it_b->second).connec_faces_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_faces_idx);
+        (it_b->second).connec_faces_idx = NULL;
+      }
+
+      if ((it_b->second).connec_faces != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_faces[i_part] != NULL) {
+            free((it_b->second).connec_faces[i_part]);
+            (it_b->second).connec_faces[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_faces);
+        (it_b->second).connec_faces = NULL;
+      }
+
+      if ((it_b->second).connec_cells_idx != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_cells_idx[i_part] != NULL) {
+            free((it_b->second).connec_cells_idx[i_part]);
+            (it_b->second).connec_cells_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_cells_idx);
+        (it_b->second).connec_cells_idx = NULL;
+      }
+
+      if ((it_b->second).connec_cells != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_cells[i_part] != NULL) free((it_b->second).connec_cells[i_part]);
+        }
+        free((it_b->second).connec_cells);
+      }
+
+      if ((it_b->second).cell_global_num != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).cell_global_num[i_part] != NULL) {
+            free((it_b->second).cell_global_num[i_part]);
+            (it_b->second).cell_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).cell_global_num);
+        (it_b->second).cell_global_num = NULL;
+      }
+
+      if ((it_b->second).connec_idx != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_idx[i_part] != NULL) {
+            free((it_b->second).connec_idx[i_part]);
+            (it_b->second).connec_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_idx);
+        (it_b->second).connec_idx = NULL;
+      }
+
+      if ((it_b->second).connec != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec[i_part] != NULL) {
+            free((it_b->second).connec[i_part]);
+            (it_b->second).connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec);
+        (it_b->second).connec = NULL;
+      }
+
+      if ((it_b->second).elt_global_num != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).elt_global_num[i_part] != NULL) {
+            free((it_b->second).elt_global_num[i_part]);
+            (it_b->second).elt_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).elt_global_num);
+        (it_b->second).elt_global_num = NULL;
+      }
+
+      if ((it_b->second).std_connec != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).std_connec[i_part] != NULL) {
+            free((it_b->second).std_connec[i_part]);
+            (it_b->second).std_connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).std_connec);
+        (it_b->second).std_connec = NULL;
+      }
+
+      if ((it_b->second).std_global_num != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).std_global_num[i_part] != NULL) {
+            free((it_b->second).std_global_num[i_part]);
+            (it_b->second).std_global_num[i_part] =  NULL;
+          }
+        }
+        free((it_b->second).std_global_num);
+        (it_b->second).std_global_num = NULL;
+      }
+
+      if ((it_b->second).ho_std_connec != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).ho_std_connec[i_part] != NULL) {
+            free((it_b->second).ho_std_connec[i_part]);
+            (it_b->second).ho_std_connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).ho_std_connec);
+        (it_b->second).ho_std_connec = NULL;
+      }
+
+      if ((it_b->second).ho_std_global_num != NULL) {
+        for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).ho_std_global_num[i_part] != NULL) {
+            free((it_b->second).ho_std_global_num[i_part]);
+            (it_b->second).ho_std_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).ho_std_global_num);
+        (it_b->second).ho_std_global_num = NULL;
+      }
+
+      it_b = svr_cwp.coupling[s].block.erase(it_b);
+    }
+  }
+
   free(local_code_name);
   free(cpl_id);
 
