@@ -174,11 +174,11 @@ struct t_block
   int         **connec;
   CWP_g_num_t **elt_global_num;
 
-  // Mesh_interf_block_std_set : i_part, block_id
+  // Mesh_interf_block_std_set
   int         **std_connec;
   CWP_g_num_t **std_global_num;
 
-  // Mesh_interf_block_ho_set : i_part, block_id
+  // Mesh_interf_block_ho_set
   int         **ho_std_connec;
   CWP_g_num_t **ho_std_global_num;
 };
