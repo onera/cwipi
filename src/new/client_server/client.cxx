@@ -4471,6 +4471,150 @@ CWP_client_Mesh_interf_del
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // free struct
+  std::string s(cpl_id);
+
+  if (!clt_cwp.coupling[s].block.empty()) {
+    std::map<int, t_block>::iterator it_b = clt_cwp.coupling[s].block.begin();
+    while (it_b != clt_cwp.coupling[s].block.end()) {
+
+      // n_part
+      if ((it_b->second).connec_faces_idx != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_faces_idx[i_part] != NULL) {
+            free((it_b->second).connec_faces_idx[i_part]);
+            (it_b->second).connec_faces_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_faces_idx);
+        (it_b->second).connec_faces_idx = NULL;
+      }
+
+      if ((it_b->second).connec_faces != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_faces[i_part] != NULL) {
+            free((it_b->second).connec_faces[i_part]);
+            (it_b->second).connec_faces[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_faces);
+        (it_b->second).connec_faces = NULL;
+      }
+
+      if ((it_b->second).connec_cells_idx != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_cells_idx[i_part] != NULL) {
+            free((it_b->second).connec_cells_idx[i_part]);
+            (it_b->second).connec_cells_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_cells_idx);
+        (it_b->second).connec_cells_idx = NULL;
+      }
+
+      if ((it_b->second).connec_cells != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_cells[i_part] != NULL) {
+            free((it_b->second).connec_cells[i_part]);
+            (it_b->second).connec_cells[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_cells);
+        (it_b->second).connec_cells = NULL;
+      }
+
+      if ((it_b->second).cell_global_num != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).cell_global_num[i_part] != NULL) {
+            free((it_b->second).cell_global_num[i_part]);
+            (it_b->second).cell_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).cell_global_num);
+        (it_b->second).cell_global_num = NULL;
+      }
+
+      if ((it_b->second).connec_idx != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec_idx[i_part] != NULL) {
+            free((it_b->second).connec_idx[i_part]);
+            (it_b->second).connec_idx[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec_idx);
+        (it_b->second).connec_idx = NULL;
+      }
+
+      if ((it_b->second).connec != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).connec[i_part] != NULL) {
+            free((it_b->second).connec[i_part]);
+            (it_b->second).connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).connec);
+        (it_b->second).connec = NULL;
+      }
+
+      if ((it_b->second).elt_global_num != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).elt_global_num[i_part] != NULL) {
+            free((it_b->second).elt_global_num[i_part]);
+            (it_b->second).elt_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).elt_global_num);
+        (it_b->second).elt_global_num = NULL;
+      }
+
+      if ((it_b->second).std_connec != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).std_connec[i_part] != NULL) {
+            free((it_b->second).std_connec[i_part]);
+            (it_b->second).std_connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).std_connec);
+        (it_b->second).std_connec = NULL;
+      }
+
+      if ((it_b->second).std_global_num != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).std_global_num[i_part] != NULL) {
+            free((it_b->second).std_global_num[i_part]);
+            (it_b->second).std_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).std_global_num);
+        (it_b->second).std_global_num = NULL;
+      }
+
+      if ((it_b->second).ho_std_connec != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).ho_std_connec[i_part] != NULL) {
+            free((it_b->second).ho_std_connec[i_part]);
+            (it_b->second).ho_std_connec[i_part] = NULL;
+          }
+        }
+        free((it_b->second).ho_std_connec);
+        (it_b->second).ho_std_connec = NULL;
+      }
+
+      if ((it_b->second).ho_std_global_num != NULL) {
+        for (int i_part = 0; i_part < clt_cwp.coupling[s].n_part; i_part++) {
+          if ((it_b->second).ho_std_global_num[i_part] != NULL) {
+            free((it_b->second).ho_std_global_num[i_part]);
+            (it_b->second).ho_std_global_num[i_part] = NULL;
+          }
+        }
+        free((it_b->second).ho_std_global_num);
+        (it_b->second).ho_std_global_num = NULL;
+      }
+
+      it_b = clt_cwp.coupling[s].block.erase(it_b);
+    }
+  }
 }
 
 void
