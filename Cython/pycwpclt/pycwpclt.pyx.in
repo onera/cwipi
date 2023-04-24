@@ -1148,8 +1148,8 @@ def param_get(char        *code_name,
 def param_reduce(CWP_Op_t    op,
                  char       *param_name,
                  CWP_Type_t  data_type,
-                 int         nCode,
-                 list        code_names):
+                 int         n_code,
+                 NPY.ndarray code_names not None):
     """
     Return the result of a reduce operation about a parameter.
     The parameter name has to be the same for all codes.
@@ -1158,19 +1158,22 @@ def param_reduce(CWP_Op_t    op,
       op         (CWP_Op_t)   :Operation
       param_name (char*)      :Parameter name
       data_type  (CWP_Type_t) :Parameter type
-      nCode      (int)        :Number of codes
+      n_code      (int)        :Number of codes
       code_names (char**)     :Codes name
 
     Returns:
       res (data_type) : Result
     """
 
-    cdef char **c_code_names = <char**> malloc(sizeof(char*) * nCode)
-    for i in range(nCode):
+    cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
+    for i in range(n_code):
       c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
-    for i in range(nCode):
-      py_byte_code_name = code_names[i].encode('UTF-8')
+    for i in range(n_code):
+      if isinstance(code_names[i], unicode):
+        py_byte_code_name = (<unicode>code_names[i]).encode('utf8')
+      else :
+        py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name
 
     cdef int int_res = -1
@@ -1182,7 +1185,7 @@ def param_reduce(CWP_Op_t    op,
                               param_name,
                               data_type,
                               &(int_res),
-                              nCode,
+                              n_code,
                               c_code_names)
       return int_res
 
@@ -1191,7 +1194,7 @@ def param_reduce(CWP_Op_t    op,
                               param_name,
                               data_type,
                               &(dbl_res),
-                              nCode,
+                              n_code,
                               c_code_names)
       return dbl_res
 
@@ -1200,7 +1203,7 @@ def param_reduce(CWP_Op_t    op,
                               param_name,
                               data_type,
                               &(str_res),
-                              nCode,
+                              n_code,
                               c_code_names)
     return str_res
 
