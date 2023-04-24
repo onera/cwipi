@@ -1694,7 +1694,17 @@ CWP_server_Time_update
   double current_time = - 1.0;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
 
-  // TO DO : receive if deformable the arrays and set them to the pointers here
+  // for each coupling of the code, update the coordinates
+  for ( std::map<std::string, t_coupling>::const_iterator it_c = svr_cwp.coupling.begin() ; it_c != svr_cwp.coupling.end() ; ++it_c ) {
+    if (svr_cwp.coupling[it_c->first].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+      for (int j_part = 0; j_part < svr_cwp.coupling[it_c->first].n_part; j_part++) {
+        CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[it_c->first].vtx_coord[j_part], sizeof(double) * 3 * svr_cwp.coupling[it_c->first].n_vtx[j_part]);
+        if (svr_cwp.coupling[it_c->first].usr_coord != NULL) {
+          CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[it_c->first].usr_coord[j_part], sizeof(double) * 3 * svr_cwp.coupling[it_c->first].n_user_vtx[j_part]);
+        }
+      }
+    }
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -1744,7 +1754,7 @@ CWP_server_Output_file_set
   // // create FILE *
   // svr_cwp.output_file = NULL;
 
-  // svr_cwp.output_file = fopen(output_filename, "a+"); // TO DO: wich opening mode?
+  // svr_cwp.output_file = fopen(output_filename, "a+");
 
   // // launch
   // CWP_Output_file_set(svr_cwp.output_file);
@@ -2598,7 +2608,7 @@ CWP_server_User_tgt_pts_set
   }
 
   svr_cwp.coupling[s].usr_coord[i_part] = (double *) malloc(sizeof(double) * 3 * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].usr_coord, sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].usr_coord[i_part], sizeof(double) * 3 * n_pts);
 
   // read global_num
   int NULL_flag;

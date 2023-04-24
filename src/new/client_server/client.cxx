@@ -2088,8 +2088,12 @@ CWP_client_Cpl_del
   std::string s(cpl_id);
 
   if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
-    if (clt_cwp.coupling[s].n_user_vtx != NULL) free(clt_cwp.coupling[s].n_user_vtx);
+
+    if (clt_cwp.coupling[s].vtx_coord != NULL) free(clt_cwp.coupling[s].vtx_coord);
     if (clt_cwp.coupling[s].n_vtx != NULL) free(clt_cwp.coupling[s].n_vtx);
+    if (clt_cwp.coupling[s].usr_coord != NULL) free(clt_cwp.coupling[s].usr_coord);
+    if (clt_cwp.coupling[s].n_user_vtx != NULL) free(clt_cwp.coupling[s].n_user_vtx);
+
   }
 
   if (!clt_cwp.coupling[s].block.empty()) {
@@ -2446,30 +2450,27 @@ CWP_client_Time_update
   CWP_swap_endian_8bytes(&endian_current_time, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
 
-  // if the mesh is deformable send deformed coordinate array
-  // TO DO : for each coupling from which the code is a member
-  // check if this information is available in Time_update
-  std::string s(cpl_id);
-  if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+  // for each coupling of the code, update the coordinates
+  for ( std::map<std::string, t_coupling>::const_iterator it_c = clt_cwp.coupling.begin() ; it_c != clt_cwp.coupling.end() ; ++it_c ) {
+    if (clt_cwp.coupling[it_c->first].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
 
-    for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
+      for (int j_part = 0; j_part < clt_cwp.coupling[it_c->first].n_part; j_part++) {
 
-      double *endian_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[s].n_vtx[j_part]);
-      memcpy(endian_coord, clt_cwp.coupling[s].vtx_coord, sizeof(double) * 3 * clt_cwp.coupling[s].n_vtx[j_part]);
-      CWP_swap_endian_8bytes(endian_coord, 3 * clt_cwp.coupling[s].n_vtx[j_part]);
-      CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * clt_cwp.coupling[s].n_vtx[j_part]);
-      free(endian_coord);
-
-      if (clt_cwp.coupling[s].usr_coord != NULL) {
-        double *endian_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[s].n_user_vtx[j_part]);
-        memcpy(endian_coord, clt_cwp.coupling[s].usr_coord, sizeof(double) * 3 * clt_cwp.coupling[s].n_user_vtx[j_part]);
-        CWP_swap_endian_8bytes(endian_coord, 3 * clt_cwp.coupling[s].n_user_vtx[j_part]);
-        CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * clt_cwp.coupling[s].n_user_vtx[j_part]);
+        double *endian_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
+        memcpy(endian_coord, clt_cwp.coupling[it_c->first].vtx_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
+        CWP_swap_endian_8bytes(endian_coord, 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
+        CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
         free(endian_coord);
+
+        if (clt_cwp.coupling[it_c->first].usr_coord != NULL) {
+          double *endian_user_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
+          memcpy(endian_user_coord, clt_cwp.coupling[it_c->first].usr_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
+          CWP_swap_endian_8bytes(endian_user_coord, 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
+          CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_user_coord, sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
+          free(endian_user_coord);
+        }
       }
-
     }
-
   }
 
   // receive status msg
