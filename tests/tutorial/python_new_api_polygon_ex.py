@@ -54,12 +54,12 @@ def runTest():
     n_code = 1
 
     if i_rank == 0:
-        code_name = ["code1"]
+        code_name = np.array(["code1"])
         I_am_code1 = True
         I_am_code2 = False
 
     if i_rank == 1:
-        code_name = ["code2"]
+        code_name = np.array(["code2"])
         I_am_code1 = False
         I_am_code2 = True
 
