@@ -2,9 +2,9 @@
 #   - Maia's CMake
 #   - https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
-find_package(Doxygen 1.8.9 REQUIRED)
-find_package(Sphinx 3 REQUIRED)
 if(CWP_ENABLE_DOCUMENTATION)
+    find_package(Doxygen 1.8.9 REQUIRED) 
+    find_package(Sphinx 3 REQUIRED)
 
     #------------------------------------------------------------------------------
     # Build doxygen documentation

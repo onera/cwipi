@@ -28,26 +28,37 @@ if (NOT MPI_CXX_COMPILER)
   endif()
 endif ()
 
-if (CWP_ENABLE_STATIC)
-   list(APPEND LINK_LIBRARIES cwp_static)
-   if (CWP_ENABLE_EXTERNAL_PDM)
-     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
-   else ()
-     list(APPEND LINK_LIBRARIES
-          pdm_mpi_static
-          pdm_static)
-   endif()       
-   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+
+    if (CWP_ENABLE_STATIC)
+       list(APPEND LINK_LIBRARIES cwp_static)
+       list(APPEND LINK_LIBRARIES
+              pdm_mpi_static
+              pdm_static)
+       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+    else ()
+       list(APPEND LINK_LIBRARIES cwp_shared)
+       list(APPEND LINK_LIBRARIES
+              pdm_mpi_shared
+              pdm_shared)
+       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+    endif()
+
 else ()
-   list(APPEND LINK_LIBRARIES cwp_shared)
-   if (CWP_ENABLE_EXTERNAL_PDM)
-     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
-   else ()
-     list(APPEND LINK_LIBRARIES
-          pdm_mpi_shared
-          pdm_shared)
-   endif() 
-   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+    if (CWP_ENABLE_STATIC)
+       list(APPEND LINK_LIBRARIES cwp_static)
+       list(APPEND LINK_LIBRARIES
+              pdm::pdm_mpi_static
+              pdm::pdm_static)
+       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+    else ()
+       list(APPEND LINK_LIBRARIES cwp_shared)
+       list(APPEND LINK_LIBRARIES
+              pdm::pdm_mpi_shared
+              pdm::pdm_shared)
+       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+    endif()
+
 endif()
 
 # add executable

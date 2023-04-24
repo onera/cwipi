@@ -27,11 +27,7 @@ target_include_directories(cwipi PUBLIC ${CWP_INC})
 
 target_link_libraries(cwipi Python::NumPy MPI::MPI_CXX)
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  target_link_libraries(cwipi ${LINK_LIBRARIES} ${PARADIGM_LIBRARIES})
-else ()
-  target_link_libraries(cwipi ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
-endif()
+target_link_libraries(cwipi ${LINK_LIBRARIES} pdm::pdm_shared pdm::pdm_mpi_shared)
 
 target_link_libraries(cwipi cwp_shared)
 if (CWP_ENABLE_Fortran)

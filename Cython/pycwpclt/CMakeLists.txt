@@ -25,11 +25,7 @@ set_target_properties(pycwpclt PROPERTIES PREFIX "") # do not prefix by lib
 get_target_property(CWP_INC pycwpclt INCLUDE_DIRECTORIES)
 target_include_directories(pycwpclt PUBLIC ${CWP_INC})
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-
-  target_link_libraries(pycwpclt ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
-
-endif()
+target_link_libraries(pycwpclt ${LINK_LIBRARIES} pdm::pdm_shared pdm::pdm_mpi_shared)
 
 target_link_libraries(pycwpclt cwp_shared)
 target_link_libraries(pycwpclt Python::NumPy MPI::MPI_CXX)

@@ -37,61 +37,72 @@ endif ()
 
 if (CWP_ENABLE_STATIC)
 
-   if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
+   if (CWP_ENABLE_Fortran)
      if (MPI_CXX_LIBRARIES)
        list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})
      endif()
      list(APPEND LINK_LIBRARIES cwpf_static)
      if (CWP_ENABLE_EXTERNAL_PDM)
-       list(APPEND LINK_LIBRARIES ${PARADIGM_FORTRAN_LIBRARIES})
+       list(APPEND LINK_LIBRARIES pdm::pdmf_static)
      else()
-       list(APPEND LINK_LIBRARIES pdmf_static)
-     endif() 
+       list(APPEND LINK_LIBRARIES pdmf_static) 
+     endif()  
    endif()
    list(APPEND LINK_LIBRARIES cwp_static)
    if (CWP_ENABLE_EXTERNAL_PDM)
-     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
-   else ()
      list(APPEND LINK_LIBRARIES
-          pdm_mpi_static
-          pdm_static)
+                         pdm::pdm_mpi_static
+                         pdm::pdm_static)
+   else()
+     list(APPEND LINK_LIBRARIES
+                         pdm_mpi_static
+                         pdm_static)
    endif()
-   if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
+
+   if (CWP_ENABLE_Fortran)
     list(APPEND LINK_LIBRARIES cwpf_static)
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-#    list(APPEND LINK_LIBRARIES spaceBasis_static)
-#   endif()
+##   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+##    list(APPEND LINK_LIBRARIES spaceBasis_static)
+##   endif()
+
+
 
 else ()
    if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
+     list(APPEND LINK_LIBRARIES cwpf_shared)
      if (CWP_ENABLE_EXTERNAL_PDM)
-       list(APPEND LINK_LIBRARIES ${PARADIGM_FORTRAN_LIBRARIES})
+       list(APPEND LINK_LIBRARIES pdm::pdmf_shared)
      else()
-       list(APPEND LINK_LIBRARIES cwpf_shared)
-       list(APPEND LINK_LIBRARIES pdmf_shared)
+       list(APPEND LINK_LIBRARIES pdmf_shared) 
      endif()  
    endif()
    list(APPEND LINK_LIBRARIES cwp_shared)
    if (CWP_ENABLE_EXTERNAL_PDM)
-     list(APPEND LINK_LIBRARIES ${PARADIGM_LIBRARIES})
-   else ()
      list(APPEND LINK_LIBRARIES
-            pdm_mpi_shared
-            pdm_shared)
-   endif()
+               pdm::pdm_shared     
+               pdm::pdm_mpi_shared)
+   else()
+     list(APPEND LINK_LIBRARIES
+               pdm_shared     
+               pdm_mpi_shared)
+   endif() 
+
+#   endif ()
    if (CWP_ENABLE_Fortran)
     list(APPEND LINK_LIBRARIES cwpf_shared)
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-#    list(APPEND LINK_LIBRARIES spaceBasis_shared)
-#   endif()
+##   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+##    list(APPEND LINK_LIBRARIES spaceBasis_shared)
+##   endif()
 
 endif()
+
+
 
 if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
   file(GLOB SOURCESF
