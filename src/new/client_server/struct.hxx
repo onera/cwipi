@@ -61,11 +61,12 @@ extern "C" {
 struct t_field
 {
   t_field() {
-    data   = NULL;
-    srcs   = NULL;
-    c_tgts = NULL;
-    u_tgts = NULL;
+    data       = NULL;
+    srcs       = NULL;
+    c_tgts     = NULL;
+    u_tgts     = NULL;
     n_entities = NULL;
+    size       = NULL;
   }
 
   // Involved_srcs_get
@@ -84,6 +85,7 @@ struct t_field
   CWP_Field_map_t map_type;
   int             n_component;
   int            *n_entities;
+  int            *size;
 };
 
 struct t_global_data

@@ -260,16 +260,16 @@ main
 
   CWP_client_Mesh_interf_finalize(code_name, cpl_name);
 
-  const char *field_name = "champ";
-  double *send_field = malloc(sizeof(double) * 3 * n_vtx);
-  double *recv_field = malloc(sizeof(double) * 3 * n_vtx);
+  const char *field_name = "field";
+  double *send_field = malloc(sizeof(double) * n_vtx);
+  double *recv_field = malloc(sizeof(double) * n_vtx);
   if (is_code1) {
     CWP_client_Field_create(code_name,
                             cpl_name,
                             field_name,
                             CWP_DOUBLE,
                             CWP_FIELD_STORAGE_INTERLEAVED,
-                            3,
+                            1,
                             CWP_DOF_LOCATION_NODE,
                             CWP_FIELD_EXCH_SEND,
                             CWP_STATUS_ON);
@@ -291,7 +291,7 @@ main
                             field_name,
                             CWP_DOUBLE,
                             CWP_FIELD_STORAGE_INTERLEAVED,
-                            3,
+                            1,
                             CWP_DOF_LOCATION_NODE,
                             CWP_FIELD_EXCH_RECV,
                             CWP_STATUS_ON);
@@ -309,7 +309,7 @@ main
   const int    itdeb = 1;
   const int    itend = 10;
   const double freq  = 0.20;
-  const double ampl  = 0.05;
+  const double ampl  = 0.5;
   const double phi   = 0.1;
   double       ttime = 0.0;
   double       dt    = 0.1;

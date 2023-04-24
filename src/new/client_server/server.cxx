@@ -1478,6 +1478,8 @@ CWP_server_Cpl_del
         }
         free((it_f->second).data);
       }
+
+      if ((it_f->second).size != NULL) free((it_f->second).size);
       it_f = svr_cwp.coupling[s].field.erase(it_f);
     }
   }
@@ -1694,8 +1696,21 @@ CWP_server_Time_update
   double current_time = - 1.0;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
 
-  // for each coupling of the code, update the coordinates
+  // for each coupling of the code, update the coordinates if deformable and field always
   for ( std::map<std::string, t_coupling>::const_iterator it_c = svr_cwp.coupling.begin() ; it_c != svr_cwp.coupling.end() ; ++it_c ) {
+
+    // field
+    for ( std::map<std::string, t_field>::const_iterator it_f = svr_cwp.coupling[it_c->first].field.begin() ; it_f != svr_cwp.coupling[it_c->first].field.end() ; ++it_f ) {
+
+      if ((it_f->second).map_type == CWP_FIELD_MAP_SOURCE) {
+        for (int j_part = 0; j_part < svr_cwp.coupling[it_c->first].n_part; j_part++) {
+
+          CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) (it_f->second).data[j_part], sizeof(double) * (it_f->second).size[j_part]);
+        }
+      }
+    }
+
+    // coordinates
     if (svr_cwp.coupling[it_c->first].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
       for (int j_part = 0; j_part < svr_cwp.coupling[it_c->first].n_part; j_part++) {
         CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[it_c->first].vtx_coord[j_part], sizeof(double) * 3 * svr_cwp.coupling[it_c->first].n_vtx[j_part]);
@@ -4354,6 +4369,7 @@ CWP_server_Field_create
   t_field field = t_field();
   svr_cwp.coupling[s1].field.insert(std::make_pair(s2, field));
   svr_cwp.coupling[s1].field[s2].data = (double **) malloc(sizeof(double*) * svr_cwp.coupling[s1].n_part);
+  svr_cwp.coupling[s1].field[s2].size = (int *) malloc(sizeof(int) * svr_cwp.coupling[s1].n_part);
   for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
     svr_cwp.coupling[s1].field[s2].data[i_part] = NULL;
   }
@@ -4399,16 +4415,17 @@ CWP_server_Field_data_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
 
   // read map_type
-  CWP_Field_map_t map_type;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(CWP_Field_map_t));
-
-  // read data array
   std::string s1(cpl_id);
   std::string s2(field_id);
+  CWP_Field_map_t map_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(CWP_Field_map_t));
+  svr_cwp.coupling[s1].field[s2].map_type = map_type;
 
+  // read data array
   int size;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
   svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double) * size);
+  svr_cwp.coupling[s1].field[s2].size[i_part] = size;
   if (map_type == CWP_FIELD_MAP_SOURCE) {
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);
   }
@@ -4627,6 +4644,11 @@ CWP_server_Field_del
   // free
   std::string s1(cpl_id);
   std::string s2(field_id);
+
+  if (svr_cwp.coupling[s1].field[s2].size != NULL) {
+    free(svr_cwp.coupling[s1].field[s2].size);
+    svr_cwp.coupling[s1].field[s2].size = NULL;
+  }
 
   if (svr_cwp.coupling[s1].field[s2].data != NULL) {
     for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {

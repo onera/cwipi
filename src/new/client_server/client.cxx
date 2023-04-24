@@ -2450,8 +2450,27 @@ CWP_client_Time_update
   CWP_swap_endian_8bytes(&endian_current_time, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
 
-  // for each coupling of the code, update the coordinates
+  // for each coupling of the code, update the coordinates if deformable and field always
   for ( std::map<std::string, t_coupling>::const_iterator it_c = clt_cwp.coupling.begin() ; it_c != clt_cwp.coupling.end() ; ++it_c ) {
+
+    // field
+    for ( std::map<std::string, t_field>::const_iterator it_f = clt_cwp.coupling[it_c->first].field.begin() ; it_f != clt_cwp.coupling[it_c->first].field.end() ; ++it_f ) {
+
+      if ((it_f->second).map_type == CWP_FIELD_MAP_SOURCE) {
+
+        for (int j_part = 0; j_part < clt_cwp.coupling[it_c->first].n_part; j_part++) {
+
+          double *endian_data = (double *) malloc(sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
+          memcpy(endian_data, (it_f->second).data[j_part], sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
+          CWP_swap_endian_8bytes(endian_data, (it_f->second).n_component * (it_f->second).n_entities[j_part]);
+          CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
+          free(endian_data);
+
+        }
+      }
+    }
+
+    // coordinates
     if (clt_cwp.coupling[it_c->first].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
 
       for (int j_part = 0; j_part < clt_cwp.coupling[it_c->first].n_part; j_part++) {
@@ -5136,11 +5155,9 @@ CWP_client_Field_data_set
   std::string s2(field_id);
 
   clt_cwp.coupling[s1].field[s2].map_type = map_type;
+  clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
+  clt_cwp.coupling[s1].field[s2].data[i_part] = data;
 
-  if (map_type == CWP_FIELD_MAP_TARGET) {
-    clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
-    clt_cwp.coupling[s1].field[s2].data[i_part] = data;
-  }
 
   // send map with data
   int size = clt_cwp.coupling[s1].field[s2].n_component * n_entities;
