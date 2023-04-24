@@ -3,9 +3,9 @@
 Quick Start
 ###########
 
-Here is shown how to couple two codes using the 1.* version of CWIPI in the different
+Here is shown how to couple two codes using the 1.x version of CWIPI in the different
 programming langages in which CWIPI is available. Both codes have the same basic
-polygonal mesh (see figure). code1 sends a fiel on the nodes to code2 and the unlocated points are checked.
+polygonal mesh (see figure). code1 sends a field on the nodes to code2 and the unlocated points are checked.
 
 .. image:: ./images/mesh.png
    :scale: 50%
