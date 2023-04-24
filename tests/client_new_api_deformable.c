@@ -29,6 +29,7 @@
 #include "cwp_priv.h"
 #include "pdm_mpi.h"
 #include "pdm_error.h"
+#include "pdm_logging.h"
 #include "pdm_io.h"
 #include "pdm_array.h"
 #include "pdm_printf.h"
@@ -257,11 +258,58 @@ main
                                        elt_vtx,
                                        NULL);
 
+  CWP_client_Mesh_interf_finalize(code_name, cpl_name);
+
+  const char *field_name = "champ";
+  double *send_field = malloc(sizeof(double) * 3 * n_vtx);
+  double *recv_field = malloc(sizeof(double) * 3 * n_vtx);
+  if (is_code1) {
+    CWP_client_Field_create(code_name,
+                            cpl_name,
+                            field_name,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            3,
+                            CWP_DOF_LOCATION_NODE,
+                            CWP_FIELD_EXCH_SEND,
+                            CWP_STATUS_ON);
+
+    for (int i = 0; i < n_vtx; i++) {
+      send_field[i] = coords[3*i + 2];
+    }
+
+    CWP_client_Field_data_set(code_name,
+                              cpl_name,
+                              field_name,
+                              0,
+                              CWP_FIELD_MAP_SOURCE,
+                              n_vtx,
+                              send_field);
+  } else {
+    CWP_client_Field_create(code_name,
+                            cpl_name,
+                            field_name,
+                            CWP_DOUBLE,
+                            CWP_FIELD_STORAGE_INTERLEAVED,
+                            3,
+                            CWP_DOF_LOCATION_NODE,
+                            CWP_FIELD_EXCH_RECV,
+                            CWP_STATUS_ON);
+
+    CWP_client_Field_data_set(code_name,
+                              cpl_name,
+                              field_name,
+                              0,
+                              CWP_FIELD_MAP_TARGET,
+                              n_vtx,
+                              recv_field);
+  }
+
   // Iteration
   const int    itdeb = 1;
   const int    itend = 10;
   const double freq  = 0.20;
-  const double ampl  = 0.012;
+  const double ampl  = 0.05;
   const double phi   = 0.1;
   double       ttime = 0.0;
   double       dt    = 0.1;
@@ -274,10 +322,32 @@ main
 
     for (int i = 0; i < n_vtx; i++) {
       coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
+      send_field[i] = coords[3 * i + 2];
     }
 
     // Update time
-    CWP_client_Time_update(code_name, ttime);
+    if (it != itdeb) CWP_client_Time_update(code_name, ttime);
+
+    MPI_Barrier(comm);
+
+    CWP_client_Spatial_interp_weights_compute(code_name, cpl_name);
+
+    // Exchange field
+    if (is_code1) {
+      CWP_client_Field_issend(code_name, cpl_name, field_name);
+    }
+    else {
+      CWP_client_Field_irecv (code_name, cpl_name, field_name);
+    }
+
+    if (is_code1) {
+      CWP_client_Field_wait_issend(code_name, cpl_name, field_name);
+    }
+    else {
+      CWP_client_Field_wait_irecv (code_name, cpl_name, field_name);
+    }
+
+    MPI_Barrier(comm);
 
   }
 
@@ -291,6 +361,8 @@ main
   free(coords     );
   free(elt_vtx_idx);
   free(elt_vtx    );
+  free(send_field );
+  free(recv_field );
 
   // Finalize
   CWP_client_Finalize();

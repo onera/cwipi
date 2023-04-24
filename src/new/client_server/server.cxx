@@ -3704,6 +3704,19 @@ CWP_server_Mesh_interf_del
     svr_cwp.coupling[s].ijk_grid = NULL;
   }
 
+  // WARNING : might call this then time update but since coupling still exists
+  // will try to write in a NULL pointer
+  if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    if (svr_cwp.coupling[s].n_user_vtx != NULL) {
+      free(svr_cwp.coupling[s].n_user_vtx);
+      svr_cwp.coupling[s].n_user_vtx = NULL;
+    }
+    if (svr_cwp.coupling[s].n_vtx != NULL) {
+      free(svr_cwp.coupling[s].n_vtx);
+      svr_cwp.coupling[s].n_vtx = NULL;
+    }
+  }
+
   // n_part
   if (svr_cwp.coupling[s].vtx_coord != NULL) {
     for (int i_part = 0; i_part < svr_cwp.coupling[s].n_part; i_part++) {

@@ -4544,6 +4544,32 @@ CWP_client_Mesh_interf_del
   // free struct
   std::string s(cpl_id);
 
+  // WARNING : might call this then time update but since coupling still exists
+  // will try to write in a NULL pointer
+  if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+
+    if (clt_cwp.coupling[s].vtx_coord != NULL) {
+      free(clt_cwp.coupling[s].vtx_coord);
+      clt_cwp.coupling[s].vtx_coord = NULL;
+    }
+
+    if (clt_cwp.coupling[s].n_vtx != NULL) {
+      free(clt_cwp.coupling[s].n_vtx);
+      clt_cwp.coupling[s].n_vtx = NULL;
+    }
+
+    if (clt_cwp.coupling[s].usr_coord != NULL) {
+      free(clt_cwp.coupling[s].usr_coord);
+      clt_cwp.coupling[s].usr_coord = NULL;
+    }
+
+    if (clt_cwp.coupling[s].n_user_vtx != NULL) {
+      free(clt_cwp.coupling[s].n_user_vtx);
+      clt_cwp.coupling[s].n_user_vtx = NULL;
+    }
+
+  }
+
   if (!clt_cwp.coupling[s].block.empty()) {
     std::map<int, t_block>::iterator it_b = clt_cwp.coupling[s].block.begin();
     while (it_b != clt_cwp.coupling[s].block.end()) {
