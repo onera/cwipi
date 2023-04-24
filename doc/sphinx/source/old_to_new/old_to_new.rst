@@ -52,6 +52,17 @@ The following table establishes the equivalence between the arguments that are e
 ``mesh_type``             ``displacement``
 ========================= =========================
 
+Thus, a coupling object is created between exactly two codes.
+
+.. image:: ./images/coupling.png
+   :scale: 90%
+
+Each code defines a coupling interface mesh for this given coupling.
+
+
+.. image:: ./images/mesh.png
+   :scale: 90%
+
 Exchange fields
 ================
 
@@ -60,14 +71,7 @@ The object-oriented aspect comes out more in this version.
 The user creates a coupling between two codes each having a mesh on which several fields can be defined.
 The non-blocking exchange functions were kept and are the way to go.
 
-Summary
-=======
-
-.. image:: ./images/coupling.png
-   :scale: 75%
-
-.. image:: ./images/mesh.png
-   :scale: 75%
+On the defined coupling, you can add as many field objects as you want.
 
 .. image:: ./images/field.png
-   :scale: 75%
+   :scale: 90%
