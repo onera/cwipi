@@ -64,35 +64,9 @@ build:
     - mkdir -p build$MATRIX_KEY && cd build$MATRIX_KEY
     - which gcc
     - if [ "${COMPILER}" == "gcc@12" ]; then
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \ 
-    -         -DCWP_ENABLE_EXTERNAL_PDM=OFF \
-    -         -DCWP_ENABLE_PARMETIS=OFF \
-    -         -DCWP_ENABLE_PTSCOTCH=OFF \
-    -         -DCWP_ENABLE_PYTHON_BINDINGS=ON \
-    -         -DCWP_ENABLE_STATIC=OFF \
-    -         -DCWP_ENABLE_SHARED=ON \
-    -         -DCWP_ENABLE_Fortran=ON \
-    -         -DCWP_ENABLE_Fortran_MPI_MODULE=OFF \
-    -         -DCWP_ENABLE_DOCUMENTATION=OFF \
-    -         -DCWP_ENABLE_BLASLAPACK=OFF \
-    -         -DCWP_ENABLE_PDM_TESTS=OFF \
-    -         -DCWP_ENABLE_CLIENT_SERVER=ON \
-    -         -DMPIEXEC_EXECUTABLE=/opt/tools/intel/oneapi/mpi/2021.6.0/bin/mpirun ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON -DMPIEXEC_EXECUTABLE=/opt/tools/intel/oneapi/mpi/2021.6.0/bin/mpirun ../
     - else
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \ 
-    -         -DCWP_ENABLE_EXTERNAL_PDM=OFF \
-    -         -DCWP_ENABLE_PARMETIS=OFF \
-    -         -DCWP_ENABLE_PTSCOTCH=OFF \
-    -         -DCWP_ENABLE_PYTHON_BINDINGS=ON \
-    -         -DCWP_ENABLE_STATIC=OFF \
-    -         -DCWP_ENABLE_SHARED=ON \
-    -         -DCWP_ENABLE_Fortran=ON \
-    -         -DCWP_ENABLE_Fortran_MPI_MODULE=ON \
-    -         -DCWP_ENABLE_DOCUMENTATION=OFF \
-    -         -DCWP_ENABLE_BLASLAPACK=OFF \
-    -         -DCWP_ENABLE_PDM_TESTS=OFF \
-    -         -DCWP_ENABLE_CLIENT_SERVER=ON \
-    -         -DMPIEXEC_EXECUTABLE=/opt/tools/intel/oneapi/mpi/2021.6.0/bin/mpirun ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON -DMPIEXEC_EXECUTABLE=/opt/tools/intel/oneapi/mpi/2021.6.0/bin/mpirun ../
     - fi
     - make -j
 #          -DPDM_ENABLE_Fortran_MPI_MODULE=OFF \
@@ -117,7 +91,7 @@ unit_test:
           BUILD_TYPE: 
             - "Sanitize"
   variables:
-    MATRIX_KEY: _${COMPILER}_${MPI_LIB}_GNUM64_${GNUM64}_BUILD_${BUILD_TYPE}
+    MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
     SCHEDULER_PARAMETERS:  "--qos=co_inter_bigmem  --ntasks=40 --time=01:00:00 --exclusive"
   stage: test
   before_script:
