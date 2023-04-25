@@ -33,7 +33,6 @@ init_repo:
   artifacts:
     reports:
       dotenv: build.env
-
 build:
   parallel:
     matrix:
