@@ -26,6 +26,8 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
+set(CTEST_TEST_TIMEOUT 120)
+
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with paradigm)
 #------------------------------------------------------------------------------
@@ -35,7 +37,10 @@ set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules")
 #set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
-project(CWP VERSION 0.0.0 LANGUAGES C CXX Fortran)
+include(${CWP_CMAKE_DIR}/modules/cwp_version.cmake)
+project(CWP VERSION ${CWP_DEF_VERSION_MAJOR} LANGUAGES C CXX Fortran)
+
+set(CWP_VERSION "${CWP_VERSION_MAJOR}.${CWP_VERSION_MINOR}.${CWP_VERSION_PATCH}")
 
 #------------------------------------------------------------------------------
 # Enable languages
@@ -498,7 +503,7 @@ if (CWP_ENABLE_EXTERNAL_PDM)
     list(APPEND REQUIRED_COMPONENTS Pypdm)
   endif ()
 
-  find_package(pdm CONFIG 2.4.1
+  find_package(pdm CONFIG 2.3.0
                REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
                HINTS $ENV{PDM_ROOT}
                )
