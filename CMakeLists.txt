@@ -640,13 +640,21 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Gcovr is mandatory for code coverage")
   endif()
 
+
+#  set_property(
+#        DIRECTORY ${CMAKE_BINARY_DIR}
+#        APPEND
+#        PROPERTY ADDITIONAL_CLEAN_FILES *.gcno)
+
+
   # remove .gcov, .gcno and .gcda files
   # execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
   add_custom_target (distclean
+                     COMMAND find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
                      COMMENT "Remove .gcno files")
-  add_custom_command(TARGET distclean POST_BUILD
-                     COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
-                     DEPENDS clean)
+#  add_custom_command(TARGET distclean POST_BUILD
+#                     COMMAND find ARGS ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
+#                     DEPENDS clean)
 
   # list of tests
   get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
@@ -654,23 +662,24 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
 
   # run test
-  add_custom_target(cwp_test ALL
-                    COMMAND ctest -R new --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-                    DEPENDS ${TEST_NAMES}
-                    COMMENT "Running tests for coverage")
+#  add_custom_target(cwp_test
+#                    COMMAND ctest -R new_api_dcube --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+#                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+#                    DEPENDS ${TEST_NAMES}
+#                    COMMENT "Running tests for coverage")
 
   # command to generate xml coverage summary
-  add_custom_target(cwp_coverage ALL
-                    COMMAND ${GCOVR_PATH}
-                            --cobertura-pretty
+  add_custom_target(coverage
+                    COMMAND find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + && 
+                             ${GCOVR_PATH}
+                            --xml-pretty
                             --root ${CMAKE_SOURCE_DIR}/src/new
                             --object-directory ${CMAKE_BINARY_DIR}
                             # --exclude-directories='(.+/)?paradigm'
                             --output cwp_coverage.xml
                     BYPRODUCTS cwp_coverage.xml
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    DEPENDS cwp_test
+                    DEPENDS  cwp_test
                     COMMENT "Running gcovr to produce Cobertura code coverage report")
 
   # for html run
@@ -680,9 +689,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   if(EXISTS ${CMAKE_BINARY_DIR}/cwp_coverage.xml)
     message(FATAL_ERROR "cwp_coverage.xml already exists, make distclean and make clean before make again for a new coverage report")
   else()
-    add_custom_command(TARGET cwp_coverage POST_BUILD
-                       COMMAND ;
-                       COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
+#    add_custom_command(TARGET cwp_coverage POST_BUILD
+#                       COMMAND ;
+#                       COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
   endif()
 
 endif()
