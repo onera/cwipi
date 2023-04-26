@@ -113,11 +113,14 @@ def runTest():
     f.write("  - n_loc_code : {param}\n".format(param=n_loc_code))
     for i in range(n_loc_code):
         f.write("    --> {param}\n".format(param=loc_code[i]))
+    f.flush()
 
     # PARAM
+    f.write("param_add_dbl:\n")
     pycwp.param_lock(code_names[i_rank])
     pycwp.param_add_dbl(code_names[i_rank], "double", 0.5)
     pycwp.param_unlock(code_names[i_rank])
+    f.flush()
 
     pycwp.param_lock(code_names[i_rank])
     pycwp.param_add_str(code_names[i_rank], "str", "chat")
@@ -278,6 +281,8 @@ def runTest():
         sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
         recvField = np.arange(4, dtype=np.double)
 
+        f.write("before creating field\n")
+        f.flush()
         if (i_rank == 0):
             cpl.field_create("champs",
                              pycwp.DOUBLE,
@@ -303,6 +308,8 @@ def runTest():
                           0,
                           pycwp.FIELD_MAP_TARGET,
                           recvField)
+        f.write("after creating field\n")
+        f.flush()
 
         comm.Barrier()
 
