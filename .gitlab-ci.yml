@@ -103,7 +103,7 @@ unit_test:
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
 #    - ./cwp_run -srun
-    - ctest --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
+    - ctest --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
     - if [ "${BUILD_TYPE}" == "Coverage" ]; then
     -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ${CI_PROJECT_DIR}
     - fi

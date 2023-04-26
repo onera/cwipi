@@ -28,6 +28,7 @@ function(test_c_create name n_proc LIST_TEST)
 
    target_link_libraries(${name} ${LINK_LIBRARIES})
    install(TARGETS ${name} RUNTIME DESTINATION bin)
+
    add_test (${name} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${n_proc}
              ${MPIEXEC_PREFLAGS}
              ${CMAKE_CURRENT_BINARY_DIR}/${name}
