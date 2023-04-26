@@ -623,6 +623,29 @@ include(FeatureSummary)
 FEATURE_SUMMARY(WHAT ALL)
 
 #------------------------------------------------------------------------------
+# Création d'un package pdmConfig.cmake pour importer facilement paradigm
+# pour les clients utilisant CMake
+#------------------------------------------------------------------------------
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/cwpConfig.cmake.in"
+  cwpConfig.cmake
+  @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cwpConfig.cmake"
+  DESTINATION lib/cmake/cwp
+)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/cwpConfigVersion.cmake.in"
+  cwpConfigVersion.cmake
+  @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cwpConfigVersion.cmake"
+  DESTINATION lib/cmake/cwp
+)
+
+#------------------------------------------------------------------------------
 # Affichage du message de fin d'installation
 #------------------------------------------------------------------------------
 

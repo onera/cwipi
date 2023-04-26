@@ -85,14 +85,15 @@ file(GLOB SOURCESF
 add_library(cwp OBJECT ${SOURCES})
 
 target_include_directories(cwp
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE  ${CMAKE_BINARY_DIR}
-                           PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           PRIVATE  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                           PUBLIC  $<INSTALL_INTERFACE:include/>)
 
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
   add_dependencies(cwp pdm)
@@ -124,15 +125,16 @@ if (CWP_ENABLE_Fortran)
   add_library(cwpf OBJECT ${SOURCESF})
 
   target_include_directories(cwpf
-                             INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                             PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                             PRIVATE   ${CMAKE_BINARY_DIR}
-                             PUBLIC    ${CMAKE_SOURCE_DIR}
-                             PUBLIC    ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}
-                             PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
-                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
-                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                             INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                             PUBLIC  $<INSTALL_INTERFACE:include/>)
 
   add_dependencies(cwpf cwp)
 
@@ -294,8 +296,17 @@ if (CWP_ENABLE_STATIC)
   endif()
 endif()
 
-install(TARGETS ${_targets}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-        ARCHIVE DESTINATION lib)
+foreach(_target IN ITEMS ${_targets})
+  install(TARGETS ${_target} EXPORT ${_target}Targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
+    ARCHIVE DESTINATION lib
+  )
+  install(EXPORT ${_target}Targets
+    FILE ${_target}Targets.cmake
+    NAMESPACE cwp::
+    DESTINATION lib/cmake/${_target}
+  )
+  add_library(cwp::${_target} ALIAS ${_target})
+endforeach()
