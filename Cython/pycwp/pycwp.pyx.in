@@ -28,6 +28,7 @@ cwipi - Coupling With Interpolation Parallel Interface library.
 # --> Python
 import numpy     as NPY
 from mpi4py import MPI
+import ctypes
 
 # --> Cython
 cimport cython
@@ -39,7 +40,7 @@ from libc.stdio cimport FILE, fdopen, fopen
 from cpython.object cimport PyObject_AsFileDescriptor
 cimport numpy as NPY
 cimport mpi4py.MPI as MPI
-import ctypes
+from cpython cimport array
 
 # initialize the numpy C API
 NPY.import_array()
@@ -893,52 +894,60 @@ cdef void interp_callback(const char           *local_code_name,
 
 #-----------------------------------------------------------------------------
 # DEFINITION
+# Use numpy arrays for arrays with scientific purpose, otherwise use lists.
 # --> general functions
 
 def init(MPI.Comm global_comm,
-         int      n_code,
-         NPY.ndarray code_names not None,
-         NPY.ndarray[NPY.int32_t] is_active_rank not None,
-         NPY.ndarray[NPY.double_t] time_init not None):
+         list code_names,
+         list is_active_rank,
+         list time_init):
     """
     Initialize CWIPI library and create intra-communicator.
 
     Parameters:
-      global_comm    (MPI.Comm) : MPI global communicator
-      n_code         (int)      : Number of codes on the current rank
-      code_names     (char**)   : Names of codes on the current rank (size = n_code)
-      is_active_rank (int*)     : Is current rank have to be used by CWIPI (size = n_code)
-      time_init      (double*)  : Initial time (size = n_code)
+      global_comm    (MPI.Comm)    : MPI global communicator
+      code_names     (str list)    : Names of codes on the current rank (size = number of codes on current MPI rank)
+      is_active_rank (bool list)   : Is current rank have to be used by CWIPI (size = number of codes on current MPI rank)
+      time_init      (double list) : Initial time (size = number of codes on current MPI rank)
 
     Returns:
-      intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
+      intra_comms    (MPI.Comm)    : MPI intra communicators of each code (size = number of codes on current MPI rank)
     """
 
+    cdef int n_code = len(code_names)
+
+    # code names
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
     for i in range(n_code):
       c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('utf8')
+        py_byte_code_name = (<unicode>code_names[i]).encode('utf8') + b'\x00'
       else :
         py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name
 
+    # MPI communicator
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
     cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
 
+    # active ranks
+    cdef array.array c_is_active_rank = array.array('i', is_active_rank) # WARNING 'i' is signed int
+
+    # initial time
+    cdef array.array c_time_init = array.array('d', time_init)
 
     CWP_Init(c_global_comm,
              n_code,
              c_code_names,
-             <CWP_Status_t *> is_active_rank.data,
-             <double *> time_init.data,
+             <CWP_Status_t *> c_is_active_rank.data.as_ints,
+             <double *> c_time_init.data.as_doubles,
              intra_comms)
 
-
+    # intra communicators
     cdef MPI.Comm tmp_comm
     for i_code in range(n_code):
       tmp_comm = MPI.Comm()
@@ -1091,9 +1100,11 @@ def codes_list_get():
     cdef int n_code = CWP_Codes_nb_get()
     code_list = []
     for i in range(n_code):
-      code_list.append(c_code_list[i])
-
-    code_list = NPY.array(code_list)
+      if isinstance(c_code_list[i], bytes):
+        py_unicode_code_list = (<bytes>c_code_list[i]).decode("utf8")
+      else :
+        py_unicode_code_list = c_code_list[i]
+      code_list.append(py_unicode_code_list)
 
     return code_list
 
@@ -1122,9 +1133,11 @@ def loc_codes_list_get():
     cdef int n_loc_code = CWP_Loc_codes_nb_get()
     loc_code_list = []
     for i in range(n_loc_code):
-      loc_code_list.append(c_loc_code_list[i])
-
-    loc_code_list = NPY.array(loc_code_list)
+      if isinstance(c_loc_code_list[i], bytes):
+        py_unicode_loc_code_list = c_loc_code_list[i].decode("utf8")
+      else :
+        py_unicode_loc_code_list = c_loc_code_list[i]
+      loc_code_list.append(py_unicode_loc_code_list)
 
     return loc_code_list
 
@@ -1371,8 +1384,7 @@ def param_get(char        *code_name,
 def param_reduce(CWP_Op_t    op,
                  char       *param_name,
                  CWP_Type_t  data_type,
-                 int         n_code,
-                 NPY.ndarray code_names not None):
+                 list        code_names):
     """
     Return the result of a reduce operation about a parameter.
     The parameter name has to be the same for all codes.
@@ -1381,12 +1393,12 @@ def param_reduce(CWP_Op_t    op,
       op         (CWP_Op_t)   :Operation
       param_name (char*)      :Parameter name
       data_type  (CWP_Type_t) :Parameter type
-      n_code      (int)        :Number of codes
-      code_names (char**)     :Codes name
+      code_names (str list)   :Codes name (size = number of codes in the reduce operation)
 
     Returns:
       res (data_type) : Result
     """
+    cdef int n_code = len(code_names)
 
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
     for i in range(n_code):
@@ -1394,7 +1406,7 @@ def param_reduce(CWP_Op_t    op,
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('utf8')
+        py_byte_code_name = (<unicode>code_names[i]).encode('utf8') + b'\x00'
       else :
         py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name

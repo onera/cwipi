@@ -164,11 +164,9 @@ def runTest():
   if verbose:
     f.write("pycwp.init:\n")
   n_code = len(code_name)
-  code_name = np.array(code_name)
-  is_active_rank = np.ones(n_code,  dtype=np.int32)
-  time_init      = np.zeros(n_code, dtype=np.double)
+  is_active_rank = [True for i in range(n_code)]
+  time_init      = [0.0 for i in range(n_code)]
   intra_comm = pycwp.init(comm,
-                          n_code,
                           code_name,
                           is_active_rank,
                           time_init)

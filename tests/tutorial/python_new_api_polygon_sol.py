@@ -61,16 +61,15 @@ def runTest():
     n_code = 1
 
     if (i_rank == 0):
-        code_name = np.array(["code1"])
+        code_name = ["code1"]
 
     if (i_rank == 1):
-        code_name = np.array(["code2"])
+        code_name = ["code2"]
 
-    is_active_rank = np.array([1], dtype=np.int32)
-    time_init = np.array([0.], dtype=np.double)
+    is_active_rank = [True]
+    time_init      = [0.0]
 
     intra_comm = pycwp.init(comm,
-                            n_code,
                             code_name,
                             is_active_rank,
                             time_init)

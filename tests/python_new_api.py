@@ -80,11 +80,10 @@ def runTest():
     # INIT
     f.write("pycwp.init:\n")
     n_code = 1
-    code_name = np.array(code_name)
-    is_active_rank = np.array([1], dtype=np.int32)
-    time_init = np.array([0.], dtype=np.double)
+    code_name = code_name
+    is_active_rank = [True for i in range(n_code)]
+    time_init      = [0.0 for i in range(n_code)]
     out = pycwp.init(comm,
-                     n_code,
                      code_name,
                      is_active_rank,
                      time_init)
@@ -196,7 +195,7 @@ def runTest():
     comm.Barrier()
 
     f.write("pycwp.param_reduce:\n")
-    result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, 2, np.array(code_names))
+    result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, code_names)
     f.write("  - result: {param}\n".format(param=result))
     f.flush()
 
