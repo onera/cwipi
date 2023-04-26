@@ -330,7 +330,7 @@ CWP_Init
 
   if (my_rank == 0) {
 
-    PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
+    PDM_printf("\ncwipi " CWP_DEF_VERSION " initializing\n");
     PDM_printf("------------------------\n\n");
     PDM_printf_flush();
 

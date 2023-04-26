@@ -1137,7 +1137,7 @@ CWP_client_Init
   // standard cwipi init message
   if (clt->i_rank == 0) {
 
-    printf("\ncwipi " CWIPI_VERSION " initializing\n");
+    printf("\ncwipi " CWP_DEF_VERSION " initializing\n");
     printf("------------------------\n\n");
 
   }

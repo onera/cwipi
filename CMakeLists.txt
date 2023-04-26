@@ -26,8 +26,6 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-set(CTEST_TEST_TIMEOUT 120)
-
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with paradigm)
 #------------------------------------------------------------------------------
@@ -50,8 +48,8 @@ set(CWP_VERSION "${CWP_VERSION_MAJOR}.${CWP_VERSION_MINOR}.${CWP_VERSION_PATCH}"
 # User option Definition
 #------------------------------------------------------------------------------
 
-# OpenMP
-# ------
+# External ParaDiGM
+# -----------------
 
 option(CWP_ENABLE_EXTERNAL_PDM "Use an external ParaDiGM library" OFF)
 
@@ -467,7 +465,7 @@ if (CWP_ENABLE_Fortran)
 endif ()
 
 #------------------------------------------------------------------------------
-# Installation de PDM
+# Installation de CWP
 #------------------------------------------------------------------------------
 
 # Set PDM install sub-directories
@@ -485,11 +483,27 @@ set(CWP_ETC_DIR "etc")
 #------------------------------------------------------------------------------
 
 set(CWP_LIST_TEST "")
+set(CWP_LIST_NRANK "")
+
+
+#------------------------------------------------------------------------------
+# Fake dlclose path
+#------------------------------------------------------------------------------
+
+if (CWP_ENABLE_EXTERNAL_PDM)
+  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/script/asan/fake_dlclose)
+else()
+  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose)
+endif()
+
+set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
 
 #------------------------------------------------------------------------------
 # Ajout des sources de tous les elements du projet
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
+
+add_subdirectory(script)
 
 if (CWP_ENABLE_EXTERNAL_PDM) 
 

@@ -28,6 +28,7 @@ extern "C" {
 
 
 #include "cwp.h" 
+#include "pdm_mesh_nodal.h" 
 
 /*=============================================================================
  * Macro definitions

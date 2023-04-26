@@ -34,8 +34,6 @@
 #include <mpi.h>
 #include <stdio.h>
 
-#include "pdm_mesh_nodal.h"
-
 
 /*=============================================================================
  * Macro definitions
