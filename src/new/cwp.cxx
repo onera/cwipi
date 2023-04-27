@@ -3718,10 +3718,10 @@ CWP_set_toto(ma_fonction_t f) {
 void
 CWP_call_toto()
 {
-  printf(">>> toto_f %ld\n", (void *) toto_f);
+  // printf(">>> toto_f %ld\n", (void *) toto_f);
   // (*toto_f)();
-  appelle_toto((void *) toto_f, 3);
-  printf("<<< toto_f\n");
+  // appelle_toto((void *) toto_f, 3);
+  // printf("<<< toto_f\n");
 }
 /*-----------------------------------------------------------------------------*/
 
