@@ -309,7 +309,7 @@ def runTest():
         # USER INTERPOLATION to do has to be done
         f.write("cpl.interp_from_location_set:\n")
         f.flush()
-        cpl.interp_function_set("champs", userInterp)
+        cpl.field_interp_function_set("champs", userInterp)
 
         comm.Barrier()
 
