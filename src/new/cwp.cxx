@@ -109,6 +109,8 @@ using namespace std;
  * Global variable
  *============================================================================*/
 
+static ma_fonction_t toto_f;
+
 /*----------------------------------------------------------------------------
  * Output listing File (C printing)
  *----------------------------------------------------------------------------*/
@@ -321,7 +323,6 @@ CWP_Init
   /*
    * Get application properties
    */
-
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
@@ -339,7 +340,6 @@ CWP_Init
   /*
    * Builds application communicator
    */
-
   properties.init (global_comm,
                    n_code,
                    code_names,
@@ -351,9 +351,7 @@ CWP_Init
   /*
    * Create default parameters
    */
-
   MPI_Barrier(global_comm);
-
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i];
@@ -2002,6 +2000,19 @@ CWP_Interp_function_unset
 }
 
 
+void
+CWP_Interp_function_f_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.interpFunctionFUnSet(src_field_id);
+}
+
+
 
 /**
  *
@@ -2028,6 +2039,19 @@ CWP_Interp_function_set
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.interpFunctionSet(src_field_id,fct);
+}
+
+void
+CWP_Interp_function_f_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id,
+ CWP_Interp_function_t       fct
+ )
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.interpFunctionFSet(src_field_id,fct);
 }
 
 /**
@@ -3685,6 +3709,20 @@ CWP_block_type_to_PDM_elt_type
   return PDM_MESH_NODAL_N_ELEMENT_TYPES;
 };
 
+
+void
+CWP_set_toto(ma_fonction_t f) {
+  toto_f = f;
+}
+
+void
+CWP_call_toto()
+{
+  // printf(">>> toto_f %ld\n", (void *) toto_f);
+  // (*toto_f)();
+  // appelle_toto((void *) toto_f, 3);
+  // printf("<<< toto_f\n");
+}
 /*-----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

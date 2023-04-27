@@ -219,10 +219,27 @@ namespace cwipi {
       _interpolationFunction = fct;
     }
 
+    void interpFunctionFSet(CWP_Interp_function_t fct)
+    {
+      _interpolationType       = CWP_INTERPOLATION_USER ;
+      _interpolationFunction_f = fct;
+    }
+
+    CWP_Interp_function_t interpFunctionFGet()
+    {
+      return _interpolationFunction_f;
+    }
+
     void interpFunctionUnSet()
     {
       _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
       _interpolationFunction = NULL;
+    }
+
+    void interpFunctionFUnSet()
+    {
+      _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
+      _interpolationFunction_f = NULL;
     }
 
     CWP_Interp_function_t interpolationFunctionGet() {
@@ -327,8 +344,10 @@ namespace cwipi {
     CWP_Dof_location_t                       _linkedFieldLocation; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
     CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
     CWP_Status_t                             _visuStatus;     /*!< Visualization status */
-    std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
-    std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
+    // std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
+    // std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
+    void                                   **_data_src;
+    void                                   **_data_tgt;
     CWP_Type_t                               _dataType;
     std::string                              _fieldID;
     int                                      _fieldIDInt;
@@ -347,8 +366,9 @@ namespace cwipi {
     int                                      _dataTypeSize;
     CWP_Interp_function_t                    _interpolationFunction;
     CWP_Interpolation_t                      _interpolationType;
+    CWP_Interp_function_t                    _interpolationFunction_f;
 
-    Field &operator=(const Field &other);       /*!< Assigment operator not available */
+    Field &operator=(const Field &other);       /*!< Assignment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
 
     int                                      _current_step_was_exchanged;

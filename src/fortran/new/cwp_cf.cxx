@@ -1924,26 +1924,26 @@ CWP_Field_wait_irecv_cf (
 
 void
 CWP_Interp_function_set_cf (
-  const char *f_local_code_name,
-  int l_local_code_name,
-  const char *f_cpl_id,
-  int l_cpl_id,
-  const char *f_src_field_id,
-  int l_src_field_id,
-  void* user_interpolation_fct
+  const char                  *f_local_code_name,
+        int                    l_local_code_name,
+  const char                  *f_cpl_id,
+        int                    l_cpl_id,
+  const char                  *f_src_field_id,
+        int                    l_src_field_id,
+        CWP_Interp_function_t  user_interpolation_fct
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_src_field_id    = _fortran_to_c_string(f_src_field_id,    l_src_field_id);
 
-  CWP_Interp_function_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_function_t) user_interpolation_fct);
+  CWP_Interp_function_f_set(c_local_code_name, c_cpl_id, c_src_field_id, user_interpolation_fct);
 
-  free ( c_local_code_name);
-  free ( c_cpl_id);
-  free ( c_src_field_id);
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_src_field_id);
 }
 
 /**
@@ -1962,24 +1962,24 @@ CWP_Interp_function_set_cf (
 void
 CWP_Interp_function_unset_cf (
   const char *f_local_code_name,
-  int l_local_code_name,
+        int   l_local_code_name,
   const char *f_cpl_id,
-  int l_cpl_id,
+        int   l_cpl_id,
   const char *f_src_field_id,
-  int l_src_field_id
+        int   l_src_field_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_src_field_id    = _fortran_to_c_string(f_src_field_id,    l_src_field_id);
 
-  CWP_Interp_function_unset(c_local_code_name, c_cpl_id, c_src_field_id);
+  CWP_Interp_function_f_unset(c_local_code_name, c_cpl_id, c_src_field_id);
 
-  free ( c_local_code_name);
-  free ( c_cpl_id);
-  free ( c_src_field_id);
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_src_field_id);
 }
 
 /**

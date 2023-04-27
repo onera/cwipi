@@ -65,20 +65,21 @@ program fortran_new_api_deformable_sol
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
 
-  ! Check running on correct number of MPI ranks :
-  n_partition = 1
-  do while ((2 * n_partition**2) < n_rank)
-    n_partition = n_partition + 1
-  enddo
+  ! ! Check running on correct number of MPI ranks :
+  ! n_partition = 1
+  ! do while ((2 * n_partition**2) < n_rank)
+  !   n_partition = n_partition + 1
+  ! enddo
 
-  n2 = 2 * n_partition**2
+  ! n2 = 2 * n_partition**2
 
-  if (n2 /= n_rank) then
-    if (i_rank == 0) then
-      write(6,*) '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
-    endif
-    call exit()
-  endif
+  ! if (n2 /= n_rank) then
+  !   if (i_rank == 0) then
+  !     write(6,*) '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
+  !   endif
+  !   call exit()
+  ! endif
+  print *, "Fortran rank ", i_rank, "/", n_rank
 
   ! Initialize CWIPI :
   n_code = 1

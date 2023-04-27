@@ -985,13 +985,13 @@ CWP_Field_wait_irecv_cf (
 
 void
 CWP_Interp_function_set_cf (
-  const char *f_local_code_name,
-  int l_local_code_name,
-  const char *f_cpl_id,
-  int l_cpl_id,
-  const char *f_src_field_id,
-  int l_src_field_id,
-  void* user_interpolation_fct
+  const char                  *f_local_code_name,
+        int                    l_local_code_name,
+  const char                  *f_cpl_id,
+        int                    l_cpl_id,
+  const char                  *f_src_field_id,
+        int                    l_src_field_id,
+        CWP_Interp_function_t  user_interpolation_fct
 );
 
 /**
@@ -1004,18 +1004,17 @@ CWP_Interp_function_set_cf (
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] src_field_id     Source field id
- * \param [in] fct              Function
  *
  */
 
 void
 CWP_Interp_function_unset_cf (
   const char *f_local_code_name,
-  int l_local_code_name,
+        int   l_local_code_name,
   const char *f_cpl_id,
-  int l_cpl_id,
+        int   l_cpl_id,
   const char *f_src_field_id,
-  int l_src_field_id
+        int   l_src_field_id
 );
 
 

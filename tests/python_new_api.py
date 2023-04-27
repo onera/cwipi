@@ -273,11 +273,6 @@ def runTest():
 
         # FIELD
 
-        # USER INTERPOLATION to do has to be done
-        # f.write("cpl.interp_from_location_set:\n")
-        # f.flush()
-        # cpl.interp_from_location_set("champs", userInterp)
-
         sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
         recvField = np.arange(4, dtype=np.double)
 
@@ -310,6 +305,11 @@ def runTest():
                           recvField)
         f.write("after creating field\n")
         f.flush()
+
+        # USER INTERPOLATION to do has to be done
+        f.write("cpl.interp_from_location_set:\n")
+        f.flush()
+        cpl.interp_function_set("champs", userInterp)
 
         comm.Barrier()
 

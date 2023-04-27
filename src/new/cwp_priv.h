@@ -297,6 +297,26 @@ CWP_Part_data_n_ref_get
  const int      i_part
 );
 
+
+
+void
+CWP_Interp_function_f_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id
+);
+
+
+void
+CWP_Interp_function_f_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id,
+ CWP_Interp_function_t       fct
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

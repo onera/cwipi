@@ -501,6 +501,10 @@ module cwp
       module procedure CWP_Part_data_wait_irecv_
     end interface CWP_Part_data_wait_irecv
 
+    interface CWP_set_toto
+      module procedure CWP_set_toto_
+    end interface CWP_set_toto
+
   !
   ! Private
 
@@ -592,7 +596,8 @@ module cwp
              CWP_Part_data_issend_, &
              CWP_Part_data_irecv_, &
              CWP_Part_data_wait_issend_, &
-             CWP_Part_data_wait_irecv_
+             CWP_Part_data_wait_irecv_, &
+             CWP_set_toto_
 
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
@@ -995,31 +1000,9 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
 
-        abstract interface
-          subroutine user_interpolation_fct ( &
-                  local_code_name, &
-                  cpl_id, &
-                  src_field_id, &
-                  i_part, &
-                  spatial_interp_algorithm, &
-                  storage, &
-                  buffer_in, &
-                  buffer_out &
-                  ) &
-                  bind (c)
-            use, intrinsic :: iso_c_binding
-            implicit none
-            character(kind = c_char, len = 1)   :: local_code_name, cpl_id, src_field_id
-            integer(kind = c_int)               :: i_part
-            integer(kind = c_int)               :: spatial_interp_algorithm
-            integer(kind = c_int)               :: storage
-            real(kind = c_double), dimension(*) :: buffer_in
-            real(kind = c_double), dimension(*) :: buffer_out
-          end subroutine user_interpolation_fct
-        end interface
-
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1)       :: local_code_name, cpl_id, src_field_id
+        integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_src_field_id
+        type(c_funptr),                   value :: user_interpolation_fct
       end subroutine CWP_Interp_function_set_cf
 
       subroutine CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
@@ -1771,6 +1754,24 @@ module cwp
       integer(c_int), value         :: i_part
       integer(c_int)                :: n_ref
     end subroutine CWP_Part_data_n_ref_get_cf
+
+
+    subroutine CWP_set_toto_cf(fun) &
+    bind(c, name='CWP_set_toto')
+      use iso_c_binding
+      type(C_FUNPTR), value :: fun
+    end subroutine CWP_set_toto_cf
+
+    subroutine CWP_call_toto() bind (c, name='CWP_call_toto')
+    use iso_c_binding
+    end subroutine CWP_call_toto
+
+    subroutine appelle_toto_cf(fun, i) bind (c, name="appelle_toto")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    type(c_funptr), value :: fun
+    integer(c_int), value :: i
+    end subroutine appelle_toto_cf
 
   end interface
 
@@ -3730,36 +3731,41 @@ contains
     implicit none
 
     interface
-        subroutine user_interpolation_fct ( &
-                local_code_name, &
-                cpl_id, &
-                src_field_id, &
-                i_part, &
-                spatial_interp_algorithm, &
-                storage, &
-                buffer_in, &
-                buffer_out &
-                ) &
-                bind (c)
+        subroutine user_interpolation_fct (local_code_name,          &
+                                           cpl_id,                   &
+                                           src_field_id,             &
+                                           i_part,                   &
+                                           spatial_interp_algorithm, &
+                                           storage,                  &
+                                           buffer_in,                &
+                                           buffer_out)               &
+          bind (c)
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1)   :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int)               :: i_part
-          integer(kind = c_int)               :: spatial_interp_algorithm
-          integer(kind = c_int)               :: storage
-          real(kind = c_double), dimension(*) :: buffer_in
-          real(kind = c_double), dimension(*) :: buffer_out
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int)             :: i_part
+          integer(kind = c_int)             :: spatial_interp_algorithm
+          integer(kind = c_int)             :: storage
+          type(c_ptr), value                :: buffer_in
+          type(c_ptr), value                :: buffer_out
         end subroutine user_interpolation_fct
     end interface
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(kind = c_int)             :: l_local_code_name, l_cpl_id, l_src_field_id
     l_local_code_name = len(local_code_name)
-    l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_cpl_id          = len(cpl_id)
+    l_src_field_id    = len(src_field_id)
 
-    call CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-            & src_field_id, l_src_field_id, user_interpolation_fct)
+    print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
+
+    call CWP_Interp_function_set_cf(local_code_name,   &
+                                    l_local_code_name, &
+                                    cpl_id,            &
+                                    l_cpl_id,          &
+                                    src_field_id,      &
+                                    l_src_field_id,    &
+                                    c_funloc(user_interpolation_fct))
   end subroutine CWP_Interp_function_set_
 
   !>
@@ -5516,6 +5522,30 @@ contains
                                      request)
 
   end subroutine CWP_Part_data_wait_irecv_
+
+
+
+
+  subroutine CWP_set_toto_(fun)
+  use iso_c_binding
+    implicit none
+    interface
+    subroutine fun(i) bind(c)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_int), value, intent(in) :: i
+    end subroutine fun
+    end interface
+
+    call CWP_set_toto_cf(c_funloc(fun))
+  end subroutine CWP_set_toto_
+
+
+
+
+
+
+
 
 
 end module cwp
