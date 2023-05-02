@@ -309,7 +309,7 @@ def runTest():
         # USER INTERPOLATION to do has to be done
         f.write("cpl.interp_from_location_set:\n")
         f.flush()
-        cpl.interp_function_set("champs", userInterp)
+        cpl.field_interp_function_set("champs", userInterp)
 
         comm.Barrier()
 
@@ -348,11 +348,6 @@ def runTest():
         f.write("cpl.field_del:\n")
         f.flush()
         cpl.field_del("champs")
-
-        # USER INTERPOLATION to do has to be done
-        # f.write("cpl.interp_from_location_unset:\n")
-        # f.flush()
-        # cpl.interp_from_location_unset("champs")
 
         # TIME UPDATE
         f.write("cpycwp.time_update:\n")

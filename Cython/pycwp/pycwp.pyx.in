@@ -35,6 +35,7 @@ cimport cython
 from libc.stdlib       cimport malloc, free
 from libc.string       cimport memcpy, strlen
 from libc.stdint       cimport uintptr_t
+from cpython.version   cimport PY_MAJOR_VERSION
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 from libc.stdio cimport FILE, fdopen, fopen
@@ -802,114 +803,6 @@ cdef long** np_list_to_long_pointers(list datas):
   return array
 
 #-----------------------------------------------------------------------------
-# CALLBACK
-g_interp_fct = {}
-current_cpl_id = ""
-
-cdef void interp_callback(const char           *local_code_name,
-                          const char           *cpl_id,
-                          const char           *field_id,
-                          int                   i_part,
-                          CWP_Spatial_interp_t  spatial_interp_algorithm,
-                          CWP_Field_storage_t   storage,
-                          double               *buffer_in,
-                          double               *buffer_out):
-    """
-    User interpolation function interface from location into a mesh.
-
-    Parameters:
-      local_code_name             Local code name
-      cpl_id                      Coupling name
-      field_id                    Field name
-      spatial_interp_algorithm    Enum of spatial interpolation algorithm
-      buffer_in                   Input field array
-
-    Returns:
-      buffer_out                  Output field array
-    """
-
-    global g_interp_fct
-    global current_cpl_id
-    cdef NPY.npy_intp dims = 0
-
-    if (buffer_in == NULL):
-      print("Error: User interpolation input field array is NULL")
-
-    # set buffers
-    cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
-                                                              cpl_id,
-                                                              field_id)
-    cdef int  n_elt_src
-    cdef int *c_src_to_tgt_idx
-
-    cdef int  n_elt_tgt;
-    cdef int  n_referenced_tgt;
-    cdef int *c_referenced_tgt;
-    cdef int *c_tgt_come_from_src_idx;
-
-    cdef int size_in;
-    cdef int size_out;
-
-    if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES or
-        spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES or
-        spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
-        spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
-      CWP_Interp_tgt_data_get(local_code_name,
-                              cpl_id,
-                              field_id,
-                              i_part,
-                              &(n_elt_tgt),
-                              &(n_referenced_tgt),
-                              &(c_referenced_tgt),
-                              &(c_tgt_come_from_src_idx))
-
-      size_in  = n_components * c_tgt_come_from_src_idx[n_referenced_tgt]
-      size_out = n_components * n_elt_tgt
-
-    elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
-          spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
-          spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
-      CWP_Interp_src_data_get(local_code_name,
-                              cpl_id,
-                              field_id,
-                              i_part,
-                              &(n_elt_src),
-                              &(c_src_to_tgt_idx))
-
-      size_in  = n_components * n_elt_src
-      size_out = n_components * c_src_to_tgt_idx[n_elt_src]
-      print(f"size_in {size_in}, size_out = {size_out}")
-
-    buffer_in_a = create_numpy_d(buffer_in, size_in, flag_owndata=False)
-
-    buffer_out_a = create_numpy_d(buffer_out, size_out, flag_owndata=False)
-
-    # dims = <NPY.npy_intp>(size_in)
-    # buffer_in_a = NPY.PyArray_SimpleNewFromData(1,
-    #                                            &dims,
-    #                                            NPY.NPY_DOUBLE,
-    #                                            <void *> buffer_in)
-
-    # dims = <NPY.npy_intp>(size_out)
-    # buffer_out_a = NPY.PyArray_SimpleNewFromData(1,
-    #                                             &dims,
-    #                                             NPY.NPY_DOUBLE,
-    #                                             <void *> buffer_out)
-
-
-    print(f"current_cpl_id = {current_cpl_id}")
-    print(f"in g_interp_fct ? {current_cpl_id in g_interp_fct}")
-
-    (<object> g_interp_fct[current_cpl_id]) (local_code_name,
-                                             cpl_id,
-                                             field_id,
-                                             i_part,
-                                             spatial_interp_algorithm,
-                                             storage,
-                                             buffer_in_a,
-                                             buffer_out_a)
-
-#-----------------------------------------------------------------------------
 # DEFINITION
 # Use numpy arrays for arrays with scientific purpose, otherwise use lists
 # 'str' is a special type that is bytes in Py2 and unicode in Py3
@@ -948,8 +841,6 @@ def init(MPI.Comm global_comm,
 
     # MPI communicator
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
-    #print(f"c_global_comm {c_global_comm}")
-    print("coucou")
 
     cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
@@ -1159,11 +1050,19 @@ def codes_list_get():
 
     cdef int n_code = CWP_Codes_nb_get()
     code_list = []
+
+    # 'str' is a special type that is bytes in Py2 and unicode in Py3
     for i in range(n_code):
-      if isinstance(c_code_list[i], bytes):
-        py_unicode_code_list = (<bytes>c_code_list[i]).decode("utf8")
+      if PY_MAJOR_VERSION < 3:
+        if isinstance(c_code_list[i], unicode):
+          py_unicode_code_list = (<unicode>c_code_list[i]).encode('utf8') + b'\x00'
+        else :
+          py_unicode_code_list = c_code_list[i]
       else :
-        py_unicode_code_list = c_code_list[i]
+        if isinstance(c_code_list[i], bytes):
+          py_unicode_code_list = (<bytes>c_code_list[i]).decode("utf8")
+        else :
+          py_unicode_code_list = c_code_list[i]
       code_list.append(py_unicode_code_list)
 
     return code_list
@@ -1192,11 +1091,19 @@ def loc_codes_list_get():
 
     cdef int n_loc_code = CWP_Loc_codes_nb_get()
     loc_code_list = []
+
+    # 'str' is a special type that is bytes in Py2 and unicode in Py3
     for i in range(n_loc_code):
-      if isinstance(c_loc_code_list[i], bytes):
-        py_unicode_loc_code_list = c_loc_code_list[i].decode("utf8")
+      if PY_MAJOR_VERSION < 3:
+        if isinstance(c_loc_code_list[i], unicode):
+          py_unicode_loc_code_list = (<unicode>c_loc_code_list[i]).encode('utf8') + b'\x00'
+        else :
+          py_unicode_loc_code_list = c_loc_code_list[i]
       else :
-        py_unicode_loc_code_list = c_loc_code_list[i]
+        if isinstance(c_loc_code_list[i], bytes):
+          py_unicode_loc_code_list = (<bytes>c_loc_code_list[i]).decode("utf8")
+        else :
+          py_unicode_loc_code_list = c_loc_code_list[i]
       loc_code_list.append(py_unicode_loc_code_list)
 
     return loc_code_list
@@ -2386,6 +2293,137 @@ cdef class PartData (object):
                                  request)
 
 #-----------------------------------------------------------------------------
+# CALLBACK
+interpolation_function_dict = {}
+
+cdef void callback(const char           *c_local_code_name,
+                   const char           *c_cpl_id,
+                   const char           *c_field_id,
+                   int                   i_part,
+                   CWP_Spatial_interp_t  spatial_interp_algorithm,
+                   CWP_Field_storage_t   storage,
+                   double               *buffer_in,
+                   double               *buffer_out):
+        """
+        User interpolation function interface from location into a mesh.
+
+        Parameters:
+          local_code_name             Local code name
+          cpl_id                      Coupling name
+          field_id                    Field name
+          spatial_interp_algorithm    Enum of spatial interpolation algorithm
+          buffer_in                   Input field array
+
+        Returns:
+          buffer_out                  Output field array
+        """
+        global interpolation_function_dict
+
+        cdef NPY.npy_intp dims = 0
+
+        if (buffer_in == NULL):
+          print("Error: User interpolation input field array is NULL")
+
+        # set buffers
+        cdef int n_components = CWP_Interp_field_n_components_get(c_local_code_name,
+                                                                  c_cpl_id,
+                                                                  c_field_id)
+        cdef int  n_elt_src
+        cdef int *c_src_to_tgt_idx
+
+        cdef int  n_elt_tgt;
+        cdef int  n_referenced_tgt;
+        cdef int *c_referenced_tgt;
+        cdef int *c_tgt_come_from_src_idx;
+
+        cdef int size_in;
+        cdef int size_out;
+
+        if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES or
+            spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES or
+            spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
+            spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
+          CWP_Interp_tgt_data_get(c_local_code_name,
+                                  c_cpl_id,
+                                  c_field_id,
+                                  i_part,
+                                  &(n_elt_tgt),
+                                  &(n_referenced_tgt),
+                                  &(c_referenced_tgt),
+                                  &(c_tgt_come_from_src_idx))
+
+          size_in  = n_components * c_tgt_come_from_src_idx[n_referenced_tgt]
+          size_out = n_components * n_elt_tgt
+
+        elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
+              spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
+              spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+          CWP_Interp_src_data_get(c_local_code_name,
+                                  c_cpl_id,
+                                  c_field_id,
+                                  i_part,
+                                  &(n_elt_src),
+                                  &(c_src_to_tgt_idx))
+
+          size_in  = n_components * n_elt_src
+          size_out = n_components * c_src_to_tgt_idx[n_elt_src]
+
+        buffer_in_a = create_numpy_d(buffer_in, size_in, False)
+
+        buffer_out_a = create_numpy_d(buffer_out, size_out, False)
+
+        # 'str' is a special type that is bytes in Py2 and unicode in Py3
+        if PY_MAJOR_VERSION < 3:
+          if isinstance(c_local_code_name, unicode):
+            py_unicode_local_code_name = (<unicode>c_local_code_name).encode('utf8') + b'\x00'
+          else :
+            py_unicode_local_code_name = c_local_code_name
+        else :
+          if isinstance(c_local_code_name, bytes):
+            py_unicode_local_code_name = (<bytes>c_local_code_name).decode("utf8")
+          else :
+            py_unicode_local_code_name = c_local_code_name
+
+        cdef str local_code_name = py_unicode_local_code_name
+
+        if PY_MAJOR_VERSION < 3:
+          if isinstance(c_cpl_id, unicode):
+            py_unicode_cpl_id = (<unicode>c_cpl_id).encode('utf8') + b'\x00'
+          else :
+            py_unicode_cpl_id = c_cpl_id
+        else :
+          if isinstance(c_cpl_id, bytes):
+            py_unicode_cpl_id = (<bytes>c_cpl_id).decode("utf8")
+          else :
+            py_unicode_cpl_id = c_cpl_id
+
+        cdef str cpl_id = py_unicode_cpl_id
+
+        if PY_MAJOR_VERSION < 3:
+          if isinstance(c_field_id, unicode):
+            py_unicode_field_id = (<unicode>c_field_id).encode('utf8') + b'\x00'
+          else :
+            py_unicode_field_id = c_field_id
+        else :
+          if isinstance(c_field_id, bytes):
+            py_unicode_field_id = (<bytes>c_field_id).decode("utf8")
+          else :
+            py_unicode_field_id = c_field_id
+
+        cdef str field_id = py_unicode_field_id
+
+        cdef str fct_id = field_id + cpl_id # concatenate str
+
+        (<object> interpolation_function_dict[fct_id]) (local_code_name,
+                                                        cpl_id,
+                                                        field_id,
+                                                        i_part,
+                                                        spatial_interp_algorithm,
+                                                        storage,
+                                                        buffer_in_a,
+                                                        buffer_out_a)
+
+#-----------------------------------------------------------------------------
 # FIELD CLASS
 cdef class Field (object):
 
@@ -2393,14 +2431,18 @@ cdef class Field (object):
     Create a CWIPI field object.
     """
 
-    # do not use char* in class because it doesn't work, use str instead
     cdef char * c_local_code_name
     cdef char * c_cpl_id
     cdef char * c_field_id
 
+    # for callback
+    cdef str cpl_id
+    cdef str field_id
+
     def __init__(self,
-                 char *                 local_code_name,
-                 char *                 cpl_id,
+                 char *                 c_local_code_name,
+                 char *                 c_cpl_id,
+                 str                    cpl_id,
                  str                    field_id,
                  CWP_Type_t             data_type,
                  CWP_Field_storage_t    storage,
@@ -2423,10 +2465,13 @@ cdef class Field (object):
           visu_status     (CWP_Status_t)        : Visualization status
         """
 
-        self.c_local_code_name = <char *> malloc(sizeof(char) * strlen(local_code_name)+1)
-        self.c_cpl_id          = <char *> malloc(sizeof(char) * strlen(cpl_id)+1)
-        memcpy(self.c_local_code_name, local_code_name, sizeof(char) * strlen(local_code_name)+1)
-        memcpy(self.c_cpl_id, cpl_id, sizeof(char) * strlen(cpl_id)+1)
+        self.cpl_id   = cpl_id
+        self.field_id = field_id
+
+        self.c_local_code_name = <char *> malloc(sizeof(char) * strlen(c_local_code_name)+1)
+        self.c_cpl_id          = <char *> malloc(sizeof(char) * strlen(c_cpl_id)+1)
+        memcpy(self.c_local_code_name, c_local_code_name, sizeof(char) * strlen(c_local_code_name)+1)
+        memcpy(self.c_cpl_id, c_cpl_id, sizeof(char) * strlen(c_cpl_id)+1)
 
         # cast str to char *
         if isinstance(field_id, unicode):
@@ -2683,6 +2728,36 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(i_src, n_i_src, False)
 
+    # USER INTERPOLATION FUNCTION
+    def interp_function_unset(self):
+        """
+        Unsetting of an user interpolation.
+        """
+
+        CWP_Interp_function_unset(self.c_local_code_name,
+                                  self.c_cpl_id,
+                                  self.c_field_id)
+
+    def interp_function_set(self,
+                            fct):
+        """
+        Setting of an user interpolation from location.
+        This function takes into account an user interpolation function written with
+        void (*\ref CWP_Interp_function_t) interface.
+
+        Parameters:
+          fct                                       : Function
+        """
+
+        cdef str fct_id = self.field_id + self.cpl_id # concatenate the str
+
+        interpolation_function_dict[fct_id] = fct
+
+        CWP_Interp_function_set(self.c_local_code_name,
+                                self.c_cpl_id,
+                                self.c_field_id,
+                                callback)
+
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
 cdef class Coupling (object):
@@ -2692,6 +2767,10 @@ cdef class Coupling (object):
     """
     cdef char * c_local_code_name
     cdef char * c_cpl_id
+
+    # for callback
+    cdef str cpl_id
+
     cdef int    n_fields
     cdef list   fields
     cdef int    n_partData
@@ -2730,6 +2809,8 @@ cdef class Coupling (object):
         self.partData_name = {}
         self.n_partData = 0
         self.partData = []
+
+        self.cpl_id = cpl_id
 
         # cast str to char *
         if isinstance(local_code_name, unicode):
@@ -2797,6 +2878,7 @@ cdef class Coupling (object):
 
         self.fields.append(Field(self.c_local_code_name,
                                  self.c_cpl_id,
+                                 self.cpl_id,
                                  field_id,
                                  data_type,
                                  storage,
@@ -3022,6 +3104,34 @@ cdef class Coupling (object):
         py_i_src = self.fields[idx].involved_srcs_get(i_part)
 
         return py_i_src
+
+    def field_interp_function_unset(self,
+                                    str field_id):
+        """
+        Unsetting of an user interpolation.
+
+        Parameters:
+          field_id (str) : Source field identifier
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].interp_function_unset()
+
+    def field_interp_function_set(self,
+                                  str field_id,
+                                  fct):
+        """
+        Setting of an user interpolation from location.
+        This function takes into account an user interpolation function written with
+        void (*\ref CWP_Interp_function_t) interface.
+
+        Parameters:
+          field_id (str)                        : Source field id
+          fct                                   : Function
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].interp_function_set(fct)
 
     def field_del(self,
                   str field_id):
@@ -3835,60 +3945,6 @@ cdef class Coupling (object):
                                n_pts,
                                <double *> coord.data,
                                <long *> global_num.data)
-
-    # --> USER INTERPOLATION TO DO : move to Field class
-    def interp_function_unset(self,
-                              str src_field_id):
-        """
-        Unsetting of an user interpolation.
-
-        Parameters:
-          src_field_id (str) : Source field identifier
-        """
-
-        # cast str to char *
-        if isinstance(src_field_id, unicode):
-          py_byte_src_field_id = (<unicode>src_field_id).encode('utf8') + b'\x00'
-        else :
-          py_byte_src_field_id = src_field_id
-
-        cdef char *c_src_field_id = py_byte_src_field_id
-
-        CWP_Interp_function_unset(self.c_local_code_name,
-                                  self.c_cpl_id,
-                                  c_src_field_id)
-
-    def interp_function_set(self,
-                            str src_field_id,
-                            fct):
-        """
-        Setting of an user interpolation from location.
-        This function takes into account an user interpolation function written with
-        void (*\ref CWP_Interp_function_t) interface.
-
-        Parameters:
-          src_field_id (str)                        : Source field id
-          fct                                       : Function
-        """
-
-        # cast str to char *
-        if isinstance(src_field_id, unicode):
-          py_byte_src_field_id = (<unicode>src_field_id).encode('utf8') + b'\x00'
-        else :
-          py_byte_src_field_id = src_field_id
-
-        cdef char *c_src_field_id = py_byte_src_field_id
-
-        global current_cpl_id
-        global g_interp_fct
-        current_cpl_id = self.cpl_id
-        g_interp_fct[current_cpl_id] = fct
-
-        CWP_Interp_function_set(self.c_local_code_name,
-                                self.c_cpl_id,
-                                c_src_field_id,
-                                interp_callback)
-        # current_cpl_id = "" # Test with multiple simultaneous couplings
 
 #-----------------------------------------------------------------------------
 # EXTERN
