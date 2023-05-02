@@ -77,7 +77,7 @@ namespace cwipi {
     _n_elt[i_part] = n_elt;
     _connec[i_part] = connec;
 
-    PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(_blockType);
+    PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) _blockType;
     int elt_node_n = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, order);
     _connec_ijk[i_part] = (int *) malloc(sizeof(int) * n_elt * elt_node_n);
     memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elt * elt_node_n);
@@ -114,7 +114,7 @@ namespace cwipi {
                 "CWP_Mesh_interf_ho_ordering_from_IJK_set must be called to provide CWIPI with the user's high-order numbering\n");
     }
 
-    PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(_blockType);
+    PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) _blockType;
 
     for (int ipart = 0; ipart < _n_part; ipart++) {
       PDM_Mesh_nodal_reorder_elt_vtx(elt_type,

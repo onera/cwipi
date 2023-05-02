@@ -827,47 +827,7 @@ namespace cwipi {
 
       for(int i_block=0;i_block<_nBlocks;i_block++){
         CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
-        PDM_Mesh_nodal_elt_t pdm_block_type;
-
-        // if (block_type == CWP_BLOCK_FACE_POLY) {
-        //   pdm_block_type = PDM_MESH_NODAL_POLY_2D;
-        // }
-        // else if (block_type == CWP_BLOCK_CELL_POLY) {
-        //   pdm_block_type = PDM_MESH_NODAL_POLY_3D;
-
-        // }
-        // else if (block_type == CWP_BLOCK_CELL_TETRA4) {
-        //   pdm_block_type = PDM_MESH_NODAL_TETRA4;
-
-        // }
-        // else if (block_type == CWP_BLOCK_CELL_HEXA8) {
-        //   pdm_block_type = PDM_MESH_NODAL_HEXA8;
-
-        // }
-        // else if (block_type == CWP_BLOCK_CELL_PRISM6) {
-        //   pdm_block_type = PDM_MESH_NODAL_PRISM6;
-
-        // }
-        // else if (block_type == CWP_BLOCK_CELL_PYRAM5) {
-        //   pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
-
-        // }
-        // else if (block_type == CWP_BLOCK_FACE_QUAD4) {
-        //   pdm_block_type = PDM_MESH_NODAL_QUAD4;
-
-        // }
-        // else if (block_type == CWP_BLOCK_FACE_TRIA3) {
-        //   pdm_block_type = PDM_MESH_NODAL_TRIA3;
-
-        // }
-        // else if (block_type == CWP_BLOCK_EDGE2) {
-        //   pdm_block_type = PDM_MESH_NODAL_BAR2;
-
-        // }
-        // else {
-        //   PDM_error (__FILE__, __LINE__, 0, "unknown block type\n");
-        // }
-        pdm_block_type = CWP_block_type_to_PDM_elt_type(block_type);
+        PDM_Mesh_nodal_elt_t pdm_block_type = (PDM_Mesh_nodal_elt_t) block_type;
 
         _blockDB[i_block]->blockIDPDMSet(PDM_part_mesh_nodal_section_add(_pdmNodal_handle_index, pdm_block_type));
 
@@ -976,7 +936,7 @@ namespace cwipi {
                      block_type == CWP_BLOCK_CELL_PYRAM5) {
               BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
 
-              PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(block_type);
+              PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) block_type;
 
               int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, 1);
 
@@ -1004,7 +964,7 @@ namespace cwipi {
             else {
               BlockHO *block = dynamic_cast<BlockHO *>(_blockDB[i_block]);
 
-              PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(block_type);
+              PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) block_type;
 
               int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, block->OrderGet());
 

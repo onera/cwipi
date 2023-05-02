@@ -62,6 +62,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_logging.h"
+#include "pdm_mesh_nodal.h"
 #include "spatialInterpClosestPoint.hxx"
 #include "spatialInterpIntersection.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
@@ -3642,7 +3643,7 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
                                                            3));
   sprintf(ho_ordering_name, "%s_%s_%s", prefix, local_code_name, cpl_id);
 
-  PDM_Mesh_nodal_elt_t t_elt = CWP_block_type_to_PDM_elt_type(block_type);
+  PDM_Mesh_nodal_elt_t t_elt = (PDM_Mesh_nodal_elt_t) block_type;
 
   PDM_ho_ordering_user_to_ijk_add(ho_ordering_name,
                                   t_elt,
@@ -3652,62 +3653,6 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
   free(ho_ordering_name);
 }
 
-
-/**
- * \brief Convert \ref CWP_Block_t type to \ref PDM_Mesh_nodal_elt_t type
- *
- * \param [in] block_type  CWIPI block type
- *
- * \return PDM element type
- */
-
-PDM_Mesh_nodal_elt_t
-CWP_block_type_to_PDM_elt_type
-(
- const CWP_Block_t block_type
- )
-{
-  switch (block_type) {
-    case CWP_BLOCK_NODE:
-      return PDM_MESH_NODAL_POINT;
-    case CWP_BLOCK_EDGE2:
-      return PDM_MESH_NODAL_BAR2;
-    case CWP_BLOCK_FACE_TRIA3:
-      return PDM_MESH_NODAL_TRIA3;
-    case CWP_BLOCK_FACE_QUAD4:
-      return PDM_MESH_NODAL_QUAD4;
-    case CWP_BLOCK_FACE_POLY:
-      return PDM_MESH_NODAL_POLY_2D;
-    case CWP_BLOCK_CELL_TETRA4:
-      return PDM_MESH_NODAL_TETRA4;
-    case CWP_BLOCK_CELL_HEXA8:
-      return PDM_MESH_NODAL_HEXA8;
-    case CWP_BLOCK_CELL_PRISM6:
-      return PDM_MESH_NODAL_PRISM6;
-    case CWP_BLOCK_CELL_PYRAM5:
-      return PDM_MESH_NODAL_PYRAMID5;
-    case CWP_BLOCK_CELL_POLY:
-      return PDM_MESH_NODAL_POLY_3D;
-    case CWP_BLOCK_EDGEHO:
-      return PDM_MESH_NODAL_BARHO;
-    case CWP_BLOCK_FACE_TRIAHO:
-      return PDM_MESH_NODAL_TRIAHO;
-    case CWP_BLOCK_FACE_QUADHO:
-      return PDM_MESH_NODAL_QUADHO;
-    case CWP_BLOCK_CELL_TETRAHO:
-      return PDM_MESH_NODAL_TETRAHO;
-    case CWP_BLOCK_CELL_HEXAHO:
-      return PDM_MESH_NODAL_HEXAHO;
-    case CWP_BLOCK_CELL_PRISMHO:
-      return PDM_MESH_NODAL_PRISMHO;
-    case CWP_BLOCK_CELL_PYRAMHO:
-      return PDM_MESH_NODAL_PYRAMIDHO;
-    default:
-      PDM_error (__FILE__, __LINE__, 0, "unknown block type %d\n", (int) block_type);
-  }
-
-  return PDM_MESH_NODAL_N_ELEMENT_TYPES;
-};
 
 
 void

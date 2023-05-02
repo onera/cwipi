@@ -39,8 +39,8 @@ _locationUserInterpolation
  double               *buffer_out
 )
 {
-  PDM_UNUSED(spatial_interp_algorithm);
-  PDM_UNUSED(storage);
+  CWP_UNUSED(spatial_interp_algorithm);
+  CWP_UNUSED(storage);
 
   int           n_elt_src       = 0;
   int          *src_to_tgt_idx  = NULL;

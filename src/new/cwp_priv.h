@@ -28,7 +28,6 @@ extern "C" {
 
 
 #include "cwp.h" 
-#include "pdm_mesh_nodal.h" 
 
 /*=============================================================================
  * Macro definitions
@@ -262,20 +261,6 @@ MPI_Comm
 CWP_Connectable_comm_get
 (
  char* local_code_name
- );
-
-/**
- * \brief Convert \ref CWP_Block_t type to \ref PDM_Mesh_nodal_elt_t type
- *
- * \param [in] block_type  CWIPI block type
- *
- * \return PDM element type
- */
-
-PDM_Mesh_nodal_elt_t
-CWP_block_type_to_PDM_elt_type
-(
- const CWP_Block_t block_type
  );
 
 

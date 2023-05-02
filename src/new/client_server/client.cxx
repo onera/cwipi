@@ -65,6 +65,7 @@
 #include <pdm_version.h>
 #include <pdm_printf.h>
 #include <pdm_logging.h>
+#include <pdm_mesh_nodal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -6017,7 +6018,7 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_nodes, sizeof(int));
 
   // send connectivity
-  int elt_dim = PDM_Mesh_nodal_elt_dim_get(CWP_block_type_to_PDM_elt_type(block_type));
+  int elt_dim = PDM_Mesh_nodal_elt_dim_get((PDM_Mesh_nodal_elt_t) block_type);
   int endian_size = n_nodes * elt_dim;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
