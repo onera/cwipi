@@ -33,7 +33,7 @@ program fortran_new_api_callback_sendrecv_sol
 
   ! Mesh
   integer(c_int)                              :: n_vtx = 0
-  double precision,                   pointer :: vtx_coord(:)   => null()
+  double precision,                   pointer :: vtx_coord(:,:) => null()
   integer(c_long),                    pointer :: vtx_g_num(:)   => null()
   integer(c_int)                              :: n_elt = 0
   integer(c_int),                     pointer :: elt_vtx_idx(:) => null()
@@ -151,7 +151,7 @@ program fortran_new_api_callback_sendrecv_sol
   do i = 1, n_elt
     send_field_data(i) = 0.d0
     do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
-      send_field_data(i) = send_field_data(i) + vtx_coord(3*(elt_vtx(j)-1)+1)
+      send_field_data(i) = send_field_data(i) + vtx_coord(1,elt_vtx(j))
     enddo
     send_field_data(i) = send_field_data(i) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     ! print *, "elt ", i, " : ", send_field_data(i)
@@ -331,7 +331,7 @@ contains
     implicit none
     character(*),  intent(in) :: filename
     integer,       intent(in) :: n_vtx, n_elt
-    double precision, pointer :: vtx_coord(:), send_field(:), recv_field(:)
+    double precision, pointer :: vtx_coord(:,:), send_field(:), recv_field(:)
     integer(c_int),   pointer :: elt_vtx_idx(:), elt_vtx(:)
 
     integer                   :: fid = 13, i, j
@@ -344,7 +344,7 @@ contains
 
     write (fid,'(A6,1x,I0,1x,A6)') 'POINTS', n_vtx, 'double'
     do i = 1, n_vtx
-      write (fid, *) vtx_coord(3*(i-1)+1:3*i)
+      write (fid, *) vtx_coord(:,i)
     enddo
 
     write (fid,'(A8,1x,I0,1x,I0)') 'POLYGONS', n_elt, n_elt + elt_vtx_idx(n_elt+1)

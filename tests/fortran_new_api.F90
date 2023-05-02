@@ -19,8 +19,8 @@ program new_api
     integer, dimension(:), pointer :: is_coupled_rank
     character(len = 5), dimension(:), pointer :: code_names
     character(len = 16) :: cpl_id1, cpl_id2, cpl_id3, cpl_id4, cpl_id5, cpl_id6
-    real(8), dimension(:), pointer :: time_init, coord
-    integer, dimension(:), pointer :: intra_comms
+    real(8), pointer :: time_init(:), coord(:,:)
+    integer, pointer :: intra_comms(:)
     integer :: interp_method, block_id, i
 
     INTEGER(8), POINTER, DIMENSION(:) :: global_num => NULL()
@@ -28,6 +28,11 @@ program new_api
     call MPI_Init(ierr)
     call MPI_Comm_rank(MPI_comm_world, rank, ierr)
     call MPI_Comm_size(MPI_comm_world, comm_world_size, ierr)
+
+    if (comm_world_size < 3) then
+      print *, "n_rank must be >= 3"
+      stop
+    endif
 
     if (rank == 0 .OR. rank == 3 .OR. rank == 6 .OR. rank == 8) then
         n_code = 1
@@ -172,8 +177,8 @@ program new_api
 
     CALL CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text")
 
-    allocate(coord(3))
-    coord = (/9., 4., 2./)
+    allocate(coord(3,1))
+    coord(:,1) = (/9., 4., 2./)
     call CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, global_num)
     block_id = CWP_Mesh_interf_block_add("code1", cpl_id1, CWP_BLOCK_FACE_QUAD4)
 

@@ -29,15 +29,15 @@ program fortran_new_api_deformable_sol
   character(len = 99),                pointer :: coupled_code_names(:) => null()
   character(len = 99)                         :: coupling_name
 
-  double precision,     dimension(:), pointer :: coords
-  integer(c_long),      dimension(:), pointer :: vtx_g_num => null()
+  double precision,   dimension(:,:), pointer :: coords    => null()
+  integer(c_long),    dimension(:),   pointer :: vtx_g_num => null()
 
-  double precision,     dimension(:), pointer :: xyz_dest
-  integer(c_long),      dimension(:), pointer :: pts_g_num => null()
+  double precision,   dimension(:,:), pointer :: xyz_dest  => null()
+  integer(c_long),    dimension(:),   pointer :: pts_g_num => null()
 
-  integer,                            pointer :: elt_vtx_idx(:)
-  integer,                            pointer :: elt_vtx(:)
-  integer(c_long),      dimension(:), pointer :: elt_g_num => null()
+  integer,            dimension(:),   pointer :: elt_vtx_idx => null()
+  integer,            dimension(:),   pointer :: elt_vtx     => null()
+  integer(c_long),    dimension(:),   pointer :: elt_g_num   => null()
   integer(c_int)                              :: id_block
 
   character(len = 99)                         :: send_field_name
@@ -89,9 +89,9 @@ program fortran_new_api_deformable_sol
            time_init(n_code),          &
            intra_comms(n_code))
 
-  code_names(1)         = "code1"
-  is_coupled_rank(1)    = CWP_STATUS_ON
-  time_init(1)          = 0.d0
+  code_names(1)      = "code1"
+  is_coupled_rank(1) = CWP_STATUS_ON
+  time_init(1)       = 0.d0
 
   call CWP_Init(mpi_comm_world,  &
                 n_code,          &
@@ -147,7 +147,7 @@ program fortran_new_api_deformable_sol
 
   allocate(send_field_data(n_elt))
   allocate(recv_field_data(n_elt))
-  allocate(xyz_dest(3 * n_elt))
+  allocate(xyz_dest(3, n_elt))
   allocate(uncomputed_tgts(n_elt))
 
   send_field_name = "girafe"
@@ -160,8 +160,7 @@ program fortran_new_api_deformable_sol
     ! Deform mesh :
 
     do i = 1, n_vtx
-      coords((i-1)*3+3) = (coords((i-1)*3+1)*coords((i-1)*3+1) + coords((i-1)*3+2)*coords((i-1)*3+2))* &
-                          ampl*cos(omega*time+phi)
+      coords(3,i) = (coords(1,i)*coords(1,i) + coords(2,i)*coords(2,i)) * ampl*cos(omega*time+phi)
     enddo
 
     ! Update sent field :
@@ -169,7 +168,7 @@ program fortran_new_api_deformable_sol
     do  i = 1, n_elt
       send_field_data(i) = 0.
       do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
-        send_field_data(i) = send_field_data(i) + coords((elt_vtx(j)-1)*3+3)
+        send_field_data(i) = send_field_data(i) + coords(3,elt_vtx(j))
       enddo
       send_field_data(i) = send_field_data(i)/ (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     enddo
@@ -177,17 +176,11 @@ program fortran_new_api_deformable_sol
     ! Update user defined degrees of freedom :
 
     do i = 1, n_elt
-       xyz_dest((i-1)*3+1) = 0.
-       xyz_dest((i-1)*3+2) = 0.
-       xyz_dest((i-1)*3+3) = 0.
+       xyz_dest(:,i) = 0.
        do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
-           xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((elt_vtx(j)-1)*3+1)
-           xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((elt_vtx(j)-1)*3+2)
-           xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((elt_vtx(j)-1)*3+3)
+           xyz_dest(:,i) = xyz_dest(:,i) + coords(:,elt_vtx(j))
        enddo
-       xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
-       xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
-       xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+       xyz_dest(:,i) = xyz_dest(:,i) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     enddo
 
     if (it == itdeb) then

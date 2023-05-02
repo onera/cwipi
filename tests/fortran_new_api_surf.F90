@@ -37,11 +37,11 @@ program testf
   character(len = 99)           :: coupling_name
 
   integer(c_int)                :: n_vtx, n_elt
-  double precision,     pointer :: vtx_coord(:)  => null()
-  integer(c_int),       pointer :: connec_idx(:) => null()
-  integer(c_int),       pointer :: connec(:)     => null()
-  integer(c_long),      pointer :: vtx_g_num(:)  => null()
-  integer(c_long),      pointer :: elt_g_num(:)  => null()
+  double precision,     pointer :: vtx_coord(:,:) => null()
+  integer(c_int),       pointer :: connec_idx(:)  => null()
+  integer(c_int),       pointer :: connec(:)      => null()
+  integer(c_long),      pointer :: vtx_g_num(:)   => null()
+  integer(c_long),      pointer :: elt_g_num(:)   => null()
   integer(c_int)                :: id_block
 
   character(len = 99)           :: field_name
@@ -322,7 +322,9 @@ program testf
   if (code_names(1) == "code1") then
     map_type  = CWP_FIELD_MAP_SOURCE
     exch_type = CWP_FIELD_EXCH_SEND
-    field_data(:) = vtx_coord(:)
+    field_data(1:3*n_vtx:3) = vtx_coord(1,1:n_vtx)
+    field_data(2:3*n_vtx:3) = vtx_coord(2,1:n_vtx)
+    field_data(3:3*n_vtx:3) = vtx_coord(3,1:n_vtx)
   else
     map_type  = CWP_FIELD_MAP_TARGET
     exch_type = CWP_FIELD_EXCH_RECV
@@ -447,13 +449,13 @@ program testf
     do i = 1, n_computed_tgts
       ivtx = computed_tgts(i)
 
-      distance = sqrt(sum(vtx_coord(3*ivtx-2:3*ivtx) - field_data(3*i-2:3*i)))
+      distance = sqrt(sum(vtx_coord(:,ivtx) - field_data(3*i-2:3*i)))
 
       if (distance > 1.d-6) then
         n_wrong = n_wrong + 1
         if (debug) then
           write(iiunit,*) "error vtx", ivtx, "distance =", distance
-          write(iiunit,*) "coord =", vtx_coord(3*ivtx-2:3*ivtx), " recv =", field_data(3*i-2:3*i)
+          write(iiunit,*) "coord =", vtx_coord(:,ivtx), " recv =", field_data(3*i-2:3*i)
         endif
       endif
 
@@ -695,7 +697,7 @@ subroutine gen_mesh(xmin, xmax, &
   double precision, intent(in)  :: rand_level
   integer,          intent(in)  :: n_vtx_seg
   integer,          intent(out) :: n_vtx
-  double precision, pointer     :: vtx_coord(:)
+  double precision, pointer     :: vtx_coord(:,:)
   integer,          intent(out) :: n_elt
   integer(c_int),   pointer     :: connec_idx(:)
   integer(c_int),   pointer     :: connec(:)
@@ -711,26 +713,22 @@ subroutine gen_mesh(xmin, xmax, &
   step_y = (ymax - ymin) / (n_vtx_seg - 1)
 
   n_vtx = n_vtx_seg * n_vtx_seg
-  allocate(vtx_coord(3*n_vtx))
+  allocate(vtx_coord(3,n_vtx))
 
   k = 1
-  l = 1
   do j = 1, n_vtx_seg
     do i = 1, n_vtx_seg
       call random_number(r)
       r = 2*r - 1
-      vtx_coord(l) = xmin + step_x*(i-1)
+      vtx_coord(1,k) = xmin + step_x*(i-1)
       if (i > 1 .and. i < n_vtx_seg) then
-        vtx_coord(l) = vtx_coord(l) + step_x*rand_level*r(1)
+        vtx_coord(1,k) = vtx_coord(1,k) + step_x*rand_level*r(1)
       end if
-      l = l+1
-      vtx_coord(l) = ymin + step_y*(j-1)
+      vtx_coord(2,k) = ymin + step_y*(j-1)
       if (j > 1 .and. j < n_vtx_seg) then
-        vtx_coord(l) = vtx_coord(l) + step_x*rand_level*r(2)
+        vtx_coord(2,k) = vtx_coord(2,k) + step_x*rand_level*r(2)
       end if
-      l = l+1
-      vtx_coord(l) = 0.d0
-      l = l+1
+      vtx_coord(3,k) = 0.d0
       k = k+1
     end do
   end do

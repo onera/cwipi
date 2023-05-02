@@ -22,9 +22,6 @@ import mpi4py.MPI as MPI
 import numpy as np
 import sys
 
-sys.path.append("/stck/bandrieu/Public/adaptation/cavity_operator3_v3/")
-from mod_vtk import *
-
 def my_interpolation(local_code_name,
                      cpl_id,
                      field_id,
@@ -329,14 +326,6 @@ def run_coupling():
   cpl_PF.field_wait_issend(field_name)
   cpl_PF.field_wait_irecv (field_name)
 
-
-  if True:
-    vtk_write_polydata(f"check_Python_{i_rank}.vtk",
-                       [mesh["coords"][3*i:3*(i+1)] for i in range(mesh["n_vtx"])],
-                       [mesh["elt_vtx"][mesh["elt_vtx_idx"][i]:mesh["elt_vtx_idx"][i+1]]-1 for i in range(mesh["n_elt"])],
-                       vtx_fields={
-                       "send_field": send_field_data,
-                       "recv_field": recv_field_data})
 
   # Delete Mesh
   cpl_PF.mesh_interf_del()

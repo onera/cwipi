@@ -29,14 +29,11 @@ program fortran_new_api_polygon_sol
   character(len = 5),            pointer  :: coupled_code_names(:) => null()
   character(len = 99)                     :: coupling_name
 
-  double precision                        :: coords(n_vtx*3)
-  double precision, dimension(:), pointer :: p_coords
+  double precision, pointer, dimension(:,:) :: coords => null()
   integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
 
-  integer                                 :: connec_idx(n_elts+1)
-  integer                                 :: connec(21)
-  integer, pointer, dimension(:)          :: p_connec_idx
-  integer, pointer, dimension(:)          :: p_connec
+  integer, pointer, dimension(:)          :: connec_idx => null()
+  integer, pointer, dimension(:)          :: connec => null()
   integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
   integer(c_int)                          :: id_block
 
@@ -152,17 +149,23 @@ program fortran_new_api_polygon_sol
   ! (11 here) to set the coordinates in. The coordinates are
   ! interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
   ! vtx_g_num is a null() argument that will be explained later.
-  coords = (/0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,&
-             3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0/)
-  allocate(p_coords(3*n_vtx))
-  do i=1,3*n_vtx
-    p_coords(i) = coords(i)
-  end do
+  allocate(coords(3,n_vtx))
+  coords(:, 1) = [0,0,0]
+  coords(:, 2) = [1,0,0]
+  coords(:, 3) = [2,0,0]
+  coords(:, 4) = [3,0,0]
+  coords(:, 5) = [0,1,0]
+  coords(:, 6) = [2,1,0]
+  coords(:, 7) = [3,1,0]
+  coords(:, 8) = [1,2,0]
+  coords(:, 9) = [0,3,0]
+  coords(:,10) = [2,3,0]
+  coords(:,11) = [3,3,0]
   call CWP_Mesh_interf_vtx_set(code_names(1), &
                                coupling_name, &
                                0,             &
                                n_vtx,         &
-                               p_coords,        &
+                               coords,        &
                                vtx_g_num)
 
   ! Set the mesh polygons connectivity :
@@ -177,23 +180,17 @@ program fortran_new_api_polygon_sol
                                        coupling_name,       &
                                        CWP_BLOCK_FACE_POLY)
 
-  connec_idx = (/0,3,7,11,16,21/)
-  allocate(p_connec_idx(n_elts+1))
-  do i=1,n_elts+1
-    p_connec_idx(i) = connec_idx(i)
-  end do
-  connec = (/1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8/)
-  allocate(p_connec(21))
-  do i=1,21
-    p_connec(i) = connec(i)
-  end do
+  allocate(connec_idx(n_elts+1))
+  connec_idx = [0,3,7,11,16,21]
+  allocate(connec(21))
+  connec = [1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8]
   call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
                                         coupling_name, &
                                         0,             &
                                         id_block,      &
                                         n_elts,        &
-                                        p_connec_idx,    &
-                                        p_connec,        &
+                                        connec_idx,    &
+                                        connec,        &
                                         elt_g_num)
 
   ! Finalize mesh :
@@ -222,7 +219,7 @@ program fortran_new_api_polygon_sol
 
     allocate(send_field_data(n_vtx * n_components))
     do i=1,n_vtx
-      send_field_data(i) = coords(3*(i-1)+1)
+      send_field_data(i) = coords(1,i)
     end do
 
     call CWP_Field_create(code_names(1),                &
@@ -336,9 +333,9 @@ program fortran_new_api_polygon_sol
                    coupling_name)
 
   ! free
-  deallocate(p_coords);
-  deallocate(p_connec);
-  deallocate(p_connec_idx);
+  deallocate(coords);
+  deallocate(connec);
+  deallocate(connec_idx);
   if (I_am_code1) then
     deallocate(send_field_data);
   else

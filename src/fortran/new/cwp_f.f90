@@ -2630,7 +2630,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
     integer(kind = c_int) :: i_part, n_pts
-    double precision, dimension(:), pointer :: coord
+    double precision, dimension(:,:), pointer :: coord
     integer(kind = c_long), dimension(:), pointer :: global_num
     type(c_ptr) :: c_global_num
 
@@ -2697,7 +2697,7 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, n_pts
-    double precision, dimension(:), pointer :: coord
+    double precision, dimension(:,:), pointer :: coord
     integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
@@ -3969,7 +3969,6 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int) :: i_part
-    ! double precision, dimension(:), pointer :: points_coords, points_uvw, points_dist2, points_projected_coords
     double precision, pointer :: points_coords(:,:)
     double precision, pointer :: points_uvw(:,:)
     double precision, pointer :: points_dist2(:)
@@ -4073,7 +4072,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int) :: i_part
-    integer(c_int),  dimension(:), pointer :: volumes
+    double precision,  dimension(:), pointer :: volumes
     integer(kind = c_int) :: s_volumes
     type(c_ptr)           :: c_volumes
 
@@ -4119,7 +4118,7 @@ contains
     character(kind=c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(c_int)                  :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int)                  :: i_part
-    integer(c_int), pointer         :: tgt_elt_volumes(:)
+    double precision, pointer       :: tgt_elt_volumes(:)
     type(c_ptr)                     :: c_tgt_elt_volumes = C_NULL_PTR
     integer(c_int)                  :: n_elt
 
@@ -4164,7 +4163,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int) :: i_part
-    integer(c_int),  dimension(:), pointer :: distances2
+    double precision,  dimension(:), pointer :: distances2
     integer(kind = c_int) :: s_distances2
     type(c_ptr)           :: c_distances2
 
@@ -4210,7 +4209,7 @@ contains
     character(kind=c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(c_int)                  :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int), intent(in)      :: i_part
-    integer(c_int), pointer         :: closest_src_coord(:,:)
+    double precision, pointer       :: closest_src_coord(:,:)
 
     type(c_ptr)                     :: c_closest_src_coord = C_NULL_PTR
     integer(c_int)                  :: n_closest_src_pts

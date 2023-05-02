@@ -7,6 +7,7 @@ program testf
 #endif
   use cwp
   use pdm_sphere_surf_gen
+  use, intrinsic :: iso_c_binding
 
   implicit none
 
@@ -48,7 +49,9 @@ program testf
   type(my_mesh), allocatable    :: mesh(:)
   integer(c_int)                :: id_block
 
-  double precision,     pointer :: vtx_coord(:)     => null()
+  type(c_ptr)                   :: c_vtx_coord = C_NULL_PTR
+  double precision,     pointer :: vtx_coord1(:)    => null()
+  double precision,     pointer :: vtx_coord(:,:)   => null()
   integer(c_long),      pointer :: vtx_ln_to_gn(:)  => null()
   integer(c_int),       pointer :: face_vtx_idx(:)  => null()
   integer(c_int),       pointer :: face_vtx(:)      => null()
@@ -263,7 +266,11 @@ program testf
 
       call PDM_pointer_array_part_get(mesh(i)%pvtx_coord, &
                                       j-1,                &
-                                      vtx_coord)
+                                      vtx_coord1)
+
+      ! reshape without copy
+      c_vtx_coord = c_loc(vtx_coord1)
+      call c_f_pointer(c_vtx_coord, vtx_coord, [3, mesh(i)%pn_vtx(j)])
 
       call CWP_Mesh_interf_vtx_set(code_name(i),      &
                                    coupling_name,     &
