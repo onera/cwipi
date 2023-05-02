@@ -105,6 +105,7 @@ unit_test:
 #    - ./cwp_run -srun
     - ctest --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
     - if [ "${BUILD_TYPE}" == "Coverage" ]; then
+    -   echo $PWD
     -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ${CI_PROJECT_DIR}
     - fi
     # - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
@@ -114,12 +115,13 @@ unit_test:
    #    # Go back to runner dir for artifact modification
   after_script:
     - echo $PWD
+    - echo $CI_PROJECT_DIR
     - cd $CI_PROJECT_DIR
     - sed -i '/testsuite name/c\<testsuite name="'"$MATRIX_KEY"'"' cwp_ctest$MATRIX_KEY.xml
     - sed -i 's/" classname/_'"$MATRIX_KEY"'" classname/' cwp_ctest$MATRIX_KEY.xml
 
   when: on_success
-  coverage: /^\s*lines:\s*\d+.\d+\%/
+  coverage: /^TOTAL.*\s+(\d+\%)$/
   artifacts:
     when: always
     reports:
