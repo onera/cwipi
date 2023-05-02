@@ -308,8 +308,8 @@ def run_coupling():
                    recv_field_data)
 
   # Set user-defined interpolation function
-  cpl_PF.interp_function_set(field_name,
-                             my_interpolation)
+  cpl_PF.field_interp_function_set(field_name,
+                                   my_interpolation)
 
 
   # Spatial interpolation

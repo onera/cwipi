@@ -349,11 +349,6 @@ def runTest():
         f.flush()
         cpl.field_del("champs")
 
-        # USER INTERPOLATION to do has to be done
-        # f.write("cpl.interp_from_location_unset:\n")
-        # f.flush()
-        # cpl.interp_from_location_unset("champs")
-
         # TIME UPDATE
         f.write("cpycwp.time_update:\n")
         f.flush()
