@@ -33,7 +33,6 @@ import ctypes
 # --> Cython
 cimport cython
 from libc.stdlib       cimport malloc, free
-from libc.string       cimport memcpy, strlen
 from libc.stdint       cimport uintptr_t
 from cpython.version   cimport PY_MAJOR_VERSION
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
@@ -834,7 +833,7 @@ def init(MPI.Comm global_comm,
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('utf8') + b'\x00'
+        py_byte_code_name = (<unicode>code_names[i]).encode('ascii') + b'\x00'
       else :
         py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name
@@ -878,7 +877,7 @@ def finalize():
     CWP_Finalize()
 
 # --> functions about current code properties
-def state_update(str         local_code_name,
+def state_update(char *      local_code_name,
                  CWP_State_t state):
     """
     Update code state.
@@ -888,18 +887,10 @@ def state_update(str         local_code_name,
       state           (CWP_State_t) : State
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    CWP_State_update(c_local_code_name,
+    CWP_State_update(local_code_name,
                      state)
 
-def time_update(str    local_code_name,
+def time_update(char * local_code_name,
                 double current_time):
     """
     Update code time.
@@ -909,15 +900,7 @@ def time_update(str    local_code_name,
       current_time    (double) : Current time
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    CWP_Time_update(c_local_code_name,
+    CWP_Time_update(local_code_name,
                     current_time)
 
 def output_file_set(output_file):
@@ -946,7 +929,7 @@ def output_file_set(output_file):
 
     CWP_Output_file_set(c_file)
 
-def user_structure_set(str     local_code_name,
+def user_structure_set(char * local_code_name,
                        object user_structure):
     """
     Define a user structure associated to a code.
@@ -956,21 +939,13 @@ def user_structure_set(str     local_code_name,
       user_structure   (object) : User structure
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
     cdef void *c_user_structure = <void *> user_structure
     # PyCapsule_GetPointer(user_structure, NULL)
 
-    CWP_User_structure_set(c_local_code_name,
+    CWP_User_structure_set(local_code_name,
                            c_user_structure)
 
-def user_structure_get(str local_code_name):
+def user_structure_get(char * local_code_name):
     """
     Return the user structure associated.
 
@@ -981,15 +956,7 @@ def user_structure_get(str local_code_name):
       user_structure   (object) : User structure
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    cdef void *c_user_structure = CWP_User_structure_get(c_local_code_name)
+    cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
 
     cdef object user_structure
 
@@ -1003,7 +970,7 @@ def user_structure_get(str local_code_name):
 
 # --> functions about other code properties
 
-def state_get(str code_name):
+def state_get(char * code_name):
     """
     Get code state.
 
@@ -1014,15 +981,7 @@ def state_get(str code_name):
       state (CWP_State_t) : Current state
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
-    cdef CWP_State_t state = CWP_State_get(c_code_name)
+    cdef CWP_State_t state = CWP_State_get(code_name)
 
     return state
 
@@ -1055,12 +1014,12 @@ def codes_list_get():
     for i in range(n_code):
       if PY_MAJOR_VERSION < 3:
         if isinstance(c_code_list[i], unicode):
-          py_unicode_code_list = (<unicode>c_code_list[i]).encode('utf8') + b'\x00'
+          py_unicode_code_list = (<unicode>c_code_list[i]).encode('ascii') + b'\x00'
         else :
           py_unicode_code_list = c_code_list[i]
       else :
         if isinstance(c_code_list[i], bytes):
-          py_unicode_code_list = (<bytes>c_code_list[i]).decode("utf8")
+          py_unicode_code_list = (<bytes>c_code_list[i]).decode('ascii')
         else :
           py_unicode_code_list = c_code_list[i]
       code_list.append(py_unicode_code_list)
@@ -1096,12 +1055,12 @@ def loc_codes_list_get():
     for i in range(n_loc_code):
       if PY_MAJOR_VERSION < 3:
         if isinstance(c_loc_code_list[i], unicode):
-          py_unicode_loc_code_list = (<unicode>c_loc_code_list[i]).encode('utf8') + b'\x00'
+          py_unicode_loc_code_list = (<unicode>c_loc_code_list[i]).encode('ascii') + b'\x00'
         else :
           py_unicode_loc_code_list = c_loc_code_list[i]
       else :
         if isinstance(c_loc_code_list[i], bytes):
-          py_unicode_loc_code_list = (<bytes>c_loc_code_list[i]).decode("utf8")
+          py_unicode_loc_code_list = (<bytes>c_loc_code_list[i]).decode('ascii')
         else :
           py_unicode_loc_code_list = c_loc_code_list[i]
       loc_code_list.append(py_unicode_loc_code_list)
@@ -1117,8 +1076,8 @@ def properties_dump():
     CWP_Properties_dump()
 
 # --> functions about control parameters
-def param_add_int(str          local_code_name,
-                  str          param_name,
+def param_add_int(char *       local_code_name,
+                  char *       param_name,
                   int          initial_value):
     """
     Add a new interger parameter and intialize it.
@@ -1129,29 +1088,13 @@ def param_add_int(str          local_code_name,
       initial_value    (int)   : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-
-    CWP_Param_add(c_local_code_name,
-                  c_param_name,
+    CWP_Param_add(local_code_name,
+                  param_name,
                   CWP_INT,
                   &(initial_value))
 
-def param_add_dbl(str          local_code_name,
-                  str          param_name,
+def param_add_dbl(char *       local_code_name,
+                  char *       param_name,
                   double       initial_value):
     """
     Add a new double parameter and intialize it.
@@ -1162,29 +1105,14 @@ def param_add_dbl(str          local_code_name,
       initial_value    (double) : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    CWP_Param_add(c_local_code_name,
-                  c_param_name,
+    CWP_Param_add(local_code_name,
+                  param_name,
                   CWP_DOUBLE,
                   &(initial_value))
 
-def param_add_str(str          local_code_name,
-                  str          param_name,
-                  str          initial_value):
+def param_add_str(char *       local_code_name,
+                  char *       param_name,
+                  char *       initial_value):
     """
     Add a new string parameter and intialize it.
 
@@ -1194,35 +1122,13 @@ def param_add_str(str          local_code_name,
       initial_value    (str) : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    if isinstance(initial_value, unicode):
-      py_byte_initial_value = (<unicode>initial_value).encode('utf8') + b'\x00'
-    else :
-      py_byte_initial_value = initial_value
-
-    cdef char * c_initial_value = py_byte_initial_value
-
-    CWP_Param_add(c_local_code_name,
-                  c_param_name,
+    CWP_Param_add(local_code_name,
+                  param_name,
                   CWP_CHAR,
-                  &(c_initial_value))
+                  &(initial_value))
 
-def param_set_int(str          local_code_name,
-                  str          param_name,
+def param_set_int(char *       local_code_name,
+                  char *       param_name,
                   int          initial_value):
     """
     Set an integer parameter.
@@ -1233,28 +1139,13 @@ def param_set_int(str          local_code_name,
       initial_value    (int)   : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    CWP_Param_set(c_local_code_name,
-                  c_param_name,
+    CWP_Param_set(local_code_name,
+                  param_name,
                   CWP_INT,
                   &(initial_value))
 
-def param_set_dbl(str          local_code_name,
-                  str          param_name,
+def param_set_dbl(char *       local_code_name,
+                  char *       param_name,
                   double       initial_value):
     """
     Set a double parameter.
@@ -1265,29 +1156,14 @@ def param_set_dbl(str          local_code_name,
       initial_value    (double) : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    CWP_Param_set(c_local_code_name,
-                  c_param_name,
+    CWP_Param_set(local_code_name,
+                  param_name,
                   CWP_DOUBLE,
                   &(initial_value))
 
-def param_set_str(str          local_code_name,
-                  str          param_name,
-                  str          initial_value):
+def param_set_str(char *     local_code_name,
+                  char *     param_name,
+                  char *     initial_value):
     """
     Set a string parameter.
 
@@ -1297,35 +1173,13 @@ def param_set_str(str          local_code_name,
       initial_value    (str) : Initial value
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    if isinstance(initial_value, unicode):
-      py_byte_initial_value = (<unicode>initial_value).encode('utf8') + b'\x00'
-    else :
-      py_byte_initial_value = initial_value
-
-    cdef char * c_initial_value = py_byte_initial_value
-
-    CWP_Param_set(c_local_code_name,
-                  c_param_name,
+    CWP_Param_set(local_code_name,
+                  param_name,
                   CWP_CHAR,
-                  &(c_initial_value))
+                  &(initial_value))
 
-def param_del(str          local_code_name,
-              str          param_name,
+def param_del(char *       local_code_name,
+              char *       param_name,
               CWP_Type_t   data_type):
     """
     Delete a parameter.
@@ -1336,27 +1190,12 @@ def param_del(str          local_code_name,
       data_type        (CWP_Type_t) : Parameter type
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
-    CWP_Param_del(c_local_code_name,
-                  c_param_name,
+    CWP_Param_del(local_code_name,
+                  param_name,
                   data_type)
 
 # -> functions about all code parameters
-def param_n_get(str          code_name,
+def param_n_get(char *       code_name,
                 CWP_Type_t   data_type):
     """
     Return the number of parameters for the code code_name.
@@ -1369,20 +1208,12 @@ def param_n_get(str          code_name,
       n_param  (int) : Number of parameters for the code code_name
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
-    cdef int n_param = CWP_Param_n_get(c_code_name,
+    cdef int n_param = CWP_Param_n_get(code_name,
                                        data_type)
 
     return n_param
 
-def param_list_get(str          code_name,
+def param_list_get(char *       code_name,
                    CWP_Type_t   data_type):
     """
     Return the number of parameters for the code code_name.
@@ -1396,18 +1227,10 @@ def param_list_get(str          code_name,
       param_names (str list) : Parameter names
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
     cdef int n_param = -1;
     cdef char **c_param_names = NULL
 
-    CWP_Param_list_get(c_code_name,
+    CWP_Param_list_get(code_name,
                        data_type,
                        &(n_param),
                        &(c_param_names))
@@ -1415,7 +1238,7 @@ def param_list_get(str          code_name,
     param_names = []
     for i in range(n_param):
       if isinstance(c_param_names[i], bytes):
-        py_unicode_param_names = c_param_names[i].decode("utf8")
+        py_unicode_param_names = c_param_names[i].decode('ascii')
       else :
         py_unicode_param_names = c_param_names[i]
       param_names.append(py_unicode_param_names)
@@ -1425,8 +1248,8 @@ def param_list_get(str          code_name,
             'param_names' : param_names
            }
 
-def param_is(str          code_name,
-             str          param_name,
+def param_is(char *       code_name,
+             char *       param_name,
              CWP_Type_t   data_type):
     """
     Is this code_name a parameter ?
@@ -1440,29 +1263,14 @@ def param_is(str          code_name,
      is_param (int) : 1 : true / 0 : false
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_code_name
-
-    cdef int is_param = CWP_Param_is(c_code_name,
-                                     c_param_name,
+    cdef int is_param = CWP_Param_is(code_name,
+                                     param_name,
                                      data_type)
 
     return is_param
 
-def param_get(str          code_name,
-              str          param_name,
+def param_get(char *       code_name,
+              char *       param_name,
               CWP_Type_t   data_type):
     """
     Return the parameter value of param_name on code_name.
@@ -1476,54 +1284,39 @@ def param_get(str          code_name,
      value (data_type) : Parameter value
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
     cdef int int_value = -1
     cdef double dbl_value = -1
     cdef char *str_value = NULL
 
     if (data_type == CWP_INT):
-      CWP_Param_get(c_code_name,
-                    c_param_name,
+      CWP_Param_get(code_name,
+                    param_name,
                     data_type,
                     &(int_value))
       return int_value
 
     elif (data_type == CWP_DOUBLE):
-      CWP_Param_get(c_code_name,
-                    c_param_name,
+      CWP_Param_get(code_name,
+                    param_name,
                     data_type,
                     &(dbl_value))
       return dbl_value
 
     elif (data_type == CWP_CHAR):
-      CWP_Param_get(c_code_name,
-                    c_param_name,
+      CWP_Param_get(code_name,
+                    param_name,
                     data_type,
                     &(str_value))
 
       if isinstance(str_value, bytes):
-        py_unicode_str_value = str_value.decode("utf8")
+        py_unicode_str_value = str_value.decode('ascii')
       else :
         py_unicode_str_value = str_value
 
       return py_unicode_str_value
 
 def param_reduce(CWP_Op_t    op,
-                 str         param_name,
+                 char *      param_name,
                  CWP_Type_t  data_type,
                  list        code_names):
     """
@@ -1540,14 +1333,6 @@ def param_reduce(CWP_Op_t    op,
       res (data_type) : Result
     """
 
-    # cast str to char *
-    if isinstance(param_name, unicode):
-      py_byte_param_name = (<unicode>param_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_param_name = param_name
-
-    cdef char * c_param_name = py_byte_param_name
-
     cdef int n_code = len(code_names)
 
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
@@ -1556,7 +1341,7 @@ def param_reduce(CWP_Op_t    op,
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('utf8') + b'\x00'
+        py_byte_code_name = (<unicode>code_names[i]).encode('ascii') + b'\x00'
       else :
         py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name
@@ -1568,7 +1353,7 @@ def param_reduce(CWP_Op_t    op,
 
     if (data_type == CWP_INT):
       CWP_Param_reduce(op,
-                       c_param_name,
+                       param_name,
                        data_type,
                        &(int_res),
                        n_code,
@@ -1577,7 +1362,7 @@ def param_reduce(CWP_Op_t    op,
 
     elif (data_type == CWP_DOUBLE):
       CWP_Param_reduce(op,
-                       c_param_name,
+                       param_name,
                        data_type,
                        &(dbl_res),
                        n_code,
@@ -1586,14 +1371,14 @@ def param_reduce(CWP_Op_t    op,
 
     elif (data_type == CWP_CHAR):
       CWP_Param_reduce(op,
-                       c_param_name,
+                       param_name,
                        data_type,
                        &(str_res),
                        n_code,
                        c_code_names)
     return str_res
 
-def param_lock(str code_name):
+def param_lock(char * code_name):
     """
     Lock access to local parameters from a distant code.
 
@@ -1601,17 +1386,9 @@ def param_lock(str code_name):
       code_name (str) : Code name
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
+    CWP_Param_lock(code_name)
 
-    cdef char * c_code_name = py_byte_code_name
-
-    CWP_Param_lock(c_code_name)
-
-def param_unlock(str code_name):
+def param_unlock(char * code_name):
     """
     Unlock access to local parameters from a distant code.
 
@@ -1619,21 +1396,13 @@ def param_unlock(str code_name):
       code_name (str) : Code name
     """
 
-    # cast str to char *
-    if isinstance(code_name, unicode):
-      py_byte_code_name = (<unicode>code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_code_name = code_name
-
-    cdef char * c_code_name = py_byte_code_name
-
-    CWP_Param_unlock(c_code_name)
+    CWP_Param_unlock(code_name)
 
 # --> functions to use inside user interpolation functions
 
-def interp_field_n_components_get(str local_code_name,
-                                  str cpl_id,
-                                  str field_id):
+def interp_field_n_components_get(char * local_code_name,
+                                  char * cpl_id,
+                                  char * field_id):
     """
     Get spatial interpolation number of field components.
 
@@ -1646,38 +1415,16 @@ def interp_field_n_components_get(str local_code_name,
       n_components (int) : Number of components in Field field_id
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
-    cdef int n_components = CWP_Interp_field_n_components_get(c_local_code_name,
-                                                              c_cpl_id,
-                                                              c_field_id)
+    cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
+                                                              cpl_id,
+                                                              field_id)
 
     return n_components
 
-def interp_src_data_get(str local_code_name,
-                        str cpl_id,
-                        str field_id,
-                        int i_part):
+def interp_src_data_get(char * local_code_name,
+                        char * cpl_id,
+                        char * field_id,
+                        int    i_part):
     """
     Get spatial interpolation source data.
 
@@ -1692,34 +1439,12 @@ def interp_src_data_get(str local_code_name,
       src_to_tgt_idx (int *) : Index of source->target connectivity
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef int   n_elt_src = -1
     cdef int  *src_to_tgt_idx
 
-    CWP_Interp_src_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_elt_src),
                             &(src_to_tgt_idx))
@@ -1729,10 +1454,10 @@ def interp_src_data_get(str local_code_name,
             'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_elt_src+1, False)
            }
 
-def interp_tgt_data_get(str local_code_name,
-                        str cpl_id,
-                        str field_id,
-                        int i_part):
+def interp_tgt_data_get(char * local_code_name,
+                        char * cpl_id,
+                        char * field_id,
+                        int    i_part):
     """
     Get spatial interpolation target data.
 
@@ -1747,36 +1472,14 @@ def interp_tgt_data_get(str local_code_name,
       src_to_tgt_idx (int *) : Index of source->target connectivity
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef int   n_elt_tgt        = -1
     cdef int   n_referenced_tgt = -1
     cdef int  *referenced_tgt
     cdef int  *tgt_come_from_src_idx
 
-    CWP_Interp_tgt_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_elt_tgt),
                             &(n_referenced_tgt),
@@ -1790,10 +1493,10 @@ def interp_tgt_data_get(str local_code_name,
             'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_referenced_tgt+1, flag_owndata=False)
            }
 
-def interp_location_weights_get(str local_code_name,
-                                str cpl_id,
-                                str field_id,
-                                int i_part):
+def interp_location_weights_get(char * local_code_name,
+                                char * cpl_id,
+                                char * field_id,
+                                int    i_part):
     """
    Get spatial interpolation weights (location algorithm).
 
@@ -1807,51 +1510,29 @@ def interp_location_weights_get(str local_code_name,
       weights (double *) : Location interpolation weigths
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef double *weights
 
-    CWP_Interp_location_weights_get(c_local_code_name,
-                                    c_cpl_id,
-                                    c_field_id,
+    CWP_Interp_location_weights_get(local_code_name,
+                                    cpl_id,
+                                    field_id,
                                     i_part,
                                     &(weights))
 
     # get size
     cdef int  n_cell
     cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_cell),
                             &(c_src_to_tgt_idx))
 
     cdef int *c_cell_vtx_idx;
     cdef int *c_cell_vtx;
-    CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
-                                              c_cpl_id,
-                                              c_field_id,
+    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
+                                              cpl_id,
+                                              field_id,
                                               i_part,
                                               &(c_cell_vtx_idx),
                                               &(c_cell_vtx))
@@ -1866,10 +1547,10 @@ def interp_location_weights_get(str local_code_name,
 
     return create_numpy_d(weights, size, False)
 
-def interp_location_point_data_get(str local_code_name,
-                                   str cpl_id,
-                                   str field_id,
-                                   int i_part):
+def interp_location_point_data_get(char * local_code_name,
+                                   char * cpl_id,
+                                   char * field_id,
+                                   int    i_part):
     """
     Get spatial interpolation point data (location algorithm).
 
@@ -1886,36 +1567,14 @@ def interp_location_point_data_get(str local_code_name,
       points_projected_coords (double *) : Coordiantes of projected points
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef double *points_coords
     cdef double *points_uvw
     cdef double *points_dist2
     cdef double *points_projected_coords
 
-    CWP_Interp_location_point_data_get(c_local_code_name,
-                                       c_cpl_id,
-                                       c_field_id,
+    CWP_Interp_location_point_data_get(local_code_name,
+                                       cpl_id,
+                                       field_id,
                                        i_part,
                                        &(points_coords),
                                        &(points_uvw),
@@ -1925,9 +1584,9 @@ def interp_location_point_data_get(str local_code_name,
     # get size
     cdef int  n_elt_src
     cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_elt_src),
                             &(c_src_to_tgt_idx))
@@ -1939,10 +1598,10 @@ def interp_location_point_data_get(str local_code_name,
             'points_projected_coords' : create_numpy_d(points_projected_coords, c_src_to_tgt_idx[n_elt_src], False)
            }
 
-def interp_location_internal_cell_vtx_get(str local_code_name,
-                                          str cpl_id,
-                                          str field_id,
-                                          int i_part):
+def interp_location_internal_cell_vtx_get(char * local_code_name,
+                                          char * cpl_id,
+                                          char * field_id,
+                                          int    i_part):
     """
     Get spatial interpolation internal cell->vertex connectivity (location algorithm).
 
@@ -1957,34 +1616,12 @@ def interp_location_internal_cell_vtx_get(str local_code_name,
       cell_vtx     (int *) : Internal cell->vtx connectivity
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef int *cell_vtx_idx
     cdef int *cell_vtx
 
-    CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
-                                              c_cpl_id,
-                                              c_field_id,
+    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
+                                              cpl_id,
+                                              field_id,
                                               i_part,
                                               &(cell_vtx_idx),
                                               &(cell_vtx))
@@ -1992,9 +1629,9 @@ def interp_location_internal_cell_vtx_get(str local_code_name,
     # get size
     cdef int  n_cell
     cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_cell),
                             &(c_src_to_tgt_idx))
@@ -2004,10 +1641,10 @@ def interp_location_internal_cell_vtx_get(str local_code_name,
             'cell_vtx' : create_numpy_i(cell_vtx, cell_vtx_idx[n_cell], False)
            }
 
-def interp_intersection_volumes_get(str local_code_name,
-                                    str cpl_id,
-                                    str field_id,
-                                    int i_part):
+def interp_intersection_volumes_get(char * local_code_name,
+                                    char * cpl_id,
+                                    char * field_id,
+                                    int    i_part):
     """
     Get spatial interpolation volumes (intersection algorithm).
 
@@ -2021,33 +1658,11 @@ def interp_intersection_volumes_get(str local_code_name,
       volumes (double *) : Volumes
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef double *volumes
 
-    CWP_Interp_intersection_volumes_get(c_local_code_name,
-                                        c_cpl_id,
-                                        c_field_id,
+    CWP_Interp_intersection_volumes_get(local_code_name,
+                                        cpl_id,
+                                        field_id,
                                         i_part,
                                         &(volumes))
 
@@ -2056,9 +1671,9 @@ def interp_intersection_volumes_get(str local_code_name,
     cdef int  n_referenced_tgt;
     cdef int *c_referenced_tgt;
     cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_elt_tgt),
                             &(n_referenced_tgt),
@@ -2067,10 +1682,10 @@ def interp_intersection_volumes_get(str local_code_name,
 
     return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
-def interp_closest_points_distances_get(str local_code_name,
-                                        str cpl_id,
-                                        str field_id,
-                                        int i_part):
+def interp_closest_points_distances_get(char * local_code_name,
+                                        char * cpl_id,
+                                        char * field_id,
+                                        int    i_part):
     """
     Get spatial interpolation distances (closest points algorithm).
 
@@ -2084,33 +1699,11 @@ def interp_closest_points_distances_get(str local_code_name,
       distances2 (double *) : Squared distances
     """
 
-    # cast str to char *
-    if isinstance(local_code_name, unicode):
-      py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-    else :
-      py_byte_local_code_name = local_code_name
-
-    cdef char * c_local_code_name = py_byte_local_code_name
-
-    if isinstance(cpl_id, unicode):
-      py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_cpl_id = cpl_id
-
-    cdef char * c_cpl_id = py_byte_cpl_id
-
-    if isinstance(field_id, unicode):
-      py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-    else :
-      py_byte_field_id = field_id
-
-    cdef char * c_field_id = py_byte_field_id
-
     cdef double *distances2
 
-    CWP_Interp_closest_points_distances_get(c_local_code_name,
-                                            c_cpl_id,
-                                            c_field_id,
+    CWP_Interp_closest_points_distances_get(local_code_name,
+                                            cpl_id,
+                                            field_id,
                                             i_part,
                                             &(distances2))
 
@@ -2119,9 +1712,9 @@ def interp_closest_points_distances_get(str local_code_name,
     cdef int  n_referenced_tgt;
     cdef int *c_referenced_tgt;
     cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(c_local_code_name,
-                            c_cpl_id,
-                            c_field_id,
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
                             i_part,
                             &(n_elt_tgt),
                             &(n_referenced_tgt),
@@ -2140,18 +1733,18 @@ cdef class PartData (object):
     Create a CWIPI partitionned data object
     """
 
-    cdef char *                c_local_code_name
-    cdef char *                c_cpl_id
-    cdef char *                c_part_data_id
+    cdef str                   local_code_name
+    cdef str                   cpl_id
+    cdef str                   part_data_id
     cdef CWP_PartData_exch_t   exch_type
     cdef int                   n_part
     cdef int                  *n_elt
     cdef long                **_gnum_elt
 
     def __init__(self,
-                 char*               local_code_name,
-                 char*               cpl_id,
-                 str                 part_data_id,
+                 char *              local_code_name,
+                 char *              cpl_id,
+                 char *              part_data_id,
                  CWP_PartData_exch_t exch_type,
                  list                gnum_elt):
         """
@@ -2164,28 +1757,17 @@ cdef class PartData (object):
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
         """
 
-        self.c_local_code_name = <char *> malloc(sizeof(char) * strlen(local_code_name)+1)
-        self.c_cpl_id          = <char *> malloc(sizeof(char) * strlen(cpl_id)+1)
-        memcpy(self.c_local_code_name, local_code_name, sizeof(char) * strlen(local_code_name)+1)
-        memcpy(self.c_cpl_id, cpl_id, sizeof(char) * strlen(cpl_id)+1)
-
-        # cast str to char *
-        if isinstance(part_data_id, unicode):
-          py_byte_part_data_id = (<unicode>part_data_id).encode('utf8') + b'\x00'
-        else :
-          py_byte_part_data_id = part_data_id
-
-        self.c_part_data_id = <char *> malloc(sizeof(char) * len(py_byte_part_data_id))
-        for i in range(len(py_byte_part_data_id)):
-          self.c_part_data_id[i] = <char>(py_byte_part_data_id[i])
+        self.local_code_name = local_code_name
+        self.cpl_id          = cpl_id
+        self.part_data_id    = part_data_id
 
         self.n_part    = len(gnum_elt)
         self.n_elt     = list_to_int_pointer([array.size for array in gnum_elt])
         self._gnum_elt = np_list_to_long_pointers(gnum_elt)
 
-        CWP_Part_data_create(self.c_local_code_name,
-                             self.c_cpl_id,
-                             self.c_part_data_id,
+        CWP_Part_data_create(self.local_code_name,
+                             self.cpl_id,
+                             self.part_data_id,
                              self.exch_type,
                    <long **> self._gnum_elt,
                    <int   *> self.n_elt,
@@ -2196,14 +1778,10 @@ cdef class PartData (object):
         Delete a field object.
         """
 
-        CWP_Part_data_del(self.c_local_code_name,
-                          self.c_cpl_id,
-                          self.c_part_data_id,
+        CWP_Part_data_del(self.local_code_name,
+                          self.cpl_id,
+                          self.part_data_id,
                           self.exch_type)
-
-        free(self.c_local_code_name)
-        free(self.c_cpl_id)
-        free(self.c_part_data_id)
 
     # --> DATA
     def issend(self,
@@ -2226,9 +1804,9 @@ cdef class PartData (object):
         cdef void** _part1_to_part2_data   = np_list_to_void_pointers(part1_to_part2_data)
 
         # cdef int request
-        CWP_Part_data_issend(self.c_local_code_name,
-                             self.c_cpl_id,
-                             self.c_part_data_id,
+        CWP_Part_data_issend(self.local_code_name,
+                             self.cpl_id,
+                             self.part_data_id,
                              s_data,
                              n_components,
                              _part1_to_part2_data,
@@ -2255,9 +1833,9 @@ cdef class PartData (object):
 
         # cdef int request
         cdef void** _part2_data = np_list_to_void_pointers(part2_data)
-        CWP_Part_data_irecv(self.c_local_code_name,
-                            self.c_cpl_id,
-                            self.c_part_data_id,
+        CWP_Part_data_irecv(self.local_code_name,
+                            self.cpl_id,
+                            self.part_data_id,
                             s_data,
                             n_components,
                             _part2_data,
@@ -2273,9 +1851,9 @@ cdef class PartData (object):
           request (int) : Exchange resquest
         """
 
-        CWP_Part_data_wait_issend(self.c_local_code_name,
-                                  self.c_cpl_id,
-                                  self.c_part_data_id,
+        CWP_Part_data_wait_issend(self.local_code_name,
+                                  self.cpl_id,
+                                  self.part_data_id,
                                   request)
 
     def wait_irecv(self,
@@ -2287,9 +1865,9 @@ cdef class PartData (object):
           request (int) : Exchange resquest
         """
 
-        CWP_Part_data_wait_irecv(self.c_local_code_name,
-                                 self.c_cpl_id,
-                                 self.c_part_data_id,
+        CWP_Part_data_wait_irecv(self.local_code_name,
+                                 self.cpl_id,
+                                 self.part_data_id,
                                  request)
 
 #-----------------------------------------------------------------------------
@@ -2375,12 +1953,12 @@ cdef void callback(const char           *c_local_code_name,
         # 'str' is a special type that is bytes in Py2 and unicode in Py3
         if PY_MAJOR_VERSION < 3:
           if isinstance(c_local_code_name, unicode):
-            py_unicode_local_code_name = (<unicode>c_local_code_name).encode('utf8') + b'\x00'
+            py_unicode_local_code_name = (<unicode>c_local_code_name).encode('ascii') + b'\x00'
           else :
             py_unicode_local_code_name = c_local_code_name
         else :
           if isinstance(c_local_code_name, bytes):
-            py_unicode_local_code_name = (<bytes>c_local_code_name).decode("utf8")
+            py_unicode_local_code_name = (<bytes>c_local_code_name).decode('ascii')
           else :
             py_unicode_local_code_name = c_local_code_name
 
@@ -2388,12 +1966,12 @@ cdef void callback(const char           *c_local_code_name,
 
         if PY_MAJOR_VERSION < 3:
           if isinstance(c_cpl_id, unicode):
-            py_unicode_cpl_id = (<unicode>c_cpl_id).encode('utf8') + b'\x00'
+            py_unicode_cpl_id = (<unicode>c_cpl_id).encode('ascii') + b'\x00'
           else :
             py_unicode_cpl_id = c_cpl_id
         else :
           if isinstance(c_cpl_id, bytes):
-            py_unicode_cpl_id = (<bytes>c_cpl_id).decode("utf8")
+            py_unicode_cpl_id = (<bytes>c_cpl_id).decode('ascii')
           else :
             py_unicode_cpl_id = c_cpl_id
 
@@ -2401,12 +1979,12 @@ cdef void callback(const char           *c_local_code_name,
 
         if PY_MAJOR_VERSION < 3:
           if isinstance(c_field_id, unicode):
-            py_unicode_field_id = (<unicode>c_field_id).encode('utf8') + b'\x00'
+            py_unicode_field_id = (<unicode>c_field_id).encode('ascii') + b'\x00'
           else :
             py_unicode_field_id = c_field_id
         else :
           if isinstance(c_field_id, bytes):
-            py_unicode_field_id = (<bytes>c_field_id).decode("utf8")
+            py_unicode_field_id = (<bytes>c_field_id).decode('ascii')
           else :
             py_unicode_field_id = c_field_id
 
@@ -2431,19 +2009,14 @@ cdef class Field (object):
     Create a CWIPI field object.
     """
 
-    cdef char * c_local_code_name
-    cdef char * c_cpl_id
-    cdef char * c_field_id
-
-    # for callback
+    cdef str local_code_name
     cdef str cpl_id
     cdef str field_id
 
     def __init__(self,
-                 char *                 c_local_code_name,
-                 char *                 c_cpl_id,
-                 str                    cpl_id,
-                 str                    field_id,
+                 char *                 local_code_name,
+                 char *                 cpl_id,
+                 char *                 field_id,
                  CWP_Type_t             data_type,
                  CWP_Field_storage_t    storage,
                  int                    n_component,
@@ -2465,27 +2038,13 @@ cdef class Field (object):
           visu_status     (CWP_Status_t)        : Visualization status
         """
 
-        self.cpl_id   = cpl_id
-        self.field_id = field_id
+        self.local_code_name = local_code_name
+        self.cpl_id          = cpl_id
+        self.field_id        = field_id
 
-        self.c_local_code_name = <char *> malloc(sizeof(char) * strlen(c_local_code_name)+1)
-        self.c_cpl_id          = <char *> malloc(sizeof(char) * strlen(c_cpl_id)+1)
-        memcpy(self.c_local_code_name, c_local_code_name, sizeof(char) * strlen(c_local_code_name)+1)
-        memcpy(self.c_cpl_id, c_cpl_id, sizeof(char) * strlen(c_cpl_id)+1)
-
-        # cast str to char *
-        if isinstance(field_id, unicode):
-          py_byte_field_id = (<unicode>field_id).encode('utf8') + b'\x00'
-        else :
-          py_byte_field_id = field_id
-
-        self.c_field_id = <char *> malloc(sizeof(char) * len(py_byte_field_id))
-        for i in range(len(py_byte_field_id)):
-          self.c_field_id[i] = <char>(py_byte_field_id[i])
-
-        CWP_Field_create(self.c_local_code_name,
-                         self.c_cpl_id,
-                         self.c_field_id,
+        CWP_Field_create(self.local_code_name,
+                         self.cpl_id,
+                         self.field_id,
                          data_type,
                          storage,
                          n_component,
@@ -2498,13 +2057,9 @@ cdef class Field (object):
         Delete a field object.
         """
 
-        CWP_Field_del(self.c_local_code_name,
-                      self.c_cpl_id,
-                      self.c_field_id)
-
-        free(self.c_local_code_name)
-        free(self.c_cpl_id)
-        free(self.c_field_id)
+        CWP_Field_del(self.local_code_name,
+                      self.cpl_id,
+                      self.field_id)
 
     # --> DATA
     def data_set(self,
@@ -2520,9 +2075,9 @@ cdef class Field (object):
           data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
         """
 
-        CWP_Field_data_set(self.c_local_code_name,
-                           self.c_cpl_id,
-                           self.c_field_id,
+        CWP_Field_data_set(self.local_code_name,
+                           self.cpl_id,
+                           self.field_id,
                            i_part,
                            map_type,
                 <double *> data.data)
@@ -2536,27 +2091,27 @@ cdef class Field (object):
         manually check the consistency of the exchanges.
         """
 
-        CWP_Field_issend(self.c_local_code_name,
-                         self.c_cpl_id,
-                         self.c_field_id)
+        CWP_Field_issend(self.local_code_name,
+                         self.cpl_id,
+                         self.field_id)
 
     def irecv(self):
         """
         Wait the end of an exchange related to request from CWP_Field_issend.
         """
 
-        CWP_Field_irecv(self.c_local_code_name,
-                        self.c_cpl_id,
-                        self.c_field_id)
+        CWP_Field_irecv(self.local_code_name,
+                        self.cpl_id,
+                        self.field_id)
 
     def wait_issend(self):
         """
         Wait the end of an exchange related to request from CWP_Field_issend.
         """
 
-        CWP_Field_wait_issend(self.c_local_code_name,
-                              self.c_cpl_id,
-                              self.c_field_id)
+        CWP_Field_wait_issend(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id)
 
     def wait_irecv(self):
         """
@@ -2566,9 +2121,9 @@ cdef class Field (object):
         from CWP_Field_irecv
         """
 
-        CWP_Field_wait_irecv(self.c_local_code_name,
-                             self.c_cpl_id,
-                             self.c_field_id)
+        CWP_Field_wait_irecv(self.local_code_name,
+                             self.cpl_id,
+                             self.field_id)
 
     def target_dof_location_get(self):
         """
@@ -2578,9 +2133,9 @@ cdef class Field (object):
           dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
         """
 
-        cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.c_local_code_name,
-                                                                            self.c_cpl_id,
-                                                                            self.c_field_id)
+        cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.local_code_name,
+                                                                            self.cpl_id,
+                                                                            self.field_id)
 
         return dof_loc
 
@@ -2592,9 +2147,9 @@ cdef class Field (object):
           storage (CWP_Field_storage_t) : Field storage type
         """
 
-        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(self.c_local_code_name,
-                                                                 self.c_cpl_id,
-                                                                 self.c_field_id)
+        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(self.local_code_name,
+                                                                 self.cpl_id,
+                                                                 self.field_id)
 
         return storage
 
@@ -2611,9 +2166,9 @@ cdef class Field (object):
         n_unc_tgt (int) : Number of uncomputed targets
       """
 
-      cdef int n_unc_tgt = CWP_N_uncomputed_tgts_get(self.c_local_code_name,
-                                                     self.c_cpl_id,
-                                                     self.c_field_id,
+      cdef int n_unc_tgt = CWP_N_uncomputed_tgts_get(self.local_code_name,
+                                                     self.cpl_id,
+                                                     self.field_id,
                                                      i_part)
 
       return n_unc_tgt
@@ -2630,14 +2185,14 @@ cdef class Field (object):
         unc_tgt (int *) : Uncomputed targets
       """
 
-      cdef int *unc_tgt = CWP_Uncomputed_tgts_get(self.c_local_code_name,
-                                                  self.c_cpl_id,
-                                                  self.c_field_id,
+      cdef int *unc_tgt = CWP_Uncomputed_tgts_get(self.local_code_name,
+                                                  self.cpl_id,
+                                                  self.field_id,
                                                   i_part)
 
-      cdef int n_unc_tgt = CWP_N_uncomputed_tgts_get(self.c_local_code_name,
-                                                     self.c_cpl_id,
-                                                     self.c_field_id,
+      cdef int n_unc_tgt = CWP_N_uncomputed_tgts_get(self.local_code_name,
+                                                     self.cpl_id,
+                                                     self.field_id,
                                                      i_part)
 
       return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
@@ -2654,9 +2209,9 @@ cdef class Field (object):
         n_c_tgt (int) : Number of computed targets
       """
 
-      cdef int n_c_tgt = CWP_N_computed_tgts_get(self.c_local_code_name,
-                                                 self.c_cpl_id,
-                                                 self.c_field_id,
+      cdef int n_c_tgt = CWP_N_computed_tgts_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
                                                  i_part)
 
       return n_c_tgt
@@ -2673,14 +2228,14 @@ cdef class Field (object):
         c_tgt (int *) : Computed targets
       """
 
-      cdef int *c_tgt = CWP_Computed_tgts_get(self.c_local_code_name,
-                                              self.c_cpl_id,
-                                              self.c_field_id,
+      cdef int *c_tgt = CWP_Computed_tgts_get(self.local_code_name,
+                                              self.cpl_id,
+                                              self.field_id,
                                               i_part)
 
-      cdef int n_c_tgt = CWP_N_computed_tgts_get(self.c_local_code_name,
-                                                 self.c_cpl_id,
-                                                 self.c_field_id,
+      cdef int n_c_tgt = CWP_N_computed_tgts_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
                                                  i_part)
 
       return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
@@ -2697,9 +2252,9 @@ cdef class Field (object):
         n_i_src (int) : Number of involved sources
       """
 
-      cdef int n_i_src = CWP_N_involved_srcs_get(self.c_local_code_name,
-                                                 self.c_cpl_id,
-                                                 self.c_field_id,
+      cdef int n_i_src = CWP_N_involved_srcs_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
                                                  i_part)
 
       return n_i_src
@@ -2716,14 +2271,14 @@ cdef class Field (object):
         n_i_src (int *) : involved sources
       """
 
-      cdef int *i_src = CWP_Involved_srcs_get(self.c_local_code_name,
-                                              self.c_cpl_id,
-                                              self.c_field_id,
+      cdef int *i_src = CWP_Involved_srcs_get(self.local_code_name,
+                                              self.cpl_id,
+                                              self.field_id,
                                               i_part)
 
-      cdef int n_i_src = CWP_N_involved_srcs_get(self.c_local_code_name,
-                                                 self.c_cpl_id,
-                                                 self.c_field_id,
+      cdef int n_i_src = CWP_N_involved_srcs_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
                                                  i_part)
 
       return create_numpy_or_none_i(i_src, n_i_src, False)
@@ -2734,9 +2289,9 @@ cdef class Field (object):
         Unsetting of an user interpolation.
         """
 
-        CWP_Interp_function_unset(self.c_local_code_name,
-                                  self.c_cpl_id,
-                                  self.c_field_id)
+        CWP_Interp_function_unset(self.local_code_name,
+                                  self.cpl_id,
+                                  self.field_id)
 
     def interp_function_set(self,
                             fct):
@@ -2753,9 +2308,9 @@ cdef class Field (object):
 
         interpolation_function_dict[fct_id] = fct
 
-        CWP_Interp_function_set(self.c_local_code_name,
-                                self.c_cpl_id,
-                                self.c_field_id,
+        CWP_Interp_function_set(self.local_code_name,
+                                self.cpl_id,
+                                self.field_id,
                                 callback)
 
 #-----------------------------------------------------------------------------
@@ -2765,10 +2320,7 @@ cdef class Coupling (object):
     """
     Create a CWIPI coupling object.
     """
-    cdef char * c_local_code_name
-    cdef char * c_cpl_id
-
-    # for callback
+    cdef str local_code_name
     cdef str cpl_id
 
     cdef int    n_fields
@@ -2779,9 +2331,9 @@ cdef class Coupling (object):
     cdef dict __dict__
 
     def __init__(self,
-                 str                  local_code_name,
-                 str                  cpl_id,
-                 str                  coupled_code_name,
+                 char *               local_code_name,
+                 char *               cpl_id,
+                 char *               coupled_code_name,
                  CWP_Interface_t      entities_dim,
                  CWP_Comm_t           comm_type,
                  CWP_Spatial_interp_t spatial_interp,
@@ -2803,6 +2355,9 @@ cdef class Coupling (object):
           recv_freq_type    (CWP_Time_exch_t)      : Type of receiving frequency
         """
 
+        self.local_code_name = local_code_name
+        self.cpl_id          = cpl_id
+
         self.n_fields = 0
         self.fields_name = {}
         self.fields = []
@@ -2810,29 +2365,8 @@ cdef class Coupling (object):
         self.n_partData = 0
         self.partData = []
 
-        self.cpl_id = cpl_id
-
-        # cast str to char *
-        if isinstance(local_code_name, unicode):
-          py_byte_local_code_name = (<unicode>local_code_name).encode('utf8') + b'\x00'
-        else :
-          py_byte_local_code_name = local_code_name
-
-        self.c_local_code_name = <char *> malloc(sizeof(char) * len(py_byte_local_code_name))
-        for i in range(len(py_byte_local_code_name)):
-          self.c_local_code_name[i] = <char>(py_byte_local_code_name[i])
-
-        if isinstance(cpl_id, unicode):
-          py_byte_cpl_id = (<unicode>cpl_id).encode('utf8') + b'\x00'
-        else :
-          py_byte_cpl_id = cpl_id
-
-        self.c_cpl_id = <char *> malloc(sizeof(char) * len(py_byte_cpl_id))
-        for i in range(len(py_byte_cpl_id)):
-          self.c_cpl_id[i] = <char>(py_byte_cpl_id[i])
-
-        CWP_Cpl_create(self.c_local_code_name,
-                       self.c_cpl_id,
+        CWP_Cpl_create(self.local_code_name,
+                       self.cpl_id,
                        coupled_code_name,
                        entities_dim,
                        comm_type,
@@ -2846,15 +2380,12 @@ cdef class Coupling (object):
         Delete a coupling object.
         """
 
-        CWP_Cpl_del(self.c_local_code_name,
-                    self.c_cpl_id)
-
-        free(self.c_local_code_name)
-        free(self.c_cpl_id)
+        CWP_Cpl_del(self.local_code_name,
+                    self.cpl_id)
 
     # --> FIELD
     def field_create(self,
-                     str                    field_id,
+                     char *                 field_id,
                      CWP_Type_t             data_type,
                      CWP_Field_storage_t    storage,
                      int                    n_component,
@@ -2876,8 +2407,7 @@ cdef class Coupling (object):
 
         self.fields_name[field_id] = self.n_fields
 
-        self.fields.append(Field(self.c_local_code_name,
-                                 self.c_cpl_id,
+        self.fields.append(Field(self.local_code_name,
                                  self.cpl_id,
                                  field_id,
                                  data_type,
@@ -2890,7 +2420,7 @@ cdef class Coupling (object):
         self.n_fields = self.n_fields + 1
 
     def field_set(self,
-                  str                field_id,
+                  char *             field_id,
                   int                i_part,
                   CWP_Field_map_t    map_type,
                   NPY.ndarray[NPY.double_t] data):
@@ -2911,7 +2441,7 @@ cdef class Coupling (object):
                                   data)
 
     def field_issend(self,
-                     str field_id):
+                     char * field_id):
         """
         Send a spatially interpolated field to the coupled code with
         nonblocking communications.
@@ -2927,7 +2457,7 @@ cdef class Coupling (object):
         self.fields[idx].issend()
 
     def field_irecv(self,
-                    str field_id):
+                    char * field_id):
         """
         Wait the end of an exchange related to request from CWP_Field_issend.
 
@@ -2939,7 +2469,7 @@ cdef class Coupling (object):
         self.fields[idx].irecv()
 
     def field_wait_issend(self,
-                          str field_id):
+                          char * field_id):
         """
         Wait the end of an exchange related to request from CWP_Field_issend.
 
@@ -2951,7 +2481,7 @@ cdef class Coupling (object):
         self.fields[idx].wait_issend()
 
     def field_wait_irecv(self,
-                         str field_id):
+                         char * field_id):
         """
         Wait the end of an exchange related to request from CWP_Field_irecv.
 
@@ -2966,7 +2496,7 @@ cdef class Coupling (object):
         self.fields[idx].wait_irecv()
 
     def field_get(self,
-                  str field_id):
+                  char * field_id):
         """
         Get field properties.
 
@@ -2992,7 +2522,7 @@ cdef class Coupling (object):
                }
 
     def field_n_uncomputed_tgts_get(self,
-                                    str     field_id,
+                                    char *  field_id,
                                     int     i_part):
         """
         Get the number of uncomputed targets.
@@ -3011,7 +2541,7 @@ cdef class Coupling (object):
         return n_unc_tgt
 
     def field_uncomputed_tgts_get(self,
-                                  str     field_id,
+                                  char *  field_id,
                                   int     i_part):
         """
         Get the uncomputed targets.
@@ -3030,7 +2560,7 @@ cdef class Coupling (object):
         return py_unc_tgt
 
     def field_n_computed_tgts_get(self,
-                                  str     field_id,
+                                  char *  field_id,
                                   int     i_part):
         """
         Get the number of computed targets.
@@ -3049,7 +2579,7 @@ cdef class Coupling (object):
         return n_c_tgt
 
     def field_computed_tgts_get(self,
-                                str     field_id,
+                                char *  field_id,
                                 int     i_part):
         """
         Get the computed targets.
@@ -3068,7 +2598,7 @@ cdef class Coupling (object):
         return py_c_tgt
 
     def field_n_involved_srcs_get(self,
-                                  str     field_id,
+                                  char *  field_id,
                                   int     i_part):
         """
         Get the number of involved sources.
@@ -3087,7 +2617,7 @@ cdef class Coupling (object):
         return n_i_src
 
     def field_involved_srcs_get(self,
-                                str     field_id,
+                                char *  field_id,
                                 int     i_part):
         """
         Get the involved sources.
@@ -3106,7 +2636,7 @@ cdef class Coupling (object):
         return py_i_src
 
     def field_interp_function_unset(self,
-                                    str field_id):
+                                    char * field_id):
         """
         Unsetting of an user interpolation.
 
@@ -3118,7 +2648,7 @@ cdef class Coupling (object):
         self.fields[idx].interp_function_unset()
 
     def field_interp_function_set(self,
-                                  str field_id,
+                                  char * field_id,
                                   fct):
         """
         Setting of an user interpolation from location.
@@ -3134,7 +2664,7 @@ cdef class Coupling (object):
         self.fields[idx].interp_function_set(fct)
 
     def field_del(self,
-                  str field_id):
+                  char * field_id):
         """
         Delete Field object and field form self.fiels dictionnary
 
@@ -3147,7 +2677,7 @@ cdef class Coupling (object):
 
     # --> PARTDATA
     def part_data_create(self,
-                         str                  part_data_id,
+                         char *               part_data_id,
                          CWP_PartData_exch_t  exch_type,
                          list                 gnum_elt):
         """
@@ -3161,8 +2691,8 @@ cdef class Coupling (object):
 
         self.partData_name[part_data_id] = self.n_partData
 
-        self.partData.append(PartData(self.c_local_code_name,
-                                      self.c_cpl_id,
+        self.partData.append(PartData(self.local_code_name,
+                                      self.cpl_id,
                                       part_data_id,
                                       exch_type,
                                       gnum_elt))
@@ -3170,7 +2700,7 @@ cdef class Coupling (object):
         self.n_partData = self.n_partData + 1
 
     def part_data_issend(self,
-                         str                         part_data_id,
+                         char *                      part_data_id,
                          int                         n_components,
                          list                        send_data,
                          NPY.ndarray[NPY.int32_t]    request):
@@ -3192,7 +2722,7 @@ cdef class Coupling (object):
                                   request)
 
     def part_data_irecv(self,
-                        str                         part_data_id,
+                        char *                         part_data_id,
                         int                         n_components,
                         list                        recv_data,
                         NPY.ndarray[NPY.int32_t]    request):
@@ -3214,7 +2744,7 @@ cdef class Coupling (object):
                                  request)
 
     def part_data_wait_issend(self,
-                              str    part_data_id,
+                              char * part_data_id,
                               int    request):
         """
         Wait issend partitionned data.
@@ -3228,7 +2758,7 @@ cdef class Coupling (object):
         self.partData[idx].wait_issend(request)
 
     def part_data_wait_irecv(self,
-                             str    part_data_id,
+                             char * part_data_id,
                              int    request):
         """
         Wait issend partitionned data.
@@ -3243,7 +2773,7 @@ cdef class Coupling (object):
 
 
     def part_data_del(self,
-                      str  part_data_id):
+                      char * part_data_id):
         """
         Delete PartData object and partitionned data form self.partData dictionnary
 
@@ -3258,7 +2788,7 @@ cdef class Coupling (object):
 
     # --> Global Data
     def global_data_issend(self,
-                           str         global_data_id,
+                           char *      global_data_id,
                            int         send_stride,
                            int         n_send_entity,
                            NPY.ndarray send_data):
@@ -3274,8 +2804,8 @@ cdef class Coupling (object):
 
       cdef int s_data = send_data.dtype.itemsize
 
-      CWP_Global_data_issend(self.c_local_code_name,
-                             self.c_cpl_id,
+      CWP_Global_data_issend(self.local_code_name,
+                             self.cpl_id,
                              global_data_id,
                              s_data,
                              send_stride,
@@ -3283,7 +2813,7 @@ cdef class Coupling (object):
                     <void *> send_data.data)
 
     def global_data_irecv(self,
-                          str         global_data_id,
+                          char *      global_data_id,
                           int         recv_stride,
                           int         n_recv_entity,
                           NPY.ndarray recv_data):
@@ -3299,8 +2829,8 @@ cdef class Coupling (object):
 
       cdef int s_data = recv_data.dtype.itemsize
 
-      CWP_Global_data_irecv(self.c_local_code_name,
-                            self.c_cpl_id,
+      CWP_Global_data_irecv(self.local_code_name,
+                            self.cpl_id,
                             global_data_id,
                             s_data,
                             recv_stride,
@@ -3308,7 +2838,7 @@ cdef class Coupling (object):
                    <void *> recv_data.data)
 
     def global_data_wait_issend(self,
-                                str  global_data_id):
+                                char *  global_data_id):
       """
       Wait for send of a data array.
 
@@ -3316,12 +2846,12 @@ cdef class Coupling (object):
         global_data_id  (str) : Global data identifier
       """
 
-      CWP_Global_data_wait_issend(self.c_local_code_name,
-                                  self.c_cpl_id,
+      CWP_Global_data_wait_issend(self.local_code_name,
+                                  self.cpl_id,
                                   global_data_id)
 
     def global_data_wait_irecv(self,
-                               str global_data_id):
+                               char * global_data_id):
       """
       Wait for receive of a data array.
 
@@ -3329,8 +2859,8 @@ cdef class Coupling (object):
         global_data_id  (str) : Global data identifier
       """
 
-      CWP_Global_data_wait_irecv(self.c_local_code_name,
-                                 self.c_cpl_id,
+      CWP_Global_data_wait_irecv(self.local_code_name,
+                                 self.cpl_id,
                                  global_data_id)
 
     # --> MESH
@@ -3341,8 +2871,8 @@ cdef class Coupling (object):
         not provided.
         """
 
-        CWP_Mesh_interf_finalize(self.c_local_code_name,
-                                 self.c_cpl_id)
+        CWP_Mesh_interf_finalize(self.local_code_name,
+                                 self.cpl_id)
 
     def mesh_interf_vtx_set(self,
                             int                       i_part,
@@ -3360,15 +2890,15 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_vtx_set(self.c_local_code_name,
-                                  self.c_cpl_id,
+          CWP_Mesh_interf_vtx_set(self.local_code_name,
+                                  self.cpl_id,
                                   i_part,
                                   n_pts,
                                   <double *> coord.data,
                                   NULL)
         else:
-          CWP_Mesh_interf_vtx_set(self.c_local_code_name,
-                                  self.c_cpl_id,
+          CWP_Mesh_interf_vtx_set(self.local_code_name,
+                                  self.cpl_id,
                                   i_part,
                                   n_pts,
                                   <double *> coord.data,
@@ -3386,8 +2916,8 @@ cdef class Coupling (object):
           block_id (int) : Block identifier
         """
 
-        cdef int block_id = CWP_Mesh_interf_block_add(self.c_local_code_name,
-                                                      self.c_cpl_id,
+        cdef int block_id = CWP_Mesh_interf_block_add(self.local_code_name,
+                                                      self.cpl_id,
                                                       block_type)
 
         return block_id
@@ -3411,16 +2941,16 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_block_std_set(self.c_local_code_name,
-                                        self.c_cpl_id,
+          CWP_Mesh_interf_block_std_set(self.local_code_name,
+                                        self.cpl_id,
                                         i_part,
                                         block_id,
                                         n_elts,
                                         <int *> connec.data,
                                         NULL)
         else:
-          CWP_Mesh_interf_block_std_set(self.c_local_code_name,
-                                        self.c_cpl_id,
+          CWP_Mesh_interf_block_std_set(self.local_code_name,
+                                        self.cpl_id,
                                         i_part,
                                         block_id,
                                         n_elts,
@@ -3447,16 +2977,16 @@ cdef class Coupling (object):
         cdef int  *connec
         cdef long *global_num
 
-        CWP_Mesh_interf_block_std_get(self.c_local_code_name,
-                                      self.c_cpl_id,
+        CWP_Mesh_interf_block_std_get(self.local_code_name,
+                                      self.cpl_id,
                                       i_part,
                                       block_id,
                                       &(n_elts),
                                       &(connec),
                                       &(global_num))
 
-        cdef CWP_Block_t block_type = CWP_std_block_type_get(self.c_local_code_name,
-                                                             self.c_cpl_id,
+        cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                             self.cpl_id,
                                                              block_id)
         cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
@@ -3485,8 +3015,8 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_f_poly_block_set(self.c_local_code_name,
-                                           self.c_cpl_id,
+          CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
                                            i_part,
                                            block_id,
                                            n_elts,
@@ -3494,8 +3024,8 @@ cdef class Coupling (object):
                                    <int *> connec.data,
                                            NULL)
         else:
-          CWP_Mesh_interf_f_poly_block_set(self.c_local_code_name,
-                                           self.c_cpl_id,
+          CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
                                            i_part,
                                            block_id,
                                            n_elts,
@@ -3525,8 +3055,8 @@ cdef class Coupling (object):
         cdef int  *connec_idx
         cdef long *global_num
 
-        CWP_Mesh_interf_f_poly_block_get(self.c_local_code_name,
-                                         self.c_cpl_id,
+        CWP_Mesh_interf_f_poly_block_get(self.local_code_name,
+                                         self.cpl_id,
                                          i_part,
                                          block_id,
                                          &(n_elts),
@@ -3567,8 +3097,8 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_c_poly_block_set(self.c_local_code_name,
-                                           self.c_cpl_id,
+          CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
                                            i_part,
                                            block_id,
                                            n_elts,
@@ -3579,8 +3109,8 @@ cdef class Coupling (object):
                                            <int *> connec_cells.data,
                                            NULL)
         else:
-          CWP_Mesh_interf_c_poly_block_set(self.c_local_code_name,
-                                           self.c_cpl_id,
+          CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
                                            i_part,
                                            block_id,
                                            n_elts,
@@ -3619,8 +3149,8 @@ cdef class Coupling (object):
         cdef int  *connec_cells
         cdef long *global_num
 
-        CWP_Mesh_interf_c_poly_block_get(self.c_local_code_name,
-                                         self.c_cpl_id,
+        CWP_Mesh_interf_c_poly_block_get(self.local_code_name,
+                                         self.cpl_id,
                                          i_part,
                                          block_id,
                                          &(n_elts),
@@ -3663,8 +3193,8 @@ cdef class Coupling (object):
       """
 
       if (global_num is None):
-        CWP_Mesh_interf_block_ho_set(self.c_local_code_name,
-                                     self.c_cpl_id,
+        CWP_Mesh_interf_block_ho_set(self.local_code_name,
+                                     self.cpl_id,
                                      i_part,
                                      block_id,
                                      n_elts,
@@ -3672,8 +3202,8 @@ cdef class Coupling (object):
                                      <int *> connec.data,
                                      NULL)
       else:
-        CWP_Mesh_interf_block_ho_set(self.c_local_code_name,
-                                     self.c_cpl_id,
+        CWP_Mesh_interf_block_ho_set(self.local_code_name,
+                                     self.cpl_id,
                                      i_part,
                                      block_id,
                                      n_elts,
@@ -3704,8 +3234,8 @@ cdef class Coupling (object):
       cdef int  *connec
       cdef long *global_num
 
-      CWP_Mesh_interf_block_ho_get(self.c_local_code_name,
-                                   self.c_cpl_id,
+      CWP_Mesh_interf_block_ho_get(self.local_code_name,
+                                   self.cpl_id,
                                    i_part,
                                    block_id,
                                    &(order),
@@ -3713,8 +3243,8 @@ cdef class Coupling (object):
                                    &(connec),
                                    &(global_num))
 
-      cdef CWP_Block_t block_type = CWP_std_block_type_get(self.c_local_code_name,
-                                                           self.c_cpl_id,
+      cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                           self.cpl_id,
                                                            block_id)
       cdef int size = n_elts * ho_n_vtx_get(block_type, order)
       return {
@@ -3741,8 +3271,8 @@ cdef class Coupling (object):
       cdef int elt_dim = std_elt_dim(block_type)
       cdef int n_nodes = len(ijk_grid) // elt_dim
 
-      CWP_Mesh_interf_ho_ordering_from_IJK_set(self.c_local_code_name,
-                                               self.c_cpl_id,
+      CWP_Mesh_interf_ho_ordering_from_IJK_set(self.local_code_name,
+                                               self.cpl_id,
                                                block_type,
                                                order,
                                                n_nodes,
@@ -3754,8 +3284,8 @@ cdef class Coupling (object):
         Delete interface mesh.
         """
 
-        CWP_Mesh_interf_del(self.c_local_code_name,
-                            self.c_cpl_id)
+        CWP_Mesh_interf_del(self.local_code_name,
+                            self.cpl_id)
 
     def mesh_interf_from_cellface_set(self,
                                       int                      i_part,
@@ -3781,8 +3311,8 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_from_cellface_set(self.c_local_code_name,
-                                            self.c_cpl_id,
+          CWP_Mesh_interf_from_cellface_set(self.local_code_name,
+                                            self.cpl_id,
                                             i_part,
                                             n_cells,
                                             <int *> cell_face_idx.data,
@@ -3792,8 +3322,8 @@ cdef class Coupling (object):
                                             <int *> face_vtx.data,
                                             NULL)
         else:
-          CWP_Mesh_interf_from_cellface_set(self.c_local_code_name,
-                                            self.c_cpl_id,
+          CWP_Mesh_interf_from_cellface_set(self.local_code_name,
+                                            self.cpl_id,
                                             i_part,
                                             n_cells,
                                             <int *> cell_face_idx.data,
@@ -3825,8 +3355,8 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_Mesh_interf_from_faceedge_set(self.c_local_code_name,
-                                            self.c_cpl_id,
+          CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
+                                            self.cpl_id,
                                             i_part,
                                             n_faces,
                                             <int *> face_edge_idx.data,
@@ -3835,8 +3365,8 @@ cdef class Coupling (object):
                                             <int *> edge_vtx.data,
                                             NULL)
         else:
-          CWP_Mesh_interf_from_faceedge_set(self.c_local_code_name,
-                                            self.c_cpl_id,
+          CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
+                                            self.cpl_id,
                                             i_part,
                                             n_faces,
                                             <int *> face_edge_idx.data,
@@ -3851,13 +3381,13 @@ cdef class Coupling (object):
         Compute spatial interpolation weights.
         """
 
-        CWP_Spatial_interp_weights_compute(self.c_local_code_name,
-                                           self.c_cpl_id)
+        CWP_Spatial_interp_weights_compute(self.local_code_name,
+                                           self.cpl_id)
 
     def spatial_interp_property_set(self,
-                                    str property_name,
-                                    str property_type,
-                                    str property_value):
+                                    char * property_name,
+                                    char * property_type,
+                                    char * property_value):
         """
         Set a property of the spatial interpolation algorithm.
 
@@ -3867,39 +3397,17 @@ cdef class Coupling (object):
           property_value (str) : Value of the property
         """
 
-        # cast str to char *
-        if isinstance(property_name, unicode):
-          py_byte_property_name = (<unicode>property_name).encode('utf8') + b'\x00'
-        else :
-          py_byte_property_name = property_name
-
-        cdef char *c_property_name = py_byte_property_name
-
-        if isinstance(property_type, unicode):
-          py_byte_property_type = (<unicode>property_type).encode('utf8') + b'\x00'
-        else :
-          py_byte_property_type = property_type
-
-        cdef char *c_property_type = py_byte_property_type
-
-        if isinstance(property_value, unicode):
-          py_byte_property_value = (<unicode>property_value).encode('utf8') + b'\x00'
-        else :
-          py_byte_property_value = property_value
-
-        cdef char *c_property_value = py_byte_property_value
-
-        CWP_Spatial_interp_property_set(self.c_local_code_name,
-                                        self.c_cpl_id,
-                                        c_property_name,
-                                        c_property_type,
-                                        c_property_value)
+        CWP_Spatial_interp_property_set(self.local_code_name,
+                                        self.cpl_id,
+                                        property_name,
+                                        property_type,
+                                        property_value)
 
     # --> VISU
     def visu_set(self,
                  int                   freq,
                  CWP_Visu_format_t     visu_format,
-                 str                   format_option):
+                 char *                format_option):
         """
         Enable visualization output.
 
@@ -3909,8 +3417,8 @@ cdef class Coupling (object):
           format_option   (str)               : Output options "opt1, opt2, ..."
         """
 
-        CWP_Visu_set(self.c_local_code_name,
-                     self.c_cpl_id,
+        CWP_Visu_set(self.local_code_name,
+                     self.cpl_id,
                      freq,
                      visu_format,
                      format_option)
@@ -3932,15 +3440,15 @@ cdef class Coupling (object):
         """
 
         if (global_num is None):
-          CWP_User_tgt_pts_set(self.c_local_code_name,
-                               self.c_cpl_id,
+          CWP_User_tgt_pts_set(self.local_code_name,
+                               self.cpl_id,
                                i_part,
                                n_pts,
                                <double *> coord.data,
                                NULL)
         else:
-          CWP_User_tgt_pts_set(self.c_local_code_name,
-                               self.c_cpl_id,
+          CWP_User_tgt_pts_set(self.local_code_name,
+                               self.cpl_id,
                                i_part,
                                n_pts,
                                <double *> coord.data,

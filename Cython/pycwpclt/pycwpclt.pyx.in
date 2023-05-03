@@ -754,7 +754,7 @@ def init(MPI.Comm global_comm,
 
     cdef char *c_code_name = <char *> malloc(sizeof(char) * len(code_name))
 
-    py_byte_code_name = code_name.encode('UTF-8')
+    py_byte_code_name = code_name.encode('ascii') + b'\x00'
     c_code_names = py_byte_code_name
 
     CWP_client_Init(c_global_comm,
@@ -1165,13 +1165,14 @@ def param_reduce(CWP_Op_t    op,
       res (data_type) : Result
     """
 
+    # code names
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
     for i in range(n_code):
       c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('utf8')
+        py_byte_code_name = (<unicode>code_names[i]).encode('ascii') + b'\x00'
       else :
         py_byte_code_name = code_names[i]
       c_code_names[i] = py_byte_code_name

@@ -184,9 +184,6 @@ def runTest():
     f.write("intra_comm : {}\n".format(intra_comm))
     f.flush()
 
-
-
-
   # Create coupling
   cpl_name = "python_new_api_surf"
   cpl = []
