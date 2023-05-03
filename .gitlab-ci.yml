@@ -108,7 +108,7 @@ unit_test:
     - if [ "${BUILD_TYPE}" == "Coverage" ]; then
     -   echo "YOUYOUUUUUU COVERAGE !!!!!!!!!!"
     -   echo $PWD
-    -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ${CI_PROJECT_DIR}
+    -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CI_PROJECT_DIR} --output $CI_PROJECT_DIR/coverage.xml
     - fi
     # - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
     # - ctest --output-junit $CI_PROJECT_DIR/paradigm_ctest$MATRIX_KEY.xml
@@ -129,7 +129,7 @@ unit_test:
       junit: cwp_ctest$MATRIX_KEY.xml
       coverage_report:
         coverage_format: cobertura
-        path: build$MATRIX_KEY/coverage.xml
+        path: coverage.xml
 
 # non_regression:
 #   variables:
