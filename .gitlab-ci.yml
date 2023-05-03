@@ -125,10 +125,13 @@ unit_test:
     reports:
       junit: cwp_ctest$MATRIX_KEY.xml
         coverage_report:
-          rules:
-            - if: ${BUILD_TYPE} == "Coverage"
-              coverage_format: cobertura
+          coverage_format: cobertura
               path: coverage.xml
+          rules:
+            - if: '${BUILD_TYPE} == "Coverage"'
+              when: always
+            - if: '${BUILD_TYPE} == "Sanitize"'
+              when: never
 
 # non_regression:
 #   variables:
