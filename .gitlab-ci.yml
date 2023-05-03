@@ -128,10 +128,8 @@ unit_test:
           coverage_format: cobertura
               path: coverage.xml
           rules:
-            - if: '${BUILD_TYPE} == "Coverage"'
-              when: always
-            - if: '${BUILD_TYPE} == "Sanitize"'
-              when: never
+            - exists:
+              - coverage.xml
 
 # non_regression:
 #   variables:
