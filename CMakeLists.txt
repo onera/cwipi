@@ -703,7 +703,16 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
   # command to generate html coverage summary
   add_custom_target(coverage
-                    COMMAND find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + && 
+                    COMMAND ctest -R c_new_api_c_poly --timeout 120 && # || echo "" to ensure zero error code, non-zero if tests fail #find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + &&
+                            # ${GCOVR_PATH}
+                            # --html
+                            # --html-details
+                            # # --html-self-contained # not default when --html-details
+                            # --root ${CMAKE_SOURCE_DIR} # /src/new
+                            # --object-directory ${CMAKE_BINARY_DIR}
+                            # # --exclude-directories='(.+/)?paradigm'
+                            # --output index.html
+                            # find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + &&
                             ${GCOVR_PATH}
                             --html
                             --html-details
