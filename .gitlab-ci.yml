@@ -103,11 +103,8 @@ unit_test:
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
 #    - ./cwp_run -srun
-    - ctest -R new_api_c_poly --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
-    -   echo "YOUYOUUUUUU avant if coverage !!!!!!!!!!"
+    - ctest -R new --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
     - if [ "${BUILD_TYPE}" == "Coverage" ]; then
-    -   echo "YOUYOUUUUUU COVERAGE !!!!!!!!!!"
-    -   echo $PWD
     -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CI_PROJECT_DIR} --output $CI_PROJECT_DIR/coverage.xml
     - fi
     # - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
@@ -127,9 +124,11 @@ unit_test:
     when: always
     reports:
       junit: cwp_ctest$MATRIX_KEY.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
+      - if [ "${BUILD_TYPE}" == "Coverage" ]; then
+        coverage_report:
+          coverage_format: cobertura
+          path: coverage.xml
+      - fi
 
 # non_regression:
 #   variables:
