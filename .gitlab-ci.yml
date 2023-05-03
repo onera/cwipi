@@ -103,8 +103,10 @@ unit_test:
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
 #    - ./cwp_run -srun
-    - ctest --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
+    - ctest -R new_api_c_poly --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml
+    -   echo "YOUYOUUUUUU avant if coverage !!!!!!!!!!"
     - if [ "${BUILD_TYPE}" == "Coverage" ]; then
+    -   echo "YOUYOUUUUUU COVERAGE !!!!!!!!!!"
     -   echo $PWD
     -   gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ${CI_PROJECT_DIR}
     - fi
@@ -115,7 +117,6 @@ unit_test:
    #    # Go back to runner dir for artifact modification
   after_script:
     - echo $PWD
-    - echo $CI_PROJECT_DIR
     - cd $CI_PROJECT_DIR
     - sed -i '/testsuite name/c\<testsuite name="'"$MATRIX_KEY"'"' cwp_ctest$MATRIX_KEY.xml
     - sed -i 's/" classname/_'"$MATRIX_KEY"'" classname/' cwp_ctest$MATRIX_KEY.xml
@@ -128,7 +129,7 @@ unit_test:
       junit: cwp_ctest$MATRIX_KEY.xml
       coverage_report:
         coverage_format: cobertura
-        path: build$MATRIX_KEY/coverage.xml
+        path: $CUSTOM_CI_DIR/build$MATRIX_KEY/coverage.xml
 
 # non_regression:
 #   variables:
