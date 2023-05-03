@@ -129,7 +129,7 @@ unit_test:
       junit: cwp_ctest$MATRIX_KEY.xml
       coverage_report:
         coverage_format: cobertura
-        path: $CUSTOM_CI_DIR/build$MATRIX_KEY/coverage.xml
+        path: build$MATRIX_KEY/coverage.xml
 
 # non_regression:
 #   variables:
