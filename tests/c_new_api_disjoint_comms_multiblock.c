@@ -105,7 +105,7 @@ _create_dcube_from_nodal
   // Partitionnement
   int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
 
-  PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
+  PDM_part_split_t method = PDM_PART_SPLIT_HILBERT;
   PDM_part_t *ppart_id = PDM_part_create(pdm_comm,
                                          method,
                                          "PDM_PART_RENUM_CELL_NONE",

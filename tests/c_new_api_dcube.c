@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
+  PDM_part_split_t method = PDM_PART_SPLIT_HILBERT;
   ppart_id = PDM_part_create(PDM_MPI_COMM_WORLD, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
                              n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
                              d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,

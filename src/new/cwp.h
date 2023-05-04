@@ -237,6 +237,8 @@ typedef enum {
  * \enum CWP_Block_t
  * \brief Elements taken into account
  *
+ * (alias to PDM_Mesh_nodal_t)
+ *
  * CWP_Block_t defines elements taken into account
  */
 
@@ -248,17 +250,17 @@ typedef enum {
   CWP_BLOCK_FACE_QUAD4,    /*!< Quadrangle with three nodes */
   CWP_BLOCK_FACE_POLY,     /*!< Generic polygon */
   CWP_BLOCK_CELL_TETRA4,   /*!< Tetrahedron with four nodes */
-  CWP_BLOCK_CELL_HEXA8,    /*!< Hexahedron with eight nodes */
-  CWP_BLOCK_CELL_PRISM6,   /*!< Prism with six nodes */
   CWP_BLOCK_CELL_PYRAM5,   /*!< Pyramid with five nodes */
+  CWP_BLOCK_CELL_PRISM6,   /*!< Prism with six nodes */
+  CWP_BLOCK_CELL_HEXA8,    /*!< Hexahedron with eight nodes */
   CWP_BLOCK_CELL_POLY,     /*!< Generic polyhedron */
   CWP_BLOCK_EDGEHO,        /*!< High-order Edge */
   CWP_BLOCK_FACE_TRIAHO,   /*!< High-order Triangle */
   CWP_BLOCK_FACE_QUADHO,   /*!< High-order Quadrangle */
   CWP_BLOCK_CELL_TETRAHO,  /*!< High-order Tetrahedron */
-  CWP_BLOCK_CELL_HEXAHO,   /*!< High-order Hexahedron */
+  CWP_BLOCK_CELL_PYRAMHO,  /*!< High-order Pyramid */
   CWP_BLOCK_CELL_PRISMHO,  /*!< High-order Prism */
-  CWP_BLOCK_CELL_PYRAMHO   /*!< High-order Pyramid */
+  CWP_BLOCK_CELL_HEXAHO    /*!< High-order Hexahedron */
 
 } CWP_Block_t;
 
