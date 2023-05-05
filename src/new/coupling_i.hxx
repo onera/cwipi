@@ -365,6 +365,19 @@ namespace cwipi {
                        global_num);
   }
 
+
+  void
+  Coupling::meshBlockSetParentNum (
+    const int  i_part,
+    const int  block_id,
+          int *parent_num
+  )
+  {
+    _mesh.blockSetParentNum(i_part,
+                            block_id,
+                            parent_num);
+  }
+
   /**
    * \brief Get a standard block to the interface mesh
    *
