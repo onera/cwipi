@@ -40,6 +40,7 @@
 #include "pdm_timer.h"
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_part_mesh_nodal.h"
+#include "pdm_vtk.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ?  (a) : (b))
@@ -976,6 +977,41 @@ main
 
     if (i_rank == 0) {
       printf("Max error = %g ("PDM_FMT_G_NUM" wrong points)\n", gmax_err, gn_wrong);
+    }
+  }
+
+
+  if (0) {
+    // Visu VTK
+    for (int i_code = 0; i_code < n_code; i_code++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        char filename[999];
+        sprintf(filename, "c_new_vs_old_HO_%s_%d_%d.vtk", code_name[i_code], i_part, i_rank);
+
+        double *field_value;
+        if (code_id[i_code] == 1) {
+          field_value = send_val[i_code][i_part];
+        }
+        else {
+          field_value = recv_val[i_code][i_part];
+        }
+
+        PDM_vtk_write_std_elements_ho_with_vtx_field(filename,
+                                                     order,
+                                                     n_node       [i_code][i_part],
+                                                     node_coord   [i_code][i_part],
+                                                     node_ln_to_gn[i_code][i_part],
+                                                     elt_type,
+                                                     n_elt       [i_code][i_part],
+                                                     elt_node    [i_code][i_part],
+                                                     elt_ln_to_gn[i_code][i_part],
+                                                     0,
+                                                     NULL,
+                                                     NULL,
+                                                     1,
+                                                     &field_name1,
+                                   (const double **) &field_value);
+      }
     }
   }
 

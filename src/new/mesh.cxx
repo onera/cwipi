@@ -431,7 +431,7 @@ namespace cwipi {
   (
   )
   {
-
+    log_trace("Mesh::geomFinalize\n");
     int unionRank;
     MPI_Comm_rank(_cpl->communicationGet()->unionCommGet(),&unionRank);
 
@@ -457,6 +457,7 @@ namespace cwipi {
     }
 
     _pdmNodal_handle_index = PDM_part_mesh_nodal_create(mesh_dimension, _npart,_pdm_localComm);
+    log_trace("_pdmNodal_handle_index : %p\n", (void *) _pdmNodal_handle_index);
 
     if(gnumVtxRequired () ){
       _isVtxGnumComputed = true;
@@ -1280,6 +1281,7 @@ namespace cwipi {
   void
   Mesh::meshDel()
   {
+    log_trace("Mesh::meshDel\n");
     if (_pdmNodal_handle_index != NULL) {
       PDM_part_mesh_nodal_free(_pdmNodal_handle_index);
     }

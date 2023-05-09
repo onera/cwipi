@@ -1861,6 +1861,7 @@ namespace cwipi {
   void
   Coupling::spatialInterpWeightsCompute ()
   {
+    log_trace("Coupling::spatialInterpWeightsCompute\n");
 
     /////////////////////////////////////////////////////////////////////////////
     //                                                                         //
@@ -1905,6 +1906,8 @@ namespace cwipi {
 
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
+
+      log_trace("  _n_step = %d\n", _n_step);
 
       if (_n_step == 0) {
 
@@ -2051,6 +2054,7 @@ namespace cwipi {
 
                     _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
 
+                    log_trace("localFieldLocation %d, cplFieldLocationV[j] %d (send)\n");
                     _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                   }
                 }
@@ -2061,6 +2065,7 @@ namespace cwipi {
 
                     _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
 
+                    log_trace("localFieldLocation %d, cplFieldLocationV[j] %d (recv)\n");
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
 
                   }
@@ -2148,12 +2153,21 @@ namespace cwipi {
                                                                    NULL);
       }
 
+      log_trace("  codeID = %d, cplCodeID = %d\n", codeID, cplCodeID);
+
       if (codeID < cplCodeID) {
 
         // spatial_interp send
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
         while(sis_it != _spatial_interp_send.end()) {
+          if (1) { // only variable mesh?
+            log_trace("sis_it->first = %d %d\n", sis_it->first[0], sis_it->first[1]);
+            sis_it->second->init(this,
+                                 sis_it->first[0],
+                                 sis_it->first[1],
+                                 SPATIAL_INTERP_EXCH_SEND);
+          }
           sis_it->second->weightsCompute();
           sis_it++;
         }

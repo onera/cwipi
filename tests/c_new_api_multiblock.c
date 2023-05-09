@@ -363,6 +363,7 @@ _read_mesh
 
 
     for (int iblock = 0; iblock < _n_block; iblock++) {
+      log_trace("block %d, type %d\n", iblock, (*elt_type)[iblock]);
       int         *connec              = NULL;
       PDM_g_num_t *numabs              = NULL;
       int         *parent_num          = NULL;
@@ -379,6 +380,21 @@ _read_mesh
       (*n_elt)[iblock][ipart] = PDM_part_mesh_nodal_elmts_section_n_elt_get(pmne,
                                                                             sections_id[iblock],
                                                                             ipart);
+
+      if ((*elt_type)[iblock] == CWP_BLOCK_CELL_PRISM6) {
+        // only for mesh from vtk ...
+        for (int i = 0; i < (*n_elt)[iblock][ipart]; i++) {
+
+          int tmp = connec[6*i+2];
+          connec[6*i+2] = connec[6*i+1];
+          connec[6*i+1] = tmp;
+
+          tmp = connec[6*i+5];
+          connec[6*i+5] = connec[6*i+4];
+          connec[6*i+4] = tmp;
+        }
+      }
+
 
       (*elt_vtx)       [iblock][ipart] = connec;
       (*elt_g_num)     [iblock][ipart] = numabs;
@@ -791,7 +807,6 @@ int main(int argc, char *argv[])
   }
 
   if (1) {
-
     for (int iblock = 0; iblock < n_block; iblock++) {
       for (int ipart = 0; ipart < n_part; ipart++) {
         char filename[999];
@@ -809,7 +824,6 @@ int main(int argc, char *argv[])
                                    NULL);
       }
     }
-
   }
 
 
@@ -899,6 +913,7 @@ int main(int argc, char *argv[])
       for (int iblock = 0; iblock < n_block; iblock++) {
         for (int ielt = 0; ielt < n_elt[iblock][ipart]; ielt++) {
           send_val2[ipart][elt_parent_num[iblock][ipart][ielt]] = elt_g_num[iblock][ipart][ielt];
+          // send_val2[ipart][elt_parent_num[iblock][ipart][ielt]] = elt_type[iblock];
         }
       }
     }
@@ -907,7 +922,7 @@ int main(int argc, char *argv[])
     recv_val2 = malloc(sizeof(double *) * n_part);
     for (int ipart = 0; ipart < n_part; ipart++) {
       recv_val1[ipart] = malloc(sizeof(double) * n_vtx[ipart] * 3);
-      recv_val2[ipart] = malloc(sizeof(double) * n_vtx[ipart]);
+      recv_val2[ipart] = malloc(sizeof(double) * pn_cell[ipart]);//n_vtx[ipart]);
     }
   }
 
@@ -967,7 +982,7 @@ int main(int argc, char *argv[])
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
                      1,
-                     CWP_DOF_LOCATION_NODE,
+                     CWP_DOF_LOCATION_CELL_CENTER,//NODE,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 

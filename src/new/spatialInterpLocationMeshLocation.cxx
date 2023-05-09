@@ -375,6 +375,7 @@ namespace cwipi {
                                                &(_points_dist2[i_part]),
                                                &(_points_projected_coords[i_part]));
 
+          log_trace("i_part %d, _src_n_gnum[i_part] = %d\n", i_part, _src_n_gnum[i_part]);
           _n_involved_sources_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
           _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 

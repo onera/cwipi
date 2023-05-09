@@ -134,10 +134,15 @@ namespace cwipi {
     SpatialInterpExchDirection exchDirection 
   )
   {
+    log_trace("SpatialInterpLocation::init\n");
     SpatialInterp::init (coupling, 
                          localCodeDofLOcation, 
                          cplCodeDofLOcation, 
                          exchDirection);
+
+    // int a[2];
+    // printf("Deliberate error to get stack ^^\n");
+    // a[3] = 1;
 
     _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
 

@@ -716,6 +716,8 @@ int main
     CWP_Cpl_del(code_name[icode], cpl_name);
   }
 
+  free(global_data);
+
   for (int icode = 0; icode < n_code; icode++) {
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
       free(pface_vtx_idx [icode][ipart]);

@@ -773,13 +773,13 @@ namespace cwipi {
   void 
   Coupling::meshDel()
   {
-    
     if (_writer != NULL) {
       PDM_writer_free (_writer);
       _writer = nullptr;
     }
     _mesh.meshDel();
 
+    _is_mesh_finalized = 0;
   }
 
 
@@ -906,6 +906,7 @@ namespace cwipi {
                 "'%s' not existing field\n", field_id.c_str());
     }
     else {
+      // _fields.erase(field_id.c_str());
       delete It->second;
       It->second = NULL;
     }
