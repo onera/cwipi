@@ -466,6 +466,34 @@ CWP_Time_update
  const double current_time
 );
 
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in]  current_time Current time
+ *
+ */
+
+void
+CWP_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+);
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end
+(
+ const char* local_code_name
+);
+
 
 /**
  * \brief Define output file.

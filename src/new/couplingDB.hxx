@@ -123,13 +123,28 @@ namespace cwipi {
      const string &cplId
     );
 
-
-
     void
     timeUpdate
     (
      const CodeProperties &localCodeProperties,
      double                current_time
+    );
+
+    // Begin code time step
+
+    void
+    time_step_beg
+    (
+     const CodeProperties &localCodeProperties,
+     double                current_time
+    );
+
+    // End code time step
+
+    void
+    time_step_end
+    (
+     const CodeProperties &localCodeProperties
     );
 
   private:

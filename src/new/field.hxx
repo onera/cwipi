@@ -274,15 +274,46 @@ namespace cwipi {
     //   return _data;
     // }
 
-
-    void currentStepWasExchangedReset()
+    // Field has been sent ?
+    void is_send_yet_set (int value)
     {
-      _current_step_was_exchanged = 0;
+      _is_send_yet = value;
     }
 
-    int currentStepWasExchangedGet() const
+    int is_send_yet_get ()
     {
-      return _current_step_was_exchanged;
+      return _is_send_yet;
+    }
+
+    void is_send_end_step_set (int value)
+    {
+      _is_send_end_step = value;
+    }
+
+    int is_send_end_step_get ()
+    {
+      return _is_send_end_step;
+    }
+
+    // Field has been received ?
+    void is_recv_yet_set (int value)
+    {
+      _is_recv_yet = value;
+    }
+
+    int is_recv_yet_get ()
+    {
+      return _is_recv_yet;
+    }
+
+    void is_recv_end_step_set (int value)
+    {
+      _is_recv_end_step = value;
+    }
+
+    int is_recv_end_step_get ()
+    {
+      return _is_recv_end_step;
     }
 
     int computedTgtBcastIsEnabled() const
@@ -389,10 +420,14 @@ namespace cwipi {
     Field &operator=(const Field &other);       /*!< Assignment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
 
-    int                                      _current_step_was_exchanged;
-
     int                                      _computed_tgt_bcast_enabled;
     int                                      _involved_src_bcast_enabled;
+
+    // writer
+    int _is_send_yet;      /*!< Tells if a field has been sent at a given moment */
+    int _is_send_end_step; /*!< Tells if a field has been sent at the end of a step */
+    int _is_recv_yet;      /*!< Tells if a field has been received at a given moment */
+    int _is_recv_end_step; /*!< Tells if a field has been received at the end of a step */
   };
 
 }

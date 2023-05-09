@@ -37,7 +37,10 @@ Field::Field (std::string            field_id    ,
    _id_writer_var_recv(nullptr),
    _id_writer_var_recv_computed(-1),
    _interpolationFunction   (NULL),
-   _current_step_was_exchanged(0),
+   _is_send_yet(0),
+   _is_send_end_step(0),
+   _is_recv_yet(0),
+   _is_recv_end_step(0),
    _computed_tgt_bcast_enabled(0),
    _involved_src_bcast_enabled(0)
 
@@ -221,14 +224,17 @@ CWP_Field_exch_t exch_type
   int *id_writer_var;
   // std::vector<void* > &data_var = _data_tgt;
   void **data_var = NULL;
+  int write_end_step = 0;
 
   if (exch_type == CWP_FIELD_EXCH_SEND) {
     id_writer_var = _id_writer_var_send;
     data_var = _data_src;
+    write_end_step = _is_send_end_step;
   }
   else {
     id_writer_var = _id_writer_var_recv;  
     data_var = _data_tgt;
+    write_end_step = _is_recv_end_step;
   }
 
   // Write
@@ -237,10 +243,11 @@ CWP_Field_exch_t exch_type
 
       double **comp_data = (double **) malloc (sizeof(double *) * _cpl->nPartGet());
 
-      // (x1, y1, z1, ... , xn, yn, zn) or recv
+      // (x1, y1, z1, ... , xn, yn, zn) or recv or unexchanged visu ON
       // Allocate memory for reordering to write per variable
       if ((_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) ||
-          (exch_type == CWP_FIELD_EXCH_RECV)) {
+          (exch_type == CWP_FIELD_EXCH_RECV) ||
+          (write_end_step == 1 && visuStatusGet() == CWP_STATUS_ON)) {
         for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
           int n_elt_size = 0;
 
@@ -277,47 +284,53 @@ CWP_Field_exch_t exch_type
             n_elt_size = _cpl->userTargetNGet(i_part);
           }
 
-          // recv computed
-          const int  *computed_target    = NULL;
-          int         n_computed_target  = 0;
-          if (exch_type == CWP_FIELD_EXCH_RECV) {
-            if (_cpl->has_mesh()) {
-              computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
-              n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
+          // unexchanged visu ON
+          if (write_end_step == 1 && visuStatusGet() == CWP_STATUS_ON) {
+            for (int j = 0; j < n_elt_size; j++) {
+              comp_data[i_part][j] = HUGE_VAL;
             }
-          }
-
-          // (x1, y1, z1, ... , xn, yn, zn)
-          if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
-            if ((exch_type == CWP_FIELD_EXCH_RECV) && (n_computed_target != n_elt_size)) {
-              for (int j = 0; j < n_elt_size; j++) {
-                comp_data[i_part][j] = HUGE_VAL;
-              }
-              for (int j = 0; j < n_computed_target; j++) {
-                int jdx = computed_target[j] -1;
-                comp_data[i_part][jdx] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
-              }
-            } else {
-              for (int j = 0; j < n_elt_size; j++) {
-                comp_data[i_part][j] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
-              }
-            }
-          }
-          // (x1, ... xn, y1, ..., yn, z1, ...zn)
-          else {
+          } else {
+            // recv computed
+            const int  *computed_target    = NULL;
+            int         n_computed_target  = 0;
             if (exch_type == CWP_FIELD_EXCH_RECV) {
-              for (int j = 0; j < n_elt_size; j++) {
-                comp_data[i_part][j] = HUGE_VAL;
+              if (_cpl->has_mesh()) {
+                computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
+                n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
               }
-              for (int j = 0; j < n_computed_target; j++) {
-                int jdx = computed_target[j] -1;
-                comp_data[i_part][jdx] = ((double *) data_var[i_part])[n_computed_target * i_comp + j];
+            }
+
+            // (x1, y1, z1, ... , xn, yn, zn)
+            if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
+              if ((exch_type == CWP_FIELD_EXCH_RECV) && (n_computed_target != n_elt_size)) {
+                for (int j = 0; j < n_elt_size; j++) {
+                  comp_data[i_part][j] = HUGE_VAL;
+                }
+                for (int j = 0; j < n_computed_target; j++) {
+                  int jdx = computed_target[j] -1;
+                  comp_data[i_part][jdx] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
+                }
+              } else {
+                for (int j = 0; j < n_elt_size; j++) {
+                  comp_data[i_part][j] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
+                }
               }
-            } else {
-              comp_data[i_part] = (double *) &(((double *)data_var[i_part])[n_elt_size * i_comp]);
+            }
+            // (x1, ... xn, y1, ..., yn, z1, ...zn)
+            else {
+              if (exch_type == CWP_FIELD_EXCH_RECV) {
+                for (int j = 0; j < n_elt_size; j++) {
+                  comp_data[i_part][j] = HUGE_VAL;
+                }
+                for (int j = 0; j < n_computed_target; j++) {
+                  int jdx = computed_target[j] -1;
+                  comp_data[i_part][jdx] = ((double *) data_var[i_part])[n_computed_target * i_comp + j];
+                }
+              } else {
+                comp_data[i_part] = (double *) &(((double *)data_var[i_part])[n_elt_size * i_comp]);
+              }
             }
           }
-
 
           PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(_fieldLocation), i_part, comp_data[i_part]);
         } // end loop n_part
@@ -329,7 +342,9 @@ CWP_Field_exch_t exch_type
       } // end loop on components
 
       // write computed tag
-      if (exch_type == CWP_FIELD_EXCH_RECV) {
+      // TO DO : write -1 for now but should be changed to something else
+      if (exch_type == CWP_FIELD_EXCH_RECV ||
+          (write_end_step == 1 && visuStatusGet() == CWP_STATUS_ON)) {
 
         CWP_Dynamic_mesh_t topology = _cpl->DisplacementGet();
 
@@ -354,22 +369,28 @@ CWP_Field_exch_t exch_type
             const int  *computed_target    = NULL;
             int         n_computed_target  = 0;
 
-            if (_cpl->has_mesh()) {
-              computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
-              n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
-            }
-
-            if (n_elt_size == n_computed_target) {
+            if (write_end_step == 1) {
               for (int i = 0; i < n_elt_size; i++) {
-                comp_data[i_part][i] = 1.;
+                comp_data[i_part][i] = -1.;
               }
             } else {
-              for (int i = 0; i < n_elt_size; i++) {
-                comp_data[i_part][i] = 0.;
+              if (_cpl->has_mesh()) {
+                computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
+                n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
               }
-              for (int i = 0; i < n_computed_target; i++) {
-                int idx = computed_target[i] -1;
-                comp_data[i_part][idx] = 1.;
+
+              if (n_elt_size == n_computed_target) {
+                for (int i = 0; i < n_elt_size; i++) {
+                  comp_data[i_part][i] = 1.;
+                }
+              } else {
+                for (int i = 0; i < n_elt_size; i++) {
+                  comp_data[i_part][i] = 0.;
+                }
+                for (int i = 0; i < n_computed_target; i++) {
+                  int idx = computed_target[i] -1;
+                  comp_data[i_part][idx] = 1.;
+                }
               }
             }
 
@@ -389,7 +410,8 @@ CWP_Field_exch_t exch_type
       }
 
       if ((_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) ||
-          (exch_type == CWP_FIELD_EXCH_RECV)) {
+          (exch_type == CWP_FIELD_EXCH_RECV) ||
+          (write_end_step == 1 && visuStatusGet() == CWP_STATUS_ON)) {
         for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
           free (comp_data[i_part]);
         }

@@ -131,6 +131,44 @@ main(int argc, char *argv[]) {
                CWP_VISU_FORMAT_ENSIGHT,
                "text");
 
+  // Create the field
+  // It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
+  // For sake of simplicity, this example will only send the field
+  // of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
+  // On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
+  // the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
+  // which is the x coordinate of the mesh in this test.
+  const char *field_name      = "a super fancy field";
+  int         n_components    = 1;
+
+  if (I_am_code1) {
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     n_components,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_SEND,
+                     CWP_STATUS_ON);
+  }
+
+  if (I_am_code2) {
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     n_components,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_RECV,
+                     CWP_STATUS_ON);
+  }
+
+  // ???
+  CWP_Time_step_beg(code_name[0],
+                    0.0);
+
   // Set the mesh vertices coordinates :
   // The coordinate system in CWIPI is always 3D, so
   // we allocate an array of the time the number of vertices
@@ -180,32 +218,14 @@ main(int argc, char *argv[]) {
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
 
-  // Create and set the field values :
-  // It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
-  // For sake of simplicity, this example will only send the field
-  // of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
-  // On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
-  // the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
-  // which is the x coordinate of the mesh in this test. Note that
-  // the user has to allocate the array for the field that will
-  // be received by code2 (CWP_FIELD_MAP_TARGET).
-  const char *field_name      = "a super fancy field";
-  int         n_components    = 1;
+  // Set the field values :
+  // Note that the user has to allocate the array for the
+  // field that will be received by code2 (CWP_FIELD_MAP_TARGET).
   double     *send_field_data = malloc(sizeof(double) * n_vtx * n_components);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);
 
   // for code1
   if (I_am_code1) {
-    CWP_Field_create(code_name[0],
-                     coupling_name,
-                     field_name,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLACED,
-                     n_components,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_SEND,
-                     CWP_STATUS_ON);
-
     for (int i = 0; i < n_vtx; i++) {
       send_field_data[i] = coords[3*i];
     }
@@ -219,16 +239,6 @@ main(int argc, char *argv[]) {
 
   // for code2
   if (I_am_code2) {
-    CWP_Field_create(code_name[0],
-                     coupling_name,
-                     field_name,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLACED,
-                     n_components,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_RECV,
-                     CWP_STATUS_ON);
-
     CWP_Field_data_set(code_name[0],
                        coupling_name,
                        field_name,
@@ -295,6 +305,9 @@ main(int argc, char *argv[]) {
                                               field_name,
                                               0);
   }
+
+  // ???
+  CWP_Time_step_end(code_name[0]);
 
   // Delete field :
   CWP_Field_del(code_name[0],

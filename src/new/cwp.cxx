@@ -356,7 +356,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i];
-    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
+    properties.ctrlParamAdd <double> (codeNameStr, "time", -1.); // TO DO : remove but start with ignore time_init argument
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
 
@@ -618,7 +618,68 @@ CWP_Time_update
 
 }
 
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in]  current_time Current time
+ *
+ */
 
+void
+CWP_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+)
+{
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+
+  int is_locked = properties.isLocked(local_code_name);
+
+  if (!is_locked) {
+    properties.lock(local_code_name);
+  }
+
+  properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
+
+  if (!is_locked) {
+    properties.unLock(local_code_name);
+  }
+
+  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
+
+  MPI_Barrier (intra_comm);
+
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+
+  couplingDB.time_step_beg(properties.codePropertiesGet(local_code_name),
+                           current_time);
+}
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end
+(
+ const char* local_code_name
+)
+{
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+
+  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
+
+  MPI_Barrier (intra_comm);
+
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+
+  couplingDB.time_step_end(properties.codePropertiesGet(local_code_name));
+}
 
 /**
  * \brief Define a user structure associated to a code
