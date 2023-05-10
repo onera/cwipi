@@ -929,8 +929,17 @@ namespace cwipi {
 
       for(int i_part = 0; i_part < _npart; i_part++){
 
+        int parent_id = 0;
+
         for(int i_block = 0; i_block < _nBlocks; i_block++){
           int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+
+          int *parent_num = (int *) malloc(sizeof(int) * n_elt);
+          for (int i = 0; i < n_elt; i++) {
+            parent_num[i] = parent_id++;
+          }
+
+          _blockDB[i_block]->blockSetParentNum(i_part, parent_num);
 
           CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
 
@@ -1297,6 +1306,7 @@ namespace cwipi {
       }
 
       for (int i_block = 0; i_block < _nBlocks; i_block++) {
+        _blockDB[i_block]->ParentNumFree(i);
         _blockDB[i_block]->GNumMeshFree(i);
       }
 

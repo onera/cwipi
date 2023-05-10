@@ -273,7 +273,6 @@ _read_mesh
        int               ***n_elt,
        int              ****elt_vtx,
        PDM_g_num_t      ****elt_g_num,
-       int              ****elt_parent_num,
        CWP_Block_t        **elt_type,
        int                **n_vtx,
        double            ***vtx_coord,
@@ -330,15 +329,13 @@ _read_mesh
   *n_elt          = malloc(sizeof(int          *) * _n_block);
   *elt_vtx        = malloc(sizeof(int         **) * _n_block);
   *elt_g_num      = malloc(sizeof(PDM_g_num_t **) * _n_block);
-  *elt_parent_num = malloc(sizeof(int         **) * _n_block);
   *elt_type       = malloc(sizeof(CWP_Block_t  *) * _n_block);
 
 
   for (int iblock = 0; iblock < _n_block; iblock++) {
-    (*n_elt)         [iblock] = PDM_array_zeros_int(n_part);
-    (*elt_vtx)       [iblock] = malloc(sizeof(int         *) * n_part);
-    (*elt_g_num)     [iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
-    (*elt_parent_num)[iblock] = malloc(sizeof(int         *) * n_part);
+    (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+    (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+    (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
 
     (*elt_type)[iblock] = (CWP_Block_t) PDM_part_mesh_nodal_elmts_section_type_get(pmne,
                                                                                    sections_id[iblock]);
@@ -395,10 +392,12 @@ _read_mesh
       }
 
 
-      (*elt_vtx)       [iblock][ipart] = connec;
-      (*elt_g_num)     [iblock][ipart] = numabs;
-      (*elt_parent_num)[iblock][ipart] = parent_num;
+      (*elt_vtx)  [iblock][ipart] = connec;
+      (*elt_g_num)[iblock][ipart] = numabs;
 
+      if (parent_num != NULL) {
+        free(parent_num);
+      }
       if (parent_entity_g_num != NULL) {
         free(parent_entity_g_num);
       }
@@ -429,7 +428,6 @@ _gen_mesh
        int                ***n_elt,
        int               ****elt_vtx,
        PDM_g_num_t       ****elt_g_num,
-       int               ****elt_parent_num,
        int                 **n_vtx,
        double             ***vtx_coord,
        PDM_g_num_t        ***vtx_g_num
@@ -443,10 +441,9 @@ _gen_mesh
   *vtx_g_num = malloc(sizeof(PDM_g_num_t *) * n_part);
 
 
-  *n_elt          = malloc(sizeof(int          *) * n_block);
-  *elt_vtx        = malloc(sizeof(int         **) * n_block);
-  *elt_g_num      = malloc(sizeof(PDM_g_num_t **) * n_block);
-  *elt_parent_num = malloc(sizeof(int         **) * n_block);
+  *n_elt     = malloc(sizeof(int          *) * n_block);
+  *elt_vtx   = malloc(sizeof(int         **) * n_block);
+  *elt_g_num = malloc(sizeof(PDM_g_num_t **) * n_block);
 
   if (active_rank) {
     PDM_part_mesh_nodal_t *pmn = PDM_generate_mesh_parallelepiped(comm,
@@ -467,10 +464,9 @@ _gen_mesh
 
 
     for (int iblock = 0; iblock < n_block; iblock++) {
-      (*n_elt)         [iblock] = PDM_array_zeros_int(n_part);
-      (*elt_vtx)       [iblock] = malloc(sizeof(int         *) * n_part);
-      (*elt_g_num)     [iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
-      (*elt_parent_num)[iblock] = malloc(sizeof(int         *) * n_part);
+      (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+      (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+      (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
     }
 
     for (int ipart = 0; ipart < n_part; ipart++) {
@@ -512,11 +508,6 @@ _gen_mesh
                numabs + idx,
                sizeof(PDM_g_num_t) * (*n_elt)[iblock][ipart]);
 
-        (*elt_parent_num)[iblock][ipart] = malloc(sizeof(int) * (*n_elt)[iblock][ipart]);
-        for (int i = 0; i < (*n_elt)[iblock][ipart]; i++) {
-          (*elt_parent_num)[iblock][ipart][i] = idx + i;
-        }
-
         idx += (*n_elt)[iblock][ipart];
       }
 
@@ -541,17 +532,15 @@ _gen_mesh
   else {
 
     for (int iblock = 0; iblock < n_block; iblock++) {
-      (*n_elt)         [iblock] = PDM_array_zeros_int(n_part);
-      (*elt_vtx)       [iblock] = malloc(sizeof(int         *) * n_part);
-      (*elt_g_num)     [iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
-      (*elt_parent_num)[iblock] = malloc(sizeof(int         *) * n_part);
+      (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+      (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+      (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
     }
 
     for (int ipart = 0; ipart < n_part; ipart++) {
       for (int iblock = 0; iblock < n_block; iblock++) {
-        (*elt_vtx)       [iblock][ipart] = malloc(sizeof(int)         * elt_vtx_n * (*n_elt)[iblock][ipart]);
-        (*elt_g_num)     [iblock][ipart] = malloc(sizeof(PDM_g_num_t) * elt_vtx_n);
-        (*elt_parent_num)[iblock][ipart] = malloc(sizeof(int)         * elt_vtx_n);
+        (*elt_vtx)  [iblock][ipart] = malloc(sizeof(int)         * elt_vtx_n * (*n_elt)[iblock][ipart]);
+        (*elt_g_num)[iblock][ipart] = malloc(sizeof(PDM_g_num_t) * elt_vtx_n);
       }
 
       (*n_vtx)    [ipart] = 0;
@@ -749,7 +738,6 @@ int main(int argc, char *argv[])
   int          **n_elt          = NULL;
   int         ***elt_vtx        = NULL;
   PDM_g_num_t ***elt_g_num      = NULL;
-  int         ***elt_parent_num = NULL;
   CWP_Block_t   *elt_type       = NULL;
   int           *n_vtx          = NULL;
   double       **vtx_coord      = NULL;
@@ -768,7 +756,6 @@ int main(int argc, char *argv[])
               &n_elt,
               &elt_vtx,
               &elt_g_num,
-              &elt_parent_num,
               &n_vtx,
               &vtx_coord,
               &vtx_g_num);
@@ -788,7 +775,6 @@ int main(int argc, char *argv[])
                &n_elt,
                &elt_vtx,
                &elt_g_num,
-               &elt_parent_num,
                &elt_type,
                &n_vtx,
                &vtx_coord,
@@ -863,14 +849,6 @@ int main(int argc, char *argv[])
                                     n_elt   [iblock][ipart],
                                     elt_vtx [iblock][ipart],
                                     _elt_g_num);
-
-      // parent num?
-      CWP_Mesh_interf_block_parent_num_set(code_name[0],
-                                           coupling_name,
-                                           ipart,
-                                           block_id[iblock],
-                                           elt_parent_num[iblock][ipart]);
-
     }
   }
 
@@ -909,10 +887,11 @@ int main(int argc, char *argv[])
       memcpy(send_val1[ipart], vtx_coord[ipart], sizeof(double) * n_vtx[ipart] * 3);
 
       send_val2[ipart] = malloc(sizeof(double) * pn_cell[ipart]);
+      int idx = 0;
       for (int iblock = 0; iblock < n_block; iblock++) {
         for (int ielt = 0; ielt < n_elt[iblock][ipart]; ielt++) {
-          send_val2[ipart][elt_parent_num[iblock][ipart][ielt]] = elt_g_num[iblock][ipart][ielt];
-          // send_val2[ipart][elt_parent_num[iblock][ipart][ielt]] = elt_type[iblock];
+          send_val2[ipart][idx++] = elt_g_num[iblock][ipart][ielt];
+          // send_val2[ipart][idx++] = elt_type[iblock];
         }
       }
     }
@@ -1105,29 +1084,26 @@ int main(int argc, char *argv[])
   if (current_rank_has_mesh) {
     for (int iblock = 0; iblock < n_block; iblock++) {
       for (int ipart = 0; ipart < n_part; ipart++) {
-        free(elt_vtx       [iblock][ipart]);
-        free(elt_g_num     [iblock][ipart]);
-        free(elt_parent_num[iblock][ipart]);
+        free(elt_vtx  [iblock][ipart]);
+        free(elt_g_num[iblock][ipart]);
       }
-      free(n_elt         [iblock]);
-      free(elt_vtx       [iblock]);
-      free(elt_g_num     [iblock]);
-      free(elt_parent_num[iblock]);
+      free(n_elt    [iblock]);
+      free(elt_vtx  [iblock]);
+      free(elt_g_num[iblock]);
     }
     for (int ipart = 0; ipart < n_part; ipart++) {
       free(vtx_g_num[ipart]);
       free(vtx_coord[ipart]);
     }
   }
-  free(n_elt         );
-  free(elt_vtx       );
-  free(elt_g_num     );
-  free(elt_parent_num);
-  free(elt_type      );
-  free(n_vtx         );
-  free(vtx_coord     );
-  free(vtx_g_num     );
-  free(pn_cell       );
+  free(n_elt    );
+  free(elt_vtx  );
+  free(elt_g_num);
+  free(elt_type );
+  free(n_vtx    );
+  free(vtx_coord);
+  free(vtx_g_num);
+  free(pn_cell  );
 
   free(block_id);
 

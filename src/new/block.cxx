@@ -103,6 +103,14 @@ namespace cwipi {
     _parent_num[i_part] = parent_num;
   }
 
+
+  void Block::ParentNumFree(int i_part) {
+    if (_parent_num[i_part] != NULL) {
+      free(_parent_num[i_part]);
+      _parent_num[i_part] = NULL;
+    }
+  }
+
 }
 
 /**

@@ -175,6 +175,7 @@ namespace cwipi {
 
     void blockSetParentNum(int i_part, int *parent_num);
     inline int *ParentNumGet(int i_part);
+    void ParentNumFree(int i_part);
 
 
 
