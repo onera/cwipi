@@ -52,6 +52,8 @@ namespace cwipi {
       CWP_Dof_location_t cplCodeDofLOcation,
       SpatialInterpExchDirection exchDirection ) override;
 
+    virtual void clear() override;
+
 
     /**
       *

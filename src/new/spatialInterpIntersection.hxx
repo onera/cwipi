@@ -53,6 +53,8 @@ namespace cwipi {
                CWP_Dof_location_t          cplCodeDofLOcation,
                SpatialInterpExchDirection  exchDirection) override;
 
+    virtual void clear() override;
+
     SpatialInterpIntersection *_spatial_interp_cpl;
 
     int         **_src_to_tgt_idx;
