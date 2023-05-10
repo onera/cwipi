@@ -906,7 +906,6 @@ namespace cwipi {
                 "'%s' not existing field\n", field_id.c_str());
     }
     else {
-      // _fields.erase(field_id.c_str());
       delete It->second;
       It->second = NULL;
     }

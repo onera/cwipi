@@ -363,7 +363,6 @@ _read_mesh
 
 
     for (int iblock = 0; iblock < _n_block; iblock++) {
-      log_trace("block %d, type %d\n", iblock, (*elt_type)[iblock]);
       int         *connec              = NULL;
       PDM_g_num_t *numabs              = NULL;
       int         *parent_num          = NULL;
@@ -1039,7 +1038,7 @@ int main(int argc, char *argv[])
       int        n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name1, ipart);
       const int *located   = CWP_Computed_tgts_get  (code_name[0], coupling_name, field_name1, ipart);
 
-      if (1) {
+      if (0) {
         log_trace("recv_val / coord = \n");
         for (int i = 0 ; i < n_located; i++) {
           int ivtx = located[i] - 1;
