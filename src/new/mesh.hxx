@@ -156,12 +156,6 @@ namespace cwipi {
       CWP_g_num_t  global_num[]
     );
 
-    void blockSetParentNum
-    (
-     const int  i_part,
-     const int  block_id,
-           int *parent_num
-    );
 
     /**
      * \brief Set a high-order block to the interface mesh

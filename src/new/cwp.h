@@ -1151,26 +1151,6 @@ CWP_Mesh_interf_block_std_get
 );
 
 
-  /**
-  * \brief Set the block parent numbering
-  *
-  * \param [in]  local_code_name  Local code name
-  * \param [in]  cpl_id           Coupling identifier
-  * \param [in]  i_part           Partition identifier
-  * \param [in]  block_id         Block identifier
-  * \param [in]  parent_num       Array of parent ids
-  */
-
-void
-CWP_Mesh_interf_block_parent_num_set
-(
- const char *local_code_name,
- const char *cpl_id,
- const int   i_part,
- const int   block_id,
-       int  *parent_num
-);
-
 /**
   * \brief Get the standard block type
   *

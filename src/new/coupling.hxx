@@ -742,14 +742,6 @@ namespace cwipi {
       CWP_g_num_t **global_num
     );
 
-
-    inline void
-    meshBlockSetParentNum (
-      const int  i_part,
-      const int  block_id,
-            int *parent_num
-    );
-
     /**
      * \brief Get a standard block to the interface mesh
      *

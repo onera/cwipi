@@ -99,15 +99,18 @@ namespace cwipi {
   }
 
 
-  void Block::blockSetParentNum(int i_part, int* parent_num){
+  void Block::blockSetParentNum(int i_part, int* parent_num, PDM_ownership_t owner){
     _parent_num[i_part] = parent_num;
+    _owner_parent_num = owner;
   }
 
 
   void Block::ParentNumFree(int i_part) {
-    if (_parent_num[i_part] != NULL) {
-      free(_parent_num[i_part]);
-      _parent_num[i_part] = NULL;
+    if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
+      if (_parent_num[i_part] != NULL) {
+        free(_parent_num[i_part]);
+        _parent_num[i_part] = NULL;
+      }
     }
   }
 

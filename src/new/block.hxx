@@ -173,7 +173,7 @@ namespace cwipi {
 
 
 
-    void blockSetParentNum(int i_part, int *parent_num);
+    void blockSetParentNum(int i_part, int *parent_num, PDM_ownership_t owner);
     inline int *ParentNumGet(int i_part);
     void ParentNumFree(int i_part);
 
@@ -215,6 +215,7 @@ namespace cwipi {
     std::vector <int        *> _parent_num;
     Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
     PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */                
+    PDM_ownership_t            _owner_parent_num;       /*!< Owner of parent numbers */
 
   };
 

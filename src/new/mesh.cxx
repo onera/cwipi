@@ -410,9 +410,9 @@ namespace cwipi {
                                                                    i_part,
                                                                    PDM_OWNERSHIP_KEEP);
 
-        blockSetParentNum(i_part,
-                          block_id,
-                          parent_num);
+        _blockDB[block_id]->blockSetParentNum(i_part,
+                                              parent_num,
+                                              PDM_OWNERSHIP_USER); // hack : owner is pmne
       }
 
       int i_section = PDM_part_mesh_nodal_section_id_from_geom_kind_get(_pdmNodal_handle_index,
@@ -939,7 +939,9 @@ namespace cwipi {
             parent_num[i] = parent_id++;
           }
 
-          _blockDB[i_block]->blockSetParentNum(i_part, parent_num);
+          _blockDB[i_block]->blockSetParentNum(i_part,
+                                               parent_num,
+                                               PDM_OWNERSHIP_KEEP);
 
           CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
 
@@ -1084,18 +1086,6 @@ namespace cwipi {
     _nElts[i_part]  += n_elts;
 
   }
-
-   void
-  Mesh::blockSetParentNum
-  (
-    const int  i_part,
-    const int  block_id,
-          int *parent_num
-  )
-  {
-    _blockDB[block_id]->blockSetParentNum(i_part, parent_num);
-  }
-
 
   void
   Mesh::HOBlockSet
