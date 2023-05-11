@@ -1619,19 +1619,23 @@ main(int argc, char *argv[]) {
   free(time_init);
   free(intra_comm);
 
-  /*
-    if (current_rank_has_mesh) {
-      for (int ipart = 0; ipart < n_part; ipart++) {
-        free (faceVtxIdx[ipart]);
-        free (faceVtx[ipart]);
-        free (faceLNToGN[ipart]);
-        free (vtxCoord[ipart]);
-        free (vtxLNToGN[ipart]);
-      }
-    }
-  */
+
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    free (faceVtxIdx[ipart]);
+    free (faceVtx[ipart]);
+    free (faceEdgeIdx[ipart]);
+    free (faceEdge[ipart]);
+    free (faceLNToGN[ipart]);
+    free (edgeVtx[ipart]);
+    free (edgeVtxIdx[ipart]);
+    free (vtxCoord[ipart]);
+    free (vtxLNToGN[ipart]);
+  }
+
 
   free(nFace);
+  free(faceVtxIdx);
+  free(faceVtx);
   free(faceEdgeIdx);
   free(faceEdge);
   free(faceLNToGN);
