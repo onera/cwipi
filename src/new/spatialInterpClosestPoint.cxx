@@ -180,8 +180,6 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::weightsCompute() {
 
-      reset();
-
       /* Set source and target point clouds */
       set_PDM_object();
 
@@ -202,40 +200,6 @@ namespace cwipi {
         }
       }
 
-
-      /* Reset part_to_part object */
-      if (_ptsp != nullptr) {
-        if (!_coupledCodeProperties->localCodeIs()) {
-          PDM_part_to_part_free (_ptsp);
-          _ptsp = nullptr;
-        }
-        else {
-
-          if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-            PDM_part_to_part_free (_ptsp);
-            _ptsp = nullptr;
-
-            SpatialInterpClosestPoint *cpl_spatial_interp;
-
-            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-            if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-            }
-            else {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-            }
-
-            cpl_spatial_interp->_ptsp = NULL;
-          }
-
-        }
-      }
-
       /* Get PDM part_to_part object */
       if (_id_pdm != NULL) {
         if (!_reverse) {
@@ -243,32 +207,6 @@ namespace cwipi {
                                               &_ptsp,
                                               PDM_OWNERSHIP_USER);
         }
-
-        // if (0) {
-        //   int  *n_ref_gnum2;
-        //   int **ref_gnum2;
-        //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-        //                                   &n_ref_gnum2,
-        //                                   &ref_gnum2);
-
-        //   int          **gnum1_come_from_idx;
-        //   PDM_g_num_t  **gnum1_come_from;
-        //   PDM_part_to_part_gnum1_come_from_get (_ptsp,
-        //                                         &gnum1_come_from_idx,
-        //                                         &gnum1_come_from);
-
-        //   int n_part1;
-        //   int n_part2;
-        //   PDM_part_to_part_n_part_get(_ptsp, &n_part1, &n_part2);
-
-        //   for (int i = 0; i < n_part2; i++) {
-        //     log_trace("n_ref_gnum2[%d] = %d, end idx = %d\n",
-        //               i, n_ref_gnum2[i], gnum1_come_from_idx[i][n_ref_gnum2[i]]);
-        //     for (int j = 0; j < n_ref_gnum2[i]; j++) {
-        //       log_trace("  %d -> %d\n", j, gnum1_come_from_idx[i][j+1] - gnum1_come_from_idx[i][j]);
-        //     }
-        //   }
-        // }
       }
 
       int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
@@ -1319,91 +1257,67 @@ namespace cwipi {
 
 
 
-    void SpatialInterpClosestPoint::reset() {
+    void SpatialInterpClosestPoint::clear() {
+
+      SpatialInterp::clear();
+
       _coordinates_exchanged = 0;
 
-      if (!_coupledCodeProperties->localCodeIs() ||
-          (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
 
+      int cond1 = !_coupledCodeProperties->localCodeIs();
+      int cond2 = !cond1 && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet());
+
+      if (!cond1 && !cond2) {
+        return;
+      }
+
+      if (_tgt_in_src_idx != NULL) {
         for (int i_part = 0; i_part < _nPart; i_part++) {
-          if (_closest_src_gnum[i_part] != NULL) {
-            free(_closest_src_gnum[i_part]);
-          }
-          if (_weights[i_part] != NULL) {
-            free(_weights[i_part]);
-          }
-          _closest_src_gnum[i_part] = NULL;
-          _weights[i_part] = NULL;
-
-
           if (_tgt_in_src_idx[i_part] != NULL) {
-            free(_tgt_in_src_idx[i_part]);
-          }
-          if (_tgt_in_src_gnum[i_part] != NULL) {
+            free(_tgt_in_src_idx [i_part]);
             free(_tgt_in_src_gnum[i_part]);
-          }
-          if (_tgt_in_src_dist[i_part] != NULL) {
             free(_tgt_in_src_dist[i_part]);
           }
-          _tgt_in_src_idx [i_part] = NULL;
-          _tgt_in_src_gnum[i_part] = NULL;
-          _tgt_in_src_dist[i_part] = NULL;
-
-
-          if (_weights_idx[i_part] != NULL) {
-            free(_weights_idx[i_part]);
-          }
-
-          if (_weights[i_part] != NULL) {
-            free(_weights[i_part]);
-          }
-
-          if (_computed_tgt[i_part] != NULL) {
-            free(_computed_tgt[i_part]);
-          }
-
-          if (_uncomputed_tgt[i_part] != NULL) {
-            free(_uncomputed_tgt[i_part]);
-          }
-
-          if (_involved_sources_tgt[i_part] != NULL) {
-            free(_involved_sources_tgt[i_part]);
-          }
-
-          _n_elt_weights[i_part] = 0;
-          _weights_idx  [i_part] = NULL;
-          _weights      [i_part] = NULL;
-
-          _n_computed_tgt[i_part] = 0;
-          _computed_tgt  [i_part] = NULL;
-
-          _n_uncomputed_tgt[i_part] = 0;
-          _uncomputed_tgt  [i_part] = NULL;
-
-          _n_involved_sources_tgt[i_part] = 0;
-          _involved_sources_tgt  [i_part] = NULL;
         }
 
+        free(_tgt_in_src_idx );
+        free(_tgt_in_src_gnum);
+        free(_tgt_in_src_dist);
+        _tgt_in_src_idx  = NULL;
+        _tgt_in_src_gnum = NULL;
+        _tgt_in_src_dist = NULL;
+      }
 
-        if (_send_coord != NULL) {
-          free(_send_coord);
-          _send_coord = NULL;
-        }
-
-        if (_recv_coord != NULL) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            if (_recv_coord[i_part] != NULL) {
-              free(_recv_coord[i_part]);
-            }
+      if (_closest_src_gnum != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_closest_src_gnum[i_part] != NULL) {
+            free(_closest_src_gnum [i_part]);
           }
-          free(_recv_coord);
-          _recv_coord = NULL;
         }
 
+        free(_closest_src_gnum );
+        _closest_src_gnum  = NULL;
       }
 
 
-      if (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+      if (_send_coord != NULL) {
+        free(_send_coord);
+        _send_coord = NULL;
+      }
+
+      if (_recv_coord != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_recv_coord[i_part] != NULL) {
+            free(_recv_coord[i_part]);
+          }
+        }
+        free(_recv_coord);
+        _recv_coord = NULL;
+      }
+
+
+
+      if (cond2) {
         SpatialInterpClosestPoint *cpl_spatial_interp;
 
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
@@ -1419,64 +1333,33 @@ namespace cwipi {
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
-        for (int i_part = 0; i_part < _cplNPart; i_part++) {
-
-          if (cpl_spatial_interp->_closest_src_gnum[i_part] != NULL) {
-            free(cpl_spatial_interp->_closest_src_gnum[i_part]);
-          }
-          if (cpl_spatial_interp->_weights[i_part] != NULL) {
-            free(cpl_spatial_interp->_weights[i_part]);
-          }
-          cpl_spatial_interp->_closest_src_gnum[i_part] = NULL;
-          cpl_spatial_interp->_weights[i_part] = NULL;
-
-
-          if (cpl_spatial_interp->_tgt_in_src_idx[i_part] != NULL) {
-            free(cpl_spatial_interp->_tgt_in_src_idx[i_part]);
-          }
-          if (cpl_spatial_interp->_tgt_in_src_gnum[i_part] != NULL) {
-            free(cpl_spatial_interp->_tgt_in_src_gnum[i_part]);
-          }
-          if (cpl_spatial_interp->_tgt_in_src_dist[i_part] != NULL) {
-            free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
-          }
-          cpl_spatial_interp->_tgt_in_src_idx [i_part] = NULL;
-          cpl_spatial_interp->_tgt_in_src_gnum[i_part] = NULL;
-          cpl_spatial_interp->_tgt_in_src_dist[i_part] = NULL;
-
-
-          if (cpl_spatial_interp->_weights_idx[i_part] != NULL) {
-            free(cpl_spatial_interp->_weights_idx[i_part]);
+        if (cpl_spatial_interp->_tgt_in_src_idx != NULL) {
+          for (int i_part = 0; i_part < _nPart; i_part++) {
+            if (cpl_spatial_interp->_tgt_in_src_idx[i_part] != NULL) {
+              free(cpl_spatial_interp->_tgt_in_src_idx [i_part]);
+              free(cpl_spatial_interp->_tgt_in_src_gnum[i_part]);
+              free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
+            }
           }
 
-          if (cpl_spatial_interp->_weights[i_part] != NULL) {
-            free(cpl_spatial_interp->_weights[i_part]);
+          free(cpl_spatial_interp->_tgt_in_src_idx );
+          free(cpl_spatial_interp->_tgt_in_src_gnum);
+          free(cpl_spatial_interp->_tgt_in_src_dist);
+          cpl_spatial_interp->_tgt_in_src_idx  = NULL;
+          cpl_spatial_interp->_tgt_in_src_gnum = NULL;
+          cpl_spatial_interp->_tgt_in_src_dist = NULL;
+        }
+
+
+        if (cpl_spatial_interp->_closest_src_gnum != NULL) {
+          for (int i_part = 0; i_part < _nPart; i_part++) {
+            if (cpl_spatial_interp->_closest_src_gnum[i_part] != NULL) {
+              free(cpl_spatial_interp->_closest_src_gnum [i_part]);
+            }
           }
 
-          if (cpl_spatial_interp->_computed_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_computed_tgt[i_part]);
-          }
-
-          if (cpl_spatial_interp->_uncomputed_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_uncomputed_tgt[i_part]);
-          }
-
-          if (cpl_spatial_interp->_involved_sources_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_involved_sources_tgt[i_part]);
-          }
-
-          cpl_spatial_interp->_n_elt_weights[i_part] = 0;
-          cpl_spatial_interp->_weights_idx  [i_part] = NULL;
-          cpl_spatial_interp->_weights      [i_part] = NULL;
-
-          cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
-          cpl_spatial_interp->_computed_tgt  [i_part] = NULL;
-
-          cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
-          cpl_spatial_interp->_uncomputed_tgt  [i_part] = NULL;
-
-          cpl_spatial_interp->_n_involved_sources_tgt[i_part] = 0;
-          cpl_spatial_interp->_involved_sources_tgt  [i_part] = NULL;
+          free(cpl_spatial_interp->_closest_src_gnum);
+          cpl_spatial_interp->_closest_src_gnum = NULL;
         }
 
         if (cpl_spatial_interp->_send_coord != NULL) {
@@ -1493,6 +1376,7 @@ namespace cwipi {
           free(cpl_spatial_interp->_recv_coord);
           cpl_spatial_interp->_recv_coord = NULL;
         }
+
       }
     }
 

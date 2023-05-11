@@ -43,15 +43,16 @@ namespace cwipi {
 
   void Block::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
   {
-     _mesh     = mesh;
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
+     _mesh        = mesh;
+     _localComm   = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
 
-     _blockType             = blockType;
-     _n_part                = static_cast<Mesh*>(mesh)->getNPart();
+     _blockType   = blockType;
+     _n_part      = static_cast<Mesh*>(mesh)->getNPart();
 
-     _global_num         .resize(_n_part,NULL);
-     _n_elt              .resize(_n_part);
-     _cells_center       .resize(_n_part, NULL);
+     _global_num  .resize(_n_part,NULL);
+     _n_elt       .resize(_n_part);
+     _cells_center.resize(_n_part, NULL);
+     _parent_num  .resize(_n_part, NULL);
 
   }
 
@@ -98,95 +99,20 @@ namespace cwipi {
   }
 
 
-  PDM_Mesh_nodal_elt_t Block::PdmBlockTypeFromCwpBlockType(
-                                                           CWP_Block_t CWP_block_type
-                                                          )
-   {
-     PDM_Mesh_nodal_elt_t block_type;
-     switch (CWP_block_type) {
-
-       case CWP_BLOCK_NODE: 
-       block_type = PDM_MESH_NODAL_POINT;
-       break;
-
-       case CWP_BLOCK_EDGE2: block_type = PDM_MESH_NODAL_BAR2;
-       break;
-
-       case CWP_BLOCK_FACE_TRIA3: block_type =  PDM_MESH_NODAL_TRIA3;
-       break;
-
-       case CWP_BLOCK_FACE_QUAD4: block_type = PDM_MESH_NODAL_QUAD4;
-       break;
-
-       case CWP_BLOCK_CELL_TETRA4: block_type = PDM_MESH_NODAL_TETRA4;
-       break;
-
-       case CWP_BLOCK_FACE_POLY: block_type = PDM_MESH_NODAL_POLY_2D;
-       break;
-
-       case CWP_BLOCK_CELL_HEXA8: block_type = PDM_MESH_NODAL_HEXA8;
-       break;
-
-       case CWP_BLOCK_CELL_PYRAM5: block_type = PDM_MESH_NODAL_PYRAMID5;
-       break;
-
-       case CWP_BLOCK_CELL_PRISM6: block_type = PDM_MESH_NODAL_PRISM6;
-       break;
-
-       case CWP_BLOCK_CELL_POLY: block_type = PDM_MESH_NODAL_POLY_3D;
-       break;
-
-       default:block_type = PDM_MESH_NODAL_POINT;
-               PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
-      }
-    return block_type;
-
+  void Block::blockSetParentNum(int i_part, int* parent_num, PDM_ownership_t owner){
+    _parent_num[i_part] = parent_num;
+    _owner_parent_num = owner;
   }
 
-  CWP_Block_t Block::CwpBlockTypeFromPdmBlockType(PDM_Mesh_nodal_elt_t PDM_block_type)
-   {
-     CWP_Block_t block_type;
-     switch (PDM_block_type) {
 
-       case PDM_MESH_NODAL_POINT: block_type = CWP_BLOCK_NODE;
-       break;
-
-       case PDM_MESH_NODAL_BAR2: block_type = CWP_BLOCK_EDGE2;
-       break;
-
-       case PDM_MESH_NODAL_TRIA3: block_type = CWP_BLOCK_FACE_TRIA3;
-       break;
-
-       case PDM_MESH_NODAL_QUAD4: block_type = CWP_BLOCK_FACE_QUAD4;
-       break;
-
-       case PDM_MESH_NODAL_TETRA4: block_type = CWP_BLOCK_CELL_TETRA4;
-       break;
-
-       case PDM_MESH_NODAL_POLY_2D: block_type = CWP_BLOCK_FACE_POLY;
-       break;
-
-       case PDM_MESH_NODAL_HEXA8: block_type = CWP_BLOCK_CELL_HEXA8;
-       break;
-
-       case PDM_MESH_NODAL_PYRAMID5: block_type = CWP_BLOCK_CELL_PYRAM5;
-       break;
-
-       case PDM_MESH_NODAL_PRISM6: block_type = CWP_BLOCK_CELL_PRISM6;
-       break;
-
-       case PDM_MESH_NODAL_POLY_3D: block_type = CWP_BLOCK_CELL_POLY;
-       break;
-
-       default: block_type = CWP_BLOCK_NODE;
-                PDM_error(__FILE__, __LINE__, 0, "No referenced PDM_Mesh_nodal_elt_t.\n");
+  void Block::ParentNumFree(int i_part) {
+    if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
+      if (_parent_num[i_part] != NULL) {
+        free(_parent_num[i_part]);
+        _parent_num[i_part] = NULL;
       }
-    return block_type;
-
-   }
-
-
-
+    }
+  }
 
 }
 

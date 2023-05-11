@@ -102,6 +102,8 @@ namespace cwipi {
       CWP_Dof_location_t cplCodeDofLOcation,
       SpatialInterpExchDirection exchDirection );
 
+    virtual void clear();
+
     virtual void weightsCompute()  = 0; // A changer de nom
     
     virtual void interpolate (Field* referenceField, double **buffer) = 0;

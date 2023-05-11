@@ -1150,12 +1150,13 @@ CWP_Mesh_interf_block_std_get
  CWP_g_num_t      **global_num
 );
 
+
 /**
   * \brief Get the standard block type
   *
   * \param [in]  local_code_name  Local code name
   * \param [in]  cpl_id           Coupling identifier
-  * \param [in]  block_id    Block identifier
+  * \param [in]  block_id         Block identifier
   *
   * \return block type
   */

@@ -122,105 +122,25 @@ namespace cwipi {
   }
 
 
+  void SpatialInterpIdentity::clear()
+  {
+    SpatialInterp::clear();
+
+    if (_src_to_tgt_idx != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_src_to_tgt_idx[i_part] != NULL) {
+          free(_src_to_tgt_idx[i_part]);
+        }
+      }
+
+      free(_src_to_tgt_idx);
+      _src_to_tgt_idx = NULL;
+    }
+  }
+
+
   void SpatialInterpIdentity::weightsCompute()
   {
-    if (!_coupledCodeProperties->localCodeIs() ||
-        (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
-      for (int i_part = 0; i_part < _nPart; i_part++) {
-        if (_computed_tgt[i_part] != NULL) {
-          free(_computed_tgt[i_part]);
-        }
-
-        if (_uncomputed_tgt[i_part] != NULL) {
-          free(_uncomputed_tgt[i_part]);
-        }
-
-        if (_involved_sources_tgt[i_part] != NULL) {
-          free(_involved_sources_tgt[i_part]);
-        }
-
-        _n_computed_tgt[i_part] = 0;
-        _computed_tgt  [i_part] = NULL;
-
-        _n_uncomputed_tgt[i_part] = 0;
-        _uncomputed_tgt  [i_part] = NULL;
-
-        _n_involved_sources_tgt[i_part] = 0;
-        _involved_sources_tgt  [i_part] = NULL;
-      }
-    }
-
-    if (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        SpatialInterpIdentity *cpl_spatial_interp;
-
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-          cpl_spatial_interp =
-            dynamic_cast <SpatialInterpIdentity *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-        }
-        else {
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-          cpl_spatial_interp =
-            dynamic_cast <SpatialInterpIdentity *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-        }
-
-        for (int i_part = 0; i_part < _cplNPart; i_part++) {
-          if (cpl_spatial_interp->_computed_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_computed_tgt[i_part]);
-          }
-
-          if (cpl_spatial_interp->_uncomputed_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_uncomputed_tgt[i_part]);
-          }
-
-          if (cpl_spatial_interp->_involved_sources_tgt[i_part] != NULL) {
-            free(cpl_spatial_interp->_involved_sources_tgt[i_part]);
-          }
-
-          cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
-          cpl_spatial_interp->_computed_tgt  [i_part] = NULL;
-
-          cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
-          cpl_spatial_interp->_uncomputed_tgt  [i_part] = NULL;
-
-          cpl_spatial_interp->_n_involved_sources_tgt[i_part] = 0;
-          cpl_spatial_interp->_involved_sources_tgt  [i_part] = NULL;
-        }
-      }
-
-    /* Reset part_to_part object */
-    if (_ptsp != nullptr) {
-      if (!_coupledCodeProperties->localCodeIs()) {
-        PDM_part_to_part_free(_ptsp);
-        _ptsp = nullptr;
-      }
-      else {
-        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-          PDM_part_to_part_free(_ptsp);
-          _ptsp = nullptr;
-
-          SpatialInterpIdentity *cpl_spatial_interp;
-          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-            cpl_spatial_interp =
-              dynamic_cast <SpatialInterpIdentity *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-          }
-          else {
-            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-            cpl_spatial_interp =
-              dynamic_cast <SpatialInterpIdentity *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-          }
-          cpl_spatial_interp->_ptsp = NULL;
-        }
-      }
-    }
-
-
-    // assert(_ptsp == NULL);
 
     if (!_coupledCodeProperties->localCodeIs()) {
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {

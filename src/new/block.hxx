@@ -68,32 +68,6 @@ namespace cwipi {
 
     virtual ~Block();
 
-
-    /**
-     * \brief Block Type conversion from Paradigm to CWIPI
-     *
-     * Converts a Paradigm block type to a CWIPI block type.
-     *
-     * \param [in] PDM_block_type A paradigm block type.
-     *
-     * \return A CWIPI block type.
-     *
-     */
-
-    CWP_Block_t          CwpBlockTypeFromPdmBlockType (PDM_Mesh_nodal_elt_t PDM_block_type);
-
-    /**
-     * \brief Block Type conversion from CWIPI to Paradigm
-     *
-     * Converts a CWIPI block type to a Paradigm block type.
-     *
-     * \param [in] CWP_block_type        A CWIPI block type.
-     * \return A Paradigm block type.
-     *
-     */
-
-    PDM_Mesh_nodal_elt_t PdmBlockTypeFromCwpBlockType (CWP_Block_t CWP_block_type);
-
     /**
      *
      * \brief Block addition
@@ -198,6 +172,13 @@ namespace cwipi {
 
 
 
+
+    void blockSetParentNum(int i_part, int *parent_num, PDM_ownership_t owner);
+    inline int *ParentNumGet(int i_part);
+    void ParentNumFree(int i_part);
+
+
+
     virtual void geomFinalize() = 0;
 
   private :
@@ -231,8 +212,10 @@ namespace cwipi {
     int                        _block_id_pdm;           /*!< Block identifier */
     int                        _block_id_cwipi;         /*!< Block identifier */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
+    std::vector <int        *> _parent_num;
     Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
     PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */                
+    PDM_ownership_t            _owner_parent_num;       /*!< Owner of parent numbers */
 
   };
 
@@ -281,6 +264,11 @@ namespace cwipi {
   int 
   Block::blockIDPDMGet(){
     return _block_id_pdm;
+  }
+
+  int *
+  Block::ParentNumGet(int i_part){
+    return _parent_num[i_part];
   }
 
 }

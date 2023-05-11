@@ -503,9 +503,6 @@ main
         }
       }
 
-      CWP_next_recv_time_set(code_name[icode],
-                             cpl_name,
-                             recv_time);
       if (step > 0) {
         CWP_Time_update(code_name[icode],
                         recv_time);

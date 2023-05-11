@@ -27,6 +27,9 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
+#include "pdm_dmesh_nodal.h"
+#include "pdm_part_mesh_nodal.h"
+#include "pdm_part_mesh_nodal_elmts.h"
 #include "pdm_poly_surf_gen.h"
 #include "pdm_part.h"
 #include "pdm_mpi_node_first_rank.h"
@@ -36,8 +39,6 @@
 #include "pdm_block_to_part.h"
 
 #include "pdm_multipart.h"
-#include "pdm_dcube_gen.h"
-#include "pdm_geom_elem.h"
 #include "pdm_gnum.h"
 
 #include "pdm_array.h"
@@ -49,8 +50,8 @@
 #include "pdm_part_extension.h"
 #include "pdm_vtk.h"
 
-#include "pdm_dcube_nodal_gen.h"
-#include "pdm_poly_vol_gen.h"
+#include "pdm_generate_mesh.h"
+#include "pdm_reader_gamma.h"
 
 
 #define ABS(a) ((a) <  0  ? -(a) : (a))
@@ -103,7 +104,10 @@ _read_args
   PDM_split_dual_t      *part_method,
   char                 **output_filename,
   int                   *verbose,
-  int                   *use_gnum
+  int                   *use_gnum,
+  int                   *n_part,
+  int                   *n_block,
+  char                 **filename
 )
 {
   int i = 1;
@@ -225,277 +229,326 @@ _read_args
     else if (strcmp(argv[i], "-no_gnum") == 0) {
       *use_gnum = 0;
     }
+    else if (strcmp(argv[i], "-n_part") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_part = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n_block") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_block = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-f") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else {
+        *filename = argv[i];
+      }
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
   }
 }
 
+static void
+_read_mesh
+(
+ const int                  current_rank_has_mesh,
+ const PDM_MPI_Comm         comm,
+ const int                  n_part,
+ const PDM_split_dual_t     part_method,
+ const char                *filename,
+       int                 *n_block,
+       int               ***n_elt,
+       int              ****elt_vtx,
+       PDM_g_num_t      ****elt_g_num,
+       CWP_Block_t        **elt_type,
+       int                **n_vtx,
+       double            ***vtx_coord,
+       PDM_g_num_t       ***vtx_g_num
+ )
+{
+  assert(current_rank_has_mesh); // TODO : bcast n_block + block_type?
+
+  *n_vtx     = malloc(sizeof(int          ) * n_part);
+  *vtx_coord = malloc(sizeof(double      *) * n_part);
+  *vtx_g_num = malloc(sizeof(PDM_g_num_t *) * n_part);
+
+  PDM_dmesh_nodal_t *dmn = PDM_reader_gamma_dmesh_nodal(comm,
+                                                        filename,
+                                                        0,
+                                                        0);
+
+  int n_zone = 1;
+  PDM_multipart_t *mpart = PDM_multipart_create(n_zone,
+                                                &n_part,
+                                                PDM_FALSE,
+                                                part_method,
+                                                PDM_PART_SIZE_HOMOGENEOUS,
+                                                NULL,
+                                                comm,
+                                                PDM_OWNERSHIP_KEEP);
+
+  PDM_multipart_set_reordering_options(mpart,
+                                       -1,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       NULL,
+                                       "PDM_PART_RENUM_FACE_NONE");
+
+  PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+  PDM_multipart_run_ppart(mpart);
+
+
+  PDM_part_mesh_nodal_t *pmn = NULL;
+  PDM_multipart_get_part_mesh_nodal(mpart,
+                                    0,
+                                    &pmn,
+                                    PDM_OWNERSHIP_USER);
+
+  PDM_part_mesh_nodal_elmts_t *pmne = PDM_part_mesh_nodal_part_mesh_nodal_elmts_get(pmn,
+                                                                                    PDM_GEOMETRY_KIND_VOLUMIC);
+
+  const int *sections_id = PDM_part_mesh_nodal_elmts_sections_id_get(pmne);
+
+  int _n_block = PDM_part_mesh_nodal_elmts_n_section_get(pmne);
+  *n_block = _n_block;
+
+
+
+  *n_elt          = malloc(sizeof(int          *) * _n_block);
+  *elt_vtx        = malloc(sizeof(int         **) * _n_block);
+  *elt_g_num      = malloc(sizeof(PDM_g_num_t **) * _n_block);
+  *elt_type       = malloc(sizeof(CWP_Block_t  *) * _n_block);
+
+
+  for (int iblock = 0; iblock < _n_block; iblock++) {
+    (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+    (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+    (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
+
+    (*elt_type)[iblock] = (CWP_Block_t) PDM_part_mesh_nodal_elmts_section_type_get(pmne,
+                                                                                   sections_id[iblock]);
+  }
+
+
+  for (int ipart = 0; ipart < n_part; ipart++) {
+
+    (*n_vtx)[ipart]         = PDM_part_mesh_nodal_n_vtx_get    (pmn, ipart);
+    double      *_vtx_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart);
+    PDM_g_num_t *_vtx_g_num = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart);
+
+    (*vtx_coord)[ipart] = malloc(sizeof(double) * (*n_vtx)[ipart] * 3);
+    memcpy((*vtx_coord)[ipart],
+           _vtx_coord,
+           sizeof(double) * (*n_vtx)[ipart] * 3);
+
+    (*vtx_g_num)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_vtx)[ipart]);
+    memcpy((*vtx_g_num)[ipart],
+           _vtx_g_num,
+           sizeof(PDM_g_num_t) * (*n_vtx)[ipart]);
+
+
+    for (int iblock = 0; iblock < _n_block; iblock++) {
+      int         *connec              = NULL;
+      PDM_g_num_t *numabs              = NULL;
+      int         *parent_num          = NULL;
+      PDM_g_num_t *parent_entity_g_num = NULL;
+      PDM_part_mesh_nodal_elmts_section_std_get(pmne,
+                                                sections_id[iblock],
+                                                ipart,
+                                                &connec,
+                                                &numabs,
+                                                &parent_num,
+                                                &parent_entity_g_num,
+                                                PDM_OWNERSHIP_USER);
+
+      (*n_elt)[iblock][ipart] = PDM_part_mesh_nodal_elmts_section_n_elt_get(pmne,
+                                                                            sections_id[iblock],
+                                                                            ipart);
+
+      if ((*elt_type)[iblock] == CWP_BLOCK_CELL_PRISM6) {
+        // only for mesh from vtk ...
+        for (int i = 0; i < (*n_elt)[iblock][ipart]; i++) {
+
+          int tmp = connec[6*i+2];
+          connec[6*i+2] = connec[6*i+1];
+          connec[6*i+1] = tmp;
+
+          tmp = connec[6*i+5];
+          connec[6*i+5] = connec[6*i+4];
+          connec[6*i+4] = tmp;
+        }
+      }
+
+
+      (*elt_vtx)  [iblock][ipart] = connec;
+      (*elt_g_num)[iblock][ipart] = numabs;
+
+      if (parent_num != NULL) {
+        free(parent_num);
+      }
+      if (parent_entity_g_num != NULL) {
+        free(parent_entity_g_num);
+      }
+    }
+
+  }
+
+  PDM_part_mesh_nodal_free(pmn);
+  PDM_multipart_free(mpart);
+  PDM_DMesh_nodal_free(dmn);
+}
+
+
 
 static void
 _gen_mesh
 (
- const int                 active_rank,
- const PDM_MPI_Comm        comm,
- const int                 n_part,
- const PDM_split_dual_t    part_method,
- const PDM_g_num_t         n,
- const double              xmin,
- const double              ymin,
- const double              zmin,
- const double              length,
- const int                 randomize,
- const int                 random_seed,
- int                     **pn_cell,
- int                     **pn_face,
- int                     **pn_vtx,
- int                    ***pcell_face_idx,
- int                    ***pcell_face,
- int                    ***pface_vtx_idx,
- int                    ***pface_vtx,
- double                 ***pvtx_coord,
- PDM_g_num_t            ***pcell_ln_to_gn,
- PDM_g_num_t            ***pface_ln_to_gn,
- PDM_g_num_t            ***pvtx_ln_to_gn
+ const int                   active_rank,
+ const PDM_MPI_Comm          comm,
+ const int                   n_part,
+ const int                   n_block,
+ const PDM_split_dual_t      part_method,
+ const PDM_g_num_t           n,
+ const double                xmin,
+ const double                ymin,
+ const double                zmin,
+ const double                length,
+       int                ***n_elt,
+       int               ****elt_vtx,
+       PDM_g_num_t       ****elt_g_num,
+       int                 **n_vtx,
+       double             ***vtx_coord,
+       PDM_g_num_t        ***vtx_g_num
  )
 {
-  PDM_multipart_t *mpart = NULL;
-  PDM_dmesh_t     *dmesh = NULL;
+  PDM_Mesh_nodal_elt_t elt_type = PDM_MESH_NODAL_HEXA8;
+  int elt_vtx_n = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, 1);
 
-  PDM_g_num_t  ng_cell;
-  PDM_g_num_t  ng_face;
-  PDM_g_num_t  ng_vtx;
-  int          n_face_group;
-  int          dn_cell;
-  int          dn_face;
-  int          dn_vtx;
-  int         *dcell_face_idx  = NULL;
-  PDM_g_num_t *dcell_face      = NULL;
-  PDM_g_num_t *dface_cell      = NULL;
-  int         *dface_vtx_idx   = NULL;
-  PDM_g_num_t *dface_vtx       = NULL;
-  double      *dvtx_coord      = NULL;
-  int         *dface_group_idx = NULL;
-  PDM_g_num_t *dface_group     = NULL;
+  *n_vtx     = malloc(sizeof(int          ) * n_part);
+  *vtx_coord = malloc(sizeof(double      *) * n_part);
+  *vtx_g_num = malloc(sizeof(PDM_g_num_t *) * n_part);
+
+
+  *n_elt     = malloc(sizeof(int          *) * n_block);
+  *elt_vtx   = malloc(sizeof(int         **) * n_block);
+  *elt_g_num = malloc(sizeof(PDM_g_num_t **) * n_block);
 
   if (active_rank) {
-
-    PDM_poly_vol_gen(comm,
-                     xmin,
-                     ymin,
-                     zmin,
-                     length,
-                     length,
-                     length,
-                     n,
-                     n,
-                     n,
-                     randomize,
-                     random_seed,
-                     &ng_cell,
-                     &ng_face,
-                     &ng_vtx,
-                     &n_face_group,
-                     &dn_cell,
-                     &dn_face,
-                     &dn_vtx,
-                     &dcell_face_idx,
-                     &dcell_face,
-                     &dface_cell,
-                     &dface_vtx_idx,
-                     &dface_vtx,
-                     &dvtx_coord,
-                     &dface_group_idx,
-                     &dface_group);
+    PDM_part_mesh_nodal_t *pmn = PDM_generate_mesh_parallelepiped(comm,
+                                                                  elt_type,
+                                                                  1,
+                                                                  NULL,
+                                                                  xmin,
+                                                                  ymin,
+                                                                  zmin,
+                                                                  length,
+                                                                  length,
+                                                                  length,
+                                                                  n,
+                                                                  n,
+                                                                  n,
+                                                                  n_part,
+                                                                  part_method);
 
 
-    mpart = PDM_multipart_create(1,
-                                 &n_part,
-                                 PDM_FALSE,
-                                 part_method,
-                                 PDM_PART_SIZE_HOMOGENEOUS,
-                                 NULL,
-                                 comm,
-                                 PDM_OWNERSHIP_KEEP);
-
-    /* Generate dmesh */
-    dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
-                             dn_cell,
-                             dn_face,
-                             0,
-                             dn_vtx,
-                             comm);
-
-    PDM_dmesh_vtx_coord_set(dmesh,
-                            dvtx_coord,
-                            PDM_OWNERSHIP_USER);
-
-
-    PDM_dmesh_connectivity_set(dmesh,
-                               PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                               dface_vtx,
-                               dface_vtx_idx,
-                               PDM_OWNERSHIP_USER);
-
-    PDM_dmesh_connectivity_set(dmesh,
-                               PDM_CONNECTIVITY_TYPE_FACE_CELL,
-                               dface_cell,
-                               NULL,
-                               PDM_OWNERSHIP_USER);
-
-    PDM_dmesh_bound_set(dmesh,
-                        PDM_BOUND_TYPE_FACE,
-                        n_face_group,
-                        dface_group,
-                        dface_group_idx,
-                        PDM_OWNERSHIP_USER);
-
-    PDM_multipart_register_block(mpart, 0, dmesh);
-
-    /* Run */
-    PDM_multipart_run_ppart(mpart);
-  } // end if (active_rank)
-
-
-  *pn_cell        = (int *)          malloc(sizeof(int *)          * n_part);
-  *pn_face        = (int *)          malloc(sizeof(int *)          * n_part);
-  *pn_vtx         = (int *)          malloc(sizeof(int *)          * n_part);
-  *pcell_face_idx = (int **)         malloc(sizeof(int **)         * n_part);
-  *pcell_face     = (int **)         malloc(sizeof(int **)         * n_part);
-  *pface_vtx_idx  = (int **)         malloc(sizeof(int **)         * n_part);
-  *pface_vtx      = (int **)         malloc(sizeof(int **)         * n_part);
-  *pcell_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
-  *pface_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
-  *pvtx_ln_to_gn  = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
-  *pvtx_coord     = (double **)      malloc(sizeof(double **)      * n_part);
-
-  if (active_rank) {
-
-    for (int i_part = 0; i_part < n_part; i_part++) {
-
-      int *cell_face     = NULL;
-      int *cell_face_idx = NULL;
-      int n_cell = PDM_multipart_part_connectivity_get(mpart,
-                                                       0,
-                                                       i_part,
-                                                       PDM_CONNECTIVITY_TYPE_CELL_FACE,
-                                                       &cell_face,
-                                                       &cell_face_idx,
-                                                       PDM_OWNERSHIP_USER);
-
-      PDM_g_num_t* cell_ln_to_gn = NULL;
-      PDM_multipart_part_ln_to_gn_get(mpart,
-                                      0,
-                                      i_part,
-                                      PDM_MESH_ENTITY_CELL,
-                                      &cell_ln_to_gn,
-                                      PDM_OWNERSHIP_USER);
-
-      int *face_vtx     = NULL;
-      int *face_vtx_idx = NULL;
-      int n_face = PDM_multipart_part_connectivity_get(mpart,
-                                                       0,
-                                                       i_part,
-                                                       PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                                       &face_vtx,
-                                                       &face_vtx_idx,
-                                                       PDM_OWNERSHIP_USER);
-
-      PDM_g_num_t* face_ln_to_gn = NULL;
-      PDM_multipart_part_ln_to_gn_get(mpart,
-                                      0,
-                                      i_part,
-                                      PDM_MESH_ENTITY_FACE,
-                                      &face_ln_to_gn,
-                                      PDM_OWNERSHIP_USER);
-
-      double *vtx_coord = NULL;
-      int n_vtx = PDM_multipart_part_vtx_coord_get(mpart,
-                                                   0,
-                                                   i_part,
-                                                   &vtx_coord,
-                                                   PDM_OWNERSHIP_USER);
-
-      PDM_g_num_t* vtx_ln_to_gn = NULL;
-      PDM_multipart_part_ln_to_gn_get(mpart,
-                                      0,
-                                      i_part,
-                                      PDM_MESH_ENTITY_VERTEX,
-                                      &vtx_ln_to_gn,
-                                      PDM_OWNERSHIP_USER);
-
-      (*pn_cell)[i_part] = n_cell;
-      (*pn_face)[i_part] = n_face;
-      (*pn_vtx)[i_part]  = n_vtx;
-
-      /* Vertices */
-      (*pvtx_coord)[i_part]    = vtx_coord;
-      (*pvtx_ln_to_gn)[i_part] = vtx_ln_to_gn;
-
-      /* Cells */
-      (*pcell_face_idx)[i_part] = cell_face_idx;
-      (*pcell_face)[i_part]     = cell_face;
-      (*pcell_ln_to_gn)[i_part] = cell_ln_to_gn;
-
-      /* Faces */
-      (*pface_vtx_idx)[i_part]  = face_vtx_idx;
-      (*pface_vtx)[i_part]      = face_vtx;
-      (*pface_ln_to_gn)[i_part] = face_ln_to_gn;
+    for (int iblock = 0; iblock < n_block; iblock++) {
+      (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+      (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+      (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
     }
 
-    PDM_multipart_free(mpart);
-    PDM_dmesh_free(dmesh);
+    for (int ipart = 0; ipart < n_part; ipart++) {
 
-    free(dcell_face_idx);
-    free(dcell_face);
-    free(dface_cell);
-    free(dface_vtx_idx);
-    free(dface_vtx);
-    free(dvtx_coord);
-    free(dface_group_idx);
-    free(dface_group);
+      int part_n_elt = PDM_part_mesh_nodal_section_n_elt_get(pmn, 0, ipart);
+
+      int         *connec              = NULL;
+      PDM_g_num_t *numabs              = NULL;
+      int         *parent_num          = NULL;
+      PDM_g_num_t *parent_entity_g_num = NULL;
+      PDM_part_mesh_nodal_section_std_get(pmn,
+                                          0,
+                                          ipart,
+                                          &connec,
+                                          &numabs,
+                                          &parent_num,
+                                          &parent_entity_g_num,
+                                          PDM_OWNERSHIP_KEEP);
+
+      int block_n_elt = part_n_elt / n_block;
+
+      for (int iblock = 0; iblock < n_block-1; iblock++) {
+        (*n_elt)[iblock][ipart] = block_n_elt;
+      }
+
+      (*n_elt)[n_block-1][ipart] = part_n_elt - (n_block-1)*block_n_elt;
+
+
+      int idx = 0;
+      for (int iblock = 0; iblock < n_block; iblock++) {
+        (*elt_vtx)[iblock][ipart] = malloc(sizeof(int) * elt_vtx_n * (*n_elt)[iblock][ipart]);
+
+        memcpy((*elt_vtx)[iblock][ipart],
+               connec + elt_vtx_n * idx,
+               sizeof(int) * elt_vtx_n * (*n_elt)[iblock][ipart]);
+
+        (*elt_g_num)[iblock][ipart] = malloc(sizeof(PDM_g_num_t) * (*n_elt)[iblock][ipart]);
+        memcpy((*elt_g_num)[iblock][ipart],
+               numabs + idx,
+               sizeof(PDM_g_num_t) * (*n_elt)[iblock][ipart]);
+
+        idx += (*n_elt)[iblock][ipart];
+      }
+
+      (*n_vtx)[ipart]         = PDM_part_mesh_nodal_n_vtx_get(pmn, ipart);
+      double      *_vtx_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart);
+      PDM_g_num_t *_vtx_g_num = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart);
+
+      (*vtx_coord)[ipart] = malloc(sizeof(double) * (*n_vtx)[ipart] * 3);
+      memcpy((*vtx_coord)[ipart],
+             _vtx_coord,
+             sizeof(double) * (*n_vtx)[ipart] * 3);
+
+      (*vtx_g_num)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_vtx)[ipart]);
+      memcpy((*vtx_g_num)[ipart],
+             _vtx_g_num,
+             sizeof(PDM_g_num_t) * (*n_vtx)[ipart]);
+
+    }
+
+    PDM_part_mesh_nodal_free(pmn);
   }
-
   else {
 
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      int n_cell = 0;
-      int n_face = 0;
-      int n_vtx  = 0;
+    for (int iblock = 0; iblock < n_block; iblock++) {
+      (*n_elt)    [iblock] = PDM_array_zeros_int(n_part);
+      (*elt_vtx)  [iblock] = malloc(sizeof(int         *) * n_part);
+      (*elt_g_num)[iblock] = malloc(sizeof(PDM_g_num_t *) * n_part);
+    }
 
-      *(pn_cell)[i_part] = n_cell;
-      *(pn_face)[i_part] = n_face;
-      *(pn_vtx)[i_part]  = n_vtx;
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      for (int iblock = 0; iblock < n_block; iblock++) {
+        (*elt_vtx)  [iblock][ipart] = malloc(sizeof(int)         * elt_vtx_n * (*n_elt)[iblock][ipart]);
+        (*elt_g_num)[iblock][ipart] = malloc(sizeof(PDM_g_num_t) * elt_vtx_n);
+      }
 
-      /* Vertices */
-      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);
-
-      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_vtx);
-
-
-      /* Cells */
-      (*pcell_face_idx)[i_part] = (int *) malloc(sizeof(int) * (n_cell + 1));
-      (*pcell_face_idx)[i_part][0] = 0;
-
-      int s_cell_face = (*pcell_face_idx)[i_part][n_cell];
-      (*pcell_face)[i_part] = (int *) malloc(sizeof(int) * s_cell_face);
-
-      (*pcell_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_cell);
-
-
-      /* Faces */
-      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + 1));
-      (*pface_vtx_idx)[i_part][0] = 0;
-
-      int s_face_vtx = (*pface_vtx_idx)[i_part][n_face];
-      (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * s_face_vtx);
-
-      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
+      (*n_vtx)    [ipart] = 0;
+      (*vtx_coord)[ipart] = malloc(sizeof(double     ) * (*n_vtx)[ipart] * 3);
+      (*vtx_g_num)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_vtx)[ipart]);
     }
 
   }
-
-
 }
 
 
@@ -509,6 +562,8 @@ _gen_mesh
 int main(int argc, char *argv[])
 {
   // Read args from command line
+  int n_part                      = 1;
+  int n_block                     = 2;
   int n_vtx_seg1                  = 4;
   int n_vtx_seg2                  = 4;
   int randomize                   = 1;
@@ -538,6 +593,7 @@ int main(int argc, char *argv[])
   // int filedump                    = 0;
 
   int         use_gnum            = 1;
+  char       *mesh_filename       = NULL;
 
   _read_args(argc,
              argv,
@@ -554,7 +610,10 @@ int main(int argc, char *argv[])
              &part_method,
              &output_filename,
              &verbose,
-             &use_gnum);
+             &use_gnum,
+             &n_part,
+             &n_block,
+             &mesh_filename);
 
   // if (output_filename !=NULL) {
   //   filedump = 1;
@@ -563,10 +622,10 @@ int main(int argc, char *argv[])
   // Initialize MPI
   MPI_Init(&argc, &argv);
 
-  int rank;
+  int i_rank;
   int comm_world_size;
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
   assert (comm_world_size > 1);
@@ -579,7 +638,6 @@ int main(int argc, char *argv[])
 
 
   // Initialize CWIPI
-  int n_part = 1;
   int n_code = 1;
   int code_id;
   const char **code_name = malloc(sizeof(char *) * n_code);
@@ -588,7 +646,7 @@ int main(int argc, char *argv[])
   double *time_init = malloc(sizeof(double) * n_code);
 
   int n_vtx_seg;
-  if (rank < comm_world_size / 2) {
+  if (i_rank < comm_world_size / 2) {
     code_id = 1;
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
@@ -615,13 +673,13 @@ int main(int argc, char *argv[])
            intra_comm);
 
 
-  if (verbose && rank == 0) {
+  if (verbose && i_rank == 0) {
     printf("CWIPI Init OK\n");
   }
 
 
   // Create coupling
-  const char *coupling_name = "c_multiblock";
+  const char *coupling_name = "c_new_api_multiblock";
 
   CWP_Cpl_create(code_name[0],
                  coupling_name,
@@ -629,13 +687,14 @@ int main(int argc, char *argv[])
                  CWP_INTERFACE_VOLUME,
                  CWP_COMM_PAR_WITH_PART,
                  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                 // CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT,
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
   CWP_Visu_set(code_name[0], coupling_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
 
-  if (verbose && rank == 0) {
+  if (verbose && i_rank == 0) {
     printf("Create coupling OK\n");
   }
 
@@ -655,7 +714,7 @@ int main(int argc, char *argv[])
 
   // int true_n_proc_data;
   // MPI_Reduce(&current_rank_has_mesh, &true_n_proc_data, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  // if (rank == 0) {
+  // if (i_rank == 0) {
   //   printf("nb procs with mesh data = %d\n", true_n_proc_data);
   // }
 
@@ -667,7 +726,7 @@ int main(int argc, char *argv[])
   int init_random = 5;
 
   PDM_MPI_Comm code_mesh_comm;
-  PDM_MPI_Comm_split(mesh_comm, code_id, rank, &code_mesh_comm);
+  PDM_MPI_Comm_split(mesh_comm, code_id, i_rank, &code_mesh_comm);
 
   if (code_id == 2) {
     init_random++;
@@ -676,88 +735,173 @@ int main(int argc, char *argv[])
     zmin += separation_z;
   }
 
+  int          **n_elt          = NULL;
+  int         ***elt_vtx        = NULL;
+  PDM_g_num_t ***elt_g_num      = NULL;
+  CWP_Block_t   *elt_type       = NULL;
+  int           *n_vtx          = NULL;
+  double       **vtx_coord      = NULL;
+  PDM_g_num_t  **vtx_g_num      = NULL;
+  if (mesh_filename == NULL) {
+    _gen_mesh(current_rank_has_mesh,
+              code_mesh_comm,
+              n_part,
+              n_block,
+              part_method,
+              n_vtx_seg,
+              xmin,
+              ymin,
+              zmin,
+              length,
+              &n_elt,
+              &elt_vtx,
+              &elt_g_num,
+              &n_vtx,
+              &vtx_coord,
+              &vtx_g_num);
 
-  int          *pn_cell        = NULL;
-  int          *pn_face        = NULL;
-  int          *pn_vtx         = NULL;
-  int         **pcell_face_idx = NULL;
-  int         **pcell_face     = NULL;
-  int         **pface_vtx_idx  = NULL;
-  int         **pface_vtx      = NULL;
-  double      **pvtx_coord     = NULL;
-  PDM_g_num_t **pcell_ln_to_gn = NULL;
-  PDM_g_num_t **pface_ln_to_gn = NULL;
-  PDM_g_num_t **pvtx_ln_to_gn  = NULL;
+    elt_type = malloc(sizeof(CWP_Block_t) * n_block);
+    for (int i = 0; i < n_block; i++) {
+      elt_type[i] = CWP_BLOCK_CELL_HEXA8;
+    }
+  }
+  else {
+    _read_mesh(current_rank_has_mesh,
+               code_mesh_comm,
+               n_part,
+               part_method,
+               (const char *) mesh_filename,
+               &n_block,
+               &n_elt,
+               &elt_vtx,
+               &elt_g_num,
+               &elt_type,
+               &n_vtx,
+               &vtx_coord,
+               &vtx_g_num);
 
-  _gen_mesh(current_rank_has_mesh,
-            code_mesh_comm,
-            n_part,
-            part_method,
-            n_vtx_seg,
-            xmin,
-            ymin,
-            zmin,
-            length,
-            randomize,
-            init_random,
-            &pn_cell,
-            &pn_face,
-            &pn_vtx,
-            &pcell_face_idx,
-            &pcell_face,
-            &pface_vtx_idx,
-            &pface_vtx,
-            &pvtx_coord,
-            &pcell_ln_to_gn,
-            &pface_ln_to_gn,
-            &pvtx_ln_to_gn);
+    if (code_id == 2) {
+      for (int ipart = 0; ipart < n_part; ipart++) {
+        for (int i = 0; i < n_vtx[ipart]; i++) {
+          vtx_coord[ipart][3*i  ] += separation_x;
+          vtx_coord[ipart][3*i+1] += separation_y;
+          vtx_coord[ipart][3*i+2] += separation_z;
+        }
+      }
+    }
+  }
+
+  if (1) {
+    for (int iblock = 0; iblock < n_block; iblock++) {
+      for (int ipart = 0; ipart < n_part; ipart++) {
+        char filename[999];
+        sprintf(filename, "%s_block%d_part%d_rank%d.vtk", code_name[0], iblock, ipart, i_rank);
+        PDM_vtk_write_std_elements(filename,
+                                   n_vtx    [ipart],
+                                   vtx_coord[ipart],
+                                   vtx_g_num[ipart],
+            (PDM_Mesh_nodal_elt_t) elt_type [iblock],
+                                   n_elt    [iblock][ipart],
+                                   elt_vtx  [iblock][ipart],
+                                   elt_g_num[iblock][ipart],
+                                   0,
+                                   NULL,
+                                   NULL);
+      }
+    }
+  }
 
 
   // Set interface mesh
-  PDM_g_num_t *_pvtx_ln_to_gn  = NULL;
-  PDM_g_num_t *_pcell_ln_to_gn = NULL;
-  if (use_gnum) {
-    _pvtx_ln_to_gn  = pvtx_ln_to_gn[0];
-    _pcell_ln_to_gn = pcell_ln_to_gn[0];
+  PDM_g_num_t *_vtx_g_num  = NULL;
+  PDM_g_num_t *_elt_g_num = NULL;
+
+  int *block_id = malloc(sizeof(int) * n_block);
+  for (int iblock = 0; iblock < n_block; iblock++) {
+    block_id[iblock] = CWP_Mesh_interf_block_add(code_name[0],
+                                                 coupling_name,
+                                                 elt_type[iblock]);
   }
 
-  CWP_Mesh_interf_vtx_set(code_name[0],
-                          coupling_name,
-                          0,
-                          pn_vtx[0],
-                          pvtx_coord[0],
-                          _pvtx_ln_to_gn);
+  for (int ipart = 0; ipart < n_part; ipart++) {
 
-  CWP_Mesh_interf_from_cellface_set(code_name[0],
+    if (use_gnum) {
+      _vtx_g_num = vtx_g_num[ipart];
+    }
+
+    CWP_Mesh_interf_vtx_set(code_name[0],
+                            coupling_name,
+                            ipart,
+                            n_vtx[ipart],
+                            vtx_coord[ipart],
+                            _vtx_g_num);
+
+    for (int iblock = 0; iblock < n_block; iblock++) {
+
+      if (use_gnum) {
+        _elt_g_num = elt_g_num[iblock][ipart];
+      }
+
+      CWP_Mesh_interf_block_std_set(code_name[0],
                                     coupling_name,
-                                    0,
-                                    pn_cell[0],
-                                    pcell_face_idx[0],
-                                    pcell_face[0],
-                                    pn_face[0],
-                                    pface_vtx_idx[0],
-                                    pface_vtx[0],
-                                    _pcell_ln_to_gn);
+                                    ipart,
+                                    block_id[iblock],
+                                    n_elt   [iblock][ipart],
+                                    elt_vtx [iblock][ipart],
+                                    _elt_g_num);
+    }
+  }
 
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
 
-  if (verbose && rank == 0) {
+  if (verbose && i_rank == 0) {
     printf("Set mesh OK\n");
   }
 
 
   // Create and set fields
-  double *send_val = NULL;
-  double *recv_val = NULL;
+  double **send_val1 = NULL;
+  double **recv_val1 = NULL;
+  double **send_val2 = NULL;
+  double **recv_val2 = NULL;
 
-  const char *field_name  = "coo";
+  const char *field_name1 = "coo";
+  const char *field_name2 = "gnum";
+
+  // TODO : cell-based field in multiblock??
+
+  int *pn_cell = malloc(sizeof(int) * n_part);
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    pn_cell[ipart] = 0;
+    for (int iblock = 0; iblock < n_block; iblock++) {
+      pn_cell[ipart] += n_elt[iblock][ipart];
+    }
+  }
 
   if (code_id == 1) {
-    send_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
-    memcpy(send_val, pvtx_coord[0], sizeof(double) * pn_vtx[0] * 3);
+    send_val1 = malloc(sizeof(double *) * n_part);
+    send_val2 = malloc(sizeof(double *) * n_part);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      send_val1[ipart] = malloc(sizeof(double) * n_vtx[ipart] * 3);
+      memcpy(send_val1[ipart], vtx_coord[ipart], sizeof(double) * n_vtx[ipart] * 3);
+
+      send_val2[ipart] = malloc(sizeof(double) * pn_cell[ipart]);
+      int idx = 0;
+      for (int iblock = 0; iblock < n_block; iblock++) {
+        for (int ielt = 0; ielt < n_elt[iblock][ipart]; ielt++) {
+          send_val2[ipart][idx++] = elt_g_num[iblock][ipart][ielt];
+          // send_val2[ipart][idx++] = elt_type[iblock];
+        }
+      }
+    }
   } else {
-    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    recv_val1 = malloc(sizeof(double *) * n_part);
+    recv_val2 = malloc(sizeof(double *) * n_part);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      recv_val1[ipart] = malloc(sizeof(double) * n_vtx[ipart] * 3);
+      recv_val2[ipart] = malloc(sizeof(double) * pn_cell[ipart]);//n_vtx[ipart]);
+    }
   }
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
@@ -766,71 +910,102 @@ int main(int argc, char *argv[])
   if (code_id == 1) {
     CWP_Field_create(code_name[0],
                      coupling_name,
-                     field_name,
+                     field_name1,
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
                      3,
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
-    CWP_Field_data_set(code_name[0],
-                       coupling_name,
-                       field_name,
-                       0,
-                       CWP_FIELD_MAP_SOURCE,
-                       send_val);
+
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name2,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     CWP_DOF_LOCATION_CELL_CENTER,
+                     CWP_FIELD_EXCH_SEND,
+                     visu_status);
+
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name1,
+                         ipart,
+                         CWP_FIELD_MAP_SOURCE,
+                         send_val1[ipart]);
+
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name2,
+                         ipart,
+                         CWP_FIELD_MAP_SOURCE,
+                         send_val2[ipart]);
+    }
   } else {
     CWP_Field_create(code_name[0],
                      coupling_name,
-                     field_name,
+                     field_name1,
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
                      3,
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
-    CWP_Field_data_set(code_name[0],
-                       coupling_name,
-                       field_name,
-                       0,
-                       CWP_FIELD_MAP_TARGET,
-                       recv_val);
+
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name2,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     CWP_DOF_LOCATION_CELL_CENTER,//NODE,
+                     CWP_FIELD_EXCH_RECV,
+                     visu_status);
+
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name1,
+                         ipart,
+                         CWP_FIELD_MAP_TARGET,
+                         recv_val1[ipart]);
+
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name2,
+                         ipart,
+                         CWP_FIELD_MAP_TARGET,
+                         recv_val2[ipart]);
+    }
   }
 
-  if (verbose && rank == 0) {
+  if (verbose && i_rank == 0) {
     printf("Fields OK\n");
   }
 
   // Perform geometric algorithm
-  CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "1e-2");
+  CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "0.01");
   CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
-
-  // int n_unlocated = 0;
-  int n_located = 0;
-  const int *located = NULL;
-  if (code_id != 1) {
-    // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
-    n_located   = CWP_N_computed_tgts_get  (code_name[0], coupling_name, field_name, 0);
-    printf("n_located = %d\n", n_located);
-    located     = CWP_Computed_tgts_get    (code_name[0], coupling_name, field_name, 0);
-  }
-
 
   //  Exchange interpolated fields
   if (code_id == 1) {
-    CWP_Field_issend(code_name[0], coupling_name, field_name);
+    CWP_Field_issend(code_name[0], coupling_name, field_name1);
+    CWP_Field_issend(code_name[0], coupling_name, field_name2);
   }
   else {
-    CWP_Field_irecv(code_name[0], coupling_name, field_name);
+    CWP_Field_irecv(code_name[0], coupling_name, field_name1);
+    CWP_Field_irecv(code_name[0], coupling_name, field_name2);
   }
-
-
 
   if (code_id == 1) {
-    CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+    CWP_Field_wait_issend(code_name[0], coupling_name, field_name1);
+    CWP_Field_wait_issend(code_name[0], coupling_name, field_name2);
   }
   else {
-    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name1);
+    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name2);
   }
 
   //  Check
@@ -838,36 +1013,42 @@ int main(int argc, char *argv[])
   int    n_err   = 0;
   if (code_id == 2) {
 
-    if (1) {
-      log_trace("recv_val / coord = \n");
-      for (int i = 0 ; i < n_located; i++) {
-        int ivtx = located[i] - 1;
-        log_trace("%d ("PDM_FMT_G_NUM"): %f %f %f / %f %f %f\n",
-                  located[i],
-                  pvtx_ln_to_gn[0][located[i]-1],
-                  recv_val[3*i], recv_val[3*i+1], recv_val[3*i+2],
-                  pvtx_coord[0][3*ivtx], pvtx_coord[0][3*ivtx+1], pvtx_coord[0][3*ivtx+2]);
-      }
-    }
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      int        n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name1, ipart);
+      const int *located   = CWP_Computed_tgts_get  (code_name[0], coupling_name, field_name1, ipart);
 
-
-    for (int i = 0 ; i < n_located ; i++) {
-      int wrong = 0;
-
-      for (int j = 0; j < 3; j++) {
-        double err = ABS (recv_val[3*i + j] - pvtx_coord[0][3 * (located[i] -1) + j]);
-        if (err > 1.e-4) {
-          wrong = 1;
-          printf("[%d] !! vtx "PDM_FMT_G_NUM" %d err = %g (coord#%d = %f, recv = %f)\n",
-                 rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, j, pvtx_coord[0][3*(located[i]-1) + j], recv_val[3*i + j]);
-        }
-        if (err > max_err) {
-          max_err = err;
+      if (0) {
+        log_trace("recv_val / coord = \n");
+        for (int i = 0 ; i < n_located; i++) {
+          int ivtx = located[i] - 1;
+          log_trace("%d ("PDM_FMT_G_NUM"): %f %f %f / %f %f %f\n",
+                    located[i],
+                    vtx_g_num[ipart][located[i]-1],
+                    recv_val1[ipart][3*i], recv_val1[ipart][3*i+1], recv_val1[ipart][3*i+2],
+                    vtx_coord[ipart][3*ivtx], vtx_coord[ipart][3*ivtx+1], vtx_coord[ipart][3*ivtx+2]);
         }
       }
 
-      if (wrong) {
-        n_err++;
+      for (int i = 0 ; i < n_located ; i++) {
+        int wrong = 0;
+
+        for (int j = 0; j < 3; j++) {
+          double err = ABS (recv_val1[ipart][3*i + j] - vtx_coord[ipart][3 * (located[i] -1) + j]);
+          if (err > 1.e-4) {
+            wrong = 1;
+            printf("[%d] !! vtx "PDM_FMT_G_NUM" %d err = %g (coord#%d = %f, recv = %f)\n",
+                   i_rank, vtx_g_num[ipart][(located[i] - 1)],
+                    located[i], err, j,
+                    vtx_coord[ipart][3*(located[i]-1) + j], recv_val1[ipart][3*i + j]);
+          }
+          if (err > max_err) {
+            max_err = err;
+          }
+        }
+
+        if (wrong) {
+          n_err++;
+        }
       }
     }
 
@@ -875,13 +1056,13 @@ int main(int argc, char *argv[])
 
   double global_max_err = 0.;
   MPI_Reduce(&max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  if (rank == 0) {
+  if (i_rank == 0) {
     printf("Max error = %g\n", global_max_err);
   }
 
   int global_n_err = 0.;
   MPI_Reduce(&n_err, &global_n_err, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-  if (rank == 0) {
+  if (i_rank == 0) {
     printf("N error = %d\n", global_n_err);
   }
 
@@ -897,39 +1078,51 @@ int main(int argc, char *argv[])
   free(code_name);
   free(coupled_code_name);
   free(is_active_rank);
-  // free(time_init);
+  free(time_init);
   free(intra_comm);
 
   if (current_rank_has_mesh) {
+    for (int iblock = 0; iblock < n_block; iblock++) {
+      for (int ipart = 0; ipart < n_part; ipart++) {
+        free(elt_vtx  [iblock][ipart]);
+        free(elt_g_num[iblock][ipart]);
+      }
+      free(n_elt    [iblock]);
+      free(elt_vtx  [iblock]);
+      free(elt_g_num[iblock]);
+    }
     for (int ipart = 0; ipart < n_part; ipart++) {
-      free(pcell_face_idx[ipart]);
-      free(pcell_face[ipart]);
-      free(pface_vtx_idx[ipart]);
-      free(pface_vtx[ipart]);
-      free(pvtx_coord[ipart]);
-      free(pcell_ln_to_gn[ipart]);
-      free(pface_ln_to_gn[ipart]);
-      free(pvtx_ln_to_gn[ipart]);
+      free(vtx_g_num[ipart]);
+      free(vtx_coord[ipart]);
     }
   }
+  free(n_elt    );
+  free(elt_vtx  );
+  free(elt_g_num);
+  free(elt_type );
+  free(n_vtx    );
+  free(vtx_coord);
+  free(vtx_g_num);
+  free(pn_cell  );
 
-  free(pn_vtx);
-  free(pn_cell);
-  free(pn_face);
-  free(pvtx_coord);
-  free(pvtx_ln_to_gn);
-  free(pcell_face_idx);
-  free(pcell_face);
-  free(pface_vtx_idx);
-  free(pface_vtx);
-  free(pcell_ln_to_gn);
-  free(pface_ln_to_gn);
+  free(block_id);
+
 
   if (code_id == 1) {
-    free(send_val);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      free(send_val1[ipart]);
+      free(send_val2[ipart]);
+    }
+    free(send_val1);
+    free(send_val2);
   }
   else {
-    free(recv_val);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      free(recv_val1[ipart]);
+      free(recv_val2[ipart]);
+    }
+    free(recv_val1);
+    free(recv_val2);
   }
 
   //  Finalize CWIPI

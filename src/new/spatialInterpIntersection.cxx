@@ -42,21 +42,15 @@ namespace cwipi {
       if (_src_to_tgt_weight[i_part] != NULL) {
         free(_src_to_tgt_weight[i_part]);
       }
-
-      // if (_weights[i_part] != NULL) {
-      //   free(_weights[i_part]);
-      // }
-
       if (_tgt_volume[i_part] != NULL) {
         free(_tgt_volume[i_part]);
       }
     }
 
-    delete[] _src_to_tgt_idx;
-    delete[] _src_to_tgt_gnum;
-    delete[] _src_to_tgt_weight;
-    // delete[] _weights;
-    delete[] _tgt_volume;
+    free(_src_to_tgt_idx);
+    free(_src_to_tgt_gnum);
+    free(_src_to_tgt_weight);
+    free(_tgt_volume);
   }
 
 
@@ -128,84 +122,55 @@ namespace cwipi {
 
       //
       // Target properties
-      _src_to_tgt_idx    = new int*         [_nPart];
-      _src_to_tgt_gnum   = new PDM_g_num_t* [_nPart];
-      _src_to_tgt_weight = new double*      [_nPart];
-      // _weights           = new double*      [_nPart];
-      _tgt_volume        = new double*      [_nPart];
+      _src_to_tgt_idx    = (int         **) malloc(sizeof(int         *) * _nPart);
+      _src_to_tgt_gnum   = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * _nPart);
+      _src_to_tgt_weight = (double      **) malloc(sizeof(double      *) * _nPart);
+      _tgt_volume        = (double      **) malloc(sizeof(double      *) * _nPart);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _src_to_tgt_idx   [i_part] = NULL;
         _src_to_tgt_gnum  [i_part] = NULL;
         _src_to_tgt_weight[i_part] = NULL;
-        // _weights          [i_part] = NULL;
         _tgt_volume       [i_part] = NULL;
       }
     }
 
-  void SpatialInterpIntersection::weightsCompute() {
+
+  void
+  SpatialInterpIntersection::clear()
+  {
+    SpatialInterp::clear();
 
     if (!_coupledCodeProperties->localCodeIs() ||
         (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
 
-      for (int i_part = 0; i_part < _nPart; i_part++) {
-
-        if (_src_to_tgt_idx[i_part] != NULL) {
-          free(_src_to_tgt_idx[i_part]);
-        }
-        if (_src_to_tgt_gnum[i_part] != NULL) {
-          free(_src_to_tgt_gnum[i_part]);
-        }
-        if (_src_to_tgt_weight[i_part] != NULL) {
-          free(_src_to_tgt_weight[i_part]);
-        }
-        if (_weights[i_part] != NULL) {
-          free(_weights[i_part]);
-        }
-        if (_tgt_volume[i_part] != NULL) {
-          free(_tgt_volume[i_part]);
-        }
-        _src_to_tgt_idx   [i_part] = NULL;
-        _src_to_tgt_gnum  [i_part] = NULL;
-        _src_to_tgt_weight[i_part] = NULL;
-        _weights          [i_part] = NULL;
-        _tgt_volume       [i_part] = NULL;
-
-
-        if (_weights_idx[i_part] != NULL) {
-          free(_weights_idx[i_part]);
+      if (_src_to_tgt_idx != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_src_to_tgt_idx[i_part] != NULL) {
+            free(_src_to_tgt_idx   [i_part]);
+            free(_src_to_tgt_gnum  [i_part]);
+            free(_src_to_tgt_weight[i_part]);
+          }
         }
 
-        if (_weights[i_part] != NULL) {
-          free(_weights[i_part]);
-        }
-
-        if (_computed_tgt[i_part] != NULL) {
-          free(_computed_tgt[i_part]);
-        }
-
-        if (_uncomputed_tgt[i_part] != NULL) {
-          free(_uncomputed_tgt[i_part]);
-        }
-
-        if (_involved_sources_tgt[i_part] != NULL) {
-          free(_involved_sources_tgt[i_part]);
-        }
-
-        _n_elt_weights[i_part] = 0;
-        _weights_idx  [i_part] = NULL;
-        _weights      [i_part] = NULL;
-
-        _n_computed_tgt[i_part] = 0;
-        _computed_tgt  [i_part] = NULL;
-
-        _n_uncomputed_tgt[i_part] = 0;
-        _uncomputed_tgt  [i_part] = NULL;
-
-        _n_involved_sources_tgt[i_part] = 0;
-        _involved_sources_tgt  [i_part] = NULL;
+        free(_src_to_tgt_idx );
+        free(_src_to_tgt_gnum);
+        free(_src_to_tgt_weight);
+        _src_to_tgt_idx    = NULL;
+        _src_to_tgt_gnum   = NULL;
+        _src_to_tgt_weight = NULL;
       }
 
+      if (_tgt_volume != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_tgt_volume[i_part] != NULL) {
+            free(_tgt_volume [i_part]);
+          }
+        }
+
+        free(_tgt_volume );
+        _tgt_volume  = NULL;
+      }
     }
 
     if (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
@@ -224,67 +189,39 @@ namespace cwipi {
         dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
       }
 
-      for (int i_part = 0; i_part < _cplNPart; i_part++) {
 
-        if (cpl_spatial_interp->_src_to_tgt_idx[i_part] != NULL) {
-          free(cpl_spatial_interp->_src_to_tgt_idx[i_part]);
-        }
-        if (cpl_spatial_interp->_src_to_tgt_gnum[i_part] != NULL) {
-          free(cpl_spatial_interp->_src_to_tgt_gnum[i_part]);
-        }
-        if (cpl_spatial_interp->_src_to_tgt_weight[i_part] != NULL) {
-          free(cpl_spatial_interp->_src_to_tgt_weight[i_part]);
-        }
-        if (cpl_spatial_interp->_weights[i_part] != NULL) {
-          free(cpl_spatial_interp->_weights[i_part]);
-        }
-        if (cpl_spatial_interp->_tgt_volume[i_part] != NULL) {
-          free(cpl_spatial_interp->_tgt_volume[i_part]);
-        }
-        cpl_spatial_interp->_src_to_tgt_idx   [i_part] = NULL;
-        cpl_spatial_interp->_src_to_tgt_gnum  [i_part] = NULL;
-        cpl_spatial_interp->_src_to_tgt_weight[i_part] = NULL;
-        cpl_spatial_interp->_weights          [i_part] = NULL;
-        cpl_spatial_interp->_tgt_volume       [i_part] = NULL;
-
-
-        if (cpl_spatial_interp->_weights_idx[i_part] != NULL) {
-          free(cpl_spatial_interp->_weights_idx[i_part]);
+      if (cpl_spatial_interp->_src_to_tgt_idx != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (cpl_spatial_interp->_src_to_tgt_idx[i_part] != NULL) {
+            free(cpl_spatial_interp->_src_to_tgt_idx   [i_part]);
+            free(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]);
+            free(cpl_spatial_interp->_src_to_tgt_weight[i_part]);
+          }
         }
 
-        if (cpl_spatial_interp->_weights[i_part] != NULL) {
-          free(cpl_spatial_interp->_weights[i_part]);
-        }
-
-        if (cpl_spatial_interp->_computed_tgt[i_part] != NULL) {
-          free(cpl_spatial_interp->_computed_tgt[i_part]);
-        }
-
-        if (cpl_spatial_interp->_uncomputed_tgt[i_part] != NULL) {
-          free(cpl_spatial_interp->_uncomputed_tgt[i_part]);
-        }
-
-        if (cpl_spatial_interp->_involved_sources_tgt[i_part] != NULL) {
-          free(cpl_spatial_interp->_involved_sources_tgt[i_part]);
-        }
-
-        cpl_spatial_interp->_n_elt_weights[i_part] = 0;
-        cpl_spatial_interp->_weights_idx  [i_part] = NULL;
-        cpl_spatial_interp->_weights      [i_part] = NULL;
-
-        cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
-        cpl_spatial_interp->_computed_tgt  [i_part] = NULL;
-
-        cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
-        cpl_spatial_interp->_uncomputed_tgt  [i_part] = NULL;
-
-        cpl_spatial_interp->_n_involved_sources_tgt[i_part] = 0;
-        cpl_spatial_interp->_involved_sources_tgt  [i_part] = NULL;
+        free(cpl_spatial_interp->_src_to_tgt_idx );
+        free(cpl_spatial_interp->_src_to_tgt_gnum);
+        free(cpl_spatial_interp->_src_to_tgt_weight);
+        cpl_spatial_interp->_src_to_tgt_idx    = NULL;
+        cpl_spatial_interp->_src_to_tgt_gnum   = NULL;
+        cpl_spatial_interp->_src_to_tgt_weight = NULL;
       }
+
+      if (cpl_spatial_interp->_tgt_volume != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (cpl_spatial_interp->_tgt_volume[i_part] != NULL) {
+            free(cpl_spatial_interp->_tgt_volume [i_part]);
+          }
+        }
+
+        free(cpl_spatial_interp->_tgt_volume );
+        cpl_spatial_interp->_tgt_volume  = NULL;
+      }
+
     }
+  }
 
-
-
+  void SpatialInterpIntersection::weightsCompute() {
 
     /* Get bbox tolerance */
     double tolerance = CWP_MESH_INTERSECTION_BBOX_TOLERANCE;

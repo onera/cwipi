@@ -365,6 +365,7 @@ namespace cwipi {
                        global_num);
   }
 
+
   /**
    * \brief Get a standard block to the interface mesh
    *
@@ -760,13 +761,13 @@ namespace cwipi {
   void 
   Coupling::meshDel()
   {
-    
     if (_writer != NULL) {
       PDM_writer_free (_writer);
       _writer = nullptr;
     }
     _mesh.meshDel();
 
+    _is_mesh_finalized = 0;
   }
 
 

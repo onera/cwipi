@@ -229,6 +229,125 @@ namespace cwipi {
   }
 
 
+  void
+  SpatialInterp::clear()
+  {
+    if (_src_n_gnum != NULL) {
+      free(_src_n_gnum);
+      _src_n_gnum = NULL;
+    }
+
+    if (_src_gnum != NULL) {
+      free(_src_gnum);
+      _src_gnum = NULL;
+    }
+
+    if (_tgt_n_gnum != NULL) {
+      free(_tgt_n_gnum);
+      _tgt_n_gnum = NULL;
+    }
+
+    if (_tgt_gnum != NULL) {
+      free(_tgt_gnum);
+      _tgt_gnum = NULL;
+    }
+
+    if (_n_elt_weights != NULL) {
+      free(_n_elt_weights);
+      _n_elt_weights = NULL;
+    }
+
+    if (_weights_idx != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_weights_idx[i_part] != NULL) {
+          free(_weights_idx[i_part]);
+          _weights_idx[i_part] = NULL;
+        }
+      }
+      free(_weights_idx);
+      _weights_idx = NULL;
+    }
+    if (_weights != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_weights[i_part] != NULL) {
+          free(_weights[i_part]);
+          _weights[i_part] = NULL;
+        }
+      }
+      free(_weights);
+      _weights = NULL;
+    }
+
+    if (_n_computed_tgt != NULL) {
+      free(_n_computed_tgt);
+      _n_computed_tgt = NULL;
+    }
+    if (_computed_tgt != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_computed_tgt[i_part] != NULL) {
+          free(_computed_tgt[i_part]);
+          _computed_tgt[i_part] = NULL;
+        }
+      }
+      free(_computed_tgt);
+      _computed_tgt = NULL;
+    }
+
+    if (_n_involved_sources_tgt != NULL) {
+      free(_n_involved_sources_tgt);
+      _n_involved_sources_tgt = NULL;
+    }
+    if (_involved_sources_tgt != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_involved_sources_tgt[i_part] != NULL) {
+          free(_involved_sources_tgt[i_part]);
+          _involved_sources_tgt[i_part] = NULL;
+        }
+      }
+      free(_involved_sources_tgt);
+      _involved_sources_tgt = NULL;
+    }
+
+    if (_n_uncomputed_tgt != NULL) {
+      free(_n_uncomputed_tgt);
+      _n_uncomputed_tgt = NULL;
+    }
+    if (_uncomputed_tgt != NULL) {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_uncomputed_tgt[i_part] != NULL) {
+          free(_uncomputed_tgt[i_part]);
+          _uncomputed_tgt[i_part] = NULL;
+        }
+      }
+      free(_uncomputed_tgt);
+      _uncomputed_tgt = NULL;
+    }
+
+
+    if (_ptsp != NULL) {
+      PDM_part_to_part_free(_ptsp);
+      _ptsp = NULL;
+    }
+
+    if (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+      SpatialInterp *cpl_spatial_interp;
+
+      cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+      if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+        cpl_spatial_interp = cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+      }
+      else {
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+        cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+      }
+
+      cpl_spatial_interp->_ptsp = NULL;
+    }
+  }
+
+
 /***************************************************************************/
 /***************************************************************************/
 

@@ -493,6 +493,7 @@ int main(int argc, char *argv[])
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
+
     PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
 
     _gen_mesh(mesh_comm,
@@ -511,6 +512,8 @@ int main(int argc, char *argv[])
 
 
     if (!variable_mesh) {
+      CWP_Mesh_interf_del(code_name[i_code],
+                          cpl_name);
       CWP_Mesh_interf_vtx_set(code_name[i_code],
                               cpl_name,
                               0,
@@ -665,13 +668,46 @@ int main(int argc, char *argv[])
         CWP_Time_update(code_name[i_code],
                         recv_time);
 
-        if (variable_mesh) {
+        if (variable_mesh && step%2 == 0) {
           CWP_Mesh_interf_del(code_name[i_code],
                               cpl_name);
+
+          // redundant call just to check it does not break anything
+          CWP_Mesh_interf_del(code_name[i_code],
+                              cpl_name);
+
+          if (code_id[i_code] == 1) {
+            CWP_Field_data_set(code_name[i_code],
+                               cpl_name,
+                               field_name1,
+                               0,
+                               CWP_FIELD_MAP_SOURCE,
+                               send_val[i_code]);
+            CWP_Field_data_set(code_name[i_code],
+                               cpl_name,
+                               field_name2,
+                               0,
+                               CWP_FIELD_MAP_TARGET,
+                               recv_val[i_code]);
+          }
+          else {
+            CWP_Field_data_set(code_name[i_code],
+                               cpl_name,
+                               field_name1,
+                               0,
+                               CWP_FIELD_MAP_TARGET,
+                               recv_val[i_code]);
+            CWP_Field_data_set(code_name[i_code],
+                               cpl_name,
+                               field_name2,
+                               0,
+                               CWP_FIELD_MAP_SOURCE,
+                               send_val[i_code]);
+          }
         }
       }
 
-      if (variable_mesh) {
+      if (variable_mesh && step%2 == 0) {
         CWP_Mesh_interf_vtx_set(code_name[i_code],
                                 cpl_name,
                                 0,
@@ -698,6 +734,12 @@ int main(int argc, char *argv[])
 
     // Separate loops to avoid deadlock if multiple codes on same MPI rank
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
+      CWP_Spatial_interp_property_set(code_name[i_code],
+                                      cpl_name,
+                                      "n_closest_pts",
+                                      "int",
+                                      "1");
+
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
 
