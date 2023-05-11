@@ -105,6 +105,41 @@ def runTest():
                  pycwp.VISU_FORMAT_ENSIGHT,
                  "text")
 
+    # Create the field
+    # It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
+    # For sake of simplicity, this example will only send the field
+    # of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
+    # On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
+    # the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
+    # which is the x coordinate of the mesh in this test.
+    n_components = 1
+
+    # for code1
+    if (i_rank == 0):
+      cpl.field_create("a super fancy field",
+                       pycwp.DOUBLE,
+                       pycwp.FIELD_STORAGE_INTERLACED,
+                       n_components,
+                       pycwp.DOF_LOCATION_NODE,
+                       pycwp.FIELD_EXCH_SEND,
+                       pycwp.STATUS_ON)
+
+    # for code2
+    if (i_rank == 1):
+      cpl.field_create("a super fancy field",
+                       pycwp.DOUBLE,
+                       pycwp.FIELD_STORAGE_INTERLACED,
+                       n_components,
+                       pycwp.DOF_LOCATION_NODE,
+                       pycwp.FIELD_EXCH_RECV,
+                       pycwp.STATUS_ON)
+
+    # Begin time step :
+    # In this example there is only one time step. It is mandatory to create the
+    # coupling and the associated fields before starting the first time step.
+    pycwp.time_step_beg(code_name[0],
+                        0.0);
+
     # Set the mesh vertices coordinates :
     # The coordinate system in CWIPI is always 3D, so
     # we allocate an array of the time the number of vertices
@@ -147,17 +182,9 @@ def runTest():
     # as well as the underlying mesh data structure
     cpl.mesh_interf_finalize()
 
-    # Create and set the field values :
-    # It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
-    # For sake of simplicity, this example will only send the field
-    # of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
-    # On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
-    # the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
-    # which is the x coordinate of the mesh in this test. Note that
-    # the user has to allocate the array for the field that will
-    # be received by code2 (CWP_FIELD_MAP_TARGET).
-    n_components = 1
-
+    # Set the field values :
+    # Note that the user has to allocate the array for the
+    # field that will be received by code2 (CWP_FIELD_MAP_TARGET).
     send_field_data = np.arange(n_vtx*n_components, dtype=np.double)
     recv_field_data = np.arange(n_vtx*n_components, dtype=np.double)
 
@@ -166,13 +193,6 @@ def runTest():
 
     # for code1
     if (i_rank == 0):
-      cpl.field_create("a super fancy field",
-                       pycwp.DOUBLE,
-                       pycwp.FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       pycwp.DOF_LOCATION_NODE,
-                       pycwp.FIELD_EXCH_SEND,
-                       pycwp.STATUS_ON)
       cpl.field_set("a super fancy field",
                     0,
                     pycwp.FIELD_MAP_SOURCE,
@@ -180,13 +200,6 @@ def runTest():
 
     # for code2
     if (i_rank == 1):
-      cpl.field_create("a super fancy field",
-                       pycwp.DOUBLE,
-                       pycwp.FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       pycwp.DOF_LOCATION_NODE,
-                       pycwp.FIELD_EXCH_RECV,
-                       pycwp.STATUS_ON)
       cpl.field_set("a super fancy field",
                     0,
                     pycwp.FIELD_MAP_TARGET,
@@ -230,6 +243,9 @@ def runTest():
 
       uncomputed_tgts = cpl.field_uncomputed_tgts_get("a super fancy field",
                                                       0);
+
+    # End time step :
+    pycwp.time_step_end(code_name[0])
 
     # Delete field :
     # del of the class Field is automatically called once there

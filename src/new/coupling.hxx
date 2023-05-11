@@ -539,6 +539,15 @@ namespace cwipi {
     inline Visu* 
     visuGet ();
 
+    /**
+     *
+     * \brief End visualization output
+     *
+     */
+
+    void
+    visuEnd ();
+
 
     /**
      *

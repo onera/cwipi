@@ -288,6 +288,51 @@ CWP_Time_update_cf
   free ( c_local_code_name);
 }
 
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] l_local_code_name Length of Fortran local code name
+ * \param [in]  current_time Current time
+ *
+ */
+
+void
+CWP_Time_step_beg_cf
+(
+ const char* local_code_name,
+ const int l_local_code_name,
+ const double current_time
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  CWP_Time_step_beg (c_local_code_name, current_time);
+
+  free ( c_local_code_name);
+}
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end_cf
+(
+ const char* local_code_name,
+ const int l_local_code_name
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  CWP_Time_step_end (c_local_code_name);
+
+  free ( c_local_code_name);
+}
+
 
 /**
  * \brief Define a user structure associated to a code

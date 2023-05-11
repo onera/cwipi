@@ -215,16 +215,6 @@ namespace cwipi {
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
-    // if(_visu.isCreated()) {
-    //    _visu.WriterStepEnd();
-    // }
-
-    // TO DO : remove related leaks
-    // if (_writer != NULL) {
-    //   PDM_writer_free (_writer);
-    //   _writer = nullptr;
-    // }
-
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
         delete it->second;
@@ -244,8 +234,6 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-      // if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
-      //   _visu.fieldDataFree(itf->second);
       if (itf->second != NULL) delete itf->second;
       itf++;
     }
@@ -2860,6 +2848,21 @@ namespace cwipi {
     }
   }
 
+  /**
+   *
+   * \brief End visualization output
+   *
+   */
+
+  void
+  Coupling::visuEnd ()
+  {
+    if (_writer != NULL) {
+      PDM_writer_free (_writer);
+      _writer = nullptr;
+    }
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods  about mesh                                                        *
    *----------------------------------------------------------------------------*/
@@ -3561,8 +3564,10 @@ namespace cwipi {
     double current_time
   )
   {
-    // open time step if there is a writer, no step is open and it is a writting step // TO DO uncomment
-    if (_writer != NULL && PDM_writer_is_open_step(_writer) == 0 && (_n_step % _freq_writer == 0)) {
+    // if first time step do not PDM_writer_step_beg, has to be done after variable
+    // creation in exportMesh
+    // open time step if there is a writer, no step is open and it is a writting step
+    if (_n_step != 0 && _writer != NULL && PDM_writer_is_open_step(_writer) == 0 && (_n_step % _freq_writer == 0)) {
       PDM_writer_step_beg(_writer, current_time);
     }
   }
@@ -3601,19 +3606,19 @@ namespace cwipi {
         it_f1++;
       }
 
-      // increment step
-      _n_step++;
-
       // end step
       PDM_writer_step_end(_writer);
+    }
 
-      // reset field status to unexchanged
-      std::map < string, Field * >::iterator it_f2 = _fields.begin();
-      while (it_f2 != _fields.end()) {
-        it_f2->second->is_send_yet_set(0);
-        it_f2->second->is_recv_yet_set(0);
-        it_f2++;
-      }
+    // increment step
+    _n_step++;
+
+    // reset field status to unexchanged
+    std::map < string, Field * >::iterator it_f2 = _fields.begin();
+    while (it_f2 != _fields.end()) {
+      it_f2->second->is_send_yet_set(0);
+      it_f2->second->is_recv_yet_set(0);
+      it_f2++;
     }
   }
 

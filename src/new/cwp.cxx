@@ -356,7 +356,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i];
-    properties.ctrlParamAdd <double> (codeNameStr, "time", -1.); // TO DO : remove but start with ignore time_init argument
+    properties.ctrlParamAdd <double> (codeNameStr, "time", 0.0); // WARNING : default first step 0.0
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
 
@@ -1381,6 +1381,26 @@ CWP_Visu_set
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.visuSet(freq, format, format_option);
+  }
+}
+
+/**
+ * \brief End visualization output.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Visu_end
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id
+)
+{
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.visuEnd();
   }
 }
 

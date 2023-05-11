@@ -761,37 +761,36 @@ namespace cwipi {
   void 
   Coupling::meshDel()
   {
-    // TO DO : remove related leaks
     if (_writer != NULL) {
       // free geometric variable data
-      // PDM_writer_geom_data_free(_writer,
-      //                           _id_geom_writer);
-      // PDM_writer_var_data_free(_writer,
-      //                           _id_field_partitioning_writer);
-      // PDM_writer_var_data_free(_writer,
-      //                           _id_field_ranking_writer);
+      PDM_writer_geom_data_free(_writer,
+                                _id_geom_writer);
+      if (_id_field_partitioning_writer >= 0) PDM_writer_var_data_free(_writer,
+                                                                        _id_field_partitioning_writer);
+      if (_id_field_ranking_writer >= 0) PDM_writer_var_data_free(_writer,
+                                                                   _id_field_ranking_writer);
       // free user target geometric variable data
       if (_userTargetN != NULL) {
-        // PDM_writer_geom_data_free(_writer,
-        //                           _id_user_tgt_geom_writer);
-        // PDM_writer_var_data_free(_writer,
-        //                           _id_user_tgt_field_partitioning_writer);
-        // PDM_writer_var_data_free(_writer,
-        //                           _id_user_tgt_field_ranking_writer);
+        PDM_writer_geom_data_free(_writer,
+                                  _id_user_tgt_geom_writer);
+        PDM_writer_var_data_free(_writer,
+                                  _id_user_tgt_field_partitioning_writer);
+        PDM_writer_var_data_free(_writer,
+                                  _id_user_tgt_field_ranking_writer);
       }
       // free field variables data
-      // std::map < string, Field * >::iterator itf = _fields.begin();
-      // while (itf != _fields.end()) {
-      //   for (int i = 0; i < itf->second->nComponentGet(); i++) {
-      //     PDM_writer_var_data_free(_writer,
-      //                               itf->second->_id_writer_var_send_get()[i]);
-      //     PDM_writer_var_data_free(_writer,
-      //                               itf->second->_id_writer_var_recv_get()[i]);
-      //   }
-      //   PDM_writer_var_data_free(_writer,
-      //                             itf->second->_id_writer_var_recv_computed_get());
-      //   itf++;
-      // }
+      std::map < string, Field * >::iterator itf = _fields.begin();
+      while (itf != _fields.end()) {
+        for (int i = 0; i < itf->second->nComponentGet(); i++) {
+          int id_send = itf->second->_id_writer_var_send_get()[i];
+          int id_recv = itf->second->_id_writer_var_recv_get()[i];
+          if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
+          if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
+        }
+        int id_recv_computed = itf->second->_id_writer_var_recv_computed_get();
+        if (id_recv_computed >= 0) PDM_writer_var_data_free(_writer, id_recv_computed);
+        itf++;
+      }
 
       // PDM_writer_free (_writer);
       // _writer = nullptr;

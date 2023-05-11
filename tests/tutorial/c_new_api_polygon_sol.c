@@ -165,7 +165,9 @@ main(int argc, char *argv[]) {
                      CWP_STATUS_ON);
   }
 
-  // ???
+  // Begin time step :
+  // In this example there is only one time step. It is mandatory to create the
+  // coupling and the associated fields before starting the first time step.
   CWP_Time_step_beg(code_name[0],
                     0.0);
 
@@ -306,7 +308,7 @@ main(int argc, char *argv[]) {
                                               0);
   }
 
-  // ???
+  // End time step :
   CWP_Time_step_end(code_name[0]);
 
   // Delete field :
@@ -341,3 +343,4 @@ main(int argc, char *argv[]) {
 
   return EXIT_SUCCESS;
 }
+

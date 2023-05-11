@@ -191,6 +191,14 @@ module cwp
         CWP_Time_update_
     end interface CWP_Time_update
 
+    interface CWP_Time_step_beg ; module procedure &
+        CWP_Time_step_beg_
+    end interface CWP_Time_step_beg
+
+    interface CWP_Time_step_end ; module procedure &
+        CWP_Time_step_end_
+    end interface CWP_Time_step_end
+
     interface CWP_User_structure_set ; module procedure &
         CWP_User_structure_set_
     end interface CWP_User_structure_set
@@ -512,6 +520,8 @@ module cwp
              CWP_Init_ ,&
              CWP_State_update_ ,&
              CWP_Time_update_ ,&
+             CWP_Time_step_beg_ ,&
+             CWP_Time_step_end_ ,&
              CWP_User_structure_set_ ,&
              CWP_User_structure_get_ ,&
              CWP_Output_file_set_,&
@@ -629,6 +639,23 @@ module cwp
         integer(c_int), value             :: l_local_code_name
         real(c_double), value             :: current_time
       end subroutine CWP_Time_update_cf
+
+      subroutine CWP_Time_step_beg_cf(local_code_name, l_local_code_name, current_time) &
+        bind(c, name='CWP_Time_step_beg_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        real(c_double), value             :: current_time
+      end subroutine CWP_Time_step_beg_cf
+
+      subroutine CWP_Time_step_end_cf(local_code_name, l_local_code_name) &
+        bind(c, name='CWP_Time_step_end_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+      end subroutine CWP_Time_step_end_cf
 
       subroutine CWP_User_structure_set_cf(local_code_name, l_local_code_name, user_structure) &
         bind (c, name="CWP_User_structure_set_cf")
@@ -1921,6 +1948,54 @@ contains
                             current_time)
 
   end subroutine CWP_Time_update_
+
+  !>
+  !! \brief Begin code time step.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in]  current_time Current time
+  !!
+  !!
+
+  subroutine CWP_Time_step_beg_(local_code_name, &
+                             current_time)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    double precision, intent(in)      :: current_time
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    call CWP_Time_step_beg_cf(local_code_name,   &
+                            l_local_code_name, &
+                            current_time)
+
+  end subroutine CWP_Time_step_beg_
+
+  !>
+  !! \brief End code time step.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !!
+  !!
+
+  subroutine CWP_Time_step_end_(local_code_name)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    call CWP_Time_step_end_cf(local_code_name,   &
+                              l_local_code_name)
+
+  end subroutine CWP_Time_step_end_
 
   subroutine CWP_User_structure_set_(local_code_name, &
                                     user_structure)
