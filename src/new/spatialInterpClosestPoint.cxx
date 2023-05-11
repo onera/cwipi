@@ -1263,58 +1263,61 @@ namespace cwipi {
 
       _coordinates_exchanged = 0;
 
-      if (!_coupledCodeProperties->localCodeIs() ||
-          (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
 
+      int cond1 = !_coupledCodeProperties->localCodeIs();
+      int cond2 = !cond1 && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet());
 
-        if (_tgt_in_src_idx != NULL) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            if (_tgt_in_src_idx[i_part] != NULL) {
-              free(_tgt_in_src_idx [i_part]);
-              free(_tgt_in_src_gnum[i_part]);
-              free(_tgt_in_src_dist[i_part]);
-            }
+      if (!cond1 && !cond2) {
+        return;
+      }
+
+      if (_tgt_in_src_idx != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_tgt_in_src_idx[i_part] != NULL) {
+            free(_tgt_in_src_idx [i_part]);
+            free(_tgt_in_src_gnum[i_part]);
+            free(_tgt_in_src_dist[i_part]);
           }
-
-          free(_tgt_in_src_idx );
-          free(_tgt_in_src_gnum);
-          free(_tgt_in_src_dist);
-          _tgt_in_src_idx  = NULL;
-          _tgt_in_src_gnum = NULL;
-          _tgt_in_src_dist = NULL;
         }
 
-        if (_closest_src_gnum != NULL) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            if (_closest_src_gnum[i_part] != NULL) {
-              free(_closest_src_gnum [i_part]);
-            }
+        free(_tgt_in_src_idx );
+        free(_tgt_in_src_gnum);
+        free(_tgt_in_src_dist);
+        _tgt_in_src_idx  = NULL;
+        _tgt_in_src_gnum = NULL;
+        _tgt_in_src_dist = NULL;
+      }
+
+      if (_closest_src_gnum != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_closest_src_gnum[i_part] != NULL) {
+            free(_closest_src_gnum [i_part]);
           }
-
-          free(_closest_src_gnum );
-          _closest_src_gnum  = NULL;
         }
 
-
-        if (_send_coord != NULL) {
-          free(_send_coord);
-          _send_coord = NULL;
-        }
-
-        if (_recv_coord != NULL) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            if (_recv_coord[i_part] != NULL) {
-              free(_recv_coord[i_part]);
-            }
-          }
-          free(_recv_coord);
-          _recv_coord = NULL;
-        }
-
+        free(_closest_src_gnum );
+        _closest_src_gnum  = NULL;
       }
 
 
-      if (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+      if (_send_coord != NULL) {
+        free(_send_coord);
+        _send_coord = NULL;
+      }
+
+      if (_recv_coord != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_recv_coord[i_part] != NULL) {
+            free(_recv_coord[i_part]);
+          }
+        }
+        free(_recv_coord);
+        _recv_coord = NULL;
+      }
+
+
+
+      if (cond2) {
         SpatialInterpClosestPoint *cpl_spatial_interp;
 
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
@@ -1355,8 +1358,8 @@ namespace cwipi {
             }
           }
 
-          free(cpl_spatial_interp->_closest_src_gnum );
-          cpl_spatial_interp->_closest_src_gnum  = NULL;
+          free(cpl_spatial_interp->_closest_src_gnum);
+          cpl_spatial_interp->_closest_src_gnum = NULL;
         }
 
         if (cpl_spatial_interp->_send_coord != NULL) {

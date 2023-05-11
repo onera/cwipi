@@ -734,6 +734,12 @@ int main(int argc, char *argv[])
 
     // Separate loops to avoid deadlock if multiple codes on same MPI rank
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
+      CWP_Spatial_interp_property_set(code_name[i_code],
+                                      cpl_name,
+                                      "n_closest_pts",
+                                      "int",
+                                      "1");
+
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
 
