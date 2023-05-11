@@ -284,11 +284,13 @@ main(int argc, char *argv[]) {
   free(coupled_code_name);
   free(is_active_rank);
   free(time_init);
+  free(intra_comm);
   free(vtx_coord);
   free(face_vtx_idx);
   free(face_vtx);
   free(send_buff);
   free(recv_buff);
+  free(gnum_elt);
 
   MPI_Finalize();
   return EXIT_SUCCESS;
