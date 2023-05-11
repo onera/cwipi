@@ -219,6 +219,11 @@ namespace cwipi {
     //    _visu.WriterStepEnd();
     // }
 
+    if (_writer != NULL) {
+      PDM_writer_free (_writer);
+      _writer = nullptr;
+    }
+
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
         delete it->second;

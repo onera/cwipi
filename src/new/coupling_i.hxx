@@ -762,8 +762,15 @@ namespace cwipi {
   Coupling::meshDel()
   {
     if (_writer != NULL) {
-      PDM_writer_free (_writer);
-      _writer = nullptr;
+      // TO DO call var_data_free for all variables
+      PDM_writer_geom_data_free(_writer,
+                                _id_geom_writer);
+      if (_userTargetN != NULL) {
+        PDM_writer_geom_data_free(_writer,
+                                  _id_user_tgt_geom_writer);
+      }
+      // PDM_writer_free (_writer);
+      // _writer = nullptr;
     }
     _mesh.meshDel();
 
