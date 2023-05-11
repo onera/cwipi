@@ -752,8 +752,17 @@ namespace cwipi {
       if (request1 != NULL) {
 
         // malloc
-        int *n_elt2  = it->second.get_n_elt2();
-        int  n_part2 = it->second.get_n_part2();
+        // int *n_elt2  = it->second.get_n_elt2();
+        // int  n_part2 = it->second.get_n_part2();
+        int  n_part1;
+        int  n_part2;
+        int *n_elt1;
+        int *n_elt2;
+        PDM_part_to_part_n_part_and_n_elt_get(ptp,
+                                              &n_part1,
+                                              &n_part2,
+                                              &n_elt1,
+                                              &n_elt2);
         recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
         for (int i_part = 0; i_part < n_part2; i_part++) {
           recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
@@ -784,8 +793,17 @@ namespace cwipi {
     else {
 
       // malloc
-      int *n_elt2  = it->second.get_n_elt2();
-      int  n_part2 = it->second.get_n_part2();
+      // int *n_elt2  = it->second.get_n_elt2();
+      // int  n_part2 = it->second.get_n_part2();
+      int  n_part1;
+      int  n_part2;
+      int *n_elt1;
+      int *n_elt2;
+      PDM_part_to_part_n_part_and_n_elt_get(ptp,
+                                            &n_part1,
+                                            &n_part2,
+                                            &n_elt1,
+                                            &n_elt2);
       recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
       for (int i_part = 0; i_part < n_part2; i_part++) {
         recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
@@ -822,7 +840,16 @@ namespace cwipi {
 
     size_t s_data       = it->second.get_s_data();
     int    n_components = it->second.get_n_components();
-    int    n_part2      = it->second.get_n_part2();
+    // int    n_part2      = it->second.get_n_part2();
+    int  n_part1;
+    int  n_part2;
+    int *n_elt1;
+    int *n_elt2;
+    PDM_part_to_part_n_part_and_n_elt_get(ptp,
+                                          &n_part1,
+                                          &n_part2,
+                                          &n_elt1,
+                                          &n_elt2);
     void **recv_buffer  = it->second.get_recv_buffer();
 
     int          **gnum1_come_from_idx = NULL;
