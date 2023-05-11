@@ -761,14 +761,38 @@ namespace cwipi {
   void 
   Coupling::meshDel()
   {
+    // TO DO : remove related leaks
     if (_writer != NULL) {
-      // TO DO call var_data_free for all variables
-      PDM_writer_geom_data_free(_writer,
-                                _id_geom_writer);
+      // free geometric variable data
+      // PDM_writer_geom_data_free(_writer,
+      //                           _id_geom_writer);
+      // PDM_writer_var_data_free(_writer,
+      //                           _id_field_partitioning_writer);
+      // PDM_writer_var_data_free(_writer,
+      //                           _id_field_ranking_writer);
+      // free user target geometric variable data
       if (_userTargetN != NULL) {
-        PDM_writer_geom_data_free(_writer,
-                                  _id_user_tgt_geom_writer);
+        // PDM_writer_geom_data_free(_writer,
+        //                           _id_user_tgt_geom_writer);
+        // PDM_writer_var_data_free(_writer,
+        //                           _id_user_tgt_field_partitioning_writer);
+        // PDM_writer_var_data_free(_writer,
+        //                           _id_user_tgt_field_ranking_writer);
       }
+      // free field variables data
+      // std::map < string, Field * >::iterator itf = _fields.begin();
+      // while (itf != _fields.end()) {
+      //   for (int i = 0; i < itf->second->nComponentGet(); i++) {
+      //     PDM_writer_var_data_free(_writer,
+      //                               itf->second->_id_writer_var_send_get()[i]);
+      //     PDM_writer_var_data_free(_writer,
+      //                               itf->second->_id_writer_var_recv_get()[i]);
+      //   }
+      //   PDM_writer_var_data_free(_writer,
+      //                             itf->second->_id_writer_var_recv_computed_get());
+      //   itf++;
+      // }
+
       // PDM_writer_free (_writer);
       // _writer = nullptr;
     }

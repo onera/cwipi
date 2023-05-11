@@ -136,6 +136,24 @@ namespace cwipi {
       return _fieldIDInt;
     }
 
+    inline int *
+    _id_writer_var_send_get()
+    {
+      return _id_writer_var_send;
+    }
+
+    inline int *
+    _id_writer_var_recv_get()
+    {
+      return _id_writer_var_recv;
+    }
+
+    inline int
+    _id_writer_var_recv_computed_get()
+    {
+      return _id_writer_var_recv_computed;
+    }
+
     /**
      *
      * \brief Get field nature
