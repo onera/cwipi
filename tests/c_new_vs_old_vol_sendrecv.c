@@ -920,6 +920,16 @@ _cube_mesh
                                     0,
                                     i_part,
                                     &((*pcell_vtx)[i_part]));
+
+      int *parent_num = PDM_Mesh_nodal_block_parent_num_get(nodal,
+                                                            0,
+                                                            i_part);
+      free(parent_num);
+
+      PDM_g_num_t *numabs = PDM_Mesh_nodal_g_num_get(nodal,
+                                                     0,
+                                                     i_part);
+      free(numabs);
     }
 
     PDM_Mesh_nodal_free(nodal);
