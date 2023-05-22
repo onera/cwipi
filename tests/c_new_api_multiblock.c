@@ -928,6 +928,9 @@ int main(int argc, char *argv[])
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     for (int ipart = 0; ipart < n_part; ipart++) {
       CWP_Field_data_set(code_name[0],
                          coupling_name,
@@ -963,6 +966,9 @@ int main(int argc, char *argv[])
                      CWP_DOF_LOCATION_CELL_CENTER,//NODE,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
 
     for (int ipart = 0; ipart < n_part; ipart++) {
       CWP_Field_data_set(code_name[0],
@@ -1066,7 +1072,9 @@ int main(int argc, char *argv[])
     printf("N error = %d\n", global_n_err);
   }
 
+  CWP_Time_step_end(code_name[0]);
 
+  CWP_Visu_end(code_name[0], coupling_name);
 
   //  Delete interface mesh
   CWP_Mesh_interf_del(code_name[0], coupling_name);

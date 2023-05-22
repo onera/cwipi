@@ -104,11 +104,34 @@ main(int argc, char *argv[]) {
                                          &elt_vtx_idx,
                                          &elt_vtx);
 
+  int n_components = 1;
+
+  // Create the field to be send:
+  const char *send_field_name = "chinchilla";
+  CWP_Field_create(code_name[0],
+                   coupling_name,
+                   send_field_name,
+                   CWP_DOUBLE,
+                   CWP_FIELD_STORAGE_INTERLACED,
+                   n_components,
+                   CWP_DOF_LOCATION_NODE,
+                   CWP_FIELD_EXCH_SEND,
+                   CWP_STATUS_ON);
+
+  // Create the field to be received:
+  const char *recv_field_name = "girafe";
+  CWP_Field_create(code_name[0],
+                   coupling_name,
+                   recv_field_name,
+                   CWP_DOUBLE,
+                   CWP_FIELD_STORAGE_INTERLACED,
+                   n_components,
+                   CWP_DOF_LOCATION_NODE,
+                   CWP_FIELD_EXCH_RECV,
+                   CWP_STATUS_ON);
+
   // Interations :
   // At each iteration the mesh coordinates and the exchanged fields are modified.
-  const char *send_field_name = "chinchilla";
-  const char *recv_field_name = "girafe";
-  int         n_components    = 1;
   double     *send_field_data = malloc(sizeof(double) * n_vtx);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
 
@@ -125,6 +148,10 @@ main(int argc, char *argv[]) {
   for (int it = itdeb; it <= itend; it ++) {
 
     ttime = (it-itdeb)*dt;
+
+    // Start time step
+    CWP_Time_step_beg(code_name[0],
+                      ttime);
 
     for (int i = 0; i < n_vtx; i++) {
       coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
@@ -170,17 +197,6 @@ main(int argc, char *argv[]) {
       CWP_Mesh_interf_finalize(code_name[0],
                                coupling_name);
 
-      // Create the field to be send:
-      CWP_Field_create(code_name[0],
-                       coupling_name,
-                       send_field_name,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       CWP_DOF_LOCATION_NODE,
-                       CWP_FIELD_EXCH_SEND,
-                       CWP_STATUS_ON);
-
       // Set the values of the field to be send:
       CWP_Field_data_set(code_name[0],
                          coupling_name,
@@ -188,17 +204,6 @@ main(int argc, char *argv[]) {
                          0,
                          CWP_FIELD_MAP_SOURCE,
                          send_field_data);
-
-      // Create the field to be received:
-      CWP_Field_create(code_name[0],
-                       coupling_name,
-                       recv_field_name,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       CWP_DOF_LOCATION_NODE,
-                       CWP_FIELD_EXCH_RECV,
-                       CWP_STATUS_ON);
 
       // Set the values of the field to be received:
       CWP_Field_data_set(code_name[0],
@@ -215,15 +220,6 @@ main(int argc, char *argv[]) {
                                       "double",
                                       "0.1");
 
-    } else {
-      // Update mesh :
-      // Since CWIPI stores the pointers of the arrays passed, no need to set
-      // again the mesh if were deformed. Indeed if the data in the pointer is changed,
-      // it is automatically in the CWIPI code. Still one need to informs CWIPI
-      // that we moved to a new interation step.
-
-      CWP_Time_update(code_name[0],
-                      ttime);
     }
 
     // Compute interpolation weights :
@@ -266,6 +262,10 @@ main(int argc, char *argv[]) {
 
   PDM_UNUSED(n_uncomputed_tgts);
   PDM_UNUSED(uncomputed_tgts);
+
+  // End time step
+  CWP_Time_step_end(code_name[0]);
+
   } // end interations
 
   // Delete field :
@@ -276,6 +276,9 @@ main(int argc, char *argv[]) {
   CWP_Field_del(code_name[0],
                 coupling_name,
                 recv_field_name);
+
+  // End visualization :
+  CWP_Visu_end(code_name[0], coupling_name);
 
   // Delete Mesh :
   CWP_Mesh_interf_del(code_name[0],

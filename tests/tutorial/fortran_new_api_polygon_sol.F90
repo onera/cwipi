@@ -267,6 +267,8 @@ program fortran_new_api_polygon_sol
   ! for code2
   else
 
+    allocate(recv_field_data(n_vtx * n_components))
+
     call CWP_Field_data_set(code_names(1),        &
                             coupling_name,        &
                             field_name,           &
@@ -338,6 +340,10 @@ program fortran_new_api_polygon_sol
   call CWP_Field_Del(code_names(1),   &
                      coupling_name,   &
                      field_name)
+
+  ! End vizualisation output :
+  call CWP_Visu_end(code_names(1), &
+                    coupling_name)
 
   ! Delete Mesh :
   call CWP_Mesh_interf_del(code_names(1), &

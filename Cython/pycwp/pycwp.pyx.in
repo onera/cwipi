@@ -249,6 +249,9 @@ cdef extern from "cwp.h":
                     CWP_Visu_format_t     visu_format,
                     char                 *format_option)
 
+  void CWP_Visu_end(char                 *local_code_name,
+                    char                 *cpl_id)
+
   # --> functions about User target points
   void CWP_User_tgt_pts_set(char    *local_code_name,
                             char    *cpl_id,
@@ -3449,6 +3452,14 @@ cdef class Coupling (object):
                      freq,
                      visu_format,
                      format_option)
+
+    def visu_end(self):
+        """
+        End visualization output.
+        """
+
+        CWP_Visu_end(self.local_code_name,
+                     self.cpl_id)
 
     # --> USER TGT
     def user_tgt_pts_set(self,

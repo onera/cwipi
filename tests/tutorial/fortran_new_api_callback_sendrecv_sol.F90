@@ -145,6 +145,10 @@ program fortran_new_api_callback_sendrecv_sol
                         CWP_FIELD_EXCH_SENDRECV,      &
                         CWP_STATUS_ON)
 
+  ! Begin time step :
+  call CWP_Time_step_beg(code_names(1), &
+                         time_init(1))
+
   allocate(send_field_data(n_elt), &
            recv_field_data(n_elt))
 
@@ -224,11 +228,17 @@ program fortran_new_api_callback_sendrecv_sol
             send_field_data,                  &
             recv_field_data)
 
+  ! End time step :
+  call CWP_Time_step_end(code_names(1))
 
   ! Delete field
   call CWP_Field_Del(code_names(1), &
                      coupling_name, &
                      field_name)
+
+  ! End vizualisation output :
+  call CWP_Visu_end(code_names(1), &
+                    coupling_name)
 
   ! Delete Mesh
   call CWP_Mesh_interf_del(code_names(1), &

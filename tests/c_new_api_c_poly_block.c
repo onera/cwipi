@@ -288,9 +288,6 @@ int main(int argc, char *argv[]) {
   fclose(meshFile);
 
   if (rank == 0) {
-    printf("Visu Setting\n");
-    CWP_Visu_set("cpoly", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "binary");
-    printf("Visu Set\n");
 
     printf("vtx_set\n");
     CWP_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);

@@ -667,6 +667,19 @@ int main(int argc, char *argv[])
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 
+      CWP_Field_create(code_name[i_code],
+                       cpl_name,
+                       field_name2,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       1,
+                       CWP_DOF_LOCATION_CELL_CENTER,
+                       CWP_FIELD_EXCH_RECV,
+                       visu_status);
+
+      CWP_Time_step_beg(code_name[i_code],
+                        0.0);
+
       for (int i = 0; i < n_part[i_code]; i++) {
         CWP_Field_data_set(code_name[i_code],
                            cpl_name,
@@ -679,17 +692,6 @@ int main(int argc, char *argv[])
       CWP_Involved_srcs_bcast_enable(code_name[i_code],
                                      cpl_name,
                                      field_name1);
-
-
-      CWP_Field_create(code_name[i_code],
-                       cpl_name,
-                       field_name2,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLACED,
-                       1,
-                       CWP_DOF_LOCATION_CELL_CENTER,
-                       CWP_FIELD_EXCH_RECV,
-                       visu_status);
 
       for (int i = 0; i < n_part[i_code]; i++) {
         CWP_Field_data_set(code_name[i_code],
@@ -716,15 +718,6 @@ int main(int argc, char *argv[])
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      for (int i = 0; i < n_part[i_code]; i++) {
-        CWP_Field_data_set(code_name[i_code],
-                           cpl_name,
-                           field_name1,
-                           i,
-                           CWP_FIELD_MAP_TARGET,
-                           recv_val[i_code][i]);
-      }
-
       CWP_Field_create(code_name[i_code],
                        cpl_name,
                        field_name2,
@@ -734,6 +727,18 @@ int main(int argc, char *argv[])
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
+
+      CWP_Time_step_beg(code_name[i_code],
+                        0.0);
+
+      for (int i = 0; i < n_part[i_code]; i++) {
+        CWP_Field_data_set(code_name[i_code],
+                           cpl_name,
+                           field_name1,
+                           i,
+                           CWP_FIELD_MAP_TARGET,
+                           recv_val[i_code][i]);
+      }
 
       for (int i = 0; i < n_part[i_code]; i++) {
         CWP_Field_data_set(code_name[i_code],
@@ -850,6 +855,10 @@ int main(int argc, char *argv[])
   }
 
   for (int i_code = 0; i_code < n_code; i_code++) {
+    CWP_Time_step_end(code_name[i_code]);
+
+    CWP_Visu_end(code_name[i_code], cpl_name);
+
     CWP_Mesh_interf_del(code_name[i_code], cpl_name);
 
     CWP_Cpl_del(code_name[i_code], cpl_name);

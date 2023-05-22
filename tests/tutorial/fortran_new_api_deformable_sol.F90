@@ -141,6 +141,10 @@ program fortran_new_api_deformable_sol
 
     time = (it-itdeb)*dt
 
+    ! Begin time step :
+    call CWP_Time_step_beg(code_names(1), &
+                           time)
+
     ! Deform mesh :
 
     do i = 1, n_vtx
@@ -261,13 +265,6 @@ program fortran_new_api_deformable_sol
                                            "double",      &
                                            "0.1")
 
-    else
-
-      ! Update time :
-      ! One need to informs CWIPI that we moved to a new interation step.
-      call CWP_Time_update(code_names(1), &
-                           time)
-
     endif
 
     ! Compute interpolation weights :
@@ -307,6 +304,9 @@ program fortran_new_api_deformable_sol
                                                  0)
     endif
 
+    ! End time step :
+    call CWP_Time_step_end(code_names(1))
+
   enddo
 
   ! Delete field :
@@ -317,6 +317,10 @@ program fortran_new_api_deformable_sol
   call CWP_Field_Del(code_names(1),   &
                      coupling_name,   &
                      recv_field_name)
+
+  ! End vizualisation output :
+  call CWP_Visu_end(code_names(1), &
+                    coupling_name)
 
   ! Delete Mesh :
   call CWP_Mesh_interf_del(code_names(1), &

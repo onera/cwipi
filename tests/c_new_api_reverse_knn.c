@@ -479,6 +479,12 @@ main
 
   double recv_time = 0.;
   for (int step = 0; step < 15; step++) {
+
+    for (int icode = 0; icode < n_code; icode++) {
+      CWP_Time_step_beg(code_name[icode],
+                        recv_time);
+    }
+
     if (i_rank == 0) {
       printf("\n  Step %d\n", step);
     }
@@ -501,11 +507,6 @@ main
                   &tgt_coord[3*i+2],
                   recv_time);
         }
-      }
-
-      if (step > 0) {
-        CWP_Time_update(code_name[icode],
-                        recv_time);
       }
     }
 
@@ -563,6 +564,10 @@ main
              g_integral[0], g_integral[1], fabs(g_integral[0] - g_integral[1])/fabs(g_integral[1]));
     }
 
+    for (int icode = 0; icode < n_code; icode++) {
+      CWP_Time_step_end(code_name[icode]);
+    }
+
   }
 
 
@@ -589,6 +594,9 @@ main
   free(elt_vtx    );
 
   for (int icode = 0; icode < n_code; icode++) {
+
+    CWP_Visu_end(code_name[icode], cpl_name);
+
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
 
     CWP_Cpl_del(code_name[icode], cpl_name);

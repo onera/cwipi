@@ -297,10 +297,6 @@ int main(int argc, char *argv[]) {
 
   if (rank == 0) {
 
-    printf("Visu Setting\n");
-    CWP_Visu_set("code1_cell_faces", cpl_id1, 1.0, CWP_VISU_FORMAT_ENSIGHT, "binary");
-    printf("Visu Set\n");
-
     printf("vtx_set\n");
     CWP_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1, 0, n_vtx, coords, NULL);
 

@@ -799,6 +799,9 @@ int main
                      exch_type,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[icode],
+                      0.0);
+
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
       CWP_Field_data_set(code_name[icode],
                          cpl_name,
@@ -1203,6 +1206,10 @@ int main
 
   /* Free memory */
   for (int icode = 0; icode < n_code; icode++) {
+    CWP_Time_step_end(code_name[icode]);
+
+    CWP_Visu_end(code_name[icode], cpl_name);
+
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
 
     CWP_Cpl_del(code_name[icode], cpl_name);

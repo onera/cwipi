@@ -690,6 +690,9 @@ main(int argc, char *argv[]) {
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
@@ -713,6 +716,9 @@ main(int argc, char *argv[]) {
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
 
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
@@ -808,11 +814,9 @@ main(int argc, char *argv[]) {
     }
   }
 
+  CWP_Time_step_end(code_name[0]);
 
-
-
-
-
+  CWP_Visu_end(code_name[0], cpl_name);
 
   printf("%d - Delete mesh\n", rank);
   CWP_Mesh_interf_del(code_name[0], cpl_name);

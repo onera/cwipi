@@ -271,6 +271,9 @@ main
                      visu_status);
   }
 
+  CWP_Time_step_beg(code_name,
+                    0.0);
+
   double *send_val1 = NULL;
   double *recv_val1 = NULL;
   double *send_val2 = NULL;
@@ -515,9 +518,12 @@ main
     free(recv_val2);
   }
 
-  // Update time
-  log_trace("\n> CWP_Time_update\n\n");
-  CWP_Time_update(code_name, 1.0);
+  CWP_Time_step_beg(code_name,
+                    1.0);
+
+  CWP_Time_step_end(code_name);
+
+  CWP_Visu_end(code_name, cpl_name);
 
   // Create new mesh
   int n_second_vtx = 6;
@@ -624,6 +630,10 @@ main
     free(recv_val1);
     free(recv_val2);
   }
+
+  CWP_Time_step_end(code_name);
+
+  CWP_Visu_end(code_name, cpl_name);
 
   // Delete mesh
   CWP_Mesh_interf_del(code_name, cpl_name);

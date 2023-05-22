@@ -251,6 +251,9 @@ def runTest():
     # del of the class Field is automatically called once there
     # are no more references to the field instance in cpl
 
+    # End vizualisation output :
+    pycwp.visu_end()
+
     # Delete Mesh :
     cpl.mesh_interf_del()
 

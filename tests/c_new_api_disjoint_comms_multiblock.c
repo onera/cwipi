@@ -783,6 +783,9 @@ int main(int argc, char *argv[]) {
                        exchDirection[0],
                        CWP_STATUS_ON);
 
+      CWP_Time_step_beg(code_names[i_code],
+                        0.0);
+
       if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
         CWP_Field_data_set(code_names[i_code],
                            cpl_name,
@@ -814,6 +817,9 @@ int main(int argc, char *argv[]) {
                        CWP_DOF_LOCATION_NODE,
                        exchDirection[1],
                        CWP_STATUS_ON);
+
+      CWP_Time_step_beg(code_names[i_code],
+                        0.0);
 
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
         CWP_Field_data_set(code_names[i_code],
@@ -1030,6 +1036,8 @@ int main(int argc, char *argv[]) {
   // Delete interf
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
+    CWP_Time_step_end(code_names[i_code]);
+    CWP_Visu_end(code_names[i_code], cpl_name);
     CWP_Mesh_interf_del(code_names[i_code], cpl_name);
 
     printf("%d (%d, %s) --- Interface deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);

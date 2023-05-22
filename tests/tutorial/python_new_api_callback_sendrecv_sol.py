@@ -213,41 +213,7 @@ def run_coupling():
                       pycwp.FIELD_EXCH_SENDRECV,
                       pycwp.STATUS_ON)
 
-
-  cpl_CP.field_set(field_name,
-                   0,
-                   pycwp.FIELD_MAP_SOURCE,
-                   send_field_data)
-
-  cpl_CP.field_set(field_name,
-                   0,
-                   pycwp.FIELD_MAP_TARGET,
-                   recv_field_data)
-
-  # Set user-defined interpolation function
-  cpl_CP.field_interp_function_set(field_name,
-                                   my_interpolation)
-
-
-  # Spatial interpolation
-  cpl_CP.spatial_interp_property_set("n_closest_pts",
-                                     "int",
-                                     "3")
-
-  cpl_CP.spatial_interp_weights_compute()
-
-  # Exchange interpolated fields
-  cpl_CP.field_issend(field_name)
-  cpl_CP.field_irecv (field_name)
-
-  cpl_CP.field_wait_issend(field_name)
-  cpl_CP.field_wait_irecv (field_name)
-
-  # Delete Mesh
-  cpl_CP.mesh_interf_del()
-
-
-  # Create second coupling Python <-> Fortran
+   # Create second coupling Python <-> Fortran
   cpl_PF = pycwp.Coupling(code_name[0],
                           "coupling_Python_Fortran",
                           "codeFortran",
@@ -287,8 +253,6 @@ def run_coupling():
 
 
   # Define field
-  field_name = "coord_x"
-
   cpl_PF.field_create(field_name,
                       pycwp.DOUBLE,
                       pycwp.FIELD_STORAGE_INTERLACED,
@@ -297,6 +261,41 @@ def run_coupling():
                       pycwp.FIELD_EXCH_SENDRECV,
                       pycwp.STATUS_ON)
 
+  # Begin time step :
+  pycwp.time_step_beg(code_name[0],
+                      0.0);
+
+
+  cpl_CP.field_set(field_name,
+                   0,
+                   pycwp.FIELD_MAP_SOURCE,
+                   send_field_data)
+
+  cpl_CP.field_set(field_name,
+                   0,
+                   pycwp.FIELD_MAP_TARGET,
+                   recv_field_data)
+
+  # Set user-defined interpolation function
+  cpl_CP.field_interp_function_set(field_name,
+                                   my_interpolation)
+
+
+  # Spatial interpolation
+  cpl_CP.spatial_interp_property_set("n_closest_pts",
+                                     "int",
+                                     "3")
+
+  cpl_CP.spatial_interp_weights_compute()
+
+  # Exchange interpolated fields
+  cpl_CP.field_issend(field_name)
+  cpl_CP.field_irecv (field_name)
+
+  cpl_CP.field_wait_issend(field_name)
+  cpl_CP.field_wait_irecv (field_name)
+
+  # Set field
   cpl_PF.field_set(field_name,
                    0,
                    pycwp.FIELD_MAP_SOURCE,
@@ -326,8 +325,14 @@ def run_coupling():
   cpl_PF.field_wait_issend(field_name)
   cpl_PF.field_wait_irecv (field_name)
 
+  # End time step :
+  pycwp.time_step_end(code_name[0])
+
+  # End vizualisation output :
+  pycwp.visu_end()
 
   # Delete Mesh
+  cpl_CP.mesh_interf_del()
   cpl_PF.mesh_interf_del()
 
   # Finalize CWIPI

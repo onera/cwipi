@@ -236,6 +236,10 @@ main
                    CWP_FIELD_EXCH_SENDRECV,
                    CWP_STATUS_ON);
 
+  // Start time step
+  CWP_Time_step_beg(code_name[0],
+                    time_init[0]);
+
   double *send_field_data = malloc(sizeof(double) * n_vtx);
   for (int i = 0; i < n_vtx; i++) {
     send_field_data[i] = coords[3*i];
@@ -275,10 +279,16 @@ main
   CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
   CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
 
+  // End time step
+  CWP_Time_step_end(code_name[0]);
+
   // Delete field :
   CWP_Field_del(code_name[0],
                 coupling_name,
                 field_name);
+
+  // End visualization :
+  CWP_Visu_end(code_name[0], coupling_name);
 
   // Delete Mesh :
   CWP_Mesh_interf_del(code_name[0],

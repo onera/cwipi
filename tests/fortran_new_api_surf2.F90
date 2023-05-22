@@ -389,6 +389,10 @@ program testf
 
   enddo
 
+  do i = 1, n_code
+    call CWP_Time_step_beg(code_name(i),  &
+                           time_init(1))
+  enddo
 
   call MPI_Barrier(MPI_comm_world, ierr)
   if (i_rank == 0) then
@@ -714,6 +718,13 @@ program testf
   if (verbose) then
     close(iiunit)
   endif
+
+  do i = 1, n_code
+    call CWP_Time_step_end(code_name(i))
+
+    call CWP_Visu_end(code_name(i), &
+                      coupling_name)
+  enddo
 
   ! Delete interface mesh
   do i = 1, n_code

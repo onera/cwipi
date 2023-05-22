@@ -175,12 +175,17 @@ program new_api
                 CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
-    CALL CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text")
+    call CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text")
+    call CWP_Time_step_beg("code1", &
+                           time_init(1))
 
     allocate(coord(3,1))
     coord(:,1) = (/9., 4., 2./)
     call CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, global_num)
     block_id = CWP_Mesh_interf_block_add("code1", cpl_id1, CWP_BLOCK_FACE_QUAD4)
+
+    call CWP_Time_step_end("code1")
+    call CWP_Visu_end("code1", cpl_id1)
 
     print *, "All done for rank", rank
 

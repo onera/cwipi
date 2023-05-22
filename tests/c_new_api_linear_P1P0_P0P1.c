@@ -588,6 +588,9 @@ main
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
+      CWP_Time_step_beg(code_name[icode],
+                        0.0);
+
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
         field1_val[icode][ipart] = malloc(sizeof(double) * pn_vtx[icode][ipart] * 3);
         field2_val[icode][ipart] = malloc(sizeof(double) * pn_vtx[icode][ipart]);
@@ -630,6 +633,9 @@ main
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
+
+      CWP_Time_step_beg(code_name[icode],
+                        0.0);
 
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
         field1_val[icode][ipart] = malloc(sizeof(double) * pn_elt[icode][ipart] * 3);
@@ -744,6 +750,8 @@ main
 
 
   for (int icode = 0; icode < n_code; icode++) {
+    CWP_Time_step_end(code_name[icode]);
+    CWP_Visu_end(code_name[icode], cpl_name);
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
     CWP_Cpl_del        (code_name[icode], cpl_name);
   }

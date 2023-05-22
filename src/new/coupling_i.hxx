@@ -791,9 +791,6 @@ namespace cwipi {
         if (id_recv_computed >= 0) PDM_writer_var_data_free(_writer, id_recv_computed);
         itf++;
       }
-
-      // PDM_writer_free (_writer);
-      // _writer = nullptr;
     }
     _mesh.meshDel();
 

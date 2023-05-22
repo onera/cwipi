@@ -210,6 +210,9 @@ int main(int argc, char *argv[])
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     CWP_Field_data_set(code_name[0],
                        cpl_name,
                        field_name1,
@@ -231,6 +234,9 @@ int main(int argc, char *argv[])
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
 
     CWP_Field_data_set(code_name[0],
                        cpl_name,
@@ -261,6 +267,10 @@ int main(int argc, char *argv[])
   else {
     CWP_Field_wait_irecv (code_name[0], cpl_name, field_name1);
   }
+
+  CWP_Time_step_end(code_name[0]);
+
+  CWP_Visu_end(code_name[0], cpl_name);
 
   CWP_Mesh_interf_del(code_name[0], cpl_name);
 

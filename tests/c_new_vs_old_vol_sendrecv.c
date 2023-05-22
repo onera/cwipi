@@ -1355,6 +1355,9 @@ main(int argc, char *argv[]) {
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_SENDRECV,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
   }
 
   if (verbose && rank == 0) {
@@ -1559,6 +1562,8 @@ main(int argc, char *argv[]) {
     cwipi_delete_coupling(coupling_name);
   }
   else {
+    CWP_Time_step_end(code_name[0]);
+    CWP_Visu_end(code_name[0], coupling_name);
     CWP_Cpl_del(code_name[0], coupling_name);
   }
   // Free memory

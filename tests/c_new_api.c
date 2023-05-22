@@ -503,6 +503,65 @@ main(int argc, char *argv[]) {
     CWP_Visu_set("code4", cpl_id6, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
   }
 
+  // Begin time step
+  CWP_Time_step_beg("code1",
+                    0.0);
+  CWP_Time_step_beg("code2",
+                    0.0);
+  CWP_Time_step_beg("code3",
+                    0.0);
+  CWP_Time_step_beg("code4",
+                    0.0);
+
+  // End time step
+  CWP_Time_step_end("code1");
+  CWP_Time_step_end("code2");
+  CWP_Time_step_end("code3");
+  CWP_Time_step_end("code4");
+
+  // End visualisation
+  if (cond_code1) {
+    CWP_Visu_end("code1", cpl_id1);
+  }
+  if (cond_code2) {
+    CWP_Visu_end("code2", cpl_id1);
+  }
+
+  if (cond_code1) {
+    CWP_Visu_end("code1", cpl_id2);
+  }
+  if (cond_code3) {
+    CWP_Visu_end("code3", cpl_id2);
+  }
+
+  if (cond_code2) {
+    CWP_Visu_end("code2", cpl_id3);
+  }
+  if (cond_code3) {
+    CWP_Visu_end("code3", cpl_id3);
+  }
+
+  if (cond_code3) {
+    CWP_Visu_end("code3", cpl_id4);
+  }
+  if (cond_code4) {
+    CWP_Visu_end("code4", cpl_id4);
+  }
+
+  if (cond_code1) {
+    CWP_Visu_end("code1", cpl_id5);
+  }
+  if (cond_code4) {
+    CWP_Visu_end("code4", cpl_id5);
+  }
+
+  if (cond_code2) {
+    CWP_Visu_end("code2", cpl_id6);
+  }
+  if (cond_code4) {
+    CWP_Visu_end("code4", cpl_id6);
+  }
+
   // Delete coupling
   if (cond_code1) {
     CWP_Cpl_del("code1", cpl_id1);

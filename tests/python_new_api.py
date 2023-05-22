@@ -215,14 +215,6 @@ def runTest():
                          pycwp.DYNAMIC_MESH_VARIABLE,
                          pycwp.TIME_EXCH_USER_CONTROLLED)
 
-    #if SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES, get munmap_chunk(): invalid pointer
-    #if SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, blocked in weigths_compute
-
-    # VISU
-    cpl.visu_set(1,
-                 pycwp.VISU_FORMAT_ENSIGHT,
-                 "text")
-
     # std or polygon
     polygon = 1
 
@@ -273,9 +265,6 @@ def runTest():
 
         # FIELD
 
-        sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
-        recvField = np.arange(4, dtype=np.double)
-
         f.write("before creating field\n")
         f.flush()
         if (i_rank == 0):
@@ -286,10 +275,6 @@ def runTest():
                              pycwp.DOF_LOCATION_NODE,
                              pycwp.FIELD_EXCH_SEND,
                              pycwp.STATUS_OFF)
-            cpl.field_set("champs",
-                          0,
-                          pycwp.FIELD_MAP_SOURCE,
-                          sendField)
 
         if (i_rank == 1):
             cpl.field_create("champs",
@@ -299,6 +284,17 @@ def runTest():
                              pycwp.DOF_LOCATION_NODE,
                              pycwp.FIELD_EXCH_RECV,
                              pycwp.STATUS_OFF)
+
+        sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
+        recvField = np.arange(4, dtype=np.double)
+
+        if (i_rank == 0):
+            cpl.field_set("champs",
+                          0,
+                          pycwp.FIELD_MAP_SOURCE,
+                          sendField)
+
+        if (i_rank == 1):
             cpl.field_set("champs",
                           0,
                           pycwp.FIELD_MAP_TARGET,
@@ -349,11 +345,6 @@ def runTest():
         f.flush()
         cpl.field_del("champs")
 
-        # TIME UPDATE
-        f.write("cpycwp.time_update:\n")
-        f.flush()
-        pycwp.time_update(code_names[i_rank], 1.5)
-
         comm.Barrier()
 
         # USER TGT PTS
@@ -390,6 +381,7 @@ def runTest():
         cpl.mesh_interf_del()
 
     else:
+
         # STD MESH
         f.write("cpl.mesh_interf_block_add:\n")
         f.flush()

@@ -192,7 +192,7 @@ main(int argc, char *argv[]) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   // create field
-  CWP_Status_t visu_status = CWP_STATUS_ON;
+  CWP_Status_t visu_status = CWP_STATUS_OFF;
   const char *field_name = "Maine Coon";
 
   if (code_id == 1) {

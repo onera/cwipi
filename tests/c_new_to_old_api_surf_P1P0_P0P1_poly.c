@@ -531,6 +531,10 @@ main(int argc, char *argv[]) {
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
+
+      CWP_Time_step_beg(codeName,
+                        0.0);
+
       CWP_Field_data_set(codeName, cpl_name, fieldName1, 0, CWP_FIELD_MAP_SOURCE, sendValues);
       //      CWP_Field_create(codeName,
       //                       cpl_name,
@@ -553,6 +557,10 @@ main(int argc, char *argv[]) {
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
+
+      CWP_Time_step_beg(codeName,
+                        0.0);
+
       CWP_Field_data_set(codeName, cpl_name, fieldName1, 0, CWP_FIELD_MAP_TARGET, recvValues);
       //      CWP_Field_create(codeName,
       //                       cpl_name,
@@ -686,6 +694,8 @@ main(int argc, char *argv[]) {
     cwipi_delete_coupling(cpl_name);
   }
   else {
+    CWP_Time_step_end(codeName);
+    CWP_Visu_end(codeName, cpl_name);
     CWP_Mesh_interf_del(codeName, cpl_name);
     CWP_Cpl_del(codeName, cpl_name);
   }
