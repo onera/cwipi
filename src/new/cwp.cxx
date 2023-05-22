@@ -885,6 +885,8 @@ const char *cpl_id
 
   const string &cpl_id_str = cpl_id;
 
+  CWP_Visu_end(local_code_name, cpl_id);
+
   couplingDB.couplingDel(properties.codePropertiesGet(string(local_code_name)),
                          cpl_id_str);
 }
