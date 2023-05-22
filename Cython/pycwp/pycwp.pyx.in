@@ -1760,6 +1760,7 @@ cdef class PartData (object):
         self.local_code_name = local_code_name
         self.cpl_id          = cpl_id
         self.part_data_id    = part_data_id
+        self.exch_type       = exch_type
 
         self.n_part    = len(gnum_elt)
         self.n_elt     = list_to_int_pointer([array.size for array in gnum_elt])
