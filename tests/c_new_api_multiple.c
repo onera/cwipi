@@ -518,12 +518,10 @@ main
     free(recv_val2);
   }
 
-  CWP_Time_step_beg(code_name,
-                    1.0);
-
   CWP_Time_step_end(code_name);
 
-  CWP_Visu_end(code_name, cpl_name);
+  CWP_Time_step_beg(code_name,
+                    1.0);
 
   // Create new mesh
   int n_second_vtx = 6;

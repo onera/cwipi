@@ -1443,9 +1443,6 @@ main(int argc, char *argv[]) {
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 
-      CWP_Time_step_beg(code_name[0],
-                        0.0);
-
       CWP_Field_data_set(code_name[0],
                          coupling_name,
                          field_name,
@@ -1479,9 +1476,6 @@ main(int argc, char *argv[]) {
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      CWP_Time_step_beg(code_name[0],
-                        0.0);
-
       CWP_Field_data_set(code_name[0],
                          coupling_name,
                          field_name,
@@ -1495,6 +1489,9 @@ main(int argc, char *argv[]) {
                          CWP_FIELD_MAP_TARGET,
                          recv_val2);
     }
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
   }
 
   if (verbose && rank == 0) {
