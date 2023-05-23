@@ -232,13 +232,11 @@ main(int argc, char *argv[]) {
   else {
     const int n_code = 1;
     const CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
-    const double time_init = 0.;
 
     CWP_Init(MPI_COMM_WORLD,
              n_code,
              (const char **) &(codeName),
              &is_coupled_rank,
-             &time_init,
              &localComm);
 
     cpl_name = "new_cpl";

@@ -615,7 +615,7 @@ module cwp
              CWP_set_toto_
 
     interface
-      subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
+      subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
         use, intrinsic :: iso_c_binding
         implicit none
@@ -624,7 +624,6 @@ module cwp
         type(c_ptr),    value             :: code_names
         type(c_ptr),    value             :: l_code_names
         integer(c_int), dimension(n_code) :: is_active_rank
-        real(c_double), dimension(n_code) :: time_init
         type(c_ptr),    value             :: intra_comms
       end subroutine CWP_Init_cf
 
@@ -1871,16 +1870,14 @@ contains
   !! \param [in]  n_code         Number of codes on the current rank
   !! \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
   !! \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
-  !! \param [in]  time_init      Initial time (size = \p n_code)
   !! \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
   !!
   !!
 
-  subroutine CWP_Init_ (fcomm,          &
+  subroutine CWP_Init_(fcomm,          &
                        n_code,         &
                        code_names,     &
                        is_active_rank, &
-                       time_init,      &
                        intra_comms)
 
     use, intrinsic :: iso_c_binding
@@ -1890,7 +1887,6 @@ contains
     integer(c_int), intent(in) :: n_code
     character(kind = c_char, len = *), dimension(n_code), target :: code_names
     integer(c_int), dimension(n_code) :: is_active_rank
-    real(c_double), dimension(n_code) :: time_init
     integer(c_int), dimension(:), pointer :: intra_comms
     integer, dimension(n_code), target :: l_code_names
     integer :: i
@@ -1903,7 +1899,6 @@ contains
                      c_loc(code_names),   &
                      c_loc(l_code_names), &
                      is_active_rank,      &
-                     time_init,           &
                      c_loc(intra_comms))
 
   end subroutine CWP_Init_

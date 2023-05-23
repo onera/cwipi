@@ -355,7 +355,6 @@ int main(int argc, char *argv[]) {
   int *code_id = (int *) malloc(n_code * sizeof(int));
   const char **code_names = (const char **) malloc(n_code * sizeof(char *));
   const char **coupled_code_names = (const char **) malloc(n_code * sizeof(char *));
-  double *time_init = (double *) malloc(n_code * sizeof(double));
 
   PDM_Mesh_nodal_elt_t *element_type = (PDM_Mesh_nodal_elt_t *) malloc(n_code * sizeof(PDM_Mesh_nodal_elt_t));
 
@@ -379,8 +378,6 @@ int main(int argc, char *argv[]) {
     code_names[1] = "code2";
     coupled_code_names[0] = "code2";
     coupled_code_names[1] = "code1";
-    time_init[0] = 0.;
-    time_init[1] = 0.;
     is_active_rank[0] = CWP_STATUS_ON;
     is_active_rank[1] = CWP_STATUS_ON;
     element_type[0] = element_type_code1;
@@ -401,7 +398,6 @@ int main(int argc, char *argv[]) {
     code_id[0] = 1;
     code_names[0] = "code1";
     coupled_code_names[0] = "code2";
-    time_init[0] = 0.;
     is_active_rank[0] = CWP_STATUS_ON;
     element_type[0] = element_type_code1;
     element_type_cwp[0] = element_type_code1_cwp;
@@ -415,7 +411,6 @@ int main(int argc, char *argv[]) {
     code_id[0] = 2;
     code_names[0] = "code2";
     coupled_code_names[0] = "code1";
-    time_init[0] = 0.;
     is_active_rank[0] = CWP_STATUS_ON;
     element_type[0] = element_type_code2;
     element_type_cwp[0] = element_type_code2_cwp;
@@ -430,7 +425,6 @@ int main(int argc, char *argv[]) {
            n_code,
            (const char **) code_names,
            is_active_rank,
-           time_init,
            intra_comms);
 
   printf("%d --- CWIPI initialized\n", rank);

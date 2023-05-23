@@ -123,12 +123,10 @@ main
 
   const char  **code_name      = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double       *time_init      = malloc(sizeof(double) * n_code);
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "codeC";
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0]      = 0.;
 
   printf("C : %d/%d je suis là\n", i_rank, n_rank);
   fflush(stdout);
@@ -137,7 +135,6 @@ main
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   printf("C : %d/%d CWP_Init OK\n", i_rank, n_rank);
@@ -238,7 +235,7 @@ main
 
   // Start time step
   CWP_Time_step_beg(code_name[0],
-                    time_init[0]);
+                    0.);
 
   double *send_field_data = malloc(sizeof(double) * n_vtx);
   for (int i = 0; i < n_vtx; i++) {
@@ -298,7 +295,6 @@ main
   // free
   free(code_name);
   free(is_active_rank);
-  free(time_init);
   free(intra_comm);
   free(coupled_code_name);
   free(coords);

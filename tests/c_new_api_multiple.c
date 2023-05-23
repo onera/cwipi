@@ -182,7 +182,6 @@ main
   const char   *code_name         = NULL;
   const char   *coupled_code_name = NULL;
   CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
-  double        time_init         = 0.;
   int           n_part            = 1;
 
   if (is_code1) {
@@ -201,7 +200,6 @@ main
            1,
            &code_name,
            &is_active_rank,
-           &time_init,
            &intra_comm);
 
   // EXIT_SUCCESS ?

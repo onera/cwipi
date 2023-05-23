@@ -71,7 +71,6 @@ typedef struct t_client
  * \param [in]  config         Configuration file name
  * \param [in]  code_name      Name of the code on current rank
  * \param [in]  is_active_rank Does current rank have to be used by CWIPI
- * \param [in]  time_init      Initial time
  *
  */
 
@@ -81,8 +80,7 @@ CWP_client_Init
         MPI_Comm           comm,
         char              *config,
   const char              *code_name,
-  const CWP_Status_t       is_active_rank,
-  const double             time_init
+  const CWP_Status_t       is_active_rank
 );
 
 /**

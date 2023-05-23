@@ -146,17 +146,11 @@ main(int argc, char *argv[]) {
   sprintf(fileName, "c_new_api_000%d.txt", rank);
   outputFile = fopen(fileName, "w");
 
-  times_init = malloc(sizeof(double) * n_code);
-  for (int i = 0 ; i < n_code ; i++) {
-    times_init[i] = 0;
-  }
-
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_names,
            is_coupled_rank,
-           times_init,
            localComm);
 
   // Output redirection
@@ -583,7 +577,6 @@ main(int argc, char *argv[]) {
   free(localComm);
   free(code_names);
   free(is_coupled_rank);
-  free(times_init);
   fclose(outputFile);
 
   return 0;

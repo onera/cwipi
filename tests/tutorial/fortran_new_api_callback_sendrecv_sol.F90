@@ -26,7 +26,6 @@ program fortran_new_api_callback_sendrecv_sol
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
   integer,                            pointer :: is_active_rank(:)     => null()
-  double precision,                   pointer :: time_init(:)          => null()
   integer,                            pointer :: intra_comms(:)        => null()
   character(len = 99),                pointer :: coupled_code_names(:) => null()
   character(len = 99)                         :: coupling_name
@@ -60,18 +59,15 @@ program fortran_new_api_callback_sendrecv_sol
 
   allocate(code_names     (n_code), &
            is_active_rank(n_code),  &
-           time_init      (n_code), &
            intra_comms    (n_code))
 
   code_names(1)     = "codeFortran"
   is_active_rank(1) = CWP_STATUS_ON
-  time_init(1)      = 0.d0
 
   call CWP_Init(mpi_comm_world, &
                 n_code,         &
                 code_names,     &
                 is_active_rank, &
-                time_init,      &
                 intra_comms)
 
   ! Create the coupling
@@ -147,7 +143,7 @@ program fortran_new_api_callback_sendrecv_sol
 
   ! Begin time step :
   call CWP_Time_step_beg(code_names(1), &
-                         time_init(1))
+                         0.d0)
 
   allocate(send_field_data(n_elt), &
            recv_field_data(n_elt))
@@ -248,7 +244,6 @@ program fortran_new_api_callback_sendrecv_sol
   ! Free memory
   deallocate(code_names,         &
              is_active_rank,     &
-             time_init,          &
              intra_comms,        &
              coupled_code_names, &
              send_field_data,    &

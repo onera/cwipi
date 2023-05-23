@@ -19,7 +19,7 @@ program new_api
     integer, dimension(:), pointer :: is_coupled_rank
     character(len = 5), dimension(:), pointer :: code_names
     character(len = 16) :: cpl_id1, cpl_id2, cpl_id3, cpl_id4, cpl_id5, cpl_id6
-    real(8), pointer :: time_init(:), coord(:,:)
+    real(8), pointer :: coord(:,:)
     integer, pointer :: intra_comms(:)
     integer :: interp_method, block_id, i
 
@@ -43,7 +43,7 @@ program new_api
     else if (rank == 2) then
         n_code = 4
     end if
-    allocate(code_names(n_code), is_coupled_rank(n_code), time_init(n_code), intra_comms(n_code))
+    allocate(code_names(n_code), is_coupled_rank(n_code), intra_comms(n_code))
 
     if (rank == 0) then
         code_names(1) = "code1";
@@ -95,9 +95,7 @@ program new_api
         is_coupled_rank(2) = CWP_STATUS_ON;
     end if
 
-    time_init(:) = 0.
-
-    call CWP_Init(MPI_comm_world, n_code, code_names, is_coupled_rank, time_init, intra_comms)
+    call CWP_Init(MPI_comm_world, n_code, code_names, is_coupled_rank, intra_comms)
 
     print *, rank, " CWP_Init OK"
 
@@ -178,7 +176,7 @@ program new_api
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then
         call CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text")
         call CWP_Time_step_beg("code1", &
-                               time_init(1))
+                               0.d0)
     end if
 
     allocate(coord(3,1))
@@ -192,7 +190,7 @@ program new_api
 
     print *, "All done for rank", rank
 
-    deallocate(code_names, is_coupled_rank, time_init, intra_comms, coord)
+    deallocate(code_names, is_coupled_rank, intra_comms, coord)
 
     call CWP_Finalize()
     call MPI_Finalize(ierr)

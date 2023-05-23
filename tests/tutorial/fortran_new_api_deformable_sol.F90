@@ -22,7 +22,6 @@ program fortran_new_api_deformable_sol
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
   integer,                            pointer :: is_coupled_rank(:)    => null()
-  double precision,                   pointer :: time_init(:)          => null()
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part
@@ -70,18 +69,15 @@ program fortran_new_api_deformable_sol
 
   allocate(code_names(n_code),         &
            is_coupled_rank(n_code),    &
-           time_init(n_code),          &
            intra_comms(n_code))
 
   code_names(1)      = "code1"
   is_coupled_rank(1) = CWP_STATUS_ON
-  time_init(1)       = 0.d0
 
   call CWP_Init(mpi_comm_world,  &
                 n_code,          &
                 code_names,      &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   ! Create the coupling :
@@ -329,7 +325,6 @@ program fortran_new_api_deformable_sol
   ! free
   deallocate(code_names)
   deallocate(is_coupled_rank)
-  deallocate(time_init)
   deallocate(intra_comms)
   deallocate(coupled_code_names)
   deallocate(send_field_data)

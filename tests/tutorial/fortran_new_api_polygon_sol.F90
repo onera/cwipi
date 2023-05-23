@@ -22,7 +22,6 @@ program fortran_new_api_polygon_sol
   integer                                 :: n_code
   character(len = 5),            pointer  :: code_names(:)         => null()
   integer,                       pointer  :: is_coupled_rank(:)    => null()
-  double precision,              pointer  :: time_init(:)          => null()
   integer,                       pointer  :: intra_comms(:)        => null()
 
   integer                                 :: n_part
@@ -70,28 +69,25 @@ program fortran_new_api_polygon_sol
   ! same MPI rank (here only one code per processor, so n_code = 1).
   ! Therefore, an array of code names is given at initialization.
   ! is_active_rank allows to tell which ranks on which a given code
-  ! runs will be used in the CWIPI coupling computations. time_init
-  ! is not used yet. intra_comm is an array of MPI communicators
+  ! runs will be used in the CWIPI coupling computations.
+  ! intra_comm is an array of MPI communicators
   ! giving the for each code on the processors the communicator
   ! to communicate through the ranks of that code.
   n_code = 1
 
   allocate(code_names(n_code),         &
            is_coupled_rank(n_code),    &
-           time_init(n_code),          &
            intra_comms(n_code))
 
   ! for code1
   if (i_rank == 0) then
     code_names(1)      = "code1"
     is_coupled_rank(1) = CWP_STATUS_ON
-    time_init(1)       = 0.d0
     I_am_code1         = .true.
   ! for code2
   else
     code_names(1)      = "code2"
     is_coupled_rank(1) = CWP_STATUS_ON
-    time_init(1)       = 0.d0
     I_am_code1         = .false.
   endif
 
@@ -99,7 +95,6 @@ program fortran_new_api_polygon_sol
                 n_code,          &
                 code_names,      &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   ! Create the coupling :
@@ -185,7 +180,7 @@ program fortran_new_api_polygon_sol
   ! In this example there is only one time step. It is mandatory to create the
   ! coupling and the associated fields before starting the first time step.
   call CWP_Time_step_beg(code_names(1), &
-                         time_init(1))
+                         0.d0)
 
   ! Set the mesh vertices coordinates :
   ! The coordinate system in CWIPI is always 3D, so

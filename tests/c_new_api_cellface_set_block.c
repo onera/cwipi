@@ -205,12 +205,6 @@ int main(int argc, char *argv[]) {
   }
 
 
-  times_init = malloc(sizeof(double) * n_code);
-
-  for (int i = 0 ; i < n_code ; i++) {
-    times_init[i] = 0;
-  }
-
   MPI_Comm *local_comm = malloc(sizeof(MPI_Comm) * n_code);
 
   printf("CWIPI Initialization rank %i\n", rank);
@@ -218,7 +212,6 @@ int main(int argc, char *argv[]) {
            n_code,
            code_names,
            is_coupled_rank,
-           times_init,
            local_comm);
 
 
@@ -329,7 +322,6 @@ int main(int argc, char *argv[]) {
   free(local_comm);
   free(code_names);
   free(is_coupled_rank);
-  free(times_init);
   free(coords       );
   free(face_vtx_idx );
   free(face_vtx     );

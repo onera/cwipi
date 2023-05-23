@@ -234,7 +234,6 @@ CWP_server_Init
   int            n_code;
   char         **code_names     = NULL;
   CWP_Status_t  *is_active_rank = NULL;
-  double        *time_init      = NULL;
 
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -251,8 +250,6 @@ CWP_server_Init
   }
   is_active_rank = (CWP_Status_t  *) malloc(sizeof(int) * n_code);
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, is_active_rank, n_code * sizeof(CWP_Status_t));
-  time_init = (double *) malloc(sizeof(double) * n_code);
-  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, time_init, n_code * sizeof(double));
 
   // send status msg
   MPI_Barrier(svr_mpi.global_comm);
@@ -269,7 +266,6 @@ CWP_server_Init
            n_code,
            (const char **) code_names,
            is_active_rank,
-           time_init,
            svr_mpi.intra_comms);
 
   // send status msg
@@ -287,7 +283,6 @@ CWP_server_Init
   }
   free(code_names);
   free(is_active_rank);
-  free(time_init);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }

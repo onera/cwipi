@@ -49,18 +49,15 @@ main(int argc, char *argv[]) {
 
   const char  **code_name      = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double       *time_init      = malloc(sizeof(double) * n_code);
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "code2";
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0]      = 0.;
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   // Create the coupling :
@@ -292,7 +289,6 @@ main(int argc, char *argv[]) {
   free(intra_comm);
   free(code_name);
   free(is_active_rank);
-  free(time_init);
   free(coupled_code_name);
   free(coords);
   free(elt_vtx_idx);

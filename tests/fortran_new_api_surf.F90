@@ -32,7 +32,6 @@ program testf
   character(len = 5),   pointer :: code_names(:)         => null()
   character(len = 5),   pointer :: coupled_code_names(:) => null()
   integer,              pointer :: is_coupled_rank(:)    => null()
-  double precision,     pointer :: time_init(:)          => null()
   integer,              pointer :: intra_comms(:)        => null()
   character(len = 99)           :: coupling_name
 
@@ -125,7 +124,6 @@ program testf
   allocate(code_names(n_code),         &
            coupled_code_names(n_code), &
            is_coupled_rank(n_code),    &
-           time_init(n_code),          &
            intra_comms(n_code),        &
            ! output_file(1),             &
            g_code_names(2))
@@ -134,12 +132,10 @@ program testf
     code_names(1)         = "code1"
     coupled_code_names(1) = "code2"
     is_coupled_rank(1)    = CWP_STATUS_ON
-    time_init(1)          = 0.d0
   else
     code_names(1)         = "code2"
     coupled_code_names(1) = "code1"
     is_coupled_rank(1)    = CWP_STATUS_ON
-    time_init(1)          = 0.d0
   endif
 
   !--> output file
@@ -151,7 +147,6 @@ program testf
                 n_code,          &
                 code_names,      &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   print *, "> CWP_set_toto", loc(mon_toto)
@@ -340,7 +335,7 @@ program testf
                         visu_status)
 
   call CWP_Time_step_beg(code_names(1), &
-                         time_init(1))
+                         0.d0)
 
   call CWP_Field_data_set(code_names(1), &
                           coupling_name, &
@@ -666,7 +661,6 @@ program testf
   deallocate(code_names,         &
              coupled_code_names, &
              is_coupled_rank,    &
-             time_init,          &
              intra_comms,        &
              g_code_names)
   deallocate(vtx_coord, connec_idx, connec)

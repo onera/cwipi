@@ -22,7 +22,6 @@ program fortran_new_api_deformable_sol
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
   integer,                            pointer :: is_coupled_rank(:)    => null()
-  double precision,                   pointer :: time_init(:)          => null()
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part

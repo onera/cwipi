@@ -569,7 +569,6 @@ main(int argc, char *argv[]) {
   const char   **code_name         = malloc(sizeof(char       *) * n_code);
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
   CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
-  double        *time_init         = malloc(sizeof(double      ) * n_code);
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
   const char   **file_name         = malloc(sizeof(char       *) * n_code);
 
@@ -581,7 +580,6 @@ main(int argc, char *argv[]) {
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       n_part           [n_code] = all_n_part    [icode];
       is_active_rank   [n_code] = CWP_STATUS_ON;
-      time_init        [n_code] = 0.;
       file_name        [n_code] = all_file_names[icode];
 
       if (verbose) {
@@ -598,7 +596,6 @@ main(int argc, char *argv[]) {
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   MPI_Barrier(comm);
@@ -1009,7 +1006,6 @@ main(int argc, char *argv[]) {
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
   free(file_name);
 
   // Finalize CWIPI

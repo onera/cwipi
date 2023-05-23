@@ -428,7 +428,6 @@ main
   const char   **code_name         = malloc(sizeof(char       *) * n_code);
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
   CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
-  double        *time_init         = malloc(sizeof(double      ) * n_code);
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
   int            n_part[2];
   PDM_g_num_t    gn_vtx[2];
@@ -440,7 +439,6 @@ main
       code_name        [n_code] = all_code_names[icode];
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       is_active_rank   [n_code] = CWP_STATUS_ON;
-      time_init        [n_code] = 0.;
       gn_vtx           [n_code] = all_gn_vtx[icode];
       n_part           [n_code] = all_n_part[icode];
 
@@ -457,7 +455,6 @@ main
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   MPI_Barrier(comm);
@@ -765,7 +762,6 @@ main
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
 
   CWP_Finalize();
 

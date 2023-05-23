@@ -254,7 +254,6 @@ main
   const char   *code_name         = NULL;
   const char   *coupled_code_name = NULL;
   CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
-  double        time_init         = 0.;
 
   int           n_part;
   PDM_g_num_t   n_vtx_seg;
@@ -286,8 +285,7 @@ main
   CWP_client_Init(intra_comm,
                   config,
                   code_name,
-                  is_active_rank,
-                  time_init);
+                  is_active_rank);
 
   // EXIT_SUCCESS ?
   int exit_check = 0;

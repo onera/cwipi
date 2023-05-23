@@ -63,7 +63,6 @@ main(int argc, char *argv[]) {
   int n_code = 1;
   const char  **code_name      = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double       *time_init      = malloc(sizeof(double) * n_code);
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   int I_am_code1 = 0;
@@ -72,21 +71,18 @@ main(int argc, char *argv[]) {
   if (i_rank == 0) {
     code_name[0]      = "code1";
     is_active_rank[0] = CWP_STATUS_ON;
-    time_init[0]      = 0.;
     I_am_code1        = 1;
   }
 
   if (i_rank == 1) {
     code_name[0]      = "code2";
     is_active_rank[0] = CWP_STATUS_ON;
-    time_init[0]      = 0.;
     I_am_code2        = 1;
   }
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   // Create the coupling :
@@ -331,7 +327,6 @@ main(int argc, char *argv[]) {
   if (recv_field_data != NULL) free(recv_field_data);
   free(code_name);
   free(is_active_rank);
-  free(time_init);
   free(intra_comm);
   free(coupled_code_name);
 
