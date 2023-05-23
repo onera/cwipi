@@ -707,6 +707,12 @@ main
     }
   }
 
+  MPI_Barrier(comm);
+  if (i_rank == 0) {
+    printf("Exchange fields OK\n");
+    fflush(stdout);
+  }
+
 
   /* Check interpolated fields */
   // for (int icode = 0; icode < n_code; icode++) {
@@ -763,7 +769,14 @@ main
 
   CWP_Finalize();
 
+  MPI_Barrier(comm);
+  if (i_rank == 0) {
+    printf("End\n");
+    fflush(stdout);
+  }
+
   MPI_Finalize();
+
 
   return EXIT_SUCCESS;
 }
