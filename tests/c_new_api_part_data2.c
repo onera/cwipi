@@ -70,7 +70,8 @@ _read_args
   PDM_split_dual_t      *part_method,
   int                   *disjoint_comm,
   int                   *verbose,
-  int                   *swap_codes
+  int                   *swap_codes,
+  int                   *exchange_fields
 )
 {
   int i = 1;
@@ -126,6 +127,9 @@ _read_args
     else if (strcmp(argv[i], "-swap_codes") == 0) {
       *swap_codes = 1;
     }
+    else if (strcmp(argv[i], "-no_exchange") == 0) {
+      *exchange_fields = 0;
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -145,13 +149,14 @@ int main
  )
 {
   /* Set default values */
-  PDM_g_num_t      n             = 3;
-  int              n_part1       = 1;
-  int              n_part2       = 1;
-  PDM_split_dual_t part_method   = PDM_SPLIT_DUAL_WITH_HILBERT;
-  int              disjoint_comm = 0;
-  int              verbose       = 0;
-  int              swap_codes    = 0;
+  PDM_g_num_t      n               = 3;
+  int              n_part1         = 1;
+  int              n_part2         = 1;
+  PDM_split_dual_t part_method     = PDM_SPLIT_DUAL_WITH_HILBERT;
+  int              disjoint_comm   = 0;
+  int              verbose         = 0;
+  int              swap_codes      = 0;
+  int              exchange_fields = 1;
   _read_args(argc,
              argv,
              &n,
@@ -160,7 +165,8 @@ int main
              &part_method,
              &disjoint_comm,
              &verbose,
-             &swap_codes);
+             &swap_codes,
+             &exchange_fields);
 
   /* Initialize MPI */
   MPI_Init(&argc, &argv);
@@ -418,84 +424,85 @@ int main
   }
 
 
-  for (int icode = 0; icode < n_code; icode++) {
-    if (code_id[icode] == 1) {
-      CWP_Field_issend(code_name[icode], cpl_name, field_name);
-    }
-    else {
-      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
-    }
-
-    if (code_id[icode] == 1) {
-      CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
-    }
-    else {
-      CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
-    }
-  }
-
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Exchange fields OK\n");
-    fflush(stdout);
-  }
-
-
-  /* Check recv field */
   int error = 0;
-  for (int icode = 0; icode < n_code; icode++) {
-    if (code_id[icode] == 1) {
-      if (verbose) {
-        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-          log_trace("\n-- src part %d --\n", ipart);
-          for (int i = 0; i < pn_face[icode][ipart]; i++) {
-            log_trace(PDM_FMT_G_NUM" sends:\n", pface_ln_to_gn[icode][ipart][i]);
-            for (int j = 0; j < stride; j++) {
-              log_trace("  %f\n",
-                        send_val[ipart][stride*i+j]);
+  if (exchange_fields) {
+    for (int icode = 0; icode < n_code; icode++) {
+      if (code_id[icode] == 1) {
+        CWP_Field_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+      }
+
+      if (code_id[icode] == 1) {
+        CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+      }
+    }
+
+    MPI_Barrier(comm);
+    if (i_rank == 0) {
+      printf("Exchange fields OK\n");
+      fflush(stdout);
+    }
+
+
+    /* Check recv field */
+    for (int icode = 0; icode < n_code; icode++) {
+      if (code_id[icode] == 1) {
+        if (verbose) {
+          for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+            log_trace("\n-- src part %d --\n", ipart);
+            for (int i = 0; i < pn_face[icode][ipart]; i++) {
+              log_trace(PDM_FMT_G_NUM" sends:\n", pface_ln_to_gn[icode][ipart][i]);
+              for (int j = 0; j < stride; j++) {
+                log_trace("  %f\n",
+                          send_val[ipart][stride*i+j]);
+              }
             }
           }
         }
       }
-    }
-    else {
-      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-        if (verbose) {
-          log_trace("\n-- tgt part %d --\n", ipart);
-        }
-        for (int i = 0; i < pn_face[icode][ipart]; i++) {
+      else {
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
           if (verbose) {
-            log_trace(PDM_FMT_G_NUM" received:\n", pface_ln_to_gn[icode][ipart][i]);
+            log_trace("\n-- tgt part %d --\n", ipart);
           }
-          for (int j = 0; j < stride; j++) {
-            double expected = (double) (j+1)*pface_ln_to_gn[icode][ipart][i];
+          for (int i = 0; i < pn_face[icode][ipart]; i++) {
             if (verbose) {
-              log_trace("  %f (expected %f)\n",
-                        recv_val[ipart][stride*i+j],
-                        expected);
+              log_trace(PDM_FMT_G_NUM" received:\n", pface_ln_to_gn[icode][ipart][i]);
             }
+            for (int j = 0; j < stride; j++) {
+              double expected = (double) (j+1)*pface_ln_to_gn[icode][ipart][i];
+              if (verbose) {
+                log_trace("  %f (expected %f)\n",
+                          recv_val[ipart][stride*i+j],
+                          expected);
+              }
 
-            if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-              if (ABS(recv_val[ipart][stride*i+j] - expected) > 1e-12) {
-                error = 1;
-                printf("[%d] error for "PDM_FMT_G_NUM" : received %e, expected %e\n",
-                       i_rank, pface_ln_to_gn[icode][ipart][i],
-                       recv_val[ipart][stride*i+j], expected);
-                fflush(stdout);
+              if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+                if (ABS(recv_val[ipart][stride*i+j] - expected) > 1e-12) {
+                  error = 1;
+                  printf("[%d] error for "PDM_FMT_G_NUM" : received %e, expected %e\n",
+                         i_rank, pface_ln_to_gn[icode][ipart][i],
+                         recv_val[ipart][stride*i+j], expected);
+                  fflush(stdout);
+                }
               }
             }
           }
         }
       }
     }
-  }
 
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Check fields OK\n");
-    fflush(stdout);
+    MPI_Barrier(comm);
+    if (i_rank == 0) {
+      printf("Check fields OK\n");
+      fflush(stdout);
+    }
   }
-
 
 
 
@@ -714,10 +721,7 @@ int main
 
   /* Free memory */
   for (int icode = 0; icode < n_code; icode++) {
-
     CWP_Time_step_end(code_name[icode]);
-
-    CWP_Visu_end(code_name[icode], cpl_name);
 
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
 

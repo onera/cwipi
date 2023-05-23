@@ -3223,7 +3223,7 @@ namespace cwipi {
 
         Field* recvField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          recvField = it->second;
+          recvField = cpl_it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -3431,7 +3431,7 @@ namespace cwipi {
 
         Field* sendField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          sendField = it->second;
+          sendField = cpl_it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
