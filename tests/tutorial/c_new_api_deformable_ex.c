@@ -117,6 +117,11 @@ main(int argc, char *argv[]) {
 
     ttime = (it-itdeb)*dt;
 
+    // Start time step
+    // ------------------------------------------------------- To fill in
+
+    // ---------------------------------------------------- End To fill in
+
     // Deform mesh and set send field :
     // The field that will be sent, "chinchilla", is set to the value of
     // the z-coordinate of the mesh nodes.
@@ -183,6 +188,12 @@ main(int argc, char *argv[]) {
 
     PDM_UNUSED(n_uncomputed_tgts);
     PDM_UNUSED(uncomputed_tgts);
+
+    // End time step
+    // ------------------------------------------------------- To fill in
+
+    // ---------------------------------------------------- End To fill in
+
   } // end interations
 
   // Delete fields :

@@ -131,23 +131,34 @@ main(int argc, char *argv[]) {
   // There is only one mesh partition in this tutorial. Activate
   // visualization for this field if you wish it to be in the
   // Ensight file.
+  // Do not forget to begin the time step AFTER creating the fields,
+  // but BEFORE setting the fields data!
   // ------------------------------------------------------- To fill in
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
   double     *send_field_data = malloc(sizeof(double) * n_vtx * n_components);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);
 
+  // Create the field :
+  //...
+
+  // Begin the time step :
+  //...
+
+  // Set the field pointers :
   // for code1
   if (I_am_code1) {
 
     for (int i = 0; i < n_vtx; i++) {
       send_field_data[i] = coords[3*i];
     }
+
+    //...
   }
 
   // for code2
   if (I_am_code2) {
-
+    //...
   }
   // ---------------------------------------------------- End To fill in
 
@@ -185,6 +196,10 @@ main(int argc, char *argv[]) {
   if (I_am_code2) {
 
   }
+  // ---------------------------------------------------- End To fill in
+
+  // End the time step :
+  // ------------------------------------------------------- To fill in
   // ---------------------------------------------------- End To fill in
 
   // Check interpolation :

@@ -562,7 +562,6 @@ int main
     }
   }
 
-  PDM_log_trace_array_int(request, n_code, "request : ");
 
 
   for (int icode = 0; icode < n_code; icode++) {

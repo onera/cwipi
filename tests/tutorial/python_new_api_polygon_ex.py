@@ -125,6 +125,8 @@ def runTest():
     # There is only one mesh partition in this tutorial. Activate
     # visualization for this field if you wish it to be in the
     # Ensight file.
+    # Do not forget to begin the time step AFTER creating the fields,
+    # but BEFORE setting the fields data!
     # ------------------------------------------------------- To fill in
     n_components = 1
 
@@ -134,6 +136,13 @@ def runTest():
     for i in range(n_vtx):
       send_field_data[i] = coords[3*i]
 
+    # Create the field :
+    # ...
+
+    # Begin the time step :
+    # ...
+
+    # Set the field pointers :
     # for code1
     # if I_am_code1: # to uncomment
 
@@ -170,6 +179,11 @@ def runTest():
 
     # for code2
     # if I_am_code2: # to uncomment
+
+    # ---------------------------------------------------- End To fill in
+
+    # End time step :
+    # ------------------------------------------------------- To fill in
 
     # ---------------------------------------------------- End To fill in
 

@@ -246,25 +246,25 @@ main(int argc, char *argv[]) {
                          coupling_name,
                          recv_field_name);
 
-  // Check interpolation :
-  int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-                                                    coupling_name,
-                                                    recv_field_name,
-                                                    0);
+    // Check interpolation :
+    int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
+                                                      coupling_name,
+                                                      recv_field_name,
+                                                      0);
 
-  const int *uncomputed_tgts = NULL;
-  if (n_uncomputed_tgts != 0) {
-    uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                              coupling_name,
-                                              recv_field_name,
-                                              0);
-  }
+    const int *uncomputed_tgts = NULL;
+    if (n_uncomputed_tgts != 0) {
+      uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
+                                                coupling_name,
+                                                recv_field_name,
+                                                0);
+    }
 
-  PDM_UNUSED(n_uncomputed_tgts);
-  PDM_UNUSED(uncomputed_tgts);
+    PDM_UNUSED(n_uncomputed_tgts);
+    PDM_UNUSED(uncomputed_tgts);
 
-  // End time step
-  CWP_Time_step_end(code_name[0]);
+    // End time step
+    CWP_Time_step_end(code_name[0]);
 
   } // end interations
 

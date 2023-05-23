@@ -135,6 +135,11 @@ program fortran_new_api_deformable_sol
 
     time = (it-itdeb)*dt
 
+    ! Begin time step :
+    ! ------------------------------------------------------- To fill in
+
+    ! ---------------------------------------------------- End To fill in
+
     ! Deform mesh :
     ! The z-coordinate of the mesh is modified with some kind of cosine at
     ! each iteration.
@@ -234,6 +239,12 @@ program fortran_new_api_deformable_sol
 
     endif
     ! ---------------------------------------------------- End To fill in
+
+    ! End time step :
+    ! ------------------------------------------------------- To fill in
+
+    ! ---------------------------------------------------- End To fill in
+
 
   enddo
 
