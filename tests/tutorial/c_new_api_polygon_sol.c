@@ -316,10 +316,6 @@ main(int argc, char *argv[]) {
                 coupling_name,
                 field_name);
 
-  // End vizualisation output :
-  CWP_Visu_end(code_name[0],
-               coupling_name);
-
   // Delete Mesh :
   CWP_Mesh_interf_del(code_name[0],
                       coupling_name);

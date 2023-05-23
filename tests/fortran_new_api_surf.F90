@@ -653,9 +653,6 @@ program testf
 
   call CWP_Time_step_end(code_names(1))
 
-  call CWP_Visu_end(code_names(1), &
-                    coupling_name)
-
   !! Delete interface mesh
   call CWP_Mesh_interf_del(code_names(1), &
                            coupling_name)

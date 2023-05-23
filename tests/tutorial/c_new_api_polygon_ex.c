@@ -217,6 +217,7 @@ main(int argc, char *argv[]) {
   if (send_field_data != NULL) free(send_field_data);
   if (recv_field_data != NULL) free(recv_field_data);
   free(code_name);
+  free(coupled_code_name);
 
   // Finalize CWIPI :
   // ------------------------------------------------------- To fill in

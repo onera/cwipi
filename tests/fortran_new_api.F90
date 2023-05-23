@@ -188,7 +188,6 @@ program new_api
 
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then
         call CWP_Time_step_end("code1")
-        call CWP_Visu_end("code1", cpl_id1)
     end if
 
     print *, "All done for rank", rank

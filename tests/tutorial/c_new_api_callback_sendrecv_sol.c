@@ -287,9 +287,6 @@ main
                 coupling_name,
                 field_name);
 
-  // End visualization :
-  CWP_Visu_end(code_name[0], coupling_name);
-
   // Delete Mesh :
   CWP_Mesh_interf_del(code_name[0],
                       coupling_name);

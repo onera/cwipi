@@ -1621,15 +1621,15 @@ main(int argc, char *argv[]) {
 
 
   for (int ipart = 0; ipart < n_part; ipart++) {
-    free (faceVtxIdx[ipart]);
-    free (faceVtx[ipart]);
-    free (faceEdgeIdx[ipart]);
-    free (faceEdge[ipart]);
-    free (faceLNToGN[ipart]);
-    free (edgeVtx[ipart]);
-    free (edgeVtxIdx[ipart]);
-    free (vtxCoord[ipart]);
-    free (vtxLNToGN[ipart]);
+    if (edgeVtxIdx[ipart] != NULL ) free (edgeVtxIdx[ipart]);
+    if (edgeVtx[ipart] != NULL    ) free (edgeVtx[ipart]);
+    if (faceEdgeIdx[ipart] != NULL) free (faceEdgeIdx[ipart]);
+    if (faceEdge[ipart] != NULL   ) free (faceEdge[ipart]);
+    if (faceVtxIdx[ipart] != NULL ) free (faceVtxIdx[ipart]);
+    if (faceVtx[ipart] != NULL    ) free (faceVtx[ipart]);
+    if (faceLNToGN[ipart] != NULL ) free (faceLNToGN[ipart]);
+    if (vtxCoord[ipart] != NULL   ) free (vtxCoord[ipart]);
+    if (vtxLNToGN[ipart] != NULL  ) free (vtxLNToGN[ipart]);
   }
 
 

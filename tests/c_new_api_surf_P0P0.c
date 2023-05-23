@@ -524,8 +524,6 @@ int main(int argc, char *argv[])
   for (int i_code = 0; i_code < n_code; i_code++) {
     CWP_Time_step_end(code_name[i_code]);
 
-    CWP_Visu_end(code_name[i_code], cpl_name);
-
     CWP_Mesh_interf_del(code_name[i_code], cpl_name);
 
     CWP_Cpl_del(code_name[i_code], cpl_name);

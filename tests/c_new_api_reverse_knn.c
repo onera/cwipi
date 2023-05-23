@@ -595,8 +595,6 @@ main
 
   for (int icode = 0; icode < n_code; icode++) {
 
-    CWP_Visu_end(code_name[icode], cpl_name);
-
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
 
     CWP_Cpl_del(code_name[icode], cpl_name);

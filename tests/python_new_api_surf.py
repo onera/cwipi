@@ -470,7 +470,6 @@ def runTest():
   for icode in range(n_code):
     cpl[icode].field_del(field_name)
     pycwp.time_step_end(code_name[icode])
-    pycwp.visu_end()
     cpl[icode].mesh_interf_del()
 
   # FINALIZE

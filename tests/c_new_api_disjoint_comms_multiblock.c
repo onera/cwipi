@@ -1037,7 +1037,6 @@ int main(int argc, char *argv[]) {
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
     CWP_Time_step_end(code_names[i_code]);
-    CWP_Visu_end(code_names[i_code], cpl_name);
     CWP_Mesh_interf_del(code_names[i_code], cpl_name);
 
     printf("%d (%d, %s) --- Interface deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);

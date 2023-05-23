@@ -721,9 +721,6 @@ program testf
 
   do i = 1, n_code
     call CWP_Time_step_end(code_name(i))
-
-    call CWP_Visu_end(code_name(i), &
-                      coupling_name)
   enddo
 
   ! Delete interface mesh

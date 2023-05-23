@@ -695,7 +695,6 @@ main(int argc, char *argv[]) {
   }
   else {
     CWP_Time_step_end(codeName);
-    CWP_Visu_end(codeName, cpl_name);
     CWP_Mesh_interf_del(codeName, cpl_name);
     CWP_Cpl_del(codeName, cpl_name);
   }

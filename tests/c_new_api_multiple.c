@@ -631,8 +631,6 @@ main
 
   CWP_Time_step_end(code_name);
 
-  CWP_Visu_end(code_name, cpl_name);
-
   // Delete mesh
   CWP_Mesh_interf_del(code_name, cpl_name);
 

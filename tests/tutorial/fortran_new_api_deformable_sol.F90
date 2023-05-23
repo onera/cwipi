@@ -318,10 +318,6 @@ program fortran_new_api_deformable_sol
                      coupling_name,   &
                      recv_field_name)
 
-  ! End vizualisation output :
-  call CWP_Visu_end(code_names(1), &
-                    coupling_name)
-
   ! Delete Mesh :
   call CWP_Mesh_interf_del(code_names(1), &
                            coupling_name)

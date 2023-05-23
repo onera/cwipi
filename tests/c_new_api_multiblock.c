@@ -1074,8 +1074,6 @@ int main(int argc, char *argv[])
 
   CWP_Time_step_end(code_name[0]);
 
-  CWP_Visu_end(code_name[0], coupling_name);
-
   //  Delete interface mesh
   CWP_Mesh_interf_del(code_name[0], coupling_name);
 

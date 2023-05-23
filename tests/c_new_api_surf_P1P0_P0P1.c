@@ -816,8 +816,6 @@ main(int argc, char *argv[]) {
 
   CWP_Time_step_end(code_name[0]);
 
-  CWP_Visu_end(code_name[0], cpl_name);
-
   printf("%d - Delete mesh\n", rank);
   CWP_Mesh_interf_del(code_name[0], cpl_name);
 

@@ -1563,7 +1563,6 @@ main(int argc, char *argv[]) {
   }
   else {
     CWP_Time_step_end(code_name[0]);
-    CWP_Visu_end(code_name[0], coupling_name);
     CWP_Cpl_del(code_name[0], coupling_name);
   }
   // Free memory

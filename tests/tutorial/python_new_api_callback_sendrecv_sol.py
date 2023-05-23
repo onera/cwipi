@@ -328,9 +328,6 @@ def run_coupling():
   # End time step :
   pycwp.time_step_end(code_name[0])
 
-  # End vizualisation output :
-  pycwp.visu_end()
-
   # Delete Mesh
   cpl_CP.mesh_interf_del()
   cpl_PF.mesh_interf_del()
