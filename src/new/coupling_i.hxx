@@ -784,6 +784,7 @@ namespace cwipi {
         for (int i = 0; i < itf->second->nComponentGet(); i++) {
           int id_send = itf->second->_id_writer_var_send_get()[i];
           int id_recv = itf->second->_id_writer_var_recv_get()[i];
+
           if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
           if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
         }
@@ -923,6 +924,7 @@ namespace cwipi {
     else {
       delete It->second;
       It->second = NULL;
+      _fields.erase(It->first);
     }
 
   }

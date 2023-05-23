@@ -548,7 +548,6 @@ main
                                 third_connec,
                                 NULL);
 
-  log_trace(">>>>>\n");
   CWP_Mesh_interf_finalize(code_name, cpl_name);
 
 

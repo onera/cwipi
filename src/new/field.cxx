@@ -77,6 +77,10 @@ Field::Field (std::string            field_id    ,
 
     _id_writer_var_send = (int *) malloc (sizeof (int) * _nComponent);
     _id_writer_var_recv = (int *) malloc (sizeof (int) * _nComponent);
+    for (int i = 0; i < _nComponent; i++) {
+      _id_writer_var_send[i] = -1;
+      _id_writer_var_recv[i] = -1;
+    }
 
     // Set field location type
     PDM_writer_var_loc_t pdm_field_type = PDM_WRITER_VAR_ELEMENTS;
