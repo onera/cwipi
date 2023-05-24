@@ -5631,14 +5631,14 @@ contains
 
 
   subroutine CWP_set_toto_(fun)
-  use iso_c_binding
+    use iso_c_binding
     implicit none
     interface
-    subroutine fun(i) bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_int), value, intent(in) :: i
-    end subroutine fun
+      subroutine fun(i) bind(c)
+        use, intrinsic :: iso_c_binding
+        implicit none
+        integer(c_int), value, intent(in) :: i
+      end subroutine fun
     end interface
 
     call CWP_set_toto_cf(c_funloc(fun))

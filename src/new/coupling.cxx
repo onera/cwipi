@@ -3577,6 +3577,9 @@ namespace cwipi {
   void
   Coupling::time_step_end ()
   {
+    int cond1 = !_coupledCodeProperties.localCodeIs();
+    int cond2 = !cond1 && (_localCodeProperties.idGet() < _coupledCodeProperties.idGet());
+
     // if there is a writer, a step is open and it is a writting step
     if (_writer != NULL && PDM_writer_is_open_step(_writer) == 1 && (_n_step % _freq_writer == 0)) {
 

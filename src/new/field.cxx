@@ -35,7 +35,8 @@ Field::Field (std::string            field_id    ,
    _writer (nullptr),
    _id_writer_var_send(nullptr),
    _id_writer_var_recv(nullptr),
-   _id_writer_var_recv_computed(-1),
+   _id_writer_var_send_status(-1),
+   _id_writer_var_recv_status(-1),
    _interpolationFunction   (NULL),
    _computed_tgt_bcast_enabled(0),
    _involved_src_bcast_enabled(0),
@@ -98,7 +99,6 @@ Field::Field (std::string            field_id    ,
     // Create send variables
     if (_exchangeType == CWP_FIELD_EXCH_SEND ||
         _exchangeType == CWP_FIELD_EXCH_SENDRECV) {
-
       std::string prefix = "s";
 
       for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
@@ -117,12 +117,21 @@ Field::Field (std::string            field_id    ,
         // printf("WriterFieldCreate - send: '%s' %d\n",fieldName.c_str(), _id_writer_var_send[i_comp]);
         // fflush(stdout);
       }
+
+      // Create variable to tag if field has been exchanged (always time-dependent)
+      std::string fieldName = prefix + "_" + _fieldID;
+      std::string fieldStatusName = fieldName + "_status";
+
+      _id_writer_var_send_status = PDM_writer_var_create(_writer,
+                                                         PDM_WRITER_ON,
+                                                         PDM_WRITER_VAR_SCALAR,
+                                                         pdm_field_type,
+                                                         fieldStatusName.c_str());
     }
 
     // Create receive variables
     if (_exchangeType == CWP_FIELD_EXCH_RECV ||
         _exchangeType == CWP_FIELD_EXCH_SENDRECV) {
-
       std::string prefix = "r";
 
       for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
@@ -137,32 +146,20 @@ Field::Field (std::string            field_id    ,
                                                             PDM_WRITER_VAR_SCALAR,
                                                             pdm_field_type,
                                                             fieldName.c_str());
+
         // printf("WriterFieldCreate - recv: '%s' %d\n",fieldName.c_str(), _id_writer_var_recv[i_comp]);
         // fflush(stdout);
       }
 
-      // Create variable to tag if dof has been located ("computed")
+      // Create variable to tag if field has been computed/exchanged
       std::string fieldName = prefix + "_" + _fieldID;
-      std::string fieldComputedName = fieldName + "_is_computed";
+      std::string fieldStatusName = fieldName + "_status";
 
-      PDM_writer_status_t time_dependent = PDM_WRITER_ON;
-
-      CWP_Dynamic_mesh_t topology = cpl->DisplacementGet();
-
-      if (topology == CWP_DYNAMIC_MESH_STATIC) {
-        time_dependent = PDM_WRITER_OFF;
-      }
-
-      _id_writer_var_recv_computed = PDM_writer_var_create(_writer,
-                                                           time_dependent,
-                                                           PDM_WRITER_VAR_SCALAR,
-                                                           pdm_field_type,
-                                                           fieldComputedName.c_str());
-
-
-      // printf("WriterFieldCreate - recv 2: '%s' %d\n",fieldComputedName.c_str(), _id_writer_var_recv_computed);
-      // fflush(stdout);
-
+      _id_writer_var_recv_status = PDM_writer_var_create(_writer,
+                                                         PDM_WRITER_ON,
+                                                         PDM_WRITER_VAR_SCALAR,
+                                                         pdm_field_type,
+                                                         fieldStatusName.c_str());
     }
 
   }
@@ -345,71 +342,28 @@ CWP_Field_exch_t exch_type
 
       } // end loop on components
 
-      // write computed tag
-      // TO DO : write -1 for now but should be changed to something else
-      if (exch_type == CWP_FIELD_EXCH_RECV ||
-          (write_end_step == 1 && visuStatusGet() == CWP_STATUS_ON)) {
+      // write status
+      if (visuStatusGet() == CWP_STATUS_ON) {
+        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+          int n_dof = 0;
 
-        CWP_Dynamic_mesh_t topology = _cpl->DisplacementGet();
+          if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            n_dof = _mesh->getPartNElts(i_part);
+          }
+          else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+            n_dof = _mesh->getPartNVertex(i_part);
+          }
+          else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+            n_dof = _cpl->userTargetNGet(i_part);
+          }
 
-        if (topology != CWP_DYNAMIC_MESH_STATIC || _cpl->NStepGet() == 0) {
+          if (exch_type == CWP_FIELD_EXCH_SEND) {
+            if (write_end_step) {
+              for (int i = 0; i < n_dof; i++) {
 
-          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
-
-            // size
-            int n_elt_size = 0;
-
-            if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-              n_elt_size = _mesh->getPartNElts(i_part);
-            }
-            else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
-              n_elt_size = _mesh->getPartNVertex(i_part);
-            }
-            else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
-              n_elt_size = _cpl->userTargetNGet(i_part);
-            }
-
-            // computed
-            const int  *computed_target    = NULL;
-            int         n_computed_target  = 0;
-
-            if (write_end_step == 1) {
-              for (int i = 0; i < n_elt_size; i++) {
-                comp_data[i_part][i] = -1.;
-              }
-            } else {
-              if (_cpl->has_mesh()) {
-                computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
-                n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
-              }
-
-              if (n_elt_size == n_computed_target) {
-                for (int i = 0; i < n_elt_size; i++) {
-                  comp_data[i_part][i] = 1.;
-                }
-              } else {
-                for (int i = 0; i < n_elt_size; i++) {
-                  comp_data[i_part][i] = 0.;
-                }
-                for (int i = 0; i < n_computed_target; i++) {
-                  int idx = computed_target[i] -1;
-                  comp_data[i_part][idx] = 1.;
-                }
               }
             }
-
-            PDM_writer_var_set(_writer,
-                               _id_writer_var_recv_computed,
-                               _cpl->idGeomWriterGet(_fieldLocation),
-                               i_part,
-                               comp_data[i_part]);
-
-          } // end loop n_part
-
-          PDM_writer_var_write(_writer, _id_writer_var_recv_computed);
-
-          PDM_writer_var_data_free(_writer, _id_writer_var_recv_computed);
-
+          }
         }
       }
 

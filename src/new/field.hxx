@@ -408,7 +408,11 @@ namespace cwipi {
     PDM_writer_t                            *_writer;
     int                                     *_id_writer_var_send;
     int                                     *_id_writer_var_recv;
-    int                                      _id_writer_var_recv_computed;
+    /* status = -1: not exchanged,
+                 0: computed and exchanged,
+                 1: not computed and exchanged */
+    int                                      _id_writer_var_send_status;
+    int                                      _id_writer_var_recv_status;
 
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;

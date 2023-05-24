@@ -373,7 +373,7 @@ typedef void (*CWP_Interp_function_t)
  double               *buffer_out
 );
 
-typedef void (*ma_fonction_t)( void );
+typedef void (*ma_fonction_t)( int i );
 
 
 /*=============================================================================

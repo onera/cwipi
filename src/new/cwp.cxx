@@ -3746,9 +3746,7 @@ void
 CWP_call_toto()
 {
   // printf(">>> toto_f %ld\n", (void *) toto_f);
-  // (*toto_f)();
-  // appelle_toto((void *) toto_f, 3);
-  // printf("<<< toto_f\n");
+  // (*toto_f)(3);
 }
 /*-----------------------------------------------------------------------------*/
 
