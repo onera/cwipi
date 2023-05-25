@@ -447,9 +447,9 @@ int main(int argc, char *argv[])
     displacement = CWP_DYNAMIC_MESH_VARIABLE;
   }
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_dynamic";
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Cpl_create(code_name[i_code],              // Code name
@@ -703,26 +703,28 @@ int main(int argc, char *argv[])
     MPI_Barrier(MPI_COMM_WORLD);
 
 
-    for (int i_code = 0 ; i_code < n_code ; i_code++) {
-      if (code_id[i_code] == 1) {
-        CWP_Field_issend(code_name[i_code], cpl_name, field_name1);
-        CWP_Field_irecv (code_name[i_code], cpl_name, field_name2);
+    if (step%3 == 0) {
+      for (int i_code = 0 ; i_code < n_code ; i_code++) {
+        if (code_id[i_code] == 1) {
+          CWP_Field_issend(code_name[i_code], cpl_name, field_name1);
+          CWP_Field_irecv (code_name[i_code], cpl_name, field_name2);
+        }
+        else {
+          CWP_Field_irecv (code_name[i_code], cpl_name, field_name1);
+          CWP_Field_issend(code_name[i_code], cpl_name, field_name2);
+        }
       }
-      else {
-        CWP_Field_irecv (code_name[i_code], cpl_name, field_name1);
-        CWP_Field_issend(code_name[i_code], cpl_name, field_name2);
-      }
-    }
 
 
-    for (int i_code = 0 ; i_code < n_code ; i_code++) {
-      if (code_id[i_code] == 1) {
-        CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
-        CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name2);
-      }
-      else {
-        CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
-        CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name2);
+      for (int i_code = 0 ; i_code < n_code ; i_code++) {
+        if (code_id[i_code] == 1) {
+          CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
+          CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name2);
+        }
+        else {
+          CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
+          CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name2);
+        }
       }
     }
 

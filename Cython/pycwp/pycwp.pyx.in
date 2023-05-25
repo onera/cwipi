@@ -1659,8 +1659,8 @@ def interp_location_internal_cell_vtx_get(char * local_code_name,
                             &(c_src_to_tgt_idx))
 
     return {
-            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell, False),
-            'cell_vtx' : create_numpy_i(cell_vtx, cell_vtx_idx[n_cell], False)
+            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell+1,             False),
+            'cell_vtx'     : create_numpy_i(cell_vtx,     cell_vtx_idx[n_cell], False)
            }
 
 def interp_intersection_volumes_get(char * local_code_name,
