@@ -142,6 +142,12 @@ namespace cwipi {
       return _id_writer_var_send;
     }
 
+    inline int
+    _id_writer_var_send_status_get()
+    {
+      return _id_writer_var_send_status;
+    }
+
     inline int *
     _id_writer_var_recv_get()
     {
@@ -149,9 +155,9 @@ namespace cwipi {
     }
 
     inline int
-    _id_writer_var_recv_computed_get()
+    _id_writer_var_recv_status_get()
     {
-      return _id_writer_var_recv_computed;
+      return _id_writer_var_recv_status;
     }
 
     /**

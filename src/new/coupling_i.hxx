@@ -788,8 +788,10 @@ namespace cwipi {
           if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
           if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
         }
-        int id_recv_computed = itf->second->_id_writer_var_recv_computed_get();
-        if (id_recv_computed >= 0) PDM_writer_var_data_free(_writer, id_recv_computed);
+        int id_send_status = itf->second->_id_writer_var_send_status_get();
+        if (id_send_status >= 0) PDM_writer_var_data_free(_writer, id_send_status);
+        int id_recv_status = itf->second->_id_writer_var_recv_status_get();
+        if (id_recv_status >= 0) PDM_writer_var_data_free(_writer, id_recv_status);
         itf++;
       }
     }
