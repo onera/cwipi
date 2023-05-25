@@ -191,6 +191,14 @@ module cwp
         CWP_Time_update_
     end interface CWP_Time_update
 
+    interface CWP_Time_step_beg ; module procedure &
+        CWP_Time_step_beg_
+    end interface CWP_Time_step_beg
+
+    interface CWP_Time_step_end ; module procedure &
+        CWP_Time_step_end_
+    end interface CWP_Time_step_end
+
     interface CWP_User_structure_set ; module procedure &
         CWP_User_structure_set_
     end interface CWP_User_structure_set
@@ -250,6 +258,10 @@ module cwp
     interface CWP_Visu_set ; module procedure &
         CWP_Visu_set_
     end interface CWP_Visu_set
+
+    interface CWP_Visu_end ; module procedure &
+        CWP_Visu_end_
+    end interface CWP_Visu_end
 
     interface CWP_User_tgt_pts_set ; module procedure &
         CWP_User_tgt_pts_set_
@@ -512,6 +524,8 @@ module cwp
              CWP_Init_ ,&
              CWP_State_update_ ,&
              CWP_Time_update_ ,&
+             CWP_Time_step_beg_ ,&
+             CWP_Time_step_end_ ,&
              CWP_User_structure_set_ ,&
              CWP_User_structure_get_ ,&
              CWP_Output_file_set_,&
@@ -527,6 +541,7 @@ module cwp
              CWP_Spatial_interp_weights_compute_ ,&
              CWP_Spatial_interp_property_set_ ,&
              CWP_Visu_set_ ,&
+             CWP_Visu_end_ ,&
              CWP_User_tgt_pts_set_ ,&
              CWP_Mesh_interf_finalize_ ,&
              CWP_Mesh_interf_vtx_set_ ,&
@@ -600,7 +615,7 @@ module cwp
              CWP_set_toto_
 
     interface
-      subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
+      subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
         use, intrinsic :: iso_c_binding
         implicit none
@@ -609,7 +624,6 @@ module cwp
         type(c_ptr),    value             :: code_names
         type(c_ptr),    value             :: l_code_names
         integer(c_int), dimension(n_code) :: is_active_rank
-        real(c_double), dimension(n_code) :: time_init
         type(c_ptr),    value             :: intra_comms
       end subroutine CWP_Init_cf
 
@@ -629,6 +643,23 @@ module cwp
         integer(c_int), value             :: l_local_code_name
         real(c_double), value             :: current_time
       end subroutine CWP_Time_update_cf
+
+      subroutine CWP_Time_step_beg_cf(local_code_name, l_local_code_name, current_time) &
+        bind(c, name='CWP_Time_step_beg_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        real(c_double), value             :: current_time
+      end subroutine CWP_Time_step_beg_cf
+
+      subroutine CWP_Time_step_end_cf(local_code_name, l_local_code_name) &
+        bind(c, name='CWP_Time_step_end_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+      end subroutine CWP_Time_step_end_cf
 
       subroutine CWP_User_structure_set_cf(local_code_name, l_local_code_name, user_structure) &
         bind (c, name="CWP_User_structure_set_cf")
@@ -834,6 +865,14 @@ module cwp
         integer(c_int), value :: format
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_format_option
       end subroutine CWP_Visu_set_cf
+
+      subroutine CWP_Visu_end_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
+            bind(c, name = 'CWP_Visu_end_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Visu_end_cf
 
       subroutine CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, coord, global_num) &
               bind(c, name = 'CWP_User_tgt_pts_set_cf')
@@ -1831,16 +1870,14 @@ contains
   !! \param [in]  n_code         Number of codes on the current rank
   !! \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
   !! \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
-  !! \param [in]  time_init      Initial time (size = \p n_code)
   !! \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
   !!
   !!
 
-  subroutine CWP_Init_ (fcomm,          &
+  subroutine CWP_Init_(fcomm,          &
                        n_code,         &
                        code_names,     &
                        is_active_rank, &
-                       time_init,      &
                        intra_comms)
 
     use, intrinsic :: iso_c_binding
@@ -1850,7 +1887,6 @@ contains
     integer(c_int), intent(in) :: n_code
     character(kind = c_char, len = *), dimension(n_code), target :: code_names
     integer(c_int), dimension(n_code) :: is_active_rank
-    real(c_double), dimension(n_code) :: time_init
     integer(c_int), dimension(:), pointer :: intra_comms
     integer, dimension(n_code), target :: l_code_names
     integer :: i
@@ -1863,7 +1899,6 @@ contains
                      c_loc(code_names),   &
                      c_loc(l_code_names), &
                      is_active_rank,      &
-                     time_init,           &
                      c_loc(intra_comms))
 
   end subroutine CWP_Init_
@@ -1921,6 +1956,54 @@ contains
                             current_time)
 
   end subroutine CWP_Time_update_
+
+  !>
+  !! \brief Begin code time step.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in]  current_time Current time
+  !!
+  !!
+
+  subroutine CWP_Time_step_beg_(local_code_name, &
+                             current_time)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    double precision, intent(in)      :: current_time
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    call CWP_Time_step_beg_cf(local_code_name,   &
+                            l_local_code_name, &
+                            current_time)
+
+  end subroutine CWP_Time_step_beg_
+
+  !>
+  !! \brief End code time step.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !!
+  !!
+
+  subroutine CWP_Time_step_end_(local_code_name)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    call CWP_Time_step_end_cf(local_code_name,   &
+                              l_local_code_name)
+
+  end subroutine CWP_Time_step_end_
 
   subroutine CWP_User_structure_set_(local_code_name, &
                                     user_structure)
@@ -2601,6 +2684,28 @@ contains
     l_format_option = len(format_option)
 
     call CWP_Visu_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, freq, format, format_option, l_format_option)
+  end subroutine
+
+  !>
+  !! \brief End visualization output.
+  !!
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !!
+
+  subroutine CWP_Visu_end_ (local_code_name, &
+                           cpl_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Visu_end_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
   end subroutine
 
 
@@ -5526,14 +5631,14 @@ contains
 
 
   subroutine CWP_set_toto_(fun)
-  use iso_c_binding
+    use iso_c_binding
     implicit none
     interface
-    subroutine fun(i) bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_int), value, intent(in) :: i
-    end subroutine fun
+      subroutine fun(i) bind(c)
+        use, intrinsic :: iso_c_binding
+        implicit none
+        integer(c_int), value, intent(in) :: i
+      end subroutine fun
     end interface
 
     call CWP_set_toto_cf(c_funloc(fun))

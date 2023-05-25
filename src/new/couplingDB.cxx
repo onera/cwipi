@@ -159,9 +159,6 @@ namespace cwipi {
     }
   }
 
-
-
-
   void
   CouplingDB::timeUpdate
   (
@@ -178,4 +175,38 @@ namespace cwipi {
       itc++;
     }
   }
+
+  void
+  CouplingDB::time_step_beg
+  (
+   const CodeProperties &localCodeProperties,
+   double                current_time
+  )
+  {
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+
+    map < string, Coupling * > :: iterator itc = p->second.begin();
+    while (itc != p->second.end()) {
+      itc->second->time_step_beg(current_time);
+      itc++;
+    }
+  }
+
+  void
+  CouplingDB::time_step_end
+  (
+   const CodeProperties &localCodeProperties
+  )
+  {
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+
+    map < string, Coupling * > :: iterator itc = p->second.begin();
+    while (itc != p->second.end()) {
+      itc->second->time_step_end();
+      itc++;
+    }
+  }
+
 }

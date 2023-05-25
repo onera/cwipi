@@ -273,7 +273,6 @@ main
   const char   **code_name         = malloc(sizeof(char       *) * n_code);
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
   CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
-  double        *time_init         = malloc(sizeof(double      ) * n_code);
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
   PDM_g_num_t   *n_vtx_seg         = malloc(sizeof(PDM_g_num_t ) * n_code);
 
@@ -284,7 +283,6 @@ main
       code_name        [n_code] = all_code_names[icode];
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       is_active_rank   [n_code] = CWP_STATUS_ON;
-      time_init        [n_code] = 0.;
       n_vtx_seg        [n_code] = all_n_vtx_seg[icode];
 
       if (verbose) {
@@ -300,7 +298,6 @@ main
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   MPI_Barrier(comm);
@@ -479,6 +476,12 @@ main
 
   double recv_time = 0.;
   for (int step = 0; step < 15; step++) {
+
+    for (int icode = 0; icode < n_code; icode++) {
+      CWP_Time_step_beg(code_name[icode],
+                        recv_time);
+    }
+
     if (i_rank == 0) {
       printf("\n  Step %d\n", step);
     }
@@ -501,11 +504,6 @@ main
                   &tgt_coord[3*i+2],
                   recv_time);
         }
-      }
-
-      if (step > 0) {
-        CWP_Time_update(code_name[icode],
-                        recv_time);
       }
     }
 
@@ -563,6 +561,10 @@ main
              g_integral[0], g_integral[1], fabs(g_integral[0] - g_integral[1])/fabs(g_integral[1]));
     }
 
+    for (int icode = 0; icode < n_code; icode++) {
+      CWP_Time_step_end(code_name[icode]);
+    }
+
   }
 
 
@@ -589,6 +591,7 @@ main
   free(elt_vtx    );
 
   for (int icode = 0; icode < n_code; icode++) {
+
     CWP_Mesh_interf_del(code_name[icode], cpl_name);
 
     CWP_Cpl_del(code_name[icode], cpl_name);
@@ -598,7 +601,6 @@ main
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
   free(n_vtx_seg);
 
   CWP_Finalize();

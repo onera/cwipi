@@ -146,17 +146,11 @@ main(int argc, char *argv[]) {
   sprintf(fileName, "c_new_api_000%d.txt", rank);
   outputFile = fopen(fileName, "w");
 
-  times_init = malloc(sizeof(double) * n_code);
-  for (int i = 0 ; i < n_code ; i++) {
-    times_init[i] = 0;
-  }
-
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_names,
            is_coupled_rank,
-           times_init,
            localComm);
 
   // Output redirection
@@ -503,6 +497,34 @@ main(int argc, char *argv[]) {
     CWP_Visu_set("code4", cpl_id6, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
   }
 
+  // Begin time step
+  if (cond_code1) {
+    CWP_Time_step_beg("code1", 0.0);
+  }
+  if (cond_code2) {
+    CWP_Time_step_beg("code2", 0.0);
+  }
+  if (cond_code3) {
+    CWP_Time_step_beg("code3", 0.0);
+  }
+  if (cond_code4) {
+    CWP_Time_step_beg("code4", 0.0);
+  }
+
+  // End time step
+  if (cond_code1) {
+    CWP_Time_step_end("code1");
+  }
+  if (cond_code2) {
+    CWP_Time_step_end("code2");
+  }
+  if (cond_code3) {
+    CWP_Time_step_end("code3");
+  }
+  if (cond_code4) {
+    CWP_Time_step_end("code4");
+  }
+
   // Delete coupling
   if (cond_code1) {
     CWP_Cpl_del("code1", cpl_id1);
@@ -555,7 +577,6 @@ main(int argc, char *argv[]) {
   free(localComm);
   free(code_names);
   free(is_coupled_rank);
-  free(times_init);
   fclose(outputFile);
 
   return 0;

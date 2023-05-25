@@ -64,7 +64,6 @@ program testf
   character(len=5),     pointer :: code_name(:)         => null()
   character(len=5),     pointer :: coupled_code_name(:) => null()
   integer(c_int),       pointer :: is_coupled_rank(:)   => null()
-  double precision,     pointer :: time_init(:)         => null()
   integer(c_int),       pointer :: intra_comms(:)       => null()
   character(len=99)             :: coupling_name
 
@@ -168,7 +167,6 @@ program testf
            code_name(n_code),         &
            coupled_code_name(n_code), &
            is_coupled_rank(n_code),   &
-           time_init(n_code),         &
            intra_comms(n_code),       &
            mesh(n_code))
 
@@ -182,7 +180,6 @@ program testf
       write (strnum, '(i1)') mod(i,2)+1
       coupled_code_name(n_code) = "code" // strnum
       is_coupled_rank  (n_code) = CWP_STATUS_ON
-      time_init        (n_code) = 0.d0
 
       mesh(n_code)%n_part = all_n_part(i)
 
@@ -199,7 +196,6 @@ program testf
                 n_code,          &
                 code_name,       &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   call MPI_Barrier(MPI_comm_world, ierr)
@@ -389,6 +385,10 @@ program testf
 
   enddo
 
+  do i = 1, n_code
+    call CWP_Time_step_beg(code_name(i),  &
+                           0.d0)
+  enddo
 
   call MPI_Barrier(MPI_comm_world, ierr)
   if (i_rank == 0) then
@@ -715,6 +715,10 @@ program testf
     close(iiunit)
   endif
 
+  do i = 1, n_code
+    call CWP_Time_step_end(code_name(i))
+  enddo
+
   ! Delete interface mesh
   do i = 1, n_code
     call CWP_Mesh_interf_del(code_name(i),  &
@@ -735,7 +739,6 @@ program testf
              code_name,         &
              coupled_code_name, &
              is_coupled_rank,   &
-             time_init,         &
              intra_comms,       &
              mesh)
 

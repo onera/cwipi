@@ -539,6 +539,15 @@ namespace cwipi {
     inline Visu* 
     visuGet ();
 
+    /**
+     *
+     * \brief End visualization output
+     *
+     */
+
+    void
+    visuEnd ();
+
 
     /**
      *
@@ -1748,7 +1757,6 @@ namespace cwipi {
     void
     timeUpdate (double current_time);
 
-
     int
     isUpToDateGet ();
 
@@ -1756,6 +1764,15 @@ namespace cwipi {
     void
     isUpToDateSet ();
 
+    // Begin code time step
+
+    void
+    time_step_beg (double current_time);
+
+    // End code time step
+
+    void
+    time_step_end ();
 
     inline int
     idGeomWriterGet(CWP_Dof_location_t dof_location);

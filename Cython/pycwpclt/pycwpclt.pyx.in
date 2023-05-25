@@ -155,8 +155,7 @@ cdef extern from "client_server/client.h":
   void CWP_client_Init(MPI.MPI_Comm       global_comm,
                        char              *config,
                        char              *code_name,
-                       CWP_Status_t       is_active_rank,
-                       double             time_init)
+                       CWP_Status_t       is_active_rank)
   void CWP_client_Finalize()
 
   # --> functions about current code properties
@@ -735,8 +734,7 @@ cdef long** np_list_to_long_pointers(list datas):
 def init(MPI.Comm global_comm,
          char*    config,
          char*    code_name,
-         int      is_active_rank,
-         double   time_init):
+         int      is_active_rank):
     """
     Initialize CWIPI library and create intra-communicator.
 
@@ -747,7 +745,6 @@ def init(MPI.Comm global_comm,
       config         (char*   )  : path to server configuration file
       code_name      (char*   )  : name of local code
       is_active_rank (int)       : Does current rank have to be used by CWIPI
-      time_init      (double)    : Initial time
     """
 
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
@@ -760,8 +757,7 @@ def init(MPI.Comm global_comm,
     CWP_client_Init(c_global_comm,
                     config,
                     c_code_name,
-     <CWP_Status_t> is_active_rank,
-                    time_init)
+     <CWP_Status_t> is_active_rank)
 
 def finalize():
     """

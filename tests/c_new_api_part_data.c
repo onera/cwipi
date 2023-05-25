@@ -140,13 +140,11 @@ main(int argc, char *argv[]) {
     const char **code_name = malloc(sizeof(char *) * n_code);
     const char **coupled_code_name = malloc(sizeof(char *) * n_code);
     CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    double *time_init = malloc(sizeof(double) * n_code);
 
     if (rank == 0) {
       code_name[0] = "code1";
       coupled_code_name[0] = "code2";
       is_active_rank[0] = CWP_STATUS_ON;
-      time_init[0] = 0.;
     }
 
     if (rank == 1) {
@@ -156,8 +154,6 @@ main(int argc, char *argv[]) {
       coupled_code_name[1] = "code1";
       is_active_rank[0] = CWP_STATUS_ON;
       is_active_rank[1] = CWP_STATUS_ON;
-      time_init[0] = 0.;
-      time_init[1] = 0.;
     }
 
     MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
@@ -165,7 +161,6 @@ main(int argc, char *argv[]) {
              n_code,
              (const char **) code_name,
              is_active_rank,
-             time_init,
              intra_comm);
 
     // Create coupling
@@ -477,7 +472,6 @@ main(int argc, char *argv[]) {
     free(code_name);
     free(coupled_code_name);
     free(is_active_rank);
-    free(time_init);
     free(intra_comm);
 
     if (rank == 0 || rank == 1) {
@@ -535,10 +529,8 @@ main(int argc, char *argv[]) {
     const char **code_name = malloc(sizeof(char *) * n_code);
     const char **coupled_code_name = malloc(sizeof(char *) * n_code);
     CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    double *time_init = malloc(sizeof(double) * n_code);
 
     is_active_rank[0] = CWP_STATUS_ON ;
-    time_init[0] = 0.;
 
     if (code_id == 1) {
       code_name[0] = "code1";
@@ -554,7 +546,6 @@ main(int argc, char *argv[]) {
              n_code,
              (const char **) code_name,
              is_active_rank,
-             time_init,
              intra_comm);
 
     if (verbose && rank == 0) {
@@ -724,7 +715,6 @@ main(int argc, char *argv[]) {
     free(code_name);
     free(coupled_code_name);
     free(is_active_rank);
-    free(time_init);
     free(intra_comm);
 
     if (part1_to_part2_data != NULL) {

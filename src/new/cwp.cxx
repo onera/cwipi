@@ -280,7 +280,6 @@ static int _cwipi_flush_output_listing(void)
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
  * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
- * \param [in]  time_init      Initial time (size = \p n_code)
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -292,7 +291,6 @@ CWP_Init
  const int                n_code,
  const char             **code_names,
  const CWP_Status_t      *is_active_rank,
- const double            *time_init,
  MPI_Comm                *intra_comms
 )
 {
@@ -356,7 +354,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i];
-    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
+    properties.ctrlParamAdd <double> (codeNameStr, "time", 0.0); // WARNING : default first step 0.0
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
 
@@ -618,7 +616,68 @@ CWP_Time_update
 
 }
 
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in]  current_time Current time
+ *
+ */
 
+void
+CWP_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+)
+{
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+
+  int is_locked = properties.isLocked(local_code_name);
+
+  if (!is_locked) {
+    properties.lock(local_code_name);
+  }
+
+  properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
+
+  if (!is_locked) {
+    properties.unLock(local_code_name);
+  }
+
+  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
+
+  MPI_Barrier (intra_comm);
+
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+
+  couplingDB.time_step_beg(properties.codePropertiesGet(local_code_name),
+                           current_time);
+}
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end
+(
+ const char* local_code_name
+)
+{
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+
+  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
+
+  MPI_Barrier (intra_comm);
+
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+
+  couplingDB.time_step_end(properties.codePropertiesGet(local_code_name));
+}
 
 /**
  * \brief Define a user structure associated to a code
@@ -823,6 +882,8 @@ const char *cpl_id
     cwipi::CodePropertiesDB::getInstance();
 
   const string &cpl_id_str = cpl_id;
+
+  CWP_Visu_end(local_code_name, cpl_id);
 
   couplingDB.couplingDel(properties.codePropertiesGet(string(local_code_name)),
                          cpl_id_str);
@@ -1320,6 +1381,26 @@ CWP_Visu_set
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.visuSet(freq, format, format_option);
+  }
+}
+
+/**
+ * \brief End visualization output.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Visu_end
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id
+)
+{
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.visuEnd();
   }
 }
 
@@ -3665,9 +3746,7 @@ void
 CWP_call_toto()
 {
   // printf(">>> toto_f %ld\n", (void *) toto_f);
-  // (*toto_f)();
-  // appelle_toto((void *) toto_f, 3);
-  // printf("<<< toto_f\n");
+  // (*toto_f)(3);
 }
 /*-----------------------------------------------------------------------------*/
 

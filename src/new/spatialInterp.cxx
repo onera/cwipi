@@ -353,7 +353,7 @@ namespace cwipi {
 
   void SpatialInterp::issend(Field* referenceField) {
 
-    if (referenceField->currentStepWasExchangedGet()) {
+    if (referenceField->is_send_yet_get() == 1) {
       PDM_error(__FILE__, __LINE__, 0,
                 "The field has already been exchanged for the current time step "
                 "(CWP_Time_update must be called before the exchange)\n");
@@ -850,12 +850,15 @@ namespace cwipi {
         }
       } // end if local code works
     } // end if joint
+
+    // set field to sent
+    referenceField->is_send_yet_set(1);
   }
 
 
   void SpatialInterp::irecv(Field *referenceField) {
 
-    if (referenceField->currentStepWasExchangedGet()) {
+    if (referenceField->is_recv_yet_get()) {
       PDM_error(__FILE__, __LINE__, 0,
                 "The field has already been exchanged for the current time step "
                 "(CWP_Time_update must be called before the exchange)\n");
@@ -1338,6 +1341,9 @@ namespace cwipi {
 
       } // if local rank has to work
     } // end if joint
+
+    // set field to received
+    referenceField->is_recv_yet_set(1);
   }
 
 

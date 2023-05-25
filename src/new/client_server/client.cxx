@@ -841,7 +841,6 @@ CWP_client_disconnect
  * \param [in]  config         Configuration file name
  * \param [in]  code_name      Name of the code on current rank
  * \param [in]  is_active_rank Does current rank have to be used by CWIPI
- * \param [in]  time_init      Initial time
  *
  */
 
@@ -851,8 +850,7 @@ CWP_client_Init
         MPI_Comm           comm,
         char              *config,
   const char              *code_name,
-  const CWP_Status_t       is_active_rank,
-  const double             time_init
+  const CWP_Status_t       is_active_rank
 )
 {
   const int n_code = 1;
@@ -1108,16 +1106,13 @@ CWP_client_Init
   // endian swap
   int          endian_n_code         = n_code;
   CWP_Status_t endian_is_active_rank = is_active_rank;
-  double       endian_time_init      = time_init;
   CWP_swap_endian_4bytes(&endian_n_code, 1);
   CWP_swap_endian_4bytes((int *) &endian_is_active_rank, 1);
-  CWP_swap_endian_8bytes(&endian_time_init, n_code);
 
   // send arguments
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_code, sizeof(int));
   write_name(code_name);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_is_active_rank, n_code * sizeof(CWP_Status_t));
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_time_init, n_code * sizeof(double));
 
   // receive status msg
   MPI_Barrier(clt->comm);

@@ -524,7 +524,6 @@ main(int argc, char *argv[]) {
     code_name = "code2";
   }
 
-  double       time_init       = 0;
   CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
 
   // Client intra-communicator
@@ -534,8 +533,7 @@ main(int argc, char *argv[]) {
   CWP_client_Init(intra_comm,
                   config,
                   code_name,
-                  is_coupled_rank,
-                  time_init);
+                  is_coupled_rank);
 
   // EXIT_SUCCESS ?
   int exit_check = 0;

@@ -142,6 +142,12 @@ namespace cwipi {
       return _id_writer_var_send;
     }
 
+    inline int
+    _id_writer_var_send_status_get()
+    {
+      return _id_writer_var_send_status;
+    }
+
     inline int *
     _id_writer_var_recv_get()
     {
@@ -149,9 +155,9 @@ namespace cwipi {
     }
 
     inline int
-    _id_writer_var_recv_computed_get()
+    _id_writer_var_recv_status_get()
     {
-      return _id_writer_var_recv_computed;
+      return _id_writer_var_recv_status;
     }
 
     /**
@@ -274,15 +280,46 @@ namespace cwipi {
     //   return _data;
     // }
 
-
-    void currentStepWasExchangedReset()
+    // Field has been sent ?
+    void is_send_yet_set (int value)
     {
-      _current_step_was_exchanged = 0;
+      _is_send_yet = value;
     }
 
-    int currentStepWasExchangedGet() const
+    int is_send_yet_get ()
     {
-      return _current_step_was_exchanged;
+      return _is_send_yet;
+    }
+
+    void is_send_end_step_set (int value)
+    {
+      _is_send_end_step = value;
+    }
+
+    int is_send_end_step_get ()
+    {
+      return _is_send_end_step;
+    }
+
+    // Field has been received ?
+    void is_recv_yet_set (int value)
+    {
+      _is_recv_yet = value;
+    }
+
+    int is_recv_yet_get ()
+    {
+      return _is_recv_yet;
+    }
+
+    void is_recv_end_step_set (int value)
+    {
+      _is_recv_end_step = value;
+    }
+
+    int is_recv_end_step_get ()
+    {
+      return _is_recv_end_step;
     }
 
     int computedTgtBcastIsEnabled() const
@@ -377,7 +414,11 @@ namespace cwipi {
     PDM_writer_t                            *_writer;
     int                                     *_id_writer_var_send;
     int                                     *_id_writer_var_recv;
-    int                                      _id_writer_var_recv_computed;
+    /* status = -1: not exchanged,
+                 0: computed and exchanged,
+                 1: not computed and exchanged */
+    int                                      _id_writer_var_send_status;
+    int                                      _id_writer_var_recv_status;
 
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
@@ -389,10 +430,14 @@ namespace cwipi {
     Field &operator=(const Field &other);       /*!< Assignment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
 
-    int                                      _current_step_was_exchanged;
-
     int                                      _computed_tgt_bcast_enabled;
     int                                      _involved_src_bcast_enabled;
+
+    // writer
+    int _is_send_yet;      /*!< Tells if a field has been sent at a given moment */
+    int _is_send_end_step; /*!< Tells if a field has been sent at the end of a step */
+    int _is_recv_yet;      /*!< Tells if a field has been received at a given moment */
+    int _is_recv_end_step; /*!< Tells if a field has been received at the end of a step */
   };
 
 }

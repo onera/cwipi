@@ -186,7 +186,6 @@ _fortran_to_c_string (
  * \param [in]  f_code_names   Names of codes on the current rank (size = \p n_code)
  * \param [in]  l_code_names   Length of code names on the current rank (size = \p n_code)
  * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
- * \param [in]  time_init      Initial time (size = \p n_code)
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -198,7 +197,6 @@ CWP_Init_cf (
   const char *f_code_names,
   const int *l_code_names, 
   const int *is_active_rank, 
-  const double *time_init, 
   MPI_Fint *f_intra_comms
 ) 
 {
@@ -218,7 +216,7 @@ CWP_Init_cf (
   // Allocate local communicators in C
   MPI_Comm *c_intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
-  CWP_Init(c_global_comm, n_code, (const char **) c_code_names, (CWP_Status_t *) is_active_rank, time_init, c_intra_comms);
+  CWP_Init(c_global_comm, n_code, (const char **) c_code_names, (CWP_Status_t *) is_active_rank, c_intra_comms);
 
   // Convert local communicators to Fortran
   for (int i = 0 ; i < n_code ; i++) {
@@ -285,6 +283,51 @@ CWP_Time_update_cf
 
   CWP_Time_update (c_local_code_name, current_time);
   
+  free ( c_local_code_name);
+}
+
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] l_local_code_name Length of Fortran local code name
+ * \param [in]  current_time Current time
+ *
+ */
+
+void
+CWP_Time_step_beg_cf
+(
+ const char* local_code_name,
+ const int l_local_code_name,
+ const double current_time
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  CWP_Time_step_beg (c_local_code_name, current_time);
+
+  free ( c_local_code_name);
+}
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end_cf
+(
+ const char* local_code_name,
+ const int l_local_code_name
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  CWP_Time_step_end (c_local_code_name);
+
   free ( c_local_code_name);
 }
 
@@ -881,6 +924,33 @@ void CWP_Visu_set_cf (
   free ( c_local_code_name);
   free ( c_cpl_id);
   free ( c_format_option);
+}
+
+/**
+ * \brief End visualization output.
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ */
+
+void CWP_Visu_end_cf (
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+
+  CWP_Visu_end(c_local_code_name, c_cpl_id);
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 /*----------------------------------------------------------------------------*

@@ -154,7 +154,6 @@ int main ( int argc, char *argv[] )
   int id_code = 0;
 
   const char  *code_name       = NULL;
-  double       time_init       = 0.;
   CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
 
   if (i_rank == 0) {
@@ -188,8 +187,7 @@ int main ( int argc, char *argv[] )
   CWP_client_Init(intra_comm,
                   config,
                   code_name,
-                  is_coupled_rank,
-                  time_init);
+                  is_coupled_rank);
 
   // CWP_User_structure_*
   CWP_client_User_structure_set("code1", NULL);

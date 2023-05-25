@@ -410,7 +410,6 @@ int main(int argc, char *argv[])
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
 
   int n_vtx_seg;
   if (rank < comm_world_size / 2) {
@@ -429,13 +428,11 @@ int main(int argc, char *argv[])
 
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0] = 0.;
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
 
@@ -652,7 +649,6 @@ int main(int argc, char *argv[])
       printf("  Step %d\n", step);
     }
 
-
     // Mesh rotation and new localisation
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
       if (code_id[i_code] == 1) {
@@ -661,53 +657,14 @@ int main(int argc, char *argv[])
         mesh_rotate(pvtx_coord[i_code][0], pn_vtx[i_code][0], 3 * recv_time);
       }
 
-      CWP_next_recv_time_set(code_name[i_code],
-                             cpl_name,
-                             recv_time);
-      if (step > 0) {
-        CWP_Time_update(code_name[i_code],
+      // Start time step
+      CWP_Time_step_beg(code_name[i_code],
                         recv_time);
 
-        if (variable_mesh && step%2 == 0) {
-          CWP_Mesh_interf_del(code_name[i_code],
-                              cpl_name);
-
-          // redundant call just to check it does not break anything
-          CWP_Mesh_interf_del(code_name[i_code],
-                              cpl_name);
-
-          if (code_id[i_code] == 1) {
-            CWP_Field_data_set(code_name[i_code],
-                               cpl_name,
-                               field_name1,
-                               0,
-                               CWP_FIELD_MAP_SOURCE,
-                               send_val[i_code]);
-            CWP_Field_data_set(code_name[i_code],
-                               cpl_name,
-                               field_name2,
-                               0,
-                               CWP_FIELD_MAP_TARGET,
-                               recv_val[i_code]);
-          }
-          else {
-            CWP_Field_data_set(code_name[i_code],
-                               cpl_name,
-                               field_name1,
-                               0,
-                               CWP_FIELD_MAP_TARGET,
-                               recv_val[i_code]);
-            CWP_Field_data_set(code_name[i_code],
-                               cpl_name,
-                               field_name2,
-                               0,
-                               CWP_FIELD_MAP_SOURCE,
-                               send_val[i_code]);
-          }
-        }
-      }
-
       if (variable_mesh && step%2 == 0) {
+        CWP_Mesh_interf_del(code_name[i_code],
+                            cpl_name);
+
         CWP_Mesh_interf_vtx_set(code_name[i_code],
                                 cpl_name,
                                 0,
@@ -743,8 +700,6 @@ int main(int argc, char *argv[])
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
 
-    recv_time += 1.;
-
     MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -771,15 +726,23 @@ int main(int argc, char *argv[])
       }
     }
 
+    // End time step
+    for (int i_code = 0 ; i_code < n_code ; i_code++) {
+      CWP_Time_step_end(code_name[i_code]);
+    }
 
+    // Increase
+    recv_time += 1.;
 
   }
 
 
-
-
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Mesh_interf_del(code_name[i_code], cpl_name);
+  }
+
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    CWP_Visu_end(code_name[i_code], cpl_name);
   }
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -823,7 +786,6 @@ int main(int argc, char *argv[])
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
 
   //  Finalize CWIPI
   CWP_Finalize();

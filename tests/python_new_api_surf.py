@@ -290,6 +290,9 @@ def runTest():
                             exch_type,
                             visu_status)
 
+    pycwp.time_step_beg(code_name[icode],
+                        0.0);
+
     for ipart in range(n_part[icode]):
       cpl[icode].field_set(field_name,
                            ipart,
@@ -466,6 +469,7 @@ def runTest():
 
   for icode in range(n_code):
     cpl[icode].field_del(field_name)
+    pycwp.time_step_end(code_name[icode])
     cpl[icode].mesh_interf_del()
 
   # FINALIZE

@@ -373,7 +373,7 @@ typedef void (*CWP_Interp_function_t)
  double               *buffer_out
 );
 
-typedef void (*ma_fonction_t)( void );
+typedef void (*ma_fonction_t)( int i );
 
 
 /*=============================================================================
@@ -403,7 +403,6 @@ typedef void (*ma_fonction_t)( void );
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
  * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
- * \param [in]  time_init      Initial time (size = \p n_code)
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -415,7 +414,6 @@ CWP_Init
  const int                n_code,
  const char             **code_names,
  const CWP_Status_t      *is_active_rank,
- const double            *time_init,
  MPI_Comm                *intra_comms
 );
 
@@ -464,6 +462,34 @@ CWP_Time_update
 (
  const char* local_code_name,
  const double current_time
+);
+
+/**
+ * \brief Begin code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in]  current_time Current time
+ *
+ */
+
+void
+CWP_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+);
+
+/**
+ * \brief End code time step.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Time_step_end
+(
+ const char* local_code_name
 );
 
 
@@ -920,6 +946,20 @@ CWP_Visu_set
  const int                   freq,
  const CWP_Visu_format_t     format,
  const char                 *format_option
+);
+
+/**
+ * \brief End visualization output.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_Visu_end
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id
 );
 
 /*----------------------------------------------------------------------------*

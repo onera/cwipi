@@ -182,7 +182,6 @@ main
   const char   *code_name         = NULL;
   const char   *coupled_code_name = NULL;
   CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
-  double        time_init         = 0.;
   int           n_part            = 1;
 
   if (is_code1) {
@@ -201,7 +200,6 @@ main
            1,
            &code_name,
            &is_active_rank,
-           &time_init,
            &intra_comm);
 
   // EXIT_SUCCESS ?
@@ -270,6 +268,9 @@ main
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
   }
+
+  CWP_Time_step_beg(code_name,
+                    0.0);
 
   double *send_val1 = NULL;
   double *recv_val1 = NULL;
@@ -515,9 +516,10 @@ main
     free(recv_val2);
   }
 
-  // Update time
-  log_trace("\n> CWP_Time_update\n\n");
-  CWP_Time_update(code_name, 1.0);
+  CWP_Time_step_end(code_name);
+
+  CWP_Time_step_beg(code_name,
+                    1.0);
 
   // Create new mesh
   int n_second_vtx = 6;
@@ -544,7 +546,6 @@ main
                                 third_connec,
                                 NULL);
 
-  log_trace(">>>>>\n");
   CWP_Mesh_interf_finalize(code_name, cpl_name);
 
 
@@ -624,6 +625,8 @@ main
     free(recv_val1);
     free(recv_val2);
   }
+
+  CWP_Time_step_end(code_name);
 
   // Delete mesh
   CWP_Mesh_interf_del(code_name, cpl_name);

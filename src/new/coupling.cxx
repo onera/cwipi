@@ -215,16 +215,6 @@ namespace cwipi {
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
-    // if(_visu.isCreated()) {
-    //    _visu.WriterStepEnd();
-    // }
-
-    // TO DO : remove related leaks
-    // if (_writer != NULL) {
-    //   PDM_writer_free (_writer);
-    //   _writer = nullptr;
-    // }
-
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
         delete it->second;
@@ -244,8 +234,6 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-      // if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
-      //   _visu.fieldDataFree(itf->second);
       if (itf->second != NULL) delete itf->second;
       itf++;
     }
@@ -2860,6 +2848,21 @@ namespace cwipi {
     }
   }
 
+  /**
+   *
+   * \brief End visualization output
+   *
+   */
+
+  void
+  Coupling::visuEnd ()
+  {
+    if (_writer != NULL) {
+      PDM_writer_free (_writer);
+      _writer = nullptr;
+    }
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods  about mesh                                                        *
    *----------------------------------------------------------------------------*/
@@ -3220,7 +3223,7 @@ namespace cwipi {
 
         Field* recvField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          recvField = it->second;
+          recvField = cpl_it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -3428,7 +3431,7 @@ namespace cwipi {
 
         Field* sendField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          sendField = it->second;
+          sendField = cpl_it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -3528,7 +3531,6 @@ namespace cwipi {
     double current_time
   )
   {
-
     _n_step++;
 
     if (_writer != NULL) {
@@ -3541,7 +3543,7 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-      itf->second->currentStepWasExchangedReset();
+      // itf->second->currentStepWasExchangedReset(); // TO DO
       itf++;
     }
 
@@ -3553,6 +3555,71 @@ namespace cwipi {
     //    _visu.WriterStepBegin(current_time, &_mesh);
     // }
 
+  }
+
+  // Begin code time step
+
+  void
+  Coupling::time_step_beg (
+    double current_time
+  )
+  {
+    // if first time step do not PDM_writer_step_beg, has to be done after variable
+    // creation in exportMesh
+    // open time step if there is a writer, no step is open and it is a writting step
+    if (_n_step != 0 && _writer != NULL && PDM_writer_is_open_step(_writer) == 0 && (_n_step % _freq_writer == 0)) {
+      PDM_writer_step_beg(_writer, current_time);
+    }
+  }
+
+  // End code time step
+
+  void
+  Coupling::time_step_end ()
+  {
+    // if there is a writer, a step is open and it is a writting step
+    if (_writer != NULL && PDM_writer_is_open_step(_writer) == 1 && (_n_step % _freq_writer == 0)) {
+
+      // some unexchanged visu ON
+      std::map < string, Field * >::iterator it_f1 = _fields.begin();
+      while (it_f1 != _fields.end()) {
+        // field unexchanged visu ON
+        if (it_f1->second->visuStatusGet() == CWP_STATUS_ON) {
+          CWP_Field_exch_t exchange_type = it_f1->second->exchangeTypeGet();
+          if (exchange_type == CWP_FIELD_EXCH_SEND || exchange_type == CWP_FIELD_EXCH_SENDRECV) {
+            // has not been sent
+            if (it_f1->second->is_send_yet_get() == 0) {
+              it_f1->second->is_send_end_step_set(1);
+              it_f1->second->write(CWP_FIELD_EXCH_SEND);
+              it_f1->second->is_send_end_step_set(0);
+            }
+          }
+          else if (exchange_type == CWP_FIELD_EXCH_RECV || exchange_type == CWP_FIELD_EXCH_SENDRECV) {
+            // has not been received
+            if (it_f1->second->is_recv_yet_get() == 0) {
+              it_f1->second->is_recv_end_step_set(1);
+              it_f1->second->write(CWP_FIELD_EXCH_RECV);
+              it_f1->second->is_recv_end_step_set(0);
+            }
+          }
+        }
+        it_f1++;
+      }
+
+      // end step
+      PDM_writer_step_end(_writer);
+    }
+
+    // increment step
+    _n_step++;
+
+    // reset field status to unexchanged
+    std::map < string, Field * >::iterator it_f2 = _fields.begin();
+    while (it_f2 != _fields.end()) {
+      it_f2->second->is_send_yet_set(0);
+      it_f2->second->is_recv_yet_set(0);
+      it_f2++;
+    }
   }
 
 // A supprimer

@@ -157,11 +157,9 @@ int main(int argc, char *argv[]) {
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
 
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0] = 0.;
   if (rank < comm_world_size / 2) {
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
@@ -171,7 +169,7 @@ int main(int argc, char *argv[]) {
     coupled_code_name[0] = "code1";
   }
 
-  CWP_Init(MPI_COMM_WORLD, n_code, (const char **) code_name, is_active_rank, time_init, intra_comm);
+  CWP_Init(MPI_COMM_WORLD, n_code, (const char **) code_name, is_active_rank, intra_comm);
   printf("%d: CWIPI Init OK, %s\n", rank, code_name[0]);
 
   // Create CWIPI coupling
@@ -326,10 +324,18 @@ int main(int argc, char *argv[]) {
   if (strcmp(code_name[0], "code1") != 0) {
     printf("%s is sending data\n", code_name[0]);
     CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_INTERLEAVED, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_SOURCE, send_val);
   }
   else {
     CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_INTERLEAVED, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_TARGET, recv_val);
   }
 
@@ -400,9 +406,8 @@ int main(int argc, char *argv[]) {
   free(n_faces      );
   free(n_vtx        );
 
-  free(time_init);
-
   // Finalize
+  CWP_Time_step_end(code_name[0]);
   CWP_Mesh_interf_del(code_name[0], coupling_name);
   CWP_Cpl_del(code_name[0], coupling_name);
 

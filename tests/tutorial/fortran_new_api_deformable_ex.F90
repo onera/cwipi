@@ -22,7 +22,6 @@ program fortran_new_api_deformable_sol
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
   integer,                            pointer :: is_coupled_rank(:)    => null()
-  double precision,                   pointer :: time_init(:)          => null()
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part
@@ -64,21 +63,6 @@ program fortran_new_api_deformable_sol
   call MPI_Init(ierr)
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
-
-  ! Check running on correct number of MPI ranks :
-  n_partition = 1
-  do while ((2 * n_partition**2) < n_rank)
-    n_partition = n_partition + 1
-  enddo
-
-  n2 = 2 * n_partition**2
-
-  if (n2 /= n_rank) then
-    if (i_rank == 0) then
-      write(6,*) '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
-    endif
-    call exit()
-  endif
 
   ! Initialize CWIPI :
   ! Use CWP_Init for code2 written in C.
@@ -149,6 +133,11 @@ program fortran_new_api_deformable_sol
   do it = itdeb, itend
 
     time = (it-itdeb)*dt
+
+    ! Begin time step :
+    ! ------------------------------------------------------- To fill in
+
+    ! ---------------------------------------------------- End To fill in
 
     ! Deform mesh :
     ! The z-coordinate of the mesh is modified with some kind of cosine at
@@ -249,6 +238,12 @@ program fortran_new_api_deformable_sol
 
     endif
     ! ---------------------------------------------------- End To fill in
+
+    ! End time step :
+    ! ------------------------------------------------------- To fill in
+
+    ! ---------------------------------------------------- End To fill in
+
 
   enddo
 

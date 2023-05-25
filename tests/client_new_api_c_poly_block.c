@@ -284,7 +284,6 @@ main
   }
 
   CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
-  double       time_init       = 0.;
 
   // Outputfile
   if (rank == 0) {
@@ -304,8 +303,7 @@ main
   CWP_client_Init(intra_comm,
                   config,
                   codeName,
-                  is_coupled_rank,
-                  time_init);
+                  is_coupled_rank);
 
   // EXIT_SUCCESS ?
   int exit_check = 0;

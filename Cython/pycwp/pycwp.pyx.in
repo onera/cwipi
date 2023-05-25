@@ -169,7 +169,6 @@ cdef extern from "cwp.h":
                 int                n_code,
                 char             **code_names,
                 CWP_Status_t      *is_active_rank,
-                double            *time_init,
                 MPI.MPI_Comm      *intra_comms)
   void CWP_Finalize()
 
@@ -178,6 +177,9 @@ cdef extern from "cwp.h":
                         CWP_State_t state)
   void CWP_Time_update(char* local_code_name,
                        double current_time)
+  void CWP_Time_step_beg(char* local_code_name,
+                         double current_time)
+  void CWP_Time_step_end(char* local_code_name)
   void CWP_Output_file_set(FILE *output_file)
   void CWP_User_structure_set(char* local_code_name,
                               void* user_structure)
@@ -245,6 +247,9 @@ cdef extern from "cwp.h":
                     int                   freq,
                     CWP_Visu_format_t     visu_format,
                     char                 *format_option)
+
+  void CWP_Visu_end(char                 *local_code_name,
+                    char                 *cpl_id)
 
   # --> functions about User target points
   void CWP_User_tgt_pts_set(char    *local_code_name,
@@ -809,8 +814,7 @@ cdef long** np_list_to_long_pointers(list datas):
 
 def init(MPI.Comm global_comm,
          list code_names,
-         list is_active_rank,
-         list time_init):
+         list is_active_rank):
     """
     Initialize CWIPI library and create intra-communicator.
 
@@ -818,7 +822,6 @@ def init(MPI.Comm global_comm,
       global_comm    (MPI.Comm)    : MPI global communicator
       code_names     (str list)    : Names of codes on the current rank (size = number of codes on current MPI rank)
       is_active_rank (bool list)   : Is current rank have to be used by CWIPI (size = number of codes on current MPI rank)
-      time_init      (double list) : Initial time (size = number of codes on current MPI rank)
 
     Returns:
       intra_comms    (MPI.Comm)    : MPI intra communicators of each code (size = number of codes on current MPI rank)
@@ -847,14 +850,10 @@ def init(MPI.Comm global_comm,
     # active ranks
     cdef array.array c_is_active_rank = array.array('i', is_active_rank) # WARNING 'i' is signed int
 
-    # initial time
-    cdef array.array c_time_init = array.array('d', time_init)
-
     CWP_Init(c_global_comm,
              n_code,
              c_code_names,
              <CWP_Status_t *> c_is_active_rank.data.as_ints,
-             <double *> c_time_init.data.as_doubles,
              intra_comms)
 
     # intra communicators
@@ -902,6 +901,29 @@ def time_update(char * local_code_name,
 
     CWP_Time_update(local_code_name,
                     current_time)
+
+def time_step_beg(char * local_code_name,
+                  double current_time):
+    """
+    Begin code time step.
+
+    Parameters:
+      local_code_name (str)  : Local code name
+      current_time    (double) : Current time
+    """
+
+    CWP_Time_step_beg(local_code_name,
+                      current_time)
+
+def time_step_end(char * local_code_name):
+    """
+    End code time step.
+
+    Parameters:
+      local_code_name (str)  : Local code name
+    """
+
+    CWP_Time_step_end(local_code_name)
 
 def output_file_set(output_file):
     """
@@ -3423,6 +3445,14 @@ cdef class Coupling (object):
                      freq,
                      visu_format,
                      format_option)
+
+    def visu_end(self):
+        """
+        End visualization output.
+        """
+
+        CWP_Visu_end(self.local_code_name,
+                     self.cpl_id)
 
     # --> USER TGT
     def user_tgt_pts_set(self,

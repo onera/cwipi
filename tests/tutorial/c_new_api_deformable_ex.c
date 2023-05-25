@@ -44,20 +44,6 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 
-  // Check running on correct number of MPI ranks :
-  int n_partition = 0;
-  while(2 * pow(n_partition, 2) < n_rank) n_partition++;
-
-  const int two = 2;
-  int n2 = two * (int) pow(n_partition, two);
-
-  if (n2 != n_rank) {
-    if (i_rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
-    exit(1);
-    return EXIT_SUCCESS;
-  }
-
   // Initialize CWIPI :
   // Use CWP_Init for code2 written in C.
   // ------------------------------------------------------- To fill in
@@ -131,6 +117,11 @@ main(int argc, char *argv[]) {
 
     ttime = (it-itdeb)*dt;
 
+    // Start time step
+    // ------------------------------------------------------- To fill in
+
+    // ---------------------------------------------------- End To fill in
+
     // Deform mesh and set send field :
     // The field that will be sent, "chinchilla", is set to the value of
     // the z-coordinate of the mesh nodes.
@@ -197,6 +188,12 @@ main(int argc, char *argv[]) {
 
     PDM_UNUSED(n_uncomputed_tgts);
     PDM_UNUSED(uncomputed_tgts);
+
+    // End time step
+    // ------------------------------------------------------- To fill in
+
+    // ---------------------------------------------------- End To fill in
+
   } // end interations
 
   // Delete fields :

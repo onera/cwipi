@@ -471,13 +471,11 @@ main(int argc, char *argv[]) {
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
   MPI_Comm *connectableLocalComm = malloc(sizeof(MPI_Comm) * n_code);
   int *connectableLocalCommSize = malloc(sizeof(int) * n_code);
 
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0] = 0.;
   if (rank % 2 == 0) {
     printf("%d - Working for code1\n", rank);
     code_name[0] = "code1";
@@ -494,7 +492,6 @@ main(int argc, char *argv[]) {
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   printf("%d - Create coupling\n", rank);
@@ -690,6 +687,9 @@ main(int argc, char *argv[]) {
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
@@ -713,6 +713,9 @@ main(int argc, char *argv[]) {
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
 
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
@@ -808,11 +811,7 @@ main(int argc, char *argv[]) {
     }
   }
 
-
-
-
-
-
+  CWP_Time_step_end(code_name[0]);
 
   printf("%d - Delete mesh\n", rank);
   CWP_Mesh_interf_del(code_name[0], cpl_name);
@@ -837,7 +836,6 @@ main(int argc, char *argv[]) {
   free(code_name);
   free(coupled_code_name);
   free(is_active_rank);
-  free(time_init);
   free(intra_comm);
   free(connectableLocalComm);
   free(connectableLocalCommSize);

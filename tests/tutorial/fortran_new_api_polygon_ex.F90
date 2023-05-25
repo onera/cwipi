@@ -158,10 +158,19 @@ program fortran_new_api_polygon_ex
   ! There is only one mesh partition in this tutorial. Activate
   ! visualization for this field if you wish it to be in the
   ! Ensight file.
+  ! Do not forget to begin the time step AFTER creating the fields,
+  ! but BEFORE setting the fields data!
   ! ------------------------------------------------------- To fill in
   field_name   = "a super fancy field"
   n_components = 1
 
+  ! Create the field :
+  ! ...
+
+  ! Begin the time step :
+  ! ...
+
+  ! Set the field pointers :
   ! for code1
   if (I_am_code1) then
 
@@ -170,10 +179,14 @@ program fortran_new_api_polygon_ex
       send_field_data(i) = coords(1,i)
     end do
 
+    ! ...
+
   ! for code2
   else
 
     allocate(recv_field_data(n_vtx * n_components))
+
+    ! ...
 
   endif
   ! ---------------------------------------------------- End To fill in
@@ -210,6 +223,10 @@ program fortran_new_api_polygon_ex
   else
 
   endif
+  ! ---------------------------------------------------- End To fill in
+
+  ! End the time step :
+  ! ------------------------------------------------------- To fill in
   ! ---------------------------------------------------- End To fill in
 
   ! Check interpolation :

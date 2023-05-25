@@ -274,7 +274,6 @@ int main(int argc, char *argv[])
   const char **code_name         = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
 
   int n_vtx_seg;
   int n_part;
@@ -295,13 +294,11 @@ int main(int argc, char *argv[])
 
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
   is_active_rank[0] = CWP_STATUS_ON;
-  time_init[0] = 0.;
 
   CWP_Init(comm,
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   if (i_rank == 0) {
@@ -418,6 +415,9 @@ int main(int argc, char *argv[])
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
+
     for (int i = 0; i < n_part; i++) {
       CWP_Field_data_set(code_name[0],
                          cpl_name,
@@ -437,6 +437,9 @@ int main(int argc, char *argv[])
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
+
+    CWP_Time_step_beg(code_name[0],
+                      0.0);
 
     for (int i = 0; i < n_part; i++) {
       CWP_Field_data_set(code_name[0],
@@ -479,6 +482,8 @@ int main(int argc, char *argv[])
     printf("Exchange fields OK\n");
   }
 
+  CWP_Time_step_end(code_name[0]);
+
   CWP_Mesh_interf_del(code_name[0], cpl_name);
 
   CWP_Cpl_del(code_name[0], cpl_name);
@@ -508,7 +513,6 @@ int main(int argc, char *argv[])
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
 
   //  Finalize CWIPI
   CWP_Finalize();

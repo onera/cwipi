@@ -236,7 +236,6 @@ main
 
 
   CWP_Status_t is_coupled_rank = CWP_STATUS_ON;
-  double       time_init       = 0.;
 
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, id_code, rank, &intra_comm);
@@ -244,8 +243,7 @@ main
   CWP_client_Init(intra_comm,
                   config,
                   code_name,
-                  is_coupled_rank,
-                  time_init);
+                  is_coupled_rank);
 
   char cpl_id1[] = "cpl_code1_code2";
 

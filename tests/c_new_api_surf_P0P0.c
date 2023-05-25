@@ -272,7 +272,6 @@ int main(int argc, char *argv[])
   const char **code_name         = malloc(sizeof(char *) * 2);
   const char **coupled_code_name = malloc(sizeof(char *) * 2);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * 2);
-  double *time_init = malloc(sizeof(double) * 2);
 
 
   int has_code[2] = {0, 0};
@@ -301,7 +300,6 @@ int main(int argc, char *argv[])
       n_vtx_seg        [n_code] = all_n_vtx_seg [icode];
       n_part           [n_code] = all_n_part    [icode];
       is_active_rank   [n_code] = CWP_STATUS_ON;
-      time_init        [n_code] = 0.;
       n_code++;
     }
   }
@@ -318,7 +316,6 @@ int main(int argc, char *argv[])
            n_code,
            (const char **) code_name,
            is_active_rank,
-           time_init,
            intra_comm);
 
   if (i_rank == 0) {
@@ -446,6 +443,9 @@ int main(int argc, char *argv[])
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 
+      CWP_Time_step_beg(code_name[i_code],
+                        0.0);
+
       for (int i = 0; i < n_part[i_code]; i++) {
         CWP_Field_data_set(code_name[i_code],
                            cpl_name,
@@ -466,6 +466,9 @@ int main(int argc, char *argv[])
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
+
+      CWP_Time_step_beg(code_name[i_code],
+                        0.0);
 
       for (int i = 0; i < n_part[i_code]; i++) {
         CWP_Field_data_set(code_name[i_code],
@@ -516,6 +519,8 @@ int main(int argc, char *argv[])
   }
 
   for (int i_code = 0; i_code < n_code; i_code++) {
+    CWP_Time_step_end(code_name[i_code]);
+
     CWP_Mesh_interf_del(code_name[i_code], cpl_name);
 
     CWP_Cpl_del(code_name[i_code], cpl_name);
@@ -555,7 +560,6 @@ int main(int argc, char *argv[])
   free(code_name);
   free(is_active_rank);
   free(intra_comm);
-  free(time_init);
 
   //  Finalize CWIPI
   CWP_Finalize();

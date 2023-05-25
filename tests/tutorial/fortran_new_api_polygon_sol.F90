@@ -22,7 +22,6 @@ program fortran_new_api_polygon_sol
   integer                                 :: n_code
   character(len = 5),            pointer  :: code_names(:)         => null()
   integer,                       pointer  :: is_coupled_rank(:)    => null()
-  double precision,              pointer  :: time_init(:)          => null()
   integer,                       pointer  :: intra_comms(:)        => null()
 
   integer                                 :: n_part
@@ -70,28 +69,25 @@ program fortran_new_api_polygon_sol
   ! same MPI rank (here only one code per processor, so n_code = 1).
   ! Therefore, an array of code names is given at initialization.
   ! is_active_rank allows to tell which ranks on which a given code
-  ! runs will be used in the CWIPI coupling computations. time_init
-  ! is not used yet. intra_comm is an array of MPI communicators
+  ! runs will be used in the CWIPI coupling computations.
+  ! intra_comm is an array of MPI communicators
   ! giving the for each code on the processors the communicator
   ! to communicate through the ranks of that code.
   n_code = 1
 
   allocate(code_names(n_code),         &
            is_coupled_rank(n_code),    &
-           time_init(n_code),          &
            intra_comms(n_code))
 
   ! for code1
   if (i_rank == 0) then
     code_names(1)      = "code1"
     is_coupled_rank(1) = CWP_STATUS_ON
-    time_init(1)       = 0.d0
     I_am_code1         = .true.
   ! for code2
   else
     code_names(1)      = "code2"
     is_coupled_rank(1) = CWP_STATUS_ON
-    time_init(1)       = 0.d0
     I_am_code1         = .false.
   endif
 
@@ -99,7 +95,6 @@ program fortran_new_api_polygon_sol
                 n_code,          &
                 code_names,      &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   ! Create the coupling :
@@ -142,6 +137,50 @@ program fortran_new_api_polygon_sol
                     1,                       &
                     CWP_VISU_FORMAT_ENSIGHT, &
                     "text")
+
+  ! Create the field
+  ! It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
+  ! For sake of simplicity, this example will only send the field
+  ! of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
+  ! On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
+  ! the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
+  ! which is the x coordinate of the mesh in this test.
+  field_name   = "a super fancy field"
+  n_components = 1
+
+  ! for code1
+  if (I_am_code1) then
+
+    call CWP_Field_create(code_names(1),                &
+                          coupling_name,                &
+                          field_name,                   &
+                          CWP_DOUBLE,                   &
+                          CWP_FIELD_STORAGE_INTERLACED, &
+                          n_components,                 &
+                          CWP_DOF_LOCATION_NODE,        &
+                          CWP_FIELD_EXCH_SEND,          &
+                          CWP_STATUS_ON)
+
+  ! for code2
+  else
+
+    call CWP_Field_create(code_names(1),                &
+                          coupling_name,                &
+                          field_name,                   &
+                          CWP_DOUBLE,                   &
+                          CWP_FIELD_STORAGE_INTERLACED, &
+                          n_components,                 &
+                          CWP_DOF_LOCATION_NODE,        &
+                          CWP_FIELD_EXCH_RECV,          &
+                          CWP_STATUS_ON)
+
+  endif
+
+  ! Begin time step :
+  ! In this example there is only one time step. It is mandatory to create the
+  ! coupling and the associated fields before starting the first time step.
+  call CWP_Time_step_beg(code_names(1), &
+                         0.d0)
 
   ! Set the mesh vertices coordinates :
   ! The coordinate system in CWIPI is always 3D, so
@@ -202,17 +241,9 @@ program fortran_new_api_polygon_sol
   call CWP_Mesh_interf_finalize(code_names(1), &
                                 coupling_name)
 
-  ! Create and set the field values :
-  ! It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).
-  ! For sake of simplicity, this example will only send the field
-  ! of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).
-  ! On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at
-  ! the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)
-  ! which is the x coordinate of the mesh in this test. Note that
-  ! the user has to allocate the array for the field that will
-  ! be received by code2 (CWP_FIELD_MAP_TARGET).
-  field_name   = "a super fancy field"
-  n_components = 1
+  ! Set the field values :
+  ! Note that the user has to allocate the array for the
+  ! field that will be received by code2 (CWP_FIELD_MAP_TARGET).
 
   ! for code1
   if (I_am_code1) then
@@ -221,17 +252,6 @@ program fortran_new_api_polygon_sol
     do i=1,n_vtx
       send_field_data(i) = coords(1,i)
     end do
-
-    call CWP_Field_create(code_names(1),                &
-                          coupling_name,                &
-                          field_name,                   &
-                          CWP_DOUBLE,                   &
-                          CWP_FIELD_STORAGE_INTERLACED, &
-                          n_components,                 &
-                          CWP_DOF_LOCATION_NODE,        &
-                          CWP_FIELD_EXCH_SEND,          &
-                          CWP_STATUS_ON)
-
 
     call CWP_Field_data_set(code_names(1),        &
                             coupling_name,        &
@@ -243,17 +263,6 @@ program fortran_new_api_polygon_sol
   else
 
     allocate(recv_field_data(n_vtx * n_components))
-
-    call CWP_Field_create(code_names(1),                &
-                          coupling_name,                &
-                          field_name,                   &
-                          CWP_DOUBLE,                   &
-                          CWP_FIELD_STORAGE_INTERLACED, &
-                          n_components,                 &
-                          CWP_DOF_LOCATION_NODE,        &
-                          CWP_FIELD_EXCH_RECV,          &
-                          CWP_STATUS_ON)
-
 
     call CWP_Field_data_set(code_names(1),        &
                             coupling_name,        &
@@ -318,6 +327,9 @@ program fortran_new_api_polygon_sol
                                               field_name,    &
                                               0)
   endif
+
+  ! End time step :
+  call CWP_Time_step_end(code_names(1))
 
   ! Delete field :
   call CWP_Field_Del(code_names(1),   &

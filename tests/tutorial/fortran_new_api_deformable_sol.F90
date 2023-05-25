@@ -22,7 +22,6 @@ program fortran_new_api_deformable_sol
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
   integer,                            pointer :: is_coupled_rank(:)    => null()
-  double precision,                   pointer :: time_init(:)          => null()
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part
@@ -65,39 +64,20 @@ program fortran_new_api_deformable_sol
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
 
-  ! ! Check running on correct number of MPI ranks :
-  ! n_partition = 1
-  ! do while ((2 * n_partition**2) < n_rank)
-  !   n_partition = n_partition + 1
-  ! enddo
-
-  ! n2 = 2 * n_partition**2
-
-  ! if (n2 /= n_rank) then
-  !   if (i_rank == 0) then
-  !     write(6,*) '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
-  !   endif
-  !   call exit()
-  ! endif
-  print *, "Fortran rank ", i_rank, "/", n_rank
-
   ! Initialize CWIPI :
   n_code = 1
 
   allocate(code_names(n_code),         &
            is_coupled_rank(n_code),    &
-           time_init(n_code),          &
            intra_comms(n_code))
 
   code_names(1)      = "code1"
   is_coupled_rank(1) = CWP_STATUS_ON
-  time_init(1)       = 0.d0
 
   call CWP_Init(mpi_comm_world,  &
                 n_code,          &
                 code_names,      &
                 is_coupled_rank, &
-                time_init,       &
                 intra_comms)
 
   ! Create the coupling :
@@ -156,6 +136,10 @@ program fortran_new_api_deformable_sol
   do it = itdeb, itend
 
     time = (it-itdeb)*dt
+
+    ! Begin time step :
+    call CWP_Time_step_beg(code_names(1), &
+                           time)
 
     ! Deform mesh :
 
@@ -277,13 +261,6 @@ program fortran_new_api_deformable_sol
                                            "double",      &
                                            "0.1")
 
-    else
-
-      ! Update time :
-      ! One need to informs CWIPI that we moved to a new interation step.
-      call CWP_Time_update(code_names(1), &
-                           time)
-
     endif
 
     ! Compute interpolation weights :
@@ -323,6 +300,9 @@ program fortran_new_api_deformable_sol
                                                  0)
     endif
 
+    ! End time step :
+    call CWP_Time_step_end(code_names(1))
+
   enddo
 
   ! Delete field :
@@ -345,7 +325,6 @@ program fortran_new_api_deformable_sol
   ! free
   deallocate(code_names)
   deallocate(is_coupled_rank)
-  deallocate(time_init)
   deallocate(intra_comms)
   deallocate(coupled_code_names)
   deallocate(send_field_data)

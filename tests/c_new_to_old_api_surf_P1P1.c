@@ -918,7 +918,6 @@ main(int argc, char *argv[]) {
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
 
   int n_vtx_seg;
   if (rank < comm_world_size / 2) {
@@ -941,13 +940,11 @@ main(int argc, char *argv[]) {
 
   else {
     is_active_rank[0] = CWP_STATUS_ON;
-    time_init[0] = 0.;
 
     CWP_Init(MPI_COMM_WORLD,
              n_code,
              (const char **) code_name,
              is_active_rank,
-             time_init,
              intra_comm);
   }
 
@@ -1616,20 +1613,19 @@ main(int argc, char *argv[]) {
   free(code_name);
   free(coupled_code_name);
   free(is_active_rank);
-  free(time_init);
   free(intra_comm);
 
 
   for (int ipart = 0; ipart < n_part; ipart++) {
-    free (faceVtxIdx[ipart]);
-    free (faceVtx[ipart]);
-    free (faceEdgeIdx[ipart]);
-    free (faceEdge[ipart]);
-    free (faceLNToGN[ipart]);
-    free (edgeVtx[ipart]);
-    free (edgeVtxIdx[ipart]);
-    free (vtxCoord[ipart]);
-    free (vtxLNToGN[ipart]);
+    if (edgeVtxIdx[ipart] != NULL ) free (edgeVtxIdx[ipart]);
+    if (edgeVtx[ipart] != NULL    ) free (edgeVtx[ipart]);
+    if (faceEdgeIdx[ipart] != NULL) free (faceEdgeIdx[ipart]);
+    if (faceEdge[ipart] != NULL   ) free (faceEdge[ipart]);
+    if (faceVtxIdx[ipart] != NULL ) free (faceVtxIdx[ipart]);
+    if (faceVtx[ipart] != NULL    ) free (faceVtx[ipart]);
+    if (faceLNToGN[ipart] != NULL ) free (faceLNToGN[ipart]);
+    if (vtxCoord[ipart] != NULL   ) free (vtxCoord[ipart]);
+    if (vtxLNToGN[ipart] != NULL  ) free (vtxLNToGN[ipart]);
   }
 
 

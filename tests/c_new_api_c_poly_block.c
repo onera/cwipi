@@ -203,13 +203,7 @@ int main(int argc, char *argv[]) {
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
-  times_init = malloc(sizeof(double) * n_code_name);
-
   //CWP_Output_file_set (outputFile);
-
-  for (int i = 0 ; i < n_code_name ; i++) {
-    times_init[i] = 0;
-  }
 
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
 
@@ -217,7 +211,6 @@ int main(int argc, char *argv[]) {
            n_code_name,
            codeNames,
            is_coupled_rank,
-           times_init,
            localComm);
 
 
@@ -288,9 +281,6 @@ int main(int argc, char *argv[]) {
   fclose(meshFile);
 
   if (rank == 0) {
-    printf("Visu Setting\n");
-    CWP_Visu_set("cpoly", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "binary");
-    printf("Visu Set\n");
 
     printf("vtx_set\n");
     CWP_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);
@@ -336,7 +326,6 @@ int main(int argc, char *argv[]) {
   free(localComm);
   free(codeNames);
   free(is_coupled_rank);
-  free(times_init);
 
   return 0;
 }
