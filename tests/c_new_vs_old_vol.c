@@ -1178,7 +1178,7 @@ main(int argc, char *argv[]) {
   }
 
   // Create coupling
-  const char *coupling_name = "c_surf_cpl_P1P1";
+  const char *coupling_name = "c_new_vs_old_vol";
 
   if (version == CWP_VERSION_OLD) {
     cwipi_create_coupling(coupling_name,                             // Coupling id

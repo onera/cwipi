@@ -295,7 +295,7 @@ Field::write
     for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
       if (write_end_step || exch_type == CWP_FIELD_EXCH_RECV) {
         for (int i = 0; i < n_dof; i++) {
-          _comp_data[i] = 1234567890;
+          _comp_data[i] = 123456789;
         }
         comp_data = _comp_data;
       }
@@ -317,20 +317,20 @@ Field::write
           const int *computed_target   = NULL;
           int        n_computed_target = 0;
           if (_cpl->has_mesh()) {
-            computed_target     = _cpl->computedTargetsGet (_fieldID, i_part);
-            n_computed_target   = _cpl->nComputedTargetsGet(_fieldID, i_part);
+            computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
+            n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
           }
 
           if (_storage == CWP_FIELD_STORAGE_INTERLACED) {
             for (int i = 0; i < n_computed_target; i++) {
               int j = computed_target[i]-1;
-              _comp_data[j] = _data_var[_nComponent*j + i_comp];
+              _comp_data[j] = _data_var[_nComponent*i + i_comp];
             }
           }
           else {
             for (int i = 0; i < n_computed_target; i++) {
               int j = computed_target[i]-1;
-              _comp_data[j] = _data_var[i_comp*n_dof + j];
+              _comp_data[j] = _data_var[i_comp*n_computed_target + i];
             }
           }
         }
