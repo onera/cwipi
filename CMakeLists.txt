@@ -652,6 +652,60 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cwpConfigVersion.cmake"
 add_subdirectory(${CWP_CMAKE_DIR}/post-install)
 
 #------------------------------------------------------------------------------
+# Create CWP_run file
+#------------------------------------------------------------------------------
+
+string(REPLACE ";" " " PDM_LIST_TEST "${CWP_LIST_TEST}")
+
+string(REPLACE ";" " " PDM_LIST_NRANK "${CWP_LIST_NRANK}")
+
+set (PDM_RUN_PRELOAD "")
+set (PDM_RUN_LSAN "")
+set (PDM_RUN_PYTHONPATH "")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
+  execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(PDM_RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
+  if (PDM_ENABLE_EXTERNAL_PDM)
+    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+  else()
+    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
+    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
+  endif()
+endif()
+
+if (PDM_ENABLE_EXTERNAL_PDM)
+  if(DEFINED ENV{PYTHONPATH})
+    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
+  else()
+    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython")
+  endif()
+else()
+  if(DEFINED ENV{PYTHONPATH})
+    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython:$ENV{PYTHONPATH}")
+  else()
+    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython")
+  endif()
+endif()
+
+configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_run.in "${PROJECT_BINARY_DIR}/cwp_run"
+               @ONLY)
+
+ #
+ # Voir comment mieux faire !
+
+configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
+               @ONLY)
+
+configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${PROJECT_BINARY_DIR}/pdm_launch"
+               @ONLY)
+
+configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch_python.in "${PROJECT_BINARY_DIR}/pdm_launch_python"
+               @ONLY)
+
+
+#------------------------------------------------------------------------------
 # Print coverage report
 #------------------------------------------------------------------------------
 
