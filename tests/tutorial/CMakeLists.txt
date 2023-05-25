@@ -25,8 +25,8 @@ endif()
 
 # python
 if (CWP_ENABLE_PYTHON_BINDINGS)
-  test_python_create (python_new_api_polygon_sol 2 CWP_LIST_TEST NRANK)
-  test_python_create (python_new_api_polygon_ex  2 CWP_LIST_TEST NRANK)
+  test_python_create (python_new_api_polygon_sol 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  test_python_create (python_new_api_polygon_ex  2 CWP_LIST_TEST CWP_LIST_NRANK)
 
   if (CWP_ENABLE_Fortran)
 
