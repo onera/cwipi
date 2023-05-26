@@ -26,6 +26,7 @@
 
 #include "cwipi.h"
 #include "cwp.h"
+#include "cwipi_config.h"
 #include "cwp_priv.h"
 
 #include "grid_mesh.h"
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
 
 
   char filename[999];
-  sprintf(filename, "meshes/guinea_pig_%d.dat", code_id+1);
+  sprintf(filename, CWP_MESH_DIR"guinea_pig_%d.dat", code_id+1);
 
   int     n_vtx        = 0;
   double *vtx_coord    = NULL;

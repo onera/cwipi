@@ -21,8 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "cwp.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------
  *
@@ -44,6 +46,7 @@ static int read_mesh_dim(FILE *f,
                          int *lFaceConnec,
                          int *lCellConnec) {
   int r;
+  assert(f!=NULL);
   r = fscanf(f, "%d %d %d %d %d %d",
              dimension,
              nVertex,
@@ -141,7 +144,8 @@ int main(int argc, char *argv[]) {
 
   FILE *meshFile;
 
-  meshFile = fopen("meshes/mesh_poly_d1", "r");
+
+  meshFile = fopen(CWP_MESH_DIR"mesh_poly_d1", "r");
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);

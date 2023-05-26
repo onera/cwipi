@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include "cwp.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------
  *
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
   int comm_world_size;
 
   FILE *mesh_file;
-  mesh_file = fopen("meshes/mesh_poly_d1", "r");
+  mesh_file = fopen(CWP_MESH_DIR"mesh_poly_d1", "r");
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);

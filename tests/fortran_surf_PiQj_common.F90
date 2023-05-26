@@ -2115,7 +2115,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     
     !>>>>>>>
-    write(meshName,'("./meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
+    write(meshName,'("meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
     !<<<<<<<
     
     
@@ -2124,7 +2124,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     !>>>>>>>
     !> Initialisation
     nVert=0 ; nQ4=0 ; nT3=0
-    open(newunit=meshUnit,file=trim(meshName),action='read',status='old')
+    open(newunit=meshUnit,file=trim(&
+CWP_MESH_DIR&
+//meshName),action='read',status='old')
     lecture1: do
       read(meshUnit,*)key
       select case(trim(key))

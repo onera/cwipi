@@ -35,6 +35,7 @@
 #include <math.h>
 
 #include "cwipi.h"
+#include "cwipi_config.h"
 
 // *************************
 // ** Static functions    **
@@ -234,9 +235,9 @@ int main( int argc, char* argv[] ) {
   }
 
   if (rank == 0)
-    meshFile = fopen("meshes/mesh_poly_d1", "r");
+    meshFile = fopen(CWP_MESH_DIR"mesh_poly_d1", "r");
   else
-    meshFile = fopen("meshes/mesh_poly_d2", "r");
+    meshFile = fopen(CWP_MESH_DIR"mesh_poly_d2", "r");
 
   fileOutput = (char *) malloc((strlen("c_vol_poly_cpl_P1P1_with_external_points_") + 4 + 1 + 4) * sizeof(char));
   sprintf(fileOutput, "c_vol_poly_cpl_P1P1_with_external_points_%4.4d.txt", rank);

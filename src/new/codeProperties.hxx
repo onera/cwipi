@@ -1273,12 +1273,13 @@ namespace cwipi {
                                                          _name.c_str());
     }
 
-    int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-    *value = (char * ) malloc(sizeof(char) * (sValue + 1));
-    strncpy (*value,
-             _winStrParamValueData + _winStrParamIdxValueData[i],
-             sValue);
-    (*value)[sValue] = '\0';
+    // int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+    // *value = (char * ) malloc(sizeof(char) * (sValue + 1));
+    // strncpy (*value,
+    //          _winStrParamValueData + _winStrParamIdxValueData[i],
+    //          sValue);
+    // (*value)[sValue] = '\0';
+    *value = _winStrParamValueData + _winStrParamIdxValueData[i];
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
   }
@@ -1450,8 +1451,9 @@ namespace cwipi {
                                                            _name.c_str());
       }
 
+      int sNewValue = strlen(value) + 1; 
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-      int gap = strlen(value) - sValue;
+      int gap = sNewValue - sValue;
 
       if (gap != 0) {
         if (gap > 0) {
@@ -1469,9 +1471,8 @@ namespace cwipi {
         }
       }
 
-
       strncpy(_winStrParamValueData + _winStrParamIdxValueData[i],
-              value, strlen(value));
+              value, sNewValue);
 
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
@@ -1742,8 +1743,9 @@ namespace cwipi {
       }
 
       nStrParam += 1;
+      const int sValue = strlen(value) + 1;
 
-      _winStrParamIdxValueData[nStrParam] = _winStrParamIdxValueData[nStrParam-1] + strlen(value);
+      _winStrParamIdxValueData[nStrParam] = _winStrParamIdxValueData[nStrParam-1] + sValue;
 
       _winStrParamIdxNameData[nStrParam] = _winStrParamIdxNameData[nStrParam-1] + name.size();
 
@@ -1751,7 +1753,7 @@ namespace cwipi {
               name.c_str(), name.size());
 
       strncpy(_winStrParamValueData + _winStrParamIdxValueData[nStrParam-1],
-              value, strlen(value));
+              value, sValue);
 
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamName);

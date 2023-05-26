@@ -35,6 +35,7 @@
 #include <assert.h>
 
 #include "cwipi.h"
+#include "cwipi_config.h"
 
 // *************************
 // ** Static functions    **
@@ -206,9 +207,9 @@ int main( int argc, char* argv[] ) {
   }
 
   if (rank == 0)
-    meshFile = fopen("meshes/test3D_1_c1.mesh", "r");
+    meshFile = fopen(CWP_MESH_DIR"test3D_1_c1.mesh", "r");
   else
-    meshFile = fopen("meshes/test3D_1_c2.mesh", "r");
+    meshFile = fopen(CWP_MESH_DIR"test3D_1_c2.mesh", "r");
 
   fileOutput = (char *) malloc((strlen("c_vol_cpl_P1P1_c1_") + 4 + 1 + 4) * sizeof(char));
   sprintf(fileOutput, "c_vol_cpl_P1P1_c1_%4.4d.txt", rank);

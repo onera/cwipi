@@ -32,6 +32,7 @@
 #include "client_server/client.h"
 
 #include "cwp_priv.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------
  *
@@ -275,7 +276,7 @@ main
   int    *cell_face     = NULL;
 
   FILE *mesh_file;
-  mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
+  mesh_file = fopen(CWP_MESH_DIR"mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
 
   fscanf(mesh_file, "%d %d %d %d %d %d",
          &dimension,

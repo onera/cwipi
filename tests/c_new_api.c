@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
   // Initialization
   int n_code = 0;
   const char **code_names = NULL;
-  double *times_init = NULL;
+//  double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
   if (rank == 0) {
@@ -228,7 +228,6 @@ main(int argc, char *argv[]) {
   CWP_Param_get("code1", "toto2", CWP_CHAR, &titi2);
   printf("code 1 : toto2 : %s\n", titi2);
 
-  free(titi2);
   assert(titi == 111);
 
   char cpl_id1[] = "cpl1_code1_code2";

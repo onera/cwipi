@@ -32,6 +32,7 @@
 #include "client_server/client.h"
 
 #include "cwp_priv.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------
  *
@@ -241,7 +242,7 @@ main
 
   FILE *meshFile;
 
-  meshFile = fopen("./meshes/mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
+  meshFile = fopen(CWP_MESH_DIR"mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
 
   int n_partition = 0;
   const int two = 2;
