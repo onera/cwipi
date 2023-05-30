@@ -302,6 +302,32 @@ CWP_server_Time_update
 );
 
 /**
+ * \brief Time_step_beg CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Time_step_beg
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Time_step_end CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Time_step_end
+(
+  p_server                 svr
+);
+
+/**
  * \brief Output_file_set CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure

@@ -362,6 +362,34 @@ CWP_client_Time_update
 );
 
 /**
+ * \brief Time_step_beg CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] current_time Current time
+ *
+ */
+
+void
+CWP_client_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+);
+
+/**
+ * \brief Time_step_end CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_client_Time_step_end
+(
+ const char* local_code_name
+);
+
+/**
  * \brief Output_file_set CWIPI.
  *
  * /!\ one file per code

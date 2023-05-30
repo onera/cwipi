@@ -1744,6 +1744,107 @@ CWP_server_Time_update
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+// TO DO : adapt to update coordinates en so on
+
+void
+CWP_server_Time_step_beg
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read current time
+  double current_time = - 1.0;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Time_step_beg(local_code_name,
+                    current_time);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Time_step_end
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Time_step_end(local_code_name);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
 void
 CWP_server_Output_file_set
 (
@@ -6505,6 +6606,30 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Time_update(svr);
+
+    break;
+
+  case CWP_MSG_CWP_TIME_STEP_BEG:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Time_step_beg signal\n");
+    }
+
+    // launch
+    CWP_server_Time_step_beg(svr);
+
+    break;
+
+  case CWP_MSG_CWP_TIME_STEP_END:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Time_step_end signal\n");
+    }
+
+    // launch
+    CWP_server_Time_step_end(svr);
 
     break;
 

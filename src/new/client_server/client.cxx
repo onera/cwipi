@@ -416,6 +416,16 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
+  case CWP_MSG_CWP_TIME_STEP_BEG: {
+    char name[] = "CWP_Time_step_beg";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_TIME_STEP_END: {
+    char name[] = "CWP_Time_step_end";
+    strcpy(function, name);
+    } break;
+
   case CWP_MSG_CWP_STATE_GET: {
     char name[] = "CWP_State_get";
     strcpy(function, name);
@@ -2489,6 +2499,117 @@ CWP_client_Time_update
       }
     }
   }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+}
+
+// TO DO : adapt where to transfer coordinates and so on if deformable or variable mesh
+
+void
+CWP_client_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_step_beg\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_TIME_STEP_BEG);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_step_beg failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send code name
+  write_name(local_code_name);
+
+  // send time
+  double endian_current_time = current_time;
+  CWP_swap_endian_8bytes(&endian_current_time, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+}
+
+
+void
+CWP_client_Time_step_end
+(
+ const char* local_code_name
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_step_end\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_TIME_STEP_END);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_step_end failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send code name
+  write_name(local_code_name);
 
   // receive status msg
   MPI_Barrier(clt->comm);

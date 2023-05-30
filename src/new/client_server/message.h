@@ -130,6 +130,9 @@ extern "C" {
 #define CWP_MSG_CWP_PART_DATA_WAIT_ISSEND                70
 #define CWP_MSG_CWP_PART_DATA_WAIT_IRECV                 71
 
+#define CWP_MSG_CWP_TIME_STEP_BEG                        72
+#define CWP_MSG_CWP_TIME_STEP_END                        73
+
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 
