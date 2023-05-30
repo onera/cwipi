@@ -67,12 +67,10 @@ def runTest():
         code_name = ["code2"]
 
     is_active_rank = [True]
-    time_init      = [0.0]
 
     intra_comm = pycwp.init(comm,
                             code_name,
-                            is_active_rank,
-                            time_init)
+                            is_active_rank)
 
     # Create the coupling :
     # One CWIPI context can hold several couplings. Let us set up the

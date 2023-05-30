@@ -240,11 +240,9 @@ def runTest():
 
     n_code = 1
     is_active_rank = [True for i in range(n_code)]
-    time_init      = [0.0 for i in range(n_code)]
     intra_comm = pycwp.init(comm,
                             [code_name],
-                            is_active_rank,
-                            time_init)
+                            is_active_rank)
 
     # COUPLING
     cpl = pycwp.Coupling(code_name,

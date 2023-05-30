@@ -31,7 +31,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   if (CWP_ENABLE_Fortran)
 
     list (APPEND call_back_tuto_sol c_new_api_callback_sendrecv_sol.c fortran_new_api_callback_sendrecv_sol.F90 python_new_api_callback_sendrecv_sol.py)
-    list (APPEND call_back_nproc_tuto 2 2 2) 
+    list (APPEND call_back_nproc_tuto 2 2 2)
 
     test_create ("${call_back_tuto_sol}" "${call_back_nproc_tuto}" CWP_LIST_TEST CWP_LIST_NRANK)
  

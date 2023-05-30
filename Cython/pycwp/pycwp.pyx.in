@@ -812,6 +812,10 @@ cdef long** np_list_to_long_pointers(list datas):
 # 'str' is a special type that is bytes in Py2 and unicode in Py3
 # --> general functions
 
+cdef char **c_code_names
+cdef int n_code
+cdef MPI.MPI_Comm* intra_comms
+
 def init(MPI.Comm global_comm,
          list code_names,
          list is_active_rank):
@@ -826,13 +830,14 @@ def init(MPI.Comm global_comm,
     Returns:
       intra_comms    (MPI.Comm)    : MPI intra communicators of each code (size = number of codes on current MPI rank)
     """
+    global n_code
+    global c_code_names
+    global intra_comms
 
-    cdef int n_code = len(code_names)
+    n_code = len(code_names)
 
     # code names
-    cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
-    for i in range(n_code):
-      c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+    c_code_names = <char**> malloc(sizeof(char*) * n_code)
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
@@ -844,7 +849,7 @@ def init(MPI.Comm global_comm,
     # MPI communicator
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
-    cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
+    intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
 
     # active ranks
@@ -872,6 +877,13 @@ def finalize():
     After this call, no other function from this module can be called.
     It is a synchronization point between all applications.
     """
+    global n_code
+    global c_code_names
+    global intra_comms
+
+    free(c_code_names)
+
+    free(intra_comms)
 
     CWP_Finalize()
 
@@ -1355,11 +1367,9 @@ def param_reduce(CWP_Op_t    op,
       res (data_type) : Result
     """
 
-    cdef int n_code = len(code_names)
+    cdef int _n_code = len(code_names)
 
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
-    for i in range(n_code):
-      c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
@@ -1380,6 +1390,7 @@ def param_reduce(CWP_Op_t    op,
                        &(int_res),
                        n_code,
                        c_code_names)
+      free(c_code_names)
       return int_res
 
     elif (data_type == CWP_DOUBLE):
@@ -1389,6 +1400,7 @@ def param_reduce(CWP_Op_t    op,
                        &(dbl_res),
                        n_code,
                        c_code_names)
+      free(c_code_names)
       return dbl_res
 
     elif (data_type == CWP_CHAR):
@@ -1398,6 +1410,7 @@ def param_reduce(CWP_Op_t    op,
                        &(str_res),
                        n_code,
                        c_code_names)
+      free(c_code_names)
     return str_res
 
 def param_lock(char * code_name):

@@ -167,11 +167,9 @@ def runTest():
     f.write("pycwp.init:\n")
   n_code = len(code_name)
   is_active_rank = [True for i in range(n_code)]
-  time_init      = [0.0 for i in range(n_code)]
   intra_comm = pycwp.init(comm,
                           code_name,
-                          is_active_rank,
-                          time_init)
+                          is_active_rank)
 
   # intra_comm = my_intra_comm
 
