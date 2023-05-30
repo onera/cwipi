@@ -46,7 +46,7 @@ if(CWP_ENABLE_DOCUMENTATION)
                          #-w sphinx_build_warnings.log
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
-                       ${SPHINX_SOURCE} ${SPHINX_BUILD}
+                         ${SPHINX_SOURCE} ${SPHINX_BUILD}
                        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                        DEPENDS
                        # Other docs files you want to track should go here (or in some variable)

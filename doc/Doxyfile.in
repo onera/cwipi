@@ -711,7 +711,7 @@ WARNINGS               = NO
 
 # Warn if documentation is incomplete.
 
-WARN_IF_INCOMPLETE_DOC = NO
+# WARN_IF_INCOMPLETE_DOC = NO
 
 # If the WARN_IF_UNDOCUMENTED tag is set to YES then doxygen will generate
 # warnings for undocumented members. If EXTRACT_ALL is set to YES then this flag
@@ -2026,7 +2026,7 @@ SKIP_FUNCTION_MACROS   = YES
 # the path). If a tag file is not located in the directory in which doxygen is
 # run, you must also specify the path to the tagfile here.
 
-TAGFILES = @CMAKE_CURRENT_BINARY_DIR@/../paradigm/doc/paradigm.tag=@CMAKE_CURRENT_BINARY_DIR@/../paradigm/doc/html
+# TAGFILES = @CMAKE_CURRENT_BINARY_DIR@/../paradigm/doc/paradigm.tag=@CMAKE_CURRENT_BINARY_DIR@/../paradigm/doc/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
