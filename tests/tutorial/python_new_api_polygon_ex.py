@@ -128,6 +128,8 @@ def runTest():
     # ------------------------------------------------------- To fill in
     n_components = 1
 
+    n_vtx = len(coords)//3
+
     send_field_data = np.arange(n_vtx*n_components, dtype=np.double)
     recv_field_data = np.arange(n_vtx*n_components, dtype=np.double)
 

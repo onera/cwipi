@@ -179,6 +179,7 @@ def runTest():
     # Set the field values :
     # Note that the user has to allocate the array for the
     # field that will be received by code2 (CWP_FIELD_MAP_TARGET).
+    n_vtx = len(coords)//3
     send_field_data = np.arange(n_vtx*n_components, dtype=np.double)
     recv_field_data = np.arange(n_vtx*n_components, dtype=np.double)
 

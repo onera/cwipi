@@ -102,13 +102,15 @@ program fortran_new_api_deformable_sol
   ! the expected ParaDiGM format. It is the users responsability to
   ! free arrays from _simplified mesh generation functions. In a real life
   ! coupling case here a user generated mesh would be read/loaded/given.
-  call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
-                                              n_vtx_seg,      &
-                                              n_vtx,          &
-                                              n_elt,          &
-                                              coords,         &
-                                              elt_vtx_idx,    &
-                                              elt_vtx)
+  ! TO UNCOMMENT -->>
+  ! call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
+  !                                             n_vtx_seg,      &
+  !                                             n_vtx,          &
+  !                                             n_elt,          &
+  !                                             coords,         &
+  !                                             elt_vtx_idx,    &
+  !                                             elt_vtx)
+  ! <<--
 
   ! Interations :
   ! At each iteration the mesh coordinates and the exchanged fields are modified.
@@ -264,7 +266,9 @@ program fortran_new_api_deformable_sol
 
   ! free
   deallocate(code_names)
-  deallocate(intra_comms)
+  if (associated(intra_comms)) then
+    deallocate(intra_comms)
+  endif
   deallocate(coupled_code_names)
   deallocate(send_field_data)
   deallocate(recv_field_data)
