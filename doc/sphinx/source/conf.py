@@ -17,9 +17,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../../Cython/pycwp'))
 
 # -- General configuration ------------------------------------------------
 
@@ -87,9 +87,9 @@ version = 'X.Y'
 # The full version, including alpha/beta/rc tags.
 release = 'X.Y.Z-rXYZ'
 try:
-    import cwipi
-    version = cwipi.__version__
-    release = cwipi.__version__
+    import pycwp
+    version = pycwp.__version__
+    release = pycwp.__version__
 except: 
     pass
 
