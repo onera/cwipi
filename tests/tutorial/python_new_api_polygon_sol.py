@@ -144,11 +144,9 @@ def runTest():
     # (11 here) to set the coordinates in. The coordinates are
     # interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
     # The None argument will be explained later.
-    n_vtx = 11
     coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
               3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
     cpl.mesh_interf_vtx_set(0,
-                            n_vtx,
                             coords,
                             None)
 
@@ -162,12 +160,10 @@ def runTest():
     # size connec_idx(n_elts+1) (here 21).
     block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
-    n_elts = 5
     connec_idx = np.array([0,3,7,11,16,21], dtype=np.int32)
     connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
     cpl.mesh_interf_f_poly_block_set(0,
                                      block_id,
-                                     n_elts,
                                      connec_idx,
                                      connec,
                                      None)

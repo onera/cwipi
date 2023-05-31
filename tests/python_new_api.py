@@ -231,7 +231,6 @@ def runTest():
         f.write("cpl.mesh_interf_vtx_set:\n")
         f.flush()
         cpl.mesh_interf_vtx_set(0,
-                                4,
                                 coord,
                                 None)
 
@@ -243,7 +242,6 @@ def runTest():
 
         cpl.mesh_interf_f_poly_block_set(0,
                                          block_id,
-                                         2,
                                          connec_idx,
                                          connec,
                                          None)
@@ -389,7 +387,6 @@ def runTest():
         connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
         cpl.mesh_interf_block_std_set(0,
                                       block_id,
-                                      2,
                                       connec,
                                       None)
 
@@ -445,8 +442,6 @@ def runTest():
     f.flush()
     cpl2.mesh_interf_c_poly_block_set(0,
                                      block_id,
-                                     1,
-                                     4,
                                      connec_faces_idx,
                                      connec_faces,
                                      connec_cells_idx,
@@ -521,7 +516,6 @@ def runTest():
     f.flush()
     cpl3.mesh_interf_block_ho_set(0,
                                   block_id,
-                                  1,
                                   2,
                                   face_vtx,
                                   None)

@@ -92,7 +92,6 @@ def runTest():
     # no global numbering of the vertices will be given. In this
     # simple setting, there is only one partition per processor.
     # ------------------------------------------------------- To fill in
-    n_vtx = 11
     coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
               3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
 
@@ -105,7 +104,6 @@ def runTest():
     # global numbering.
     # ------------------------------------------------------- To fill in
 
-    n_elts = 5
     connec_idx = np.array([0,3,7,11,16,21], dtype=np.int32)
     connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
 

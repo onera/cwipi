@@ -853,6 +853,8 @@ CWP_client_Init
   const CWP_Status_t       is_active_rank
 )
 {
+  printf("code_name = %s\n", code_name);
+  log_trace("code_name = %s\n", code_name);
   const int n_code = 1;
 
   /*intra communicators */

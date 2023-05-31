@@ -2912,7 +2912,6 @@ cdef class Coupling (object):
 
     def mesh_interf_vtx_set(self,
                             int                       i_part,
-                            int                       n_pts,
                             NPY.ndarray[NPY.double_t] coord not None,
                             NPY.ndarray[NPY.int64_t]  global_num):
         """
@@ -2924,6 +2923,12 @@ cdef class Coupling (object):
           coord      (NPY.ndarray[NPY.double_t]) : Coordinates (size = 3 * n_pts)
           global_num (NPY.ndarray[NPY.long])     : Pointer to parent element number (or None)
         """
+
+        if len(coord)%3 != 0:
+          print("Coordinates must be provided in 3 dimensions")
+          exit(1)
+
+        cdef int n_pts = len(coord)//3
 
         if (global_num is None):
           CWP_Mesh_interf_vtx_set(self.local_code_name,
@@ -2961,7 +2966,6 @@ cdef class Coupling (object):
     def mesh_interf_block_std_set(self,
                                   int                      i_part,
                                   int                      block_id,
-                                  int                      n_elts,
                                   NPY.ndarray[NPY.int32_t] connec not None,
                                   NPY.ndarray[NPY.int64_t] global_num):
         """
@@ -2971,10 +2975,20 @@ cdef class Coupling (object):
         Parameters:
           i_part     (int)                      : Partition identifier
           block_id   (int)                      : Block identifier
-          n_elts     (int)                      : Number of elements
           connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
           global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
         """
+
+        cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                             self.cpl_id,
+                                                             block_id)
+        cdef int stride = std_block_n_pts_get(block_type)
+
+        if len(connec)%stride != 0:
+          print(f"Length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+          exit(1)
+
+        cdef int n_elts = len(connec)//stride
 
         if (global_num is None):
           CWP_Mesh_interf_block_std_set(self.local_code_name,
@@ -3034,7 +3048,6 @@ cdef class Coupling (object):
     def mesh_interf_f_poly_block_set(self,
                                      int                      i_part,
                                      int                      block_id,
-                                     int                      n_elts,
                                      NPY.ndarray[NPY.int32_t] connec_idx not None,
                                      NPY.ndarray[NPY.int32_t] connec not None,
                                      NPY.ndarray[NPY.int64_t] global_num):
@@ -3049,6 +3062,7 @@ cdef class Coupling (object):
           connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
           global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
         """
+        cdef int n_elts = len(connec_idx) - 1
 
         if (global_num is None):
           CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
@@ -3110,8 +3124,6 @@ cdef class Coupling (object):
     def mesh_interf_c_poly_block_set(self,
                                      int                      i_part,
                                      int                      block_id,
-                                     int                      n_elts,
-                                     int                      n_faces,
                                      NPY.ndarray[NPY.int32_t] connec_faces_idx not None,
                                      NPY.ndarray[NPY.int32_t] connec_faces not None,
                                      NPY.ndarray[NPY.int32_t] connec_cells_idx not None,
@@ -3123,14 +3135,14 @@ cdef class Coupling (object):
         Parameters:
           i_part           (int)                      : Partition identifier
           block_id         (int)                      : Block identifier
-          n_elts           (int)                      : Number of elements
-          n_faces          (int)                      : Number of faces
           connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
           connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
           connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
           connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
           global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
         """
+        cdef int n_faces = len(connec_faces_idx) - 1
+        cdef int n_elts  = len(connec_cells_idx) - 1
 
         if (global_num is None):
           CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
@@ -3211,7 +3223,6 @@ cdef class Coupling (object):
     def mesh_interf_block_ho_set(self,
                                  int                      i_part,
                                  int                      block_id,
-                                 int                      n_elts,
                                  int                      order,
                                  NPY.ndarray[NPY.int32_t] connec not None,
                                  NPY.ndarray[NPY.int64_t] global_num):
@@ -3222,11 +3233,21 @@ cdef class Coupling (object):
         Parameters:
           i_part     (int)                      : Partition identifier
           block_id   (int)                      : Block identifier
-          n_elts     (int)                      : Number of elements
           order      (int)                      : Element order
           connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
           global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
       """
+
+      cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                           self.cpl_id,
+                                                           block_id)
+      cdef int stride = ho_n_vtx_get(block_type, order)
+
+      if len(connec)%stride != 0:
+        print(f"Length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+        exit(1)
+
+      cdef int n_elts = len(connec)//stride
 
       if (global_num is None):
         CWP_Mesh_interf_block_ho_set(self.local_code_name,

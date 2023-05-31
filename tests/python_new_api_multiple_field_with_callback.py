@@ -260,7 +260,6 @@ def runTest():
                                                     5)
 
     cpl.mesh_interf_vtx_set(0,
-                            mesh["n_vtx"],
                             mesh["coords"],
                             None)
 
@@ -268,7 +267,6 @@ def runTest():
 
     cpl.mesh_interf_f_poly_block_set(0,
                                      block_id,
-                                     mesh["n_elt"],
                                      mesh["elt_vtx_idx"],
                                      mesh["elt_vtx"],
                                      None)

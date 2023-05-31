@@ -80,13 +80,11 @@ def runTest():
 
     intra_comm = comm.Split(i_rank)
 
-    is_active_rank = 1
-    time_init = 0.
+    is_active_rank = True
     out = pycwpclt.init(intra_comm,
                         config,
                         code_name,
-                        is_active_rank,
-                        time_init)
+                        is_active_rank)
 
     # # STATE UPDATE
     # pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_IN_PROGRESS)
@@ -303,7 +301,6 @@ def runTest():
         face_vtx = np.array([1, 3, 6, 2, 5, 4], dtype=np.int32)
         cpl.mesh_interf_block_ho_set(0,
                                      block_id,
-                                     1,
                                      2,
                                      face_vtx,
                                      None)
@@ -349,7 +346,6 @@ def runTest():
         print("cpl.mesh_interf_vtx_set:\n")
 
         cpl.mesh_interf_vtx_set(0,
-                                4,
                                 coord,
                                 None)
 
@@ -361,7 +357,6 @@ def runTest():
 
         cpl.mesh_interf_f_poly_block_set(0,
                                          block_id,
-                                         2,
                                          connec_idx,
                                          connec,
                                          None)
@@ -490,7 +485,6 @@ def runTest():
         connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
         cpl.mesh_interf_block_std_set(0,
                                       block_id,
-                                      2,
                                       connec,
                                       None)
 
@@ -546,8 +540,6 @@ def runTest():
 
     cpl2.mesh_interf_c_poly_block_set(0,
                                      block_id,
-                                     1,
-                                     4,
                                      connec_faces_idx,
                                      connec_faces,
                                      connec_cells_idx,

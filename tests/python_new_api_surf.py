@@ -233,7 +233,6 @@ def runTest():
 
     for ipart in range(n_part[icode]):
       cpl[icode].mesh_interf_vtx_set(ipart,
-                                     len(mesh[icode]["pvtx_ln_to_gn"][ipart]),
                                      mesh[icode]["pvtx_coord"]   [ipart],
                                      mesh[icode]["pvtx_ln_to_gn"][ipart])
 
@@ -241,7 +240,6 @@ def runTest():
 
       cpl[icode].mesh_interf_f_poly_block_set(ipart,
                                               id_block,
-                                              len(mesh[icode]["pface_ln_to_gn"][ipart]),
                                               mesh[icode]["pface_vtx_idx"] [ipart],
                                               mesh[icode]["pface_vtx"]     [ipart],
                                               mesh[icode]["pface_ln_to_gn"][ipart])
