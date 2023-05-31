@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -129,6 +129,9 @@ extern "C" {
 #define CWP_MSG_CWP_PART_DATA_IRECV                      69
 #define CWP_MSG_CWP_PART_DATA_WAIT_ISSEND                70
 #define CWP_MSG_CWP_PART_DATA_WAIT_IRECV                 71
+
+#define CWP_MSG_CWP_TIME_STEP_BEG                        72
+#define CWP_MSG_CWP_TIME_STEP_END                        73
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -359,6 +359,34 @@ CWP_client_Time_update
 (
  const char* local_code_name,
  const double current_time
+);
+
+/**
+ * \brief Time_step_beg CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] current_time Current time
+ *
+ */
+
+void
+CWP_client_Time_step_beg
+(
+ const char* local_code_name,
+ const double current_time
+);
+
+/**
+ * \brief Time_step_end CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ */
+
+void
+CWP_client_Time_step_end
+(
+ const char* local_code_name
 );
 
 /**
@@ -1106,10 +1134,8 @@ CWP_client_Field_create
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] data_type         Choice if data is setted for the source or the target
+ * \param [in] map_type          Choice if data is setted for the source or the target
  * \param [in] data              Storage array (Mapping)
- * \param [in] n_component       Number of components of the field
- * \param [in] n_dof             Number of (cells, vtx or user)
  *
  */
 
@@ -1121,7 +1147,6 @@ CWP_client_Field_data_set
  const char              *field_id,
  const int                i_part,
  const CWP_Field_map_t    map_type,
- int                      n_entities,
  double                  *data
 );
 

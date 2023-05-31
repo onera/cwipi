@@ -476,14 +476,12 @@ main
                                 field_name1,
                                 0,
                                 CWP_FIELD_MAP_SOURCE,
-                                pn_vtx[ipart],
                                 send_values[ipart]);
       CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name2,
                                 0,
                                 CWP_FIELD_MAP_TARGET,
-                                pn_face[ipart],
                                 recv_values[ipart]);
     }
   }
@@ -513,14 +511,12 @@ main
                                 field_name2,
                                 ipart,
                                 CWP_FIELD_MAP_SOURCE,
-                                pn_face[ipart],
                                 send_values[ipart]);
       CWP_client_Field_data_set(code_name,
                                 cpl_name,
                                 field_name1,
                                 ipart,
                                 CWP_FIELD_MAP_TARGET,
-                                pn_vtx[ipart],
                                 recv_values[ipart]);
     }
   }

@@ -670,7 +670,6 @@ main(int argc, char *argv[]) {
                               vtx_field_name[0],
                               i_part,
                               map_type,
-                              pn_vtx[i_part],
                               field_ptr[i_part]);
   }
 

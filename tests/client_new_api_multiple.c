@@ -218,6 +218,9 @@ main
                         CWP_DYNAMIC_MESH_VARIABLE,
                         CWP_TIME_EXCH_USER_CONTROLLED);
 
+  // Begin Time step
+  CWP_client_Time_step_beg(code_name, 0.0);
+
   // Create mesh with several blocks
   int n_vtx = 9;
   double coords[27] = {0., 0., 0.,   1., 0., 0.,   2., 0., 0.,   0., 1., 0.,
@@ -261,9 +264,11 @@ main
   // Delete mesh
   CWP_client_Mesh_interf_del(code_name, cpl_name);
 
+  // End time step
+  CWP_client_Time_step_end(code_name);
 
-  // Update time
-  CWP_client_Time_update(code_name, 1.0);
+  // Begin Time step
+  CWP_client_Time_step_beg(code_name, 1.0);
 
   // Create new mesh
   int n_second_vtx = 6;
@@ -289,6 +294,9 @@ main
                                        n_third_elts,
                                        third_connec,
                                        NULL);
+
+  // End time step
+  CWP_client_Time_step_end(code_name);
 
   // Delete mesh
   CWP_client_Mesh_interf_del(code_name, cpl_name);

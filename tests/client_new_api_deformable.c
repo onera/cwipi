@@ -281,7 +281,6 @@ main
                               field_name,
                               0,
                               CWP_FIELD_MAP_SOURCE,
-                              n_vtx,
                               send_field);
   } else {
     CWP_client_Field_create(code_name,
@@ -299,7 +298,6 @@ main
                               field_name,
                               0,
                               CWP_FIELD_MAP_TARGET,
-                              n_vtx,
                               recv_field);
   }
 
@@ -318,13 +316,13 @@ main
 
     ttime = (it-itdeb)*dt;
 
+    // Begin Time step
+    CWP_client_Time_step_beg(code_name, ttime);
+
     for (int i = 0; i < n_vtx; i++) {
       coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
       send_field[i] = coords[3 * i + 2];
     }
-
-    // Update time
-    if (it != itdeb) CWP_client_Time_update(code_name, ttime);
 
     MPI_Barrier(comm);
 
@@ -344,6 +342,9 @@ main
     else {
       CWP_client_Field_wait_irecv (code_name, cpl_name, field_name);
     }
+
+    // End time step
+    CWP_client_Time_step_end(code_name);
 
     MPI_Barrier(comm);
 

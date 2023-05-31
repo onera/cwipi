@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -297,6 +297,32 @@ CWP_server_State_update
 
 void
 CWP_server_Time_update
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Time_step_beg CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Time_step_beg
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Time_step_end CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Time_step_end
 (
   p_server                 svr
 );

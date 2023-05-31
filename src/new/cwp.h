@@ -453,7 +453,7 @@ CWP_State_update
  * \brief Update code time.
  *
  * \param [in] local_code_name  Local code name
- * \param [in]  current_time Current time
+ * \param [in] current_time Current time
  *
  */
 
@@ -468,7 +468,7 @@ CWP_Time_update
  * \brief Begin code time step.
  *
  * \param [in] local_code_name  Local code name
- * \param [in]  current_time Current time
+ * \param [in] current_time Current time
  *
  */
 

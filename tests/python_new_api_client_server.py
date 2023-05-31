@@ -395,7 +395,6 @@ def runTest():
             cpl.field_set("champs",
                           0,
                           pycwpclt.FIELD_MAP_SOURCE,
-                          4,
                           sendField)
 
         if (i_rank == 1):
@@ -409,7 +408,6 @@ def runTest():
             cpl.field_set("champs",
                           0,
                           pycwpclt.FIELD_MAP_TARGET,
-                          4,
                           recvField)
 
         comm.Barrier()
