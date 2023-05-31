@@ -1744,8 +1744,6 @@ CWP_server_Time_update
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
-// TO DO : adapt to update coordinates en so on
-
 void
 CWP_server_Time_step_beg
 (
@@ -1756,7 +1754,7 @@ CWP_server_Time_step_beg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_BEG);
     message.flag = CWP_SVR_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -1774,7 +1772,7 @@ CWP_server_Time_step_beg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_BEG);
     message.flag = CWP_SVR_LCH_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -1787,7 +1785,7 @@ CWP_server_Time_step_beg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_BEG);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -1808,7 +1806,7 @@ CWP_server_Time_step_end
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_END);
     message.flag = CWP_SVR_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -1822,7 +1820,7 @@ CWP_server_Time_step_end
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_END);
     message.flag = CWP_SVR_LCH_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -1834,7 +1832,7 @@ CWP_server_Time_step_end
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_TIME_UPDATE);
+    NEWMESSAGE(message, CWP_MSG_CWP_TIME_STEP_END);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -2547,6 +2545,17 @@ CWP_server_Spatial_interp_weights_compute
   // read coupling identifier
   char *cpl_id = (char *) malloc(sizeof(char));
   read_name(&cpl_id, svr);
+
+  // receive coordinates if deformable mesh
+  std::string s1(cpl_id);
+  if (svr_cwp.coupling[s1].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    for (int j_part = 0; j_part < svr_cwp.coupling[s1].n_part; j_part++) {
+      CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].vtx_coord[j_part], sizeof(double) * 3 * svr_cwp.coupling[s1].n_vtx[j_part]);
+      if (svr_cwp.coupling[s1].usr_coord != NULL) {
+        CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].usr_coord[j_part], sizeof(double) * 3 * svr_cwp.coupling[s1].n_user_vtx[j_part]);
+      }
+    }
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4791,6 +4800,13 @@ CWP_server_Field_issend
   // read source field identifier
   char *src_field_id = (char *) malloc(sizeof(char));
   read_name(&src_field_id, svr);
+
+  // receive field data from client to update data pointer
+  std::string s1(cpl_id);
+  std::string s2(src_field_id);
+  for (int j_part = 0; j_part < svr_cwp.coupling[s1].n_part; j_part++) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) (svr_cwp.coupling[s1].field[s2]).data[j_part], sizeof(double) * (svr_cwp.coupling[s1].field[s2]).size[j_part]);
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);

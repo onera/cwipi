@@ -2517,8 +2517,6 @@ CWP_client_Time_update
   }
 }
 
-// TO DO : adapt where to transfer coordinates and so on if deformable or variable mesh
-
 void
 CWP_client_Time_step_beg
 (
@@ -3395,6 +3393,28 @@ CWP_client_Spatial_interp_weights_compute
 
   // send coupling identifier
   write_name(cpl_id);
+
+  // send coordinates if deformable mesh
+  std::string s1(cpl_id);
+  if (clt_cwp.coupling[s1].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+
+      double *endian_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[s1].n_vtx[j_part]);
+      memcpy(endian_coord, clt_cwp.coupling[s1].vtx_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[s1].n_vtx[j_part]);
+      CWP_swap_endian_8bytes(endian_coord, 3 * clt_cwp.coupling[s1].n_vtx[j_part]);
+      CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * clt_cwp.coupling[s1].n_vtx[j_part]);
+      free(endian_coord);
+
+      if (clt_cwp.coupling[s1].usr_coord != NULL) {
+        double *endian_user_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[s1].n_user_vtx[j_part]);
+        memcpy(endian_user_coord, clt_cwp.coupling[s1].usr_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[s1].n_user_vtx[j_part]);
+        CWP_swap_endian_8bytes(endian_user_coord, 3 * clt_cwp.coupling[s1].n_user_vtx[j_part]);
+        CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_user_coord, sizeof(double) * 3 * clt_cwp.coupling[s1].n_user_vtx[j_part]);
+        free(endian_user_coord);
+      }
+    }
+  }
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -5556,6 +5576,17 @@ CWP_client_Field_issend
 
   // send source field identifier
   write_name(src_field_id);
+
+  // send field to update data pointer on server side
+  std::string s1(cpl_id);
+  std::string s2(src_field_id);
+  for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+    double *endian_data = (double *) malloc(sizeof(double) * (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
+    memcpy(endian_data, (clt_cwp.coupling[s1].field[s2]).data[j_part], sizeof(double) * (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
+    CWP_swap_endian_8bytes(endian_data, (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
+    free(endian_data);
+  }
 
   // receive status msg
   MPI_Barrier(clt->comm);
