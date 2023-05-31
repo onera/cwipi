@@ -5299,7 +5299,6 @@ CWP_server_Mesh_interf_ho_ordering_from_IJK_set
   }
 
   // free
-  free(svr_cwp.coupling[s].ijk_grid);//?
   free(local_code_name);
   free(cpl_id);
 
