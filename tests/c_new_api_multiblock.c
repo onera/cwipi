@@ -788,7 +788,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (1) {
+  if (0) {
     for (int iblock = 0; iblock < n_block; iblock++) {
       for (int ipart = 0; ipart < n_part; ipart++) {
         char filename[999];

@@ -946,7 +946,7 @@ main
                                                  ipart);
           }
 
-          log_trace("part %d, n_computed_tgt = %d / %d\n", ipart, n_computed_tgt, n_node[i_code][ipart]);
+          // log_trace("part %d, n_computed_tgt = %d / %d\n", ipart, n_computed_tgt, n_node[i_code][ipart]);
 
           for (int i = 0; i < n_computed_tgt; i++) {
             int j = computed_tgt[i] - 1;
