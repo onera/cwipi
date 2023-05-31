@@ -362,7 +362,6 @@ cdef extern from "client_server/client.h":
                                  char              *field_id,
                                  int                i_part,
                                  CWP_Field_map_t    map_type,
-                                 int                n_entities,
                                  double             *data)
   CWP_Dof_location_t CWP_client_Field_target_dof_location_get(char      *local_code_name,
                                                               char      *cpl_id,
@@ -1432,7 +1431,6 @@ cdef class Field (object):
     def data_set(self,
                  int                i_part,
                  CWP_Field_map_t    map_type,
-                 int                n_entities,
                  NPY.ndarray[NPY.double_t] data):
         """
         Set field data.
@@ -1449,7 +1447,6 @@ cdef class Field (object):
                                   self.field_id,
                                   i_part,
                                   map_type,
-                                  n_entities,
                        <double *> data.data)
 
     def target_dof_location_get(self):

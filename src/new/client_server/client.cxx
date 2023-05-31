@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -2036,6 +2036,11 @@ CWP_client_Cpl_create
 
   clt_cwp.coupling[s].n_part = n_part;
   clt_cwp.coupling[s].mesh_dynamic = displacement;
+
+  clt_cwp.coupling[s].n_elt = (int *) malloc(sizeof(int) *  n_part);
+  for (int j_part = 0; j_part < n_part; j_part++) {
+    clt_cwp.coupling[s].n_elt[j_part] = 0;
+  }
 }
 
 void
@@ -2098,11 +2103,12 @@ CWP_client_Cpl_del
   if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
 
     if (clt_cwp.coupling[s].vtx_coord != NULL) free(clt_cwp.coupling[s].vtx_coord);
-    if (clt_cwp.coupling[s].n_vtx != NULL) free(clt_cwp.coupling[s].n_vtx);
     if (clt_cwp.coupling[s].usr_coord != NULL) free(clt_cwp.coupling[s].usr_coord);
-    if (clt_cwp.coupling[s].n_user_vtx != NULL) free(clt_cwp.coupling[s].n_user_vtx);
 
   }
+
+  if (clt_cwp.coupling[s].n_vtx != NULL) free(clt_cwp.coupling[s].n_vtx);
+  if (clt_cwp.coupling[s].n_user_vtx != NULL) free(clt_cwp.coupling[s].n_user_vtx);
 
   if (!clt_cwp.coupling[s].block.empty()) {
     std::map<int, t_block>::iterator it_b = clt_cwp.coupling[s].block.begin();
@@ -2233,6 +2239,8 @@ CWP_client_Cpl_del
       it_gd = clt_cwp.coupling[s].global_data.erase(it_gd);
     }
   }
+
+  if (clt_cwp.coupling[s].n_elt != NULL) free(clt_cwp.coupling[s].n_elt);
 
   clt_cwp.coupling.erase(s);
 }
@@ -3563,7 +3571,6 @@ CWP_client_User_tgt_pts_set
   if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
     if (clt_cwp.coupling[s].usr_coord == NULL) {
 
-      clt_cwp.coupling[s].n_user_vtx = (int *) malloc(sizeof(int) * clt_cwp.coupling[s].n_part);
       clt_cwp.coupling[s].usr_coord = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s].n_part);
 
       for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
@@ -3572,9 +3579,18 @@ CWP_client_User_tgt_pts_set
 
     }
 
-    clt_cwp.coupling[s].n_user_vtx[i_part] = n_pts;
     clt_cwp.coupling[s].usr_coord[i_part]  = coord;
   }
+
+  if (clt_cwp.coupling[s].n_user_vtx == NULL) {
+    clt_cwp.coupling[s].n_user_vtx = (int *) malloc(sizeof(int) * clt_cwp.coupling[s].n_part);
+
+    for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
+      clt_cwp.coupling[s].n_user_vtx[j_part] = 0;
+    }
+  }
+
+  clt_cwp.coupling[s].n_user_vtx[i_part] = n_pts;
 
   // send global_num
   int NULL_flag = 0;
@@ -3735,7 +3751,6 @@ CWP_client_Mesh_interf_vtx_set
   if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
     if (clt_cwp.coupling[s].vtx_coord == NULL) {
 
-      clt_cwp.coupling[s].n_vtx = (int *) malloc(sizeof(int) * clt_cwp.coupling[s].n_part);
       clt_cwp.coupling[s].vtx_coord = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s].n_part);
 
       for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
@@ -3744,9 +3759,18 @@ CWP_client_Mesh_interf_vtx_set
 
     }
 
-    clt_cwp.coupling[s].n_vtx[i_part]     = n_pts;
     clt_cwp.coupling[s].vtx_coord[i_part] = coord;
   }
+
+  if (clt_cwp.coupling[s].n_vtx == NULL) {
+    clt_cwp.coupling[s].n_vtx = (int *) malloc(sizeof(int) * clt_cwp.coupling[s].n_part);
+
+    for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
+      clt_cwp.coupling[s].n_vtx[j_part] = 0;
+    }
+  }
+
+  clt_cwp.coupling[s].n_vtx[i_part] = n_pts;
 
   // send global_num
   int NULL_flag = 0;
@@ -3963,6 +3987,10 @@ CWP_client_Mesh_interf_block_std_set
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] += n_elts;
 
   // free
   free(endian_connec);
@@ -4253,6 +4281,10 @@ CWP_client_Mesh_interf_f_poly_block_set
     if (clt->i_rank == 0) verbose(message);
   }
 
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] = n_elts;
+
   // free
   free(endian_connec_idx);
   free(endian_connec);
@@ -4501,6 +4533,10 @@ CWP_client_Mesh_interf_c_poly_block_set
     if (clt->i_rank == 0) verbose(message);
   }
 
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] = n_elts;
+
   // free
   free(endian_connec_faces_idx);
   free(endian_connec_faces);
@@ -4702,8 +4738,7 @@ CWP_client_Mesh_interf_del
   // free struct
   std::string s(cpl_id);
 
-  // WARNING : might call this then time update but since coupling still exists
-  // will try to write in a NULL pointer
+  // WARNING : might need to malloc again (put to zero instead of dealloc ??)
   if (clt_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
 
     if (clt_cwp.coupling[s].vtx_coord != NULL) {
@@ -4711,21 +4746,21 @@ CWP_client_Mesh_interf_del
       clt_cwp.coupling[s].vtx_coord = NULL;
     }
 
-    if (clt_cwp.coupling[s].n_vtx != NULL) {
-      free(clt_cwp.coupling[s].n_vtx);
-      clt_cwp.coupling[s].n_vtx = NULL;
-    }
-
     if (clt_cwp.coupling[s].usr_coord != NULL) {
       free(clt_cwp.coupling[s].usr_coord);
       clt_cwp.coupling[s].usr_coord = NULL;
     }
 
-    if (clt_cwp.coupling[s].n_user_vtx != NULL) {
-      free(clt_cwp.coupling[s].n_user_vtx);
-      clt_cwp.coupling[s].n_user_vtx = NULL;
-    }
+  }
 
+  if (clt_cwp.coupling[s].n_vtx != NULL) {
+    free(clt_cwp.coupling[s].n_vtx);
+    clt_cwp.coupling[s].n_vtx = NULL;
+  }
+
+  if (clt_cwp.coupling[s].n_user_vtx != NULL) {
+    free(clt_cwp.coupling[s].n_user_vtx);
+    clt_cwp.coupling[s].n_user_vtx = NULL;
   }
 
   if (!clt_cwp.coupling[s].block.empty()) {
@@ -4868,6 +4903,11 @@ CWP_client_Mesh_interf_del
       it_b = clt_cwp.coupling[s].block.erase(it_b);
     }
   }
+
+  // reinitialize the n_elt size array
+  for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
+    clt_cwp.coupling[s].n_elt[j_part] = 0;
+  }
 }
 
 void
@@ -4991,6 +5031,10 @@ CWP_client_Mesh_interf_from_cellface_set
     if (clt->i_rank == 0) verbose(message);
   }
 
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] = n_cells;
+
   // free
   free(endian_cell_face_idx);
   free(endian_cell_face);
@@ -5113,6 +5157,10 @@ CWP_client_Mesh_interf_from_faceedge_set
     if (clt->i_rank == 0) verbose(message);
   }
 
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] = n_faces;
+
   // free
   free(endian_face_edge_idx);
   free(endian_face_edge);
@@ -5205,6 +5253,7 @@ CWP_client_Field_create
   t_field field = t_field();
   clt_cwp.coupling[s1].field.insert(std::make_pair(s2, field));
 
+  clt_cwp.coupling[s1].field[s2].location = target_location;
   clt_cwp.coupling[s1].field[s2].n_component = n_component;
   clt_cwp.coupling[s1].field[s2].n_entities  = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
   for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
@@ -5241,7 +5290,6 @@ CWP_client_Field_data_set
  const char              *field_id,
  const int                i_part,
  const CWP_Field_map_t    map_type,
- int                      n_entities,
  double                  *data
 )
 {
@@ -5294,12 +5342,29 @@ CWP_client_Field_data_set
   std::string s2(field_id);
 
   clt_cwp.coupling[s1].field[s2].map_type = map_type;
-  clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
   clt_cwp.coupling[s1].field[s2].data[i_part] = data;
 
+  // number of entities on which the field is defined
+  if (clt_cwp.coupling[s1].field[s2].location == CWP_DOF_LOCATION_NODE) {
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].field[s2].n_entities[j_part] = clt_cwp.coupling[s1].n_vtx[j_part];
+    }
+  }
+
+  else if (clt_cwp.coupling[s1].field[s2].location == CWP_DOF_LOCATION_USER) {
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].field[s2].n_entities[j_part] = clt_cwp.coupling[s1].n_user_vtx[j_part];
+    }
+  }
+
+  else if (clt_cwp.coupling[s1].field[s2].location == CWP_DOF_LOCATION_CELL_CENTER) {
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].field[s2].n_entities[j_part] = clt_cwp.coupling[s1].n_elt[j_part];
+    }
+  }
 
   // send map with data
-  int size = clt_cwp.coupling[s1].field[s2].n_component * n_entities;
+  int size = clt_cwp.coupling[s1].field[s2].n_component * clt_cwp.coupling[s1].field[s2].n_entities[i_part];
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
@@ -5990,6 +6055,10 @@ CWP_client_Mesh_interf_block_ho_set
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // set number of mesh elements
+  std::string s1(cpl_id);
+  clt_cwp.coupling[s1].n_elt[i_part] += n_elts;
 
   // free
   free(endian_connec);

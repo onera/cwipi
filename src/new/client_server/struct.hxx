@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,7 @@ struct t_field
 
   // Field_data_set
   double **data;
+  CWP_Dof_location_t location;
 
   // Field_wait_irecv
   CWP_Field_map_t map_type;
@@ -205,7 +206,11 @@ struct t_coupling
     ijk_grid        = NULL;
     n_vtx           = NULL;
     n_user_vtx      = NULL;
+    n_elt           = NULL;
   }
+
+  // mesh
+  int *n_elt;
 
   // Mesh_interf_vtx_set
   int          *n_vtx;

@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2017  ONERA
+  Copyright (C) 2022  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -2713,7 +2713,6 @@ CWP_server_User_tgt_pts_set
   std::string s(cpl_id);
 
   if (svr_cwp.coupling[s].usr_coord == NULL) {
-    svr_cwp.coupling[s].n_user_vtx     = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].usr_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].usr_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
 
@@ -2724,6 +2723,11 @@ CWP_server_User_tgt_pts_set
   }
 
   if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+
+    if (svr_cwp.coupling[s].n_user_vtx ==  NULL) {
+      svr_cwp.coupling[s].n_user_vtx = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
+    }
+
     svr_cwp.coupling[s].n_user_vtx[i_part] = n_pts;
   }
 
@@ -2879,7 +2883,6 @@ CWP_server_Mesh_interf_vtx_set
   std::string s(cpl_id);
 
   if (svr_cwp.coupling[s].vtx_coord == NULL) {
-    svr_cwp.coupling[s].n_vtx          = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].vtx_coord      = (double **) malloc(sizeof(double *) * svr_cwp.coupling[s].n_part);
     svr_cwp.coupling[s].vtx_global_num = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * svr_cwp.coupling[s].n_part);
 
@@ -2890,6 +2893,10 @@ CWP_server_Mesh_interf_vtx_set
   }
 
   if (svr_cwp.coupling[s].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
+    if (svr_cwp.coupling[s].n_vtx == NULL) {
+      svr_cwp.coupling[s].n_vtx = (int *) malloc(sizeof(int) * svr_cwp.coupling[s].n_part);
+    }
+
     svr_cwp.coupling[s].n_vtx[i_part] = n_pts;
   }
 

@@ -281,7 +281,6 @@ main
                               field_name,
                               0,
                               CWP_FIELD_MAP_SOURCE,
-                              n_vtx,
                               send_field);
   } else {
     CWP_client_Field_create(code_name,
@@ -299,7 +298,6 @@ main
                               field_name,
                               0,
                               CWP_FIELD_MAP_TARGET,
-                              n_vtx,
                               recv_field);
   }
 
