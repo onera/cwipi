@@ -199,7 +199,7 @@ main
     system("mkdir -p client_new_api_cellface_set_block_o/code2");
     system("rm -f ./client_new_api_cellface_set_block_o/code1/cwp_config_srv.txt");
     system("rm -f ./client_new_api_cellface_set_block_o/code2/cwp_config_srv.txt");
-    system("mpirun -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"client_new_api_cellface_set_block_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_cellface_set_block_o/code2/cwp_config_srv.txt\" &");
+    system("mpirun -n 1 cwp_server -cn code0 -p 49100 49100 -c \"client_new_api_cellface_set_block_o/code1/cwp_config_srv.txt\" : -n 1  cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_cellface_set_block_o/code2/cwp_config_srv.txt\" &");
   }
 
   while (access(config, R_OK) != 0) {

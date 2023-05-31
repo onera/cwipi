@@ -689,6 +689,13 @@ else()
   endif()
 endif()
 
+if(DEFINED ENV{PATH})
+  set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin:$ENV{PATH}")
+else()
+  set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin")
+endif()
+
+
 configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_run.in "${PROJECT_BINARY_DIR}/cwp_run"
                @ONLY)
 

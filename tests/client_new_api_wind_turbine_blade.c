@@ -503,8 +503,8 @@ main(int argc, char *argv[]) {
     system("rm -f ./client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt");
 
     char str[999];
-    sprintf(str, "mpiexec -n %d ../bin/cwp_server -cn code1 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt\" \
-                  : -n %d  ../bin/cwp_server -cn code2 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &",
+    sprintf(str, "mpiexec -n %d cwp_server -cn code1 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code1/cwp_config_srv.txt\" \
+                  : -n %d  cwp_server -cn code2 -p %d %d -c \"client_new_api_wind_turbine_blade_o/code2/cwp_config_srv.txt\" &",
                   code_n_rank[0], 49100, 49100 + code_n_rank[0] - 1, code_n_rank[1], 49100 + code_n_rank[0],  49100 + code_n_rank[0] + code_n_rank[1] - 1);
     system(str);
   }
