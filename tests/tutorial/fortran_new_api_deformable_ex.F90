@@ -103,6 +103,8 @@ program fortran_new_api_deformable_sol
   ! free arrays from _simplified mesh generation functions. In a real life
   ! coupling case here a user generated mesh would be read/loaded/given.
   ! TO UNCOMMENT -->>
+  n_vtx = 0
+  n_elt = 0
   ! call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
   !                                             n_vtx_seg,      &
   !                                             n_vtx,          &
