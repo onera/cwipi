@@ -111,7 +111,7 @@ namespace cwipi {
                            cplCodeDofLocation,
                            exchDirection);
 
-      _coordinates_exchanged = 0;
+      _coordinates_exchanged = COORD_NOT_YET_EXCHANGED;
 
       _interpolation_time = CWP_SPATIAL_INTERP_AT_RECV;
 
@@ -570,7 +570,7 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::issend(Field *referenceField) {
 
-      if (!_coordinates_exchanged) {
+      if (_coordinates_exchanged == COORD_NOT_YET_EXCHANGED) {
         /* Send source points coordinates */
         if (!_coupledCodeProperties->localCodeIs()) {
 
@@ -610,6 +610,8 @@ namespace cwipi {
             cpl_spatial_interp->_recv_coord_request = _send_coord_request;
           }
         }
+
+        _coordinates_exchanged = COORD_EXCHANGE_INITIALIZED;
       }
 
       SpatialInterp::issend(referenceField);
@@ -618,7 +620,9 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::waitIssend(Field *referenceField) {
 
-      if (!_coordinates_exchanged) {
+      assert(_coordinates_exchanged != COORD_NOT_YET_EXCHANGED);
+
+      if (_coordinates_exchanged == COORD_EXCHANGE_INITIALIZED) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
           PDM_part_to_part_iexch_wait(_ptsp, _send_coord_request);
@@ -636,7 +640,7 @@ namespace cwipi {
           }
         }
 
-        _coordinates_exchanged = 1;
+        _coordinates_exchanged = COORD_EXCHANGE_FINALIZED;
       }
 
       SpatialInterp::waitIssend(referenceField);
@@ -646,7 +650,7 @@ namespace cwipi {
     void SpatialInterpClosestPoint::irecv(Field *referenceField) {
 
       /* Receive source points coordinates */
-      if (!_coordinates_exchanged) {
+      if (_coordinates_exchanged == COORD_NOT_YET_EXCHANGED) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
 
@@ -687,6 +691,7 @@ namespace cwipi {
           }
         }
 
+        _coordinates_exchanged = COORD_EXCHANGE_INITIALIZED;
       }
 
       SpatialInterp::irecv(referenceField);
@@ -695,7 +700,9 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::waitIrecv(Field *referenceField) {
 
-      if (!_coordinates_exchanged) {
+      assert(_coordinates_exchanged != COORD_NOT_YET_EXCHANGED);
+
+      if (_coordinates_exchanged == COORD_EXCHANGE_INITIALIZED) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
           PDM_part_to_part_iexch_wait(_ptsp, _send_coord_request);
@@ -713,7 +720,7 @@ namespace cwipi {
           }
         }
 
-        _coordinates_exchanged = 1;
+        _coordinates_exchanged = COORD_EXCHANGE_FINALIZED;
       }
 
       SpatialInterp::waitIrecv(referenceField);
@@ -1261,7 +1268,7 @@ namespace cwipi {
 
       SpatialInterp::clear();
 
-      _coordinates_exchanged = 0;
+      _coordinates_exchanged = COORD_NOT_YET_EXCHANGED;
 
 
       int cond1 = !_coupledCodeProperties->localCodeIs();

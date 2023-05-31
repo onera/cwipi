@@ -296,21 +296,6 @@ def runTest():
                      exchange_type,
                      pycwp.STATUS_OFF)
 
-    if (proc0) :
-        cpl.field_set(field1_name,
-                      0,
-                      pycwp.FIELD_MAP_SOURCE,
-                      send_field1_data)
-    else :
-        cpl.field_set(field1_name,
-                      0,
-                      pycwp.FIELD_MAP_TARGET,
-                      recv_field1_data)
-
-        # USER FUNCTION
-        cpl.field_interp_function_set(field1_name,
-                                      first_interpolation)
-
     # FIELD 2 - y
     field2_name = "Field 2"
 
@@ -331,6 +316,24 @@ def runTest():
                      pycwp.DOF_LOCATION_NODE,
                      exchange_type,
                      pycwp.STATUS_OFF)
+
+
+    pycwp.time_step_beg(code_name, 0.)
+
+    if (proc0) :
+        cpl.field_set(field1_name,
+                      0,
+                      pycwp.FIELD_MAP_SOURCE,
+                      send_field1_data)
+    else :
+        cpl.field_set(field1_name,
+                      0,
+                      pycwp.FIELD_MAP_TARGET,
+                      recv_field1_data)
+
+        # USER FUNCTION
+        cpl.field_interp_function_set(field1_name,
+                                      first_interpolation)
 
     if (proc0) :
         cpl.field_set(field2_name,
@@ -369,16 +372,18 @@ def runTest():
         cpl.field_wait_irecv (field1_name)
         cpl.field_wait_irecv (field2_name)
 
+    pycwp.time_step_end(code_name)
+
     # CHECK
     for i in range(mesh["n_vtx"]):
-        if (proc1) :
-            egal1 = (recv_field1_data[i] == mesh["coords"][3*i])
-            if (egal1 == 0) :
-                sys.exit(1)
+      if (proc1) :
+        egal1 = abs(recv_field1_data[i] - mesh["coords"][3*i]) < 1e-9
+        if (egal1 == 0) :
+          sys.exit(1)
 
-            egal2 = (recv_field2_data[i] == mesh["coords"][3*i+1])
-            if (egal2 == 0) :
-                sys.exit(1)
+        egal2 = abs(recv_field2_data[i] - mesh["coords"][3*i+1]) < 1e-9
+        if (egal2 == 0) :
+          sys.exit(1)
 
     # FINALIZE
     cpl.mesh_interf_del()

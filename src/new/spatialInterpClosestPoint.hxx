@@ -27,6 +27,12 @@ namespace cwipi {
   const int CWP_CLOSEST_POINTS_N_CLOSEST_PTS  = 4;
   const int CWP_CLOSEST_POINTS_POLYFIT_DEGREE = 1;
 
+  typedef enum {
+    COORD_NOT_YET_EXCHANGED,
+    COORD_EXCHANGE_INITIALIZED,
+    COORD_EXCHANGE_FINALIZED
+  } _coord_exchange_status_t;
+
   class SpatialInterpClosestPoint : public SpatialInterp {
   public:
     SpatialInterpClosestPoint();
@@ -74,7 +80,7 @@ namespace cwipi {
         double      **_tgt_in_src_dist;
 
         // Exchange of src coordinates for least square interpolation
-        int _coordinates_exchanged;
+        _coord_exchange_status_t _coordinates_exchanged;
         const double **_send_coord;
         double       **_recv_coord;
         int            _send_coord_request;
