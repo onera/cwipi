@@ -1,5 +1,5 @@
 """
-Module cwipi
+Module pycwp
 
 Python3 interface to CWIPI coupling library.
 """

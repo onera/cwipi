@@ -26,8 +26,6 @@ Summary
 
 :ref:`FAQ <faq>` is compilation of frequently asked questions.
 
-:ref:`pycwp <autodoc>` is the documentation of the Python API of the new version of CWIPI.
-
 .. toctree::
   :hidden:
   :maxdepth: 1
@@ -36,7 +34,6 @@ Summary
   quick_start
   installation
   faq
-  autodoc
   old_cwipi/old_cwipi
   new_cwipi/new_cwipi
   client_server_cwipi/client_server_cwipi

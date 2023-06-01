@@ -17,16 +17,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import sys
+# import sys
 # sys.path.append('/scratchm/khoogvel/workspace/build/cwipi/impi_gcc12/Cython')
-import os
-os.system('echo $PYTHONPATH')
-# try:
-#     from pycwp import pycwp
-#     print("     CWIPI module found !!!!!!!!!!!!!!!!!!!!!")
-# except:
-#     print("      Error : CWIPI module not found (update PYTHONPATH variable)")
-#     sys.exit(1)
 
 # -- General configuration ------------------------------------------------
 
@@ -147,10 +139,10 @@ pygments_style = 'sphinx'
 # modindex_common_prefix = []
 
 # Suppress the warnings.
-suppress_warnings = [ 'ref' ] #  'autodoc', 'autosummary',
+suppress_warnings = [ 'autodoc', 'autosummary', 'ref' ]
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
-keep_warnings = True
+keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False

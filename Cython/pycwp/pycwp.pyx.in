@@ -1533,7 +1533,7 @@ def interp_location_weights_get(char * local_code_name,
                                 char * field_id,
                                 int    i_part):
     """
-   Get spatial interpolation weights (location algorithm).
+    Get spatial interpolation weights (location algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
@@ -2334,7 +2334,7 @@ cdef class Field (object):
         """
         Setting of an user interpolation from location.
         This function takes into account an user interpolation function written with
-        void (*\ref CWP_Interp_function_t) interface.
+        void (`CWP_Interp_function_t`) interface.
 
         Parameters:
           fct                                       : Function
@@ -2689,7 +2689,7 @@ cdef class Coupling (object):
         """
         Setting of an user interpolation from location.
         This function takes into account an user interpolation function written with
-        void (*\ref CWP_Interp_function_t) interface.
+        void (`CWP_Interp_function_t`) interface.
 
         Parameters:
           field_id (str)                        : Source field id

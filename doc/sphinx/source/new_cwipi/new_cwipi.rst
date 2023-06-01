@@ -12,4 +12,15 @@ C API documentation
 .. doxygenfile:: cwp.h
    :project: cwipi
 
+Python API documentation : pycwp
+================================
+
+.. currentmodule:: pycwp
+
+.. automodule:: pycwp
+   :imported-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
