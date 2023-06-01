@@ -43,20 +43,25 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
+/**
+ * \struct t_client
+ * \brief Client storage structure
+ */
+
 typedef struct t_client
 {
-  MPI_Comm comm;
-  int      i_rank;
-  char     *code_name;
-  int      server_port;
-  int      flags;
-  int      socket;
-  int      max_msg_size;
-  int      listen_socket;
-  int      connected_socket;
-  int      client_endianess;
-  int      server_endianess;
-  char     server_name[256];
+  MPI_Comm comm;             /**< comm */
+  int      i_rank;           /**< i_rank */
+  char     *code_name;       /**< code_name */
+  int      server_port;      /**< server_port */
+  int      flags;            /**< flags */
+  int      socket;           /**< socket */
+  int      max_msg_size;     /**< max_msg_size */
+  int      listen_socket;    /**< listen_socket */
+  int      connected_socket; /**< connected_socket */
+  int      client_endianess; /**< client_endianess */
+  int      server_endianess; /**< server_endianess */
+  char     server_name[256]; /**< server_name */
 
 }t_client,*p_client;
 

@@ -182,7 +182,7 @@ typedef enum {
 
 
 /**
- * \enum CWP_Field_exch_t
+ * \enum CWP_Field_map_t
  * \brief Modes of field exchange.
  */
 
@@ -2643,7 +2643,7 @@ CWP_Computed_tgts_dist_to_spatial_interp_get
  * \brief Set receiving frequency. <b>(Not implemented yet)</b>
  *
  * This function set the receiving frequency. It must be used when
- * the type of receiving frequency is \ref CWP_TIME_EXCH_N_TIME_STEP
+ * the type of receiving frequency is <b> CWP_TIME_EXCH_N_TIME_STEP </b>
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -2663,7 +2663,7 @@ CWP_Recv_freq_set
  * \brief Set the next receiving time. <b>(Not implemented yet)</b>
  *
  * It must be used when the type of receiving frequency is
- * \ref CWP_TIME_EXCH_ASYNCHRONOUS
+ * <b> CWP_TIME_EXCH_ASYNCHRONOUS </b>
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -2684,7 +2684,7 @@ CWP_next_recv_time_set
  * \brief Set the coupling time step. <b>(Not implemented yet)</b>
  *
  * This function sets the coupling time step. It must be used when
- * the type of receiving frequency is \ref CWP_TIME_EXCH_CPL_TIME_STEP
+ * the type of receiving frequency is <b> CWP_TIME_EXCH_CPL_TIME_STEP </b>
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier

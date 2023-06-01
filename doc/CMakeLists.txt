@@ -24,6 +24,7 @@ if(CWP_ENABLE_DOCUMENTATION)
                        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
                        MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
                        COMMENT "Generating API documentation with Doxygen"
+                       DEPENDS pycwp # NB : trying to do documentation after module generation
                        VERBATIM)
 
     add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
