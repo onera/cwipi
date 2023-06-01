@@ -209,24 +209,28 @@ main(int argc, char *argv[]) {
 
   CWP_Param_get("code4", "toto2", CWP_CHAR, &titi2);
   printf("code 4 : toto2 : %s\n", titi2);
+  free (titi2);
 
   CWP_Param_get("code3", "toto", CWP_INT, &titi);
   printf("code 3 : toto : %d\n", titi);
 
   CWP_Param_get("code3", "toto2", CWP_CHAR, &titi2);
   printf("code 3 : toto2 : %s\n", titi2);
+  free (titi2);
 
   CWP_Param_get("code2", "toto", CWP_INT, &titi);
   printf("code 2 : toto : %d\n", titi);
 
   CWP_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("code 2 : toto2 : %s\n", titi2);
+  free (titi2);
 
   CWP_Param_get("code1", "toto", CWP_INT, &titi);
   printf("code 1 : toto : %d\n", titi);
 
   CWP_Param_get("code1", "toto2", CWP_CHAR, &titi2);
   printf("code 1 : toto2 : %s\n", titi2);
+  free (titi2);
 
   assert(titi == 111);
 
