@@ -4536,7 +4536,8 @@ CWP_server_Field_data_set
   // read data array
   int size;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
-  svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double) * size);
+  svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(svr_cwp.coupling[s1].field[s2].data[i_part],
+                                                                   sizeof(double) * size);
   svr_cwp.coupling[s1].field[s2].size[i_part] = size;
   if (map_type == CWP_FIELD_MAP_SOURCE) {
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);

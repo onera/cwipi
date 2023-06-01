@@ -1326,6 +1326,10 @@ namespace cwipi {
     free(_blocksType);
     _blocksType = NULL;
     _nBlocks = 0;
+    for (int i = 0; i < (int) _blockDB.size(); i++) {
+      delete _blockDB[i];
+    }
+    _blockDB.clear();
   }
 
 
@@ -1339,14 +1343,12 @@ namespace cwipi {
     myBlock->BlockAdd(block_type,this);
     int block_id_cwipi = _nBlocks;
     _blockDB.push_back (myBlock);
+    // _blockDB.resize(_nBlocks+1);
+    // _blockDB[block_id_cwipi] = myBlock;
     myBlock->blockIDCWIPISet(block_id_cwipi);
 
-    _nBlocks   = _blockDB.size();
-
-    // if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
-    //   int id_visu = _visu->GeomBlockAdd(block_type);
-    //   _id_visu.insert(std::pair <int,int> (myBlock->blockIDCWIPIGet(),id_visu));
-    // }
+    _nBlocks = _blockDB.size();
+    // _nBlocks++;
 
     return myBlock->blockIDCWIPIGet();
 
