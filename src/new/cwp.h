@@ -354,6 +354,7 @@ typedef enum {
  * \param [in]  local_code_name             Local code name
  * \param [in]  cpl_id                      Coupling name
  * \param [in]  field_id                    Field name
+ * \param [in]  i_part                      Partition identifier
  * \param [in]  spatial_interp_algorithm    Enum of spatial interpolation algorithm
  * \param [in]  storage                     xyzxyz or xxyyzz
  * \param [in]  buffer_in                   Input field array
@@ -444,7 +445,7 @@ CWP_Finalize
 void
 CWP_State_update
 (
- const char* local_code_name,
+ const char*       local_code_name,
  const CWP_State_t state
 );
 
@@ -453,14 +454,14 @@ CWP_State_update
  * \brief Update code time.
  *
  * \param [in] local_code_name  Local code name
- * \param [in] current_time Current time
+ * \param [in] current_time     Current time
  *
  */
 
 void
 CWP_Time_update
 (
- const char* local_code_name,
+ const char*  local_code_name,
  const double current_time
 );
 
@@ -468,14 +469,14 @@ CWP_Time_update
  * \brief Begin code time step.
  *
  * \param [in] local_code_name  Local code name
- * \param [in] current_time Current time
+ * \param [in] current_time     Current time
  *
  */
 
 void
 CWP_Time_step_beg
 (
- const char* local_code_name,
+ const char*  local_code_name,
  const double current_time
 );
 
@@ -734,7 +735,7 @@ CWP_Computed_tgts_bcast_enable
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return                Number of uncomputed targets
+ * \return Number of uncomputed targets
  */
 
 int
@@ -756,7 +757,7 @@ CWP_N_uncomputed_tgts_get
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return                Uncomputed targets
+ * \return Uncomputed targets
  */
 
 const int *
@@ -777,7 +778,7 @@ CWP_Uncomputed_tgts_get
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return                Number of computed targets
+ * \return Number of computed targets
  */
 
 int
@@ -798,7 +799,7 @@ CWP_N_computed_tgts_get
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return                Computed targets
+ * \return Computed targets
  */
 
 const int *
@@ -842,7 +843,7 @@ CWP_Involved_srcs_bcast_enable
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return               Number of involved sources
+ * \return Number of involved sources
  */
 
 int
@@ -864,7 +865,7 @@ CWP_N_involved_srcs_get
  * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
- * \return              Involved sources
+ * \return Involved sources
  */
 
 const int *
@@ -892,21 +893,23 @@ void
 CWP_Spatial_interp_weights_compute
 (
  const char     *local_code_name,
- const char        *cpl_id
+ const char     *cpl_id
 );
 
 
 /**
  * \brief Set a property of the spatial interpolation algorithm.
  *
- * Use "n_closest_pts" and "polyfit_degree" for the closest point
- * algorithm. Use tolerance" for the location algorithm.
- *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  property_name    Name of the property
  * \param [in]  property_type    Type of the property ("double" or "int")
  * \param [in]  property_value   Value of the property
+ *
+ * <p>
+ * Use "n_closest_pts" and "polyfit_degree" for the closest point
+ * algorithm. Use tolerance" for the location algorithm.
+ * </p>
  *
  */
 
@@ -952,14 +955,15 @@ CWP_Visu_set
  * \brief End visualization output.
  *
  * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  */
 
 void
 CWP_Visu_end
 (
- const char                 *local_code_name,
- const char                 *cpl_id
+ const char  *local_code_name,
+ const char  *cpl_id
 );
 
 /*----------------------------------------------------------------------------*
@@ -977,7 +981,7 @@ CWP_Visu_end
  * \param [in]  i_part           Current partition
  * \param [in]  n_pts            Number of points
  * \param [in]  coord            Coordinates (size = 3 * n_pts)
- * \param [in]  g_num            global number or NUL (size = n_pts)
+ * \param [in]  global_num       Global number or NUL (size = n_pts)
  *
  */
 
@@ -1246,11 +1250,11 @@ CWP_Mesh_interf_f_poly_block_set
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
- * \param [out]  n_elts           Number of elements
- * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [out] n_elts           Number of elements
+ * \param [out] connec_idx       Connectivity index (\p connec_id[0] = 0 and
  *                               size = \p n_elts + 1)
- * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
- * \param [out]  global_num       Pointer to global element number (or NULL)
+ * \param [out] connec           Connectivity (size = \p connec_idx[\p n_elts])
+ * \param [out] global_num       Pointer to global element number (or NULL)
  *
  */
 
@@ -1276,17 +1280,17 @@ CWP_Mesh_interf_f_poly_block_get
  * \param [in]  i_part            Current partition
  * \param [in]  block_id          Block identifier
  * \param [in]  n_elts            Number of elements
- * \param [in]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
- *                                 size = \p n_elts + 1)
- * \param [in]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
  * \param [in]  n_faces           Number of faces
  * \param [in]  connec_faces_idx  Polyhedron face to vertex index
  *                                (\p face_vertex_idx[0] = 0 and
  *                                 size = max(\p cell_face_connec) + 1)
  * \param [in]  connec_faces      Polyhedron face to vertex connectivity
  *                                (size = \p face_vertex_idx[\p n_elts])
+ * \param [in]  connec_cells_idx  Polyhedron to face index
+ *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                 size = \p n_elts + 1)
+ * \param [in]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p cell_face_idx[\p n_elts])
  * \param [in]  global_num        Pointer to global element number (or NULL)
  *
  */
@@ -1315,19 +1319,19 @@ CWP_Mesh_interf_c_poly_block_set
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
  * \param [in]  block_id          Block identifier
- * \param [out]  n_elts            Number of elements
- * \param [out]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
- *                                 size = \p n_elts + 1)
- * \param [out]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
- * \param [out]  n_faces           Number of faces
- * \param [out]  connec_faces_idx  Polyhedron face to vertex index
+ * \param [in]  n_elts            Number of elements
+ * \param [in]  n_faces           Number of faces
+ * \param [in]  connec_faces_idx  Polyhedron face to vertex index
  *                                (\p face_vertex_idx[0] = 0 and
  *                                 size = max(\p cell_face_connec) + 1)
- * \param [out]  connec_faces      Polyhedron face to vertex connectivity
+ * \param [in]  connec_faces      Polyhedron face to vertex connectivity
  *                                (size = \p face_vertex_idx[\p n_elts])
- * \param [out]  global_num        Pointer to global element number (or NULL)
+ * \param [in]  connec_cells_idx  Polyhedron to face index
+ *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                 size = \p n_elts + 1)
+ * \param [in]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p cell_face_idx[\p n_elts])
+ * \param [in]  global_num        Pointer to global element number (or NULL)
  *
  */
 
@@ -1478,7 +1482,7 @@ CWP_Field_create
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] data_type         Choice if data is setted for the source or the target
+ * \param [in] map_type          Choice if data is setted for the source or the target
  * \param [in] data              Storage array (Mapping)
  *
  */
@@ -1498,11 +1502,11 @@ CWP_Field_data_set
  *
  * \brief Get field data.
  *
- * \param [in] local_code_name   Local code name
- * \param [in] cpl_id            Coupling identifier
- * \param [in] field_id          Field identifier
- * \param [in] i_part            Current partition
- * \param [in] data_type         Choice if data is setted for the source or the target
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  field_id          Field identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  map_type          Choice if data is setted for the source or the target
  * \param [out] data              Storage array (Mapping)
  *
  */
@@ -1560,9 +1564,9 @@ CWP_Field_storage_get
 /**
  * \brief Delete a field.
  *
- * \param [in] local_code_name Local code name
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field identifier
+ * \param [in]  local_code_name Local code name
+ * \param [in]  cpl_id          Coupling identifier
+ * \param [in]  field_id        Field identifier
  *
  */
 
@@ -1586,7 +1590,7 @@ CWP_Field_del
  * This function is independant of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
- * \param [in] local_code_name  Local code name
+ * \param [in]  local_code_name Local code name
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  src_field_id    Source field id
  *
@@ -1609,7 +1613,7 @@ CWP_Field_issend
  * This function is independant of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
- * \param [in] local_code_name  Local code name
+ * \param [in]  local_code_name Local code name
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  tgt_field_id    Target field id
  *
@@ -1717,7 +1721,7 @@ CWP_Interp_function_set
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  *
  */
 
@@ -1735,10 +1739,10 @@ CWP_Interp_field_n_components_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [out] n_elt_src
- * \param [out] src_to_tgt_idx
+ * \param [in]  field_id                  Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_src                 Number of source elements
+ * \param [out] src_to_tgt_idx            Source elements to target elements index
  *
  */
 
@@ -1759,12 +1763,12 @@ CWP_Interp_src_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [out] n_elt_tgt
- * \param [out] n_referenced_tgt
- * \param [out] referenced_tgt
- * \param [out] tgt_come_from_src_idx
+ * \param [in]  field_id                  Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_tgt                 Number of target elements
+ * \param [out] n_referenced_tgt          Number of referenced target elements
+ * \param [out] referenced_tgt            Referenced target elements
+ * \param [out] tgt_come_from_src_idx     Traget to origin source elements index
  *
  */
 
@@ -1787,7 +1791,7 @@ CWP_Interp_tgt_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] weights                   Spatial interpolation weights
  *
@@ -1809,7 +1813,7 @@ CWP_Interp_location_weights_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] points_coords             Cartesian coordinates of points inside local elements
  * \param [out] points_uvw                Parametric coordinates of points inside local elements
@@ -1837,7 +1841,7 @@ CWP_Interp_location_point_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
  * \param [out] cell_vtx                  Local cell->vertex connectivity
@@ -1861,7 +1865,7 @@ CWP_Interp_location_internal_cell_vtx_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] volumes                   Volumes of intersection polyhedra
  *
@@ -1883,7 +1887,7 @@ CWP_Interp_intersection_volumes_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] tgt_elt_volumes           Volumes of local target elements
  *
@@ -1905,7 +1909,7 @@ CWP_Interp_intersection_tgt_elt_volumes_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] distances2                Squared distances from closest source points
  *
@@ -1927,7 +1931,7 @@ CWP_Interp_closest_points_distances_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Source field id
  * \param [in]  i_part                    Partition identifier
  * \param [out] closest_src_coord         Coordinates of closest source points
  *
@@ -2155,7 +2159,7 @@ const char *code_name
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] global_data_id   Global data identifier
- * \param [in] s_send_data      Data size
+ * \param [in] s_send_entity    Data size
  * \param [in] send_stride      Constant stride value
  * \param [in] n_send_entity    Number of entities
  * \param [in] send_data        Pointer to data array
@@ -2238,11 +2242,11 @@ CWP_Global_data_wait_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
- * \param [in] gnum_elt
- * \param [in] n_elt
- * \param [in] n_part
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
+ * \param [in] gnum_elt         Element global number array
+ * \param [in] n_elt            Number of elements per partition
+ * \param [in] n_part           Number of partitions
  *
  */
 
@@ -2263,8 +2267,8 @@ CWP_Part_data_create
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
  *
  */
 
@@ -2281,13 +2285,13 @@ CWP_Part_data_del
 /**
  * \brief Send a data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part1_to_part2_data
- * \param [in] request
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Part data identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] part1_to_part2_data Partition send to partition receive data link
+ * \param [in] request             MPI request
  *
  */
 
@@ -2308,11 +2312,11 @@ CWP_Part_data_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part1_to_part2_data
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] s_data           Data size
+ * \param [in] n_components     Number of components
+ * \param [in] part2_data       Received data from send
+ * \param [in] request          MPI request
  *
  */
 
@@ -2333,8 +2337,8 @@ CWP_Part_data_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 
@@ -2352,8 +2356,8 @@ CWP_Part_data_wait_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 
@@ -2398,10 +2402,10 @@ CWP_Mesh_interf_block_ho_set
 /**
  * \brief Get the properties of a generic high order block of the interface mesh.
  *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Partition identifier
- * \param [in]  block_id         Block identifier
+ * \param [in]   local_code_name  Local code name
+ * \param [in]   cpl_id           Coupling identifier
+ * \param [in]   i_part           Partition identifier
+ * \param [in]   block_id         Block identifier
  * \param [out]  n_elts           Number of elements
  * \param [out]  order            Element order
  * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
@@ -2767,7 +2771,7 @@ CWP_Field_data_type_get
  * \param [in] field_id        Field identifier
  * \param [in] i_part          Current partition
  * \param [in] order           Order
- * \param [in] data_type       Choice if data is setted for the source or the target
+ * \param [in] storage_type    Choice if data is setted for the source or the target
  * \param [in] data            Storage array (Mapping)
  *
  */
@@ -2775,13 +2779,13 @@ CWP_Field_data_type_get
 void
 CWP_Field_gradient_data_set
 (
- const char             *local_code_name,
- const char             *cpl_id,
- const char             *field_id,
- const int               i_part,
- const int               order,
+ const char                *local_code_name,
+ const char                *cpl_id,
+ const char                *field_id,
+ const int                  i_part,
+ const int                  order,
  const CWP_Field_storage_t  storage_type,
- double                  data[]
+ double                     data[]
 );
 
 void

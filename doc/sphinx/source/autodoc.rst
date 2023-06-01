@@ -2,11 +2,8 @@
 
 pycwp
 =====
-
-:Release: |release|
        
 .. currentmodule:: pycwp
-
 
 Summary
 -------

@@ -293,6 +293,7 @@ CWP_client_Param_reduce
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
+ * \param [in]  entities_dim        Coupling interface
  * \param [in]  comm_type           Communication type
  * \param [in]  spatial_interp      Spatial interpolation method
  * \param [in]  n_part              Number of interface partition
@@ -394,7 +395,7 @@ CWP_client_Time_step_end
  *
  * /!\ one file per code
  *
- * \param [in] output_filename    Output file directory or name
+ * \param [in] output_file    Output file directory or name
  *
  */
 
@@ -718,7 +719,7 @@ CWP_client_Visu_set
  * \param [in]  i_part           Current partition
  * \param [in]  n_pts            Number of points
  * \param [in]  coord            Coordinates (size = 3 * n_pts)
- * \param [in]  g_num            global number or NUL (size = n_pts)
+ * \param [in]  global_num       Global number or NUL (size = n_pts)
  *
  */
 
@@ -802,7 +803,6 @@ CWP_client_Mesh_interf_block_add
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Partition identifier
  * \param [in]  block_id         Block identifier
- * \param [in]  block_type       Block type
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)
  * \param [in]  global_num       Pointer to global element number (or NULL)
@@ -1318,7 +1318,6 @@ CWP_client_Interp_function_unset
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] src_field_id     Source field id
- * \param [in] data_type        Field data type
  * \param [in] fct              Function
  *
  */
@@ -1329,7 +1328,7 @@ CWP_client_Interp_function_set
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
- CWP_Interp_function_t  fct
+ CWP_Interp_function_t       fct
 );
 
 // NB: no need to do getters since this mode does not exist in client-server mode
@@ -1502,11 +1501,11 @@ CWP_client_Global_data_wait_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
- * \param [in] gnum_elt
- * \param [in] n_elt
- * \param [in] n_part
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
+ * \param [in] gnum_elt         Element global number array
+ * \param [in] n_elt            Number of elements per partition
+ * \param [in] n_part           Number of partitions
  *
  */
 
@@ -1527,8 +1526,8 @@ CWP_client_Part_data_create
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
  *
  */
 
@@ -1545,13 +1544,13 @@ CWP_client_Part_data_del
 /**
  * \brief Part_data_issend CWIPI.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part1_to_part2_data
- * \param [in] request
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Part data identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] part1_to_part2_data Partition send to partition receive data link
+ * \param [in] request             MPI request
  *
  */
 
@@ -1572,11 +1571,11 @@ CWP_client_Part_data_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part1_to_part2_data
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] s_data           Data size
+ * \param [in] n_components     Number of components
+ * \param [in] part2_data       Received data from send
+ * \param [in] request          MPI request
  *
  */
 
@@ -1597,8 +1596,8 @@ CWP_client_Part_data_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 
@@ -1616,8 +1615,8 @@ CWP_client_Part_data_wait_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 
