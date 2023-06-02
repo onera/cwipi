@@ -1084,10 +1084,6 @@ def param_list_get(char        *code_name,
         py_unicode_param_names = c_param_names[i]
       param_names.append(py_unicode_param_names)
 
-    free(c_param_names)
-
-    param_names = NPY.array(param_names)
-
     return {
             'n_param'     : n_param,
             'param_names' : param_names

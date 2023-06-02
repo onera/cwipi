@@ -730,10 +730,10 @@ CWP_server_Param_set
   case CWP_CHAR: {
     int name_size;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
-    char *char_initial_value = (char *) malloc(name_size);
-    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
     std::string s(param_name);
-    svr_cwp.char_param_value.insert(std::make_pair(s, char_initial_value));
+    free(svr_cwp.char_param_value[s]);
+    svr_cwp.char_param_value[s] = (char *) malloc(name_size);
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) svr_cwp.char_param_value[s], name_size);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -822,13 +822,14 @@ CWP_server_Param_del
   }
 
   // free
-  free(local_code_name);
-  free(param_name);
   if (data_type == CWP_CHAR) {
     std::string s(param_name);
     if (svr_cwp.char_param_value[s] != NULL) free(svr_cwp.char_param_value[s]);
     svr_cwp.char_param_value.erase(s);
   }
+
+  free(local_code_name);
+  free(param_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -950,6 +951,13 @@ CWP_server_Param_list_get
 
   // free
   free(code_name);
+
+  if (svr_cwp.param_names != NULL) {
+    for (int i = 0; i < svr_cwp.n_param_names; i++) {
+      if (svr_cwp.param_names[i] != NULL) free(svr_cwp.param_names[i]);
+    }
+    free(svr_cwp.param_names);
+  }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
