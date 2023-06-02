@@ -236,7 +236,7 @@ main(int argc, char *argv[]) {
     CWP_Init(MPI_COMM_WORLD,
              n_code,
              (const char **) &(codeName),
-             &is_coupled_rank,
+             is_coupled_rank,
              &localComm);
 
     cpl_name = "new_cpl";

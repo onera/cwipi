@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
   int code_id[2];
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   int n_vtx_seg;
   CWP_Comm_t comm_type;
@@ -587,7 +587,6 @@ int main(int argc, char *argv[])
 
 
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
-  is_active_rank[0] = CWP_STATUS_ON;
 
   CWP_Init(comm,
            n_code,
@@ -881,7 +880,6 @@ int main(int argc, char *argv[])
 
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   //  Finalize CWIPI

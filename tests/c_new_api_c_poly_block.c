@@ -189,22 +189,18 @@ int main(int argc, char *argv[]) {
   int n_code_name = 0;
   const char **codeNames = NULL;
   double *times_init = NULL;
-  CWP_Status_t *is_coupled_rank = NULL;
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   if (rank == 0) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] = "cpoly";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (rank == 1) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   //CWP_Output_file_set (outputFile);
@@ -214,7 +210,7 @@ int main(int argc, char *argv[]) {
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
            codeNames,
-           is_coupled_rank,
+           is_active_rank,
            localComm);
 
 
@@ -329,7 +325,6 @@ int main(int argc, char *argv[]) {
   free(srcName);
   free(localComm);
   free(codeNames);
-  free(is_coupled_rank);
 
   return 0;
 }

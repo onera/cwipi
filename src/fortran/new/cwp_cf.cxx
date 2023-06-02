@@ -185,7 +185,7 @@ _fortran_to_c_string (
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  f_code_names   Names of codes on the current rank (size = \p n_code)
  * \param [in]  l_code_names   Length of code names on the current rank (size = \p n_code)
- * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+ * \param [in]  is_active_rank Current rank is available for CWIPI
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -196,7 +196,7 @@ CWP_Init_cf (
   const int n_code, 
   const char *f_code_names,
   const int *l_code_names, 
-  const int *is_active_rank, 
+  const int  is_active_rank,
   MPI_Fint *f_intra_comms
 ) 
 {
@@ -216,7 +216,7 @@ CWP_Init_cf (
   // Allocate local communicators in C
   MPI_Comm *c_intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
-  CWP_Init(c_global_comm, n_code, (const char **) c_code_names, (CWP_Status_t *) is_active_rank, c_intra_comms);
+  CWP_Init(c_global_comm, n_code, (const char **) c_code_names, (CWP_Status_t) is_active_rank, c_intra_comms);
 
   // Convert local communicators to Fortran
   for (int i = 0 ; i < n_code ; i++) {

@@ -21,7 +21,7 @@ program fortran_new_api_deformable_sol
 
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
-  integer,                            pointer :: is_coupled_rank(:)    => null()
+  integer                                     :: is_active_rank = CWP_STATUS_ON
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part

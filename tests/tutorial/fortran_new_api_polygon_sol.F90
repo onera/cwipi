@@ -21,7 +21,7 @@ program fortran_new_api_polygon_sol
 
   integer                                 :: n_code
   character(len = 5),            pointer  :: code_names(:)         => null()
-  integer,                       pointer  :: is_coupled_rank(:)    => null()
+  integer                                 :: is_active_rank = CWP_STATUS_ON
   integer,                       pointer  :: intra_comms(:)        => null()
 
   integer                                 :: n_part
@@ -68,33 +68,30 @@ program fortran_new_api_polygon_sol
   ! In this version of CWIPI several codes can execute on the
   ! same MPI rank (here only one code per processor, so n_code = 1).
   ! Therefore, an array of code names is given at initialization.
-  ! is_active_rank allows to tell which ranks on which a given code
-  ! runs will be used in the CWIPI coupling computations.
+  ! is_active_rank tells if current ranks will be used
+  ! in the CWIPI coupling computations.
   ! intra_comm is an array of MPI communicators
   ! giving the for each code on the processors the communicator
   ! to communicate through the ranks of that code.
   n_code = 1
 
-  allocate(code_names(n_code),         &
-           is_coupled_rank(n_code),    &
+  allocate(code_names(n_code), &
            intra_comms(n_code))
 
   ! for code1
   if (i_rank == 0) then
-    code_names(1)      = "code1"
-    is_coupled_rank(1) = CWP_STATUS_ON
-    I_am_code1         = .true.
+    code_names(1) = "code1"
+    I_am_code1    = .true.
   ! for code2
   else
-    code_names(1)      = "code2"
-    is_coupled_rank(1) = CWP_STATUS_ON
-    I_am_code1         = .false.
+    code_names(1) = "code2"
+    I_am_code1    = .false.
   endif
 
-  call CWP_Init(mpi_comm_world,  &
-                n_code,          &
-                code_names,      &
-                is_coupled_rank, &
+  call CWP_Init(mpi_comm_world, &
+                n_code,         &
+                code_names,     &
+                is_active_rank, &
                 intra_comms)
 
   ! Create the coupling :
@@ -106,7 +103,7 @@ program fortran_new_api_polygon_sol
   ! over the processors of its code. Here the mesh does not change
   ! over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.
   ! CWP_TIME_EXCH_USER_CONTROLLED is not used yet.
-  coupling_name     = "code1_code2";
+  coupling_name = "code1_code2";
 
   allocate(coupled_code_names(n_code))
 

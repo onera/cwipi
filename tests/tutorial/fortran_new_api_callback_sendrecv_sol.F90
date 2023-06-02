@@ -25,7 +25,7 @@ program fortran_new_api_callback_sendrecv_sol
   ! Coupling
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
-  integer,                            pointer :: is_active_rank(:)     => null()
+  integer                                     :: is_active_rank = CWP_STATUS_ON
   integer,                            pointer :: intra_comms(:)        => null()
   character(len = 99),                pointer :: coupled_code_names(:) => null()
   character(len = 99)                         :: coupling_name
@@ -57,12 +57,10 @@ program fortran_new_api_callback_sendrecv_sol
   ! Initialize CWIPI
   n_code = 1
 
-  allocate(code_names     (n_code), &
-           is_active_rank(n_code),  &
-           intra_comms    (n_code))
+  allocate(code_names (n_code), &
+           intra_comms(n_code))
 
   code_names(1)     = "codeFortran"
-  is_active_rank(1) = CWP_STATUS_ON
 
   call CWP_Init(mpi_comm_world, &
                 n_code,         &
@@ -243,7 +241,6 @@ program fortran_new_api_callback_sendrecv_sol
 
   ! Free memory
   deallocate(code_names,         &
-             is_active_rank,     &
              intra_comms,        &
              coupled_code_names, &
              send_field_data,    &

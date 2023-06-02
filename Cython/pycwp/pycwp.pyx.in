@@ -168,7 +168,7 @@ cdef extern from "cwp.h":
   void CWP_Init(MPI.MPI_Comm       global_comm,
                 int                n_code,
                 char             **code_names,
-                CWP_Status_t      *is_active_rank,
+                CWP_Status_t       is_active_rank,
                 MPI.MPI_Comm      *intra_comms)
   void CWP_Finalize()
 
@@ -814,15 +814,15 @@ cdef int n_code
 cdef MPI.MPI_Comm* intra_comms
 
 def init(MPI.Comm global_comm,
-         list code_names,
-         list is_active_rank):
+         list     code_names,
+         int      is_active_rank):
     """
     Initialize CWIPI library and create intra-communicator.
 
     Parameters:
       global_comm    (MPI.Comm)    : MPI global communicator
       code_names     (str list)    : Names of codes on the current rank (size = number of codes on current MPI rank)
-      is_active_rank (bool list)   : Is current rank have to be used by CWIPI (size = number of codes on current MPI rank)
+      is_active_rank (int)         : Is current rank have to be used by CWIPI
 
     Returns:
       intra_comms    (MPI.Comm)    : MPI intra communicators of each code (size = number of codes on current MPI rank)
@@ -849,13 +849,10 @@ def init(MPI.Comm global_comm,
     intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
 
-    # active ranks
-    cdef array.array c_is_active_rank = array.array('i', is_active_rank) # WARNING 'i' is signed int
-
     CWP_Init(c_global_comm,
              n_code,
              c_code_names,
-             <CWP_Status_t *> c_is_active_rank.data.as_ints,
+             <CWP_Status_t> is_active_rank,
              intra_comms)
 
     # intra communicators

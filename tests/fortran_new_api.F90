@@ -9,14 +9,14 @@ program new_api
 
     implicit none
 
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
     include "mpif.h"
 #endif  
 
     integer :: n_code
     integer :: ierr
     integer :: rank, comm_world_size, local_comm_rank, local_comm_size
-    integer, dimension(:), pointer :: is_coupled_rank
+    integer :: is_active_rank = CWP_STATUS_ON
     character(len = 5), dimension(:), pointer :: code_names
     character(len = 16) :: cpl_id1, cpl_id2, cpl_id3, cpl_id4, cpl_id5, cpl_id6
     real(8), pointer :: coord(:,:)
@@ -43,59 +43,40 @@ program new_api
     else if (rank == 2) then
         n_code = 4
     end if
-    allocate(code_names(n_code), is_coupled_rank(n_code), intra_comms(n_code))
+    allocate(code_names(n_code), intra_comms(n_code))
 
     if (rank == 0) then
         code_names(1) = "code1";
-        is_coupled_rank(1) = CWP_STATUS_ON;
     else if (rank == 1) then
         code_names(1) = "code1";
         code_names(2) = "code2";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
     else if (rank == 2) then
         code_names(1) = "code1";
         code_names(2) = "code2";
         code_names(3) = "code3";
         code_names(4) = "code4";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
-        is_coupled_rank(3) = CWP_STATUS_ON;
-        is_coupled_rank(4) = CWP_STATUS_ON;
     else if (rank == 3) then
         code_names(1) = "code3";
-        is_coupled_rank(1) = CWP_STATUS_ON;
     else if (rank == 4) then
         code_names(1) = "code3";
         code_names(2) = "code4";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
     else if (rank == 5) then
         code_names(1) = "code1";
         code_names(2) = "code3";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
     else if (rank == 6) then
         code_names(1) = "code2";
-        is_coupled_rank(1) = CWP_STATUS_ON;
     else if (rank == 7) then
         code_names(1) = "code1";
         code_names(2) = "code2";
         code_names(3) = "code3";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
-        is_coupled_rank(3) = CWP_STATUS_ON;
     else if (rank == 8) then
         code_names(1) = "code4";
-        is_coupled_rank(1) = CWP_STATUS_ON;
     else if (rank == 9) then
         code_names(1) = "code2";
         code_names(2) = "code3";
-        is_coupled_rank(1) = CWP_STATUS_ON;
-        is_coupled_rank(2) = CWP_STATUS_ON;
     end if
 
-    call CWP_Init(MPI_comm_world, n_code, code_names, is_coupled_rank, intra_comms)
+    call CWP_Init(MPI_comm_world, n_code, code_names, is_active_rank, intra_comms)
 
     print *, rank, " CWP_Init OK"
 
@@ -190,7 +171,7 @@ program new_api
 
     print *, "All done for rank", rank
 
-    deallocate(code_names, is_coupled_rank, intra_comms, coord)
+    deallocate(code_names, intra_comms, coord)
 
     call CWP_Finalize()
     call MPI_Finalize(ierr)

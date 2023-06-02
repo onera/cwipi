@@ -568,7 +568,7 @@ main(int argc, char *argv[]) {
   int           *n_part            = malloc(sizeof(int         ) * n_code);
   const char   **code_name         = malloc(sizeof(char       *) * n_code);
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
-  CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t   is_active_rank    = CWP_STATUS_ON;
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
   const char   **file_name         = malloc(sizeof(char       *) * n_code);
 
@@ -579,7 +579,6 @@ main(int argc, char *argv[]) {
       code_name        [n_code] = all_code_names[icode];
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       n_part           [n_code] = all_n_part    [icode];
-      is_active_rank   [n_code] = CWP_STATUS_ON;
       file_name        [n_code] = all_file_names[icode];
 
       if (verbose) {
@@ -1004,7 +1003,6 @@ main(int argc, char *argv[]) {
   free(n_part);
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
   free(file_name);
 

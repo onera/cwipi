@@ -55,29 +55,27 @@ main(int argc, char *argv[]) {
   // In this version of CWIPI several codes can execute on the
   // same MPI rank (here only one code per processor, so n_code = 1).
   // Therefore an array of code names is given at initialization.
-  // is_active_rank allows to tell which ranks on which a given code
-  // runs will be used in the CWIPI coupling computations. time_init
-  // is not used yet. intra_comm is an array of MPI communicators
+  // is_active_rank tells if current ranks will be used in
+  // the CWIPI coupling computations.
+  // intra_comm is an array of MPI communicators
   // giving the for each code on the processors the communicator
   // to communicate through the ranks of that code.
   int n_code = 1;
   const char  **code_name      = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t  is_active_rank = CWP_STATUS_ON;
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   int I_am_code1 = 0;
   int I_am_code2 = 0;
 
   if (i_rank == 0) {
-    code_name[0]      = "code1";
-    is_active_rank[0] = CWP_STATUS_ON;
-    I_am_code1        = 1;
+    code_name[0] = "code1";
+    I_am_code1   = 1;
   }
 
   if (i_rank == 1) {
-    code_name[0]      = "code2";
-    is_active_rank[0] = CWP_STATUS_ON;
-    I_am_code2        = 1;
+    code_name[0] = "code2";
+    I_am_code2   = 1;
   }
   CWP_Init(MPI_COMM_WORLD,
            n_code,
@@ -326,7 +324,6 @@ main(int argc, char *argv[]) {
   if (send_field_data != NULL) free(send_field_data);
   if (recv_field_data != NULL) free(recv_field_data);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
   free(coupled_code_name);
 

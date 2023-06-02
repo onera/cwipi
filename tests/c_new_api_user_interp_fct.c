@@ -88,9 +88,7 @@ main(int argc, char *argv[]) {
   int n_code = 1;
   const char  **code_name         = malloc(sizeof(char *) * n_code);
   const char  **coupled_code_name = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
-
-  is_active_rank[0] = CWP_STATUS_ON;
+  CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
 
   int code_id;
   if (i_rank % 2 == 0) {
@@ -279,7 +277,6 @@ main(int argc, char *argv[]) {
   // free
   free(code_name);
   free(coupled_code_name);
-  free(is_active_rank);
   free(intra_comm);
   free(vtx_coord);
   free(face_vtx_idx);

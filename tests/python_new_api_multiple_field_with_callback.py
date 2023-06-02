@@ -239,7 +239,7 @@ def runTest():
         coupled_code_name = "proc0"
 
     n_code = 1
-    is_active_rank = [True for i in range(n_code)]
+    is_active_rank = True
     intra_comm = pycwp.init(comm,
                             [code_name],
                             is_active_rank)

@@ -53,9 +53,9 @@ def runTest():
     # In this version of CWIPI several codes can execute on the
     # same MPI rank (here only one code per processor, so n_code = 1).
     # Therefore, an array of code names is given at initialization.
-    # is_active_rank allows to tell which ranks on which a given code
-    # runs will be used in the CWIPI coupling computations. time_init
-    # is not used yet. intra_comm is an array of MPI communicators
+    # is_active_rank tells if current ranks will be used
+    # in the CWIPI coupling computations.
+    # intra_comm is an array of MPI communicators
     # giving the for each code on the processors the communicator
     # to communicate through the ranks of that code.
     n_code = 1
@@ -66,7 +66,7 @@ def runTest():
     if (i_rank == 1):
         code_name = ["code2"]
 
-    is_active_rank = [True]
+    is_active_rank = True
 
     intra_comm = pycwp.init(comm,
                             code_name,

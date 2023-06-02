@@ -51,23 +51,18 @@ main(int argc, char *argv[]) {
   int n_code = 0;
   const char **code_names = NULL;
 //  double *times_init = NULL;
-  CWP_Status_t *is_coupled_rank = NULL;
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   if (rank == 0) {
     n_code = 2;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code1";
     code_names[1] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 1) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code1";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 2) {
     n_code = 4;
@@ -76,43 +71,28 @@ main(int argc, char *argv[]) {
     code_names[1] = "code2";
     code_names[2] = "code3";
     code_names[3] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
-    is_coupled_rank[2] = CWP_STATUS_ON;
-    is_coupled_rank[3] = CWP_STATUS_ON;
   }
   else if (rank == 3) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 4) {
     n_code = 2;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code3";
     code_names[1] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 5) {
     n_code = 2;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code1";
     code_names[1] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 6) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 7) {
     n_code = 3;
@@ -120,26 +100,17 @@ main(int argc, char *argv[]) {
     code_names[0] = "code1";
     code_names[1] = "code2";
     code_names[2] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
-    is_coupled_rank[2] = CWP_STATUS_ON;
   }
   else if (rank == 8) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 9) {
     n_code = 2;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code2";
     code_names[1] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
   char fileName[19];
@@ -150,7 +121,7 @@ main(int argc, char *argv[]) {
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) code_names,
-           is_coupled_rank,
+           is_active_rank,
            localComm);
 
   // Output redirection
@@ -579,7 +550,6 @@ main(int argc, char *argv[]) {
 
   free(localComm);
   free(code_names);
-  free(is_coupled_rank);
   fclose(outputFile);
 
   return 0;

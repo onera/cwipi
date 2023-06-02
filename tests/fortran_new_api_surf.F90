@@ -31,7 +31,7 @@ program testf
   integer                       :: n_code, n_part
   character(len = 5),   pointer :: code_names(:)         => null()
   character(len = 5),   pointer :: coupled_code_names(:) => null()
-  integer,              pointer :: is_coupled_rank(:)    => null()
+  integer                       :: is_active_rank = CWP_STATUS_ON
   integer,              pointer :: intra_comms(:)        => null()
   character(len = 99)           :: coupling_name
 
@@ -123,7 +123,6 @@ program testf
 
   allocate(code_names(n_code),         &
            coupled_code_names(n_code), &
-           is_coupled_rank(n_code),    &
            intra_comms(n_code),        &
            ! output_file(1),             &
            g_code_names(2))
@@ -131,11 +130,9 @@ program testf
   if (i_rank == 0) then
     code_names(1)         = "code1"
     coupled_code_names(1) = "code2"
-    is_coupled_rank(1)    = CWP_STATUS_ON
   else
     code_names(1)         = "code2"
     coupled_code_names(1) = "code1"
-    is_coupled_rank(1)    = CWP_STATUS_ON
   endif
 
   !--> output file
@@ -146,7 +143,7 @@ program testf
   call CWP_Init(MPI_comm_world,  &
                 n_code,          &
                 code_names,      &
-                is_coupled_rank, &
+                is_active_rank, &
                 intra_comms)
 
   print *, "> CWP_set_toto", loc(mon_toto)
@@ -660,7 +657,6 @@ program testf
   !! Free memory
   deallocate(code_names,         &
              coupled_code_names, &
-             is_coupled_rank,    &
              intra_comms,        &
              g_code_names)
   deallocate(vtx_coord, connec_idx, connec)

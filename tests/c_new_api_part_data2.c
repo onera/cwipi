@@ -207,7 +207,7 @@ int main
   int           *n_part            = malloc(sizeof(int         ) * n_code);
   const char   **code_name         = malloc(sizeof(char       *) * n_code);
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
-  CWP_Status_t  *is_active_rank    = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t   is_active_rank    = CWP_STATUS_ON;
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
 
   n_code = 0;
@@ -217,7 +217,6 @@ int main
       code_name        [n_code] = all_code_names[icode];
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       n_part           [n_code] = all_n_part    [icode];
-      is_active_rank   [n_code] = CWP_STATUS_ON;
 
       if (verbose) {
         log_trace("Running %s, coupled with %s, n_part = %d\n",
@@ -767,7 +766,6 @@ int main
   free(n_part);
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   /* Finalize CWIPI */

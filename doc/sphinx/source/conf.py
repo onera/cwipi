@@ -139,10 +139,10 @@ pygments_style = 'sphinx'
 # modindex_common_prefix = []
 
 # Suppress the warnings.
-suppress_warnings = [ 'autodoc', 'autosummary', 'ref' ]
+suppress_warnings = [ 'ref' ] #  'autodoc', 'autosummary',
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
-keep_warnings = False
+keep_warnings = True
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False

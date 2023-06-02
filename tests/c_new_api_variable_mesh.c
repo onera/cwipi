@@ -165,7 +165,7 @@ main
   CWP_Init(MPI_COMM_WORLD,
            n_code,
            (const char **) &code_name,
-           &is_active_rank,
+           is_active_rank,
            &intra_comm);
 
   // Create coupling

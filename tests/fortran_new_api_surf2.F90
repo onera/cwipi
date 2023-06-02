@@ -63,7 +63,7 @@ program testf
   integer,              pointer :: code_id(:)           => null()
   character(len=5),     pointer :: code_name(:)         => null()
   character(len=5),     pointer :: coupled_code_name(:) => null()
-  integer(c_int),       pointer :: is_coupled_rank(:)   => null()
+  integer(c_int)                :: is_active_rank = CWP_STATUS_ON
   integer(c_int),       pointer :: intra_comms(:)       => null()
   character(len=99)             :: coupling_name
 
@@ -166,7 +166,6 @@ program testf
   allocate(code_id(n_code),           &
            code_name(n_code),         &
            coupled_code_name(n_code), &
-           is_coupled_rank(n_code),   &
            intra_comms(n_code),       &
            mesh(n_code))
 
@@ -179,7 +178,6 @@ program testf
       code_name        (n_code) = "code" // strnum
       write (strnum, '(i1)') mod(i,2)+1
       coupled_code_name(n_code) = "code" // strnum
-      is_coupled_rank  (n_code) = CWP_STATUS_ON
 
       mesh(n_code)%n_part = all_n_part(i)
 
@@ -195,7 +193,7 @@ program testf
   call CWP_Init(comm,            &
                 n_code,          &
                 code_name,       &
-                is_coupled_rank, &
+                is_active_rank, &
                 intra_comms)
 
   call MPI_Barrier(MPI_comm_world, ierr)
@@ -738,7 +736,6 @@ program testf
   deallocate(code_id,           &
              code_name,         &
              coupled_code_name, &
-             is_coupled_rank,   &
              intra_comms,       &
              mesh)
 

@@ -279,7 +279,7 @@ static int _cwipi_flush_output_listing(void)
  * \param [in]  global_comm    MPI global communicator
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
- * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+ * \param [in]  is_active_rank Is current rank have to be used by CWIPI
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -290,7 +290,7 @@ CWP_Init
  const MPI_Comm           global_comm,
  const int                n_code,
  const char             **code_names,
- const CWP_Status_t      *is_active_rank,
+ const CWP_Status_t       is_active_rank,
  MPI_Comm                *intra_comms
 )
 {
@@ -316,7 +316,7 @@ CWP_Init
   }
   if (pPath != NULL) {
    printf ("environment variable 'CWP_STR_SIZE_MAX'"
-           "is define to: %s\n",pPath);
+           "is set to: %s\n",pPath);
   }
 
   /*
@@ -353,9 +353,11 @@ CWP_Init
   MPI_Barrier(global_comm);
 
   for (int i = 0; i < n_code; i++) {
-    const string &codeNameStr = code_names[i];
-    properties.ctrlParamAdd <double> (codeNameStr, "time", 0.0); // WARNING : default first step 0.0
-    properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
+    if (is_active_rank == CWP_STATUS_ON) {
+      const string &codeNameStr = code_names[i];
+      properties.ctrlParamAdd <double> (codeNameStr, "time", 0.0); // WARNING : default first step 0.0
+      properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
+    }
   }
 
   MPI_Barrier(global_comm);
@@ -453,7 +455,6 @@ CWP_Finalize
     MPI_Barrier(globalComm);
 //    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
-
 
 
   properties.kill();
@@ -645,9 +646,8 @@ CWP_Time_step_beg
     properties.unLock(local_code_name);
   }
 
-  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
-
-  MPI_Barrier (intra_comm);
+  MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
+  MPI_Barrier(connectable_comm);
 
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 
@@ -670,9 +670,8 @@ CWP_Time_step_end
 {
   cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
 
-  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
-
-  MPI_Barrier (intra_comm);
+  MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
+  MPI_Barrier(connectable_comm);
 
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 

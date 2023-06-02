@@ -48,11 +48,10 @@ main(int argc, char *argv[]) {
   int n_code = 1;
 
   const char  **code_name      = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t  is_active_rank = CWP_STATUS_ON;
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "code2";
-  is_active_rank[0] = CWP_STATUS_ON;
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
@@ -285,7 +284,6 @@ main(int argc, char *argv[]) {
   // free
   free(intra_comm);
   free(code_name);
-  free(is_active_rank);
   free(coupled_code_name);
   free(coords);
   free(elt_vtx_idx);

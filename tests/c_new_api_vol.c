@@ -72,9 +72,10 @@ _read_args
   int                    argc,
   char                 **argv,
   PDM_g_num_t            all_n_vtx_seg[],
+  int                    all_n_rank[],
   int                    all_n_part[],
   PDM_split_dual_t      *part_method,
-  int                   *disjoint_comm,
+  int                   *some_inactive_ranks,
   int                   *verbose,
   int                   *swap_codes,
   CWP_Spatial_interp_t  *spatial_interp_algo,
@@ -110,6 +111,24 @@ _read_args
         all_n_vtx_seg[1] = (PDM_g_num_t) _n;
       }
     }
+    else if (strcmp(argv[i], "-n_rank1") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        all_n_rank[0] = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n_rank2") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        all_n_rank[1] = atoi(argv[i]);
+      }
+    }
     else if (strcmp(argv[i], "-n_part1") == 0) {
       i++;
       if (i >= argc) {
@@ -136,9 +155,6 @@ _read_args
     }
     else if (strcmp(argv[i], "-hilbert") == 0) {
       *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
-    }
-    else if (strcmp(argv[i], "-disjoint") == 0) {
-      *disjoint_comm = 1;
     }
     else if (strcmp(argv[i], "-v") == 0) {
       *verbose = 1;
@@ -178,6 +194,9 @@ _read_args
     }
     else if (strcmp(argv[i], "-randomize") == 0) {
       *randomize = 1;
+    }
+    else if (strcmp(argv[i], "-some_inactive_ranks") == 0) {
+      *some_inactive_ranks = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -542,9 +561,9 @@ int main
 {
   /* Set default values */
   PDM_g_num_t      all_n_vtx_seg[2] = {3, 3};
+  int              all_n_rank[2]    = {-1, -1};
   int              all_n_part[2]    = {1, 1};
   PDM_split_dual_t part_method      = PDM_SPLIT_DUAL_WITH_HILBERT;
-  int              disjoint_comm    = 0;
   int              verbose          = 0;
   int              swap_codes       = 0;
   int              rotate           = 0;
@@ -554,13 +573,15 @@ int main
   CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   // CWP_Spatial_interp_t spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_IDENTITY;
   PDM_Mesh_nodal_elt_t all_elt_type[2] = {PDM_MESH_NODAL_HEXA8, PDM_MESH_NODAL_HEXA8};
+  int                  some_inactive_ranks = 0;
 
   _read_args(argc,
              argv,
              all_n_vtx_seg,
+             all_n_rank,
              all_n_part,
              &part_method,
-             &disjoint_comm,
+             &some_inactive_ranks,
              &verbose,
              &swap_codes,
              &spatial_interp_algo,
@@ -582,15 +603,19 @@ int main
   /* Initialize CWIPI */
   const char *all_code_names[2] = {"code1", "code2"};
 
+  for (int i = 0; i < 2; i++) {
+    if (all_n_rank[i] <= 0) {
+      all_n_rank[i] = n_rank;
+    }
+
+    // if (all_n_active_rank[i] <= 0 || all_n_active_rank[i] > all_n_rank[i]) {
+    //   all_n_active_rank[i] = all_n_rank[i];
+    // }
+  }
+
   int has_code[2] = {0, 0};
-  if (disjoint_comm) {
-    has_code[0] = i_rank < n_rank/2;
-    has_code[1] = !has_code[0];
-  }
-  else {
-    has_code[0] = (i_rank < (2*n_rank) / 3);
-    has_code[1] = (i_rank >= n_rank / 3);
-  }
+  has_code[0] = i_rank <  all_n_rank[0];
+  has_code[1] = i_rank >= n_rank - all_n_rank[1];
 
   if (swap_codes) {
     int tmp = has_code[0];
@@ -604,10 +629,14 @@ int main
   int                   *n_part            = malloc(sizeof(int                 ) * n_code);
   const char           **code_name         = malloc(sizeof(char               *) * n_code);
   const char           **coupled_code_name = malloc(sizeof(char               *) * n_code);
-  CWP_Status_t          *is_active_rank    = malloc(sizeof(CWP_Status_t        ) * n_code);
   MPI_Comm              *intra_comm        = malloc(sizeof(MPI_Comm            ) * n_code);
   PDM_Mesh_nodal_elt_t  *elt_type          = malloc(sizeof(PDM_Mesh_nodal_elt_t) * n_code);
   PDM_g_num_t           *n_vtx_seg         = malloc(sizeof(PDM_g_num_t         ) * n_code);
+  CWP_Status_t           is_active_rank    = CWP_STATUS_ON;
+
+  if (some_inactive_ranks && i_rank%2 != 0) {
+    is_active_rank = CWP_STATUS_OFF;
+  }
 
   n_code = 0;
   for (int icode = 0; icode < 2; icode++) {
@@ -618,11 +647,16 @@ int main
       n_part           [n_code] = all_n_part    [icode];
       elt_type         [n_code] = all_elt_type  [icode];
       n_vtx_seg        [n_code] = all_n_vtx_seg [icode];
-      is_active_rank   [n_code] = CWP_STATUS_ON;
+      // if (icode == 0) {
+      //   is_active_rank = (i_rank >= all_n_rank[icode] - all_n_active_rank[icode]) ? CWP_STATUS_ON : CWP_STATUS_OFF;
+      // }
+      // else {
+      //   is_active_rank = (i_rank < n_rank - all_n_rank[icode] + all_n_active_rank[icode]) ? CWP_STATUS_ON : CWP_STATUS_OFF;
+      // }
 
       if (verbose) {
-        log_trace("Running %s, coupled with %s, n_part = %d\n",
-                  code_name[n_code], coupled_code_name[n_code], n_part[n_code]);
+        log_trace("Running %s, coupled with %s, n_part = %d, active %d\n",
+                  code_name[n_code], coupled_code_name[n_code], n_part[n_code], is_active_rank);
       }
       n_code++;
     }
@@ -646,25 +680,33 @@ int main
 
 
   for (int icode = 0; icode < n_code; icode++) {
-    CWP_Cpl_create(code_name[icode],
-                   cpl_name,
-                   coupled_code_name[icode],
-                   CWP_INTERFACE_VOLUME,
-                   CWP_COMM_PAR_WITH_PART,
-                   spatial_interp_algo,
-                   n_part[icode],
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
+    int i_rank_intra;
+    int n_rank_intra;
+    MPI_Comm_rank(intra_comm[icode], &i_rank_intra);
+    MPI_Comm_size(intra_comm[icode], &n_rank_intra);
 
+    if (is_active_rank == CWP_STATUS_ON) {
+      CWP_Cpl_create(code_name[icode],
+                     cpl_name,
+                     coupled_code_name[icode],
+                     CWP_INTERFACE_VOLUME,
+                     CWP_COMM_PAR_WITH_PART,
+                     spatial_interp_algo,
+                     n_part[icode],
+                     CWP_DYNAMIC_MESH_STATIC,
+                     CWP_TIME_EXCH_USER_CONTROLLED);
+    }
   }
 
   // !! this must be performed in 2 separate loops if the intra comms do overlap
   for (int icode = 0; icode < n_code; icode++) {
-    CWP_Visu_set(code_name[icode],        // Code name
-                 cpl_name,                // Coupling id
-                 1,                       // Postprocessing frequency
-                 CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
-                 "text");                 // Postprocessing option
+    if (is_active_rank == CWP_STATUS_ON) {
+      CWP_Visu_set(code_name[icode],        // Code name
+                   cpl_name,                // Coupling id
+                   1,                       // Postprocessing frequency
+                   CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
+                   "text");                 // Postprocessing option
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -688,54 +730,62 @@ int main
   PDM_g_num_t ***pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t **) * n_code);
 
   for (int icode = 0; icode < n_code; icode++) {
-    PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
+    MPI_Comm _mesh_comm;
+    MPI_Comm_split(intra_comm[icode],
+                   is_active_rank,
+                   i_rank,
+                   &_mesh_comm);
 
-    srand(code_id[icode]);
+    if (is_active_rank == CWP_STATUS_ON) {
+      PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &_mesh_comm);//(void *) &intra_comm[icode]);
 
-    _gen_mesh(mesh_comm,
-              n_part[icode],
-              part_method,
-              n_vtx_seg[icode],
-              0.,
-              0.,
-              0.,
-              1.,
-              rotate,
-              randomize,
-              elt_type       [icode],
-              &pn_cell       [icode],
-              &pn_face       [icode],
-              &pn_vtx        [icode],
-              &pcell_face_idx[icode],
-              &pcell_face    [icode],
-              &pface_vtx_idx [icode],
-              &pface_vtx     [icode],
-              &pvtx_coord    [icode],
-              &pcell_ln_to_gn[icode],
-              &pface_ln_to_gn[icode],
-              &pvtx_ln_to_gn [icode]);
+      srand(code_id[icode]);
 
-    for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-      CWP_Mesh_interf_vtx_set(code_name[icode],
-                              cpl_name,
-                              ipart,
-                              pn_vtx       [icode][ipart],
-                              pvtx_coord   [icode][ipart],
-                              pvtx_ln_to_gn[icode][ipart]);
+      _gen_mesh(mesh_comm,
+                n_part[icode],
+                part_method,
+                n_vtx_seg[icode],
+                0.,
+                0.,
+                0.,
+                1.,
+                rotate,
+                randomize,
+                elt_type       [icode],
+                &pn_cell       [icode],
+                &pn_face       [icode],
+                &pn_vtx        [icode],
+                &pcell_face_idx[icode],
+                &pcell_face    [icode],
+                &pface_vtx_idx [icode],
+                &pface_vtx     [icode],
+                &pvtx_coord    [icode],
+                &pcell_ln_to_gn[icode],
+                &pface_ln_to_gn[icode],
+                &pvtx_ln_to_gn [icode]);
 
-      CWP_Mesh_interf_from_cellface_set(code_name[icode],
-                                        cpl_name,
-                                        ipart,
-                                        pn_cell       [icode][ipart],
-                                        pcell_face_idx[icode][ipart],
-                                        pcell_face    [icode][ipart],
-                                        pn_face       [icode][ipart],
-                                        pface_vtx_idx [icode][ipart],
-                                        pface_vtx     [icode][ipart],
-                                        pcell_ln_to_gn[icode][ipart]);
+      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+        CWP_Mesh_interf_vtx_set(code_name[icode],
+                                cpl_name,
+                                ipart,
+                                pn_vtx       [icode][ipart],
+                                pvtx_coord   [icode][ipart],
+                                pvtx_ln_to_gn[icode][ipart]);
+
+        CWP_Mesh_interf_from_cellface_set(code_name[icode],
+                                          cpl_name,
+                                          ipart,
+                                          pn_cell       [icode][ipart],
+                                          pcell_face_idx[icode][ipart],
+                                          pcell_face    [icode][ipart],
+                                          pn_face       [icode][ipart],
+                                          pface_vtx_idx [icode][ipart],
+                                          pface_vtx     [icode][ipart],
+                                          pcell_ln_to_gn[icode][ipart]);
+      }
+
+      CWP_Mesh_interf_finalize(code_name[icode], cpl_name);
     }
-
-    CWP_Mesh_interf_finalize(code_name[icode], cpl_name);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -755,57 +805,59 @@ int main
   double **field_ptr = NULL;
 
   for (int icode = 0; icode < n_code; icode++) {
-    // srand(code_id[icode]);
+    if (is_active_rank == CWP_STATUS_ON) {
+      // srand(code_id[icode]);
 
-    CWP_Field_exch_t exch_type;
-    CWP_Field_map_t  map_type;
-    if (code_id[icode] == 1) {
-      send_val = malloc(sizeof(double *) * n_part[icode]);
-      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+      CWP_Field_exch_t exch_type;
+      CWP_Field_map_t  map_type;
+      if (code_id[icode] == 1) {
+        send_val = malloc(sizeof(double *) * n_part[icode]);
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
 
-        send_val[ipart] = malloc(sizeof(double) * pn_cell[icode][ipart] * stride);
-        for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-          for (int j = 0; j < stride; j++) {
-            send_val[ipart][stride*i+j] = (double) (j+1)*pcell_ln_to_gn[icode][ipart][i];
-            // send_val[ipart][stride*i+j] = (double) rand() / (double) RAND_MAX;
-            // send_val[ipart][stride*i+j] = 1;
+          send_val[ipart] = malloc(sizeof(double) * pn_cell[icode][ipart] * stride);
+          for (int i = 0; i < pn_cell[icode][ipart]; i++) {
+            for (int j = 0; j < stride; j++) {
+              send_val[ipart][stride*i+j] = (double) (j+1)*pcell_ln_to_gn[icode][ipart][i];
+              // send_val[ipart][stride*i+j] = (double) rand() / (double) RAND_MAX;
+              // send_val[ipart][stride*i+j] = 1;
+            }
           }
         }
+        exch_type = CWP_FIELD_EXCH_SEND;
+        map_type  = CWP_FIELD_MAP_SOURCE;
+        field_ptr = send_val;
       }
-      exch_type = CWP_FIELD_EXCH_SEND;
-      map_type  = CWP_FIELD_MAP_SOURCE;
-      field_ptr = send_val;
-    }
-    else {
-      recv_val = malloc(sizeof(double *) * n_part[icode]);
+      else {
+        recv_val = malloc(sizeof(double *) * n_part[icode]);
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+          recv_val[ipart] = malloc(sizeof(double) * pn_cell[icode][ipart] * stride);
+        }
+        exch_type = CWP_FIELD_EXCH_RECV;
+        map_type  = CWP_FIELD_MAP_TARGET;
+        field_ptr = recv_val;
+      }
+
+      CWP_Field_create(code_name[icode],
+                       cpl_name,
+                       field_name,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       stride,
+                       CWP_DOF_LOCATION_CELL_CENTER,
+                       exch_type,
+                       visu_status);
+
+      CWP_Time_step_beg(code_name[icode],
+                        0.0);
+
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-        recv_val[ipart] = malloc(sizeof(double) * pn_cell[icode][ipart] * stride);
+        CWP_Field_data_set(code_name[icode],
+                           cpl_name,
+                           field_name,
+                           ipart,
+                           map_type,
+                           field_ptr[ipart]);
       }
-      exch_type = CWP_FIELD_EXCH_RECV;
-      map_type  = CWP_FIELD_MAP_TARGET;
-      field_ptr = recv_val;
-    }
-
-    CWP_Field_create(code_name[icode],
-                     cpl_name,
-                     field_name,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLACED,
-                     stride,
-                     CWP_DOF_LOCATION_CELL_CENTER,
-                     exch_type,
-                     visu_status);
-
-    CWP_Time_step_beg(code_name[icode],
-                      0.0);
-
-    for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-      CWP_Field_data_set(code_name[icode],
-                         cpl_name,
-                         field_name,
-                         ipart,
-                         map_type,
-                         field_ptr[ipart]);
     }
   }
 
@@ -824,7 +876,9 @@ int main
     //                                   "int",
     //                                   "1");
     // }
-    CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
+    if (is_active_rank == CWP_STATUS_ON) {
+      CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
+    }
   }
 
 
@@ -836,18 +890,20 @@ int main
 
 
   for (int icode = 0; icode < n_code; icode++) {
-    if (code_id[icode] == 1) {
-      CWP_Field_issend(code_name[icode], cpl_name, field_name);
-    }
-    else {
-      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
-    }
+    if (is_active_rank == CWP_STATUS_ON) {
+      if (code_id[icode] == 1) {
+        CWP_Field_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+      }
 
-    if (code_id[icode] == 1) {
-      CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
-    }
-    else {
-      CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+      if (code_id[icode] == 1) {
+        CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+      }
+      else {
+        CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+      }
     }
   }
 
@@ -869,48 +925,50 @@ int main
     double l_volume[2] = {0., 0.};
 
     for (int icode = 0; icode < n_code; icode++) {
-      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+      if (is_active_rank == CWP_STATUS_ON) {
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
 
-        double *cell_volume = malloc(sizeof(double) * pn_cell[icode][ipart]);
-        double *cell_center = malloc(sizeof(double) * pn_cell[icode][ipart] * 3);
-        PDM_geom_elem_polyhedra_properties_triangulated(1,
-                                                        pn_cell       [icode][ipart],
-                                                        pn_face       [icode][ipart],
-                                                        pface_vtx_idx [icode][ipart],
-                                                        pface_vtx     [icode][ipart],
-                                                        pcell_face_idx[icode][ipart],
-                                                        pcell_face    [icode][ipart],
-                                                        pn_vtx        [icode][ipart],
-                                                        pvtx_coord    [icode][ipart],
-                                                        cell_volume,
-                                                        cell_center,
-                                                        NULL,
-                                                        NULL);
+          double *cell_volume = malloc(sizeof(double) * pn_cell[icode][ipart]);
+          double *cell_center = malloc(sizeof(double) * pn_cell[icode][ipart] * 3);
+          PDM_geom_elem_polyhedra_properties_triangulated(1,
+                                                          pn_cell       [icode][ipart],
+                                                          pn_face       [icode][ipart],
+                                                          pface_vtx_idx [icode][ipart],
+                                                          pface_vtx     [icode][ipart],
+                                                          pcell_face_idx[icode][ipart],
+                                                          pcell_face    [icode][ipart],
+                                                          pn_vtx        [icode][ipart],
+                                                          pvtx_coord    [icode][ipart],
+                                                          cell_volume,
+                                                          cell_center,
+                                                          NULL,
+                                                          NULL);
 
-        for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-          if (cell_volume[i] < 0) {
-            log_trace("!! code %d, cell "PDM_FMT_G_NUM" : volume = %e\n",
-                      code_id[icode],
-                      pcell_ln_to_gn[icode][ipart][i],
-                      cell_volume[i]);
-          }
-          l_volume[code_id[icode]-1] += cell_volume[i];
-        }
-
-        if (code_id[icode] == 1) {
           for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-            l_mass[0] += send_val[ipart][i] * cell_volume[i];
+            if (cell_volume[i] < 0) {
+              log_trace("!! code %d, cell "PDM_FMT_G_NUM" : volume = %e\n",
+                        code_id[icode],
+                        pcell_ln_to_gn[icode][ipart][i],
+                        cell_volume[i]);
+            }
+            l_volume[code_id[icode]-1] += cell_volume[i];
           }
 
-        }
-        else {
-          for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-            l_mass[1] += recv_val[ipart][i];
-          }
-        }
+          if (code_id[icode] == 1) {
+            for (int i = 0; i < pn_cell[icode][ipart]; i++) {
+              l_mass[0] += send_val[ipart][i] * cell_volume[i];
+            }
 
-        free(cell_volume);
-        free(cell_center);
+          }
+          else {
+            for (int i = 0; i < pn_cell[icode][ipart]; i++) {
+              l_mass[1] += recv_val[ipart][i];
+            }
+          }
+
+          free(cell_volume);
+          free(cell_center);
+        }
       }
     }
 
@@ -1194,56 +1252,53 @@ int main
   // }
 
 
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (i_rank == 0) {
-    printf("End\n");
-    fflush(stdout);
-  }
-
   /* Free memory */
   for (int icode = 0; icode < n_code; icode++) {
-    CWP_Time_step_end(code_name[icode]);
+    if (is_active_rank == CWP_STATUS_ON) {
+      CWP_Time_step_end(code_name[icode]);
 
-    CWP_Mesh_interf_del(code_name[icode], cpl_name);
+      CWP_Mesh_interf_del(code_name[icode], cpl_name);
 
-    CWP_Cpl_del(code_name[icode], cpl_name);
+      CWP_Cpl_del(code_name[icode], cpl_name);
+    }
   }
 
   for (int icode = 0; icode < n_code; icode++) {
-    for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-      free(pcell_face_idx[icode][ipart]);
-      free(pcell_face    [icode][ipart]);
-      free(pface_vtx_idx [icode][ipart]);
-      free(pface_vtx     [icode][ipart]);
-      free(pvtx_coord    [icode][ipart]);
-      free(pcell_ln_to_gn[icode][ipart]);
-      free(pface_ln_to_gn[icode][ipart]);
-      free(pvtx_ln_to_gn [icode][ipart]);
-    }
-    free(pn_cell       [icode]);
-    free(pn_face       [icode]);
-    free(pn_vtx        [icode]);
-    free(pcell_face_idx[icode]);
-    free(pcell_face    [icode]);
-    free(pface_vtx_idx [icode]);
-    free(pface_vtx     [icode]);
-    free(pvtx_coord    [icode]);
-    free(pcell_ln_to_gn[icode]);
-    free(pface_ln_to_gn[icode]);
-    free(pvtx_ln_to_gn [icode]);
+    if (is_active_rank == CWP_STATUS_ON) {
+      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+        free(pcell_face_idx[icode][ipart]);
+        free(pcell_face    [icode][ipart]);
+        free(pface_vtx_idx [icode][ipart]);
+        free(pface_vtx     [icode][ipart]);
+        free(pvtx_coord    [icode][ipart]);
+        free(pcell_ln_to_gn[icode][ipart]);
+        free(pface_ln_to_gn[icode][ipart]);
+        free(pvtx_ln_to_gn [icode][ipart]);
+      }
+      free(pn_cell       [icode]);
+      free(pn_face       [icode]);
+      free(pn_vtx        [icode]);
+      free(pcell_face_idx[icode]);
+      free(pcell_face    [icode]);
+      free(pface_vtx_idx [icode]);
+      free(pface_vtx     [icode]);
+      free(pvtx_coord    [icode]);
+      free(pcell_ln_to_gn[icode]);
+      free(pface_ln_to_gn[icode]);
+      free(pvtx_ln_to_gn [icode]);
 
-    if (code_id[icode] == 1) {
-      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-        free(send_val[ipart]);
+      if (code_id[icode] == 1) {
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+          free(send_val[ipart]);
+        }
+        free(send_val);
       }
-      free(send_val);
-    }
-    else {
-      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-        free(recv_val[ipart]);
+      else {
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+          free(recv_val[ipart]);
+        }
+        free(recv_val);
       }
-      free(recv_val);
     }
   }
   free(pn_cell       );
@@ -1264,11 +1319,17 @@ int main
   free(n_vtx_seg);
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   /* Finalize CWIPI */
   CWP_Finalize();
+
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (i_rank == 0) {
+    printf("End\n");
+    fflush(stdout);
+  }
 
   /* Finalize MPI */
   MPI_Finalize();

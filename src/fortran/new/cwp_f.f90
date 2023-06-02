@@ -614,12 +614,12 @@ module cwp
               bind(c, name = 'CWP_Init_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        integer(c_int), value             :: fcomm
-        integer(c_int), value             :: n_code
-        type(c_ptr),    value             :: code_names
-        type(c_ptr),    value             :: l_code_names
-        integer(c_int), dimension(n_code) :: is_active_rank
-        type(c_ptr),    value             :: intra_comms
+        integer(c_int), value :: fcomm
+        integer(c_int), value :: n_code
+        type(c_ptr),    value :: code_names
+        type(c_ptr),    value :: l_code_names
+        integer(c_int), value :: is_active_rank
+        type(c_ptr),    value :: intra_comms
       end subroutine CWP_Init_cf
 
       subroutine CWP_State_update_cf(local_code_name, l_local_code_name, state) &
@@ -1856,7 +1856,7 @@ contains
   !! \param [in]  global_comm    MPI global communicator
   !! \param [in]  n_code         Number of codes on the current rank
   !! \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
-  !! \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+  !! \param [in]  is_active_rank Current rank is available for CWIPI
   !! \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
   !!
   !!
@@ -1873,7 +1873,7 @@ contains
     integer(c_int) :: fcomm
     integer(c_int), intent(in) :: n_code
     character(kind = c_char, len = *), dimension(n_code), target :: code_names
-    integer(c_int), dimension(n_code) :: is_active_rank
+    integer(c_int) :: is_active_rank
     integer(c_int), dimension(:), pointer :: intra_comms
     integer, dimension(n_code), target :: l_code_names
     integer :: i

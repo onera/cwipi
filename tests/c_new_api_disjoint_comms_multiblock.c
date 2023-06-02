@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
   double *y_min = (double *) malloc(n_code * sizeof(double));
   double *z_min = (double *) malloc(n_code * sizeof(double));
 
-  CWP_Status_t *is_active_rank = (CWP_Status_t *) malloc(n_code * sizeof(CWP_Status_t));
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
@@ -378,8 +378,6 @@ int main(int argc, char *argv[]) {
     code_names[1] = "code2";
     coupled_code_names[0] = "code2";
     coupled_code_names[1] = "code1";
-    is_active_rank[0] = CWP_STATUS_ON;
-    is_active_rank[1] = CWP_STATUS_ON;
     element_type[0] = element_type_code1;
     element_type[1] = element_type_code2;
     element_type_cwp[0] = element_type_code1_cwp;
@@ -398,7 +396,6 @@ int main(int argc, char *argv[]) {
     code_id[0] = 1;
     code_names[0] = "code1";
     coupled_code_names[0] = "code2";
-    is_active_rank[0] = CWP_STATUS_ON;
     element_type[0] = element_type_code1;
     element_type_cwp[0] = element_type_code1_cwp;
     n_vtx_seg[0] = n_vtx_seg_code1;
@@ -411,7 +408,6 @@ int main(int argc, char *argv[]) {
     code_id[0] = 2;
     code_names[0] = "code2";
     coupled_code_names[0] = "code1";
-    is_active_rank[0] = CWP_STATUS_ON;
     element_type[0] = element_type_code2;
     element_type_cwp[0] = element_type_code2_cwp;
     n_vtx_seg[0] = n_vtx_seg_code2;

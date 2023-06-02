@@ -64,6 +64,12 @@ namespace cwipi {
     return _locCodePropertiesDB[localCodeName]->intraCommGet();
   }
 
+  const MPI_Comm &
+  CodePropertiesDB::connectableCommGet(const string & localCodeName) const
+  {
+    return _locCodePropertiesDB[localCodeName]->connectableCommGet();
+  }
+
  /**
    * \brief Set the user structure
    *

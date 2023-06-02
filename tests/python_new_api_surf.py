@@ -166,7 +166,7 @@ def runTest():
   if verbose:
     f.write("pycwp.init:\n")
   n_code = len(code_name)
-  is_active_rank = [True for i in range(n_code)]
+  is_active_rank = True
   intra_comm = pycwp.init(comm,
                           code_name,
                           is_active_rank)

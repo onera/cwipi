@@ -81,7 +81,7 @@ def runTest():
     f.write("pycwp.init:\n")
     n_code = 1
     code_name = code_name
-    is_active_rank = [True for i in range(n_code)]
+    is_active_rank = True
     out = pycwp.init(comm,
                      code_name,
                      is_active_rank)

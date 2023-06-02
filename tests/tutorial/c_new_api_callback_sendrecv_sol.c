@@ -122,11 +122,10 @@ main
   int n_code = 1;
 
   const char  **code_name      = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t  is_active_rank = CWP_STATUS_ON;
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "codeC";
-  is_active_rank[0] = CWP_STATUS_ON;
 
   printf("C : %d/%d je suis là\n", i_rank, n_rank);
   fflush(stdout);
@@ -294,7 +293,6 @@ main
 
   // free
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
   free(coupled_code_name);
   free(coords);

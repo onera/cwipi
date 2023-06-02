@@ -56,7 +56,7 @@
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  f_code_names   Names of codes on the current rank (size = \p n_code)
  * \param [in]  l_code_names   Length of code names on the current rank (size = \p n_code)
- * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+ * \param [in]  is_active_rank Current rank is available for CWIPI
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -67,7 +67,7 @@ CWP_Init_cf (
   const int n_code, 
   const char *f_code_names,
   const int *l_code_names, 
-  const int *is_active_rank, 
+  const int  is_active_rank,
   MPI_Fint *f_intra_comms
 ); 
 

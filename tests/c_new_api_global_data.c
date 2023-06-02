@@ -131,9 +131,7 @@ main(int argc, char *argv[]) {
     int code_id;
     const char **code_name = malloc(sizeof(char *) * n_code);
     const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-    CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-
-    is_active_rank[0] = CWP_STATUS_ON ;
+    CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
     if (rank < comm_world_size / 2) {
       code_id = 1;
@@ -354,7 +352,6 @@ main(int argc, char *argv[]) {
     // Free memory
     free(code_name);
     free(coupled_code_name);
-    free(is_active_rank);
     free(intra_comm);
 
     // Finalize cwipi
@@ -373,14 +370,12 @@ main(int argc, char *argv[]) {
     int n_code = 2;
     const char **code_name = malloc(sizeof(char *) * n_code);
     const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-    CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
     code_name[1] = "code2";
     coupled_code_name[1] = "code1";
-    is_active_rank[0] = CWP_STATUS_ON;
-    is_active_rank[1] = CWP_STATUS_ON;
 
     MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
     CWP_Init(MPI_COMM_WORLD,
@@ -482,7 +477,6 @@ main(int argc, char *argv[]) {
     // Free memory
     free(code_name);
     free(coupled_code_name);
-    free(is_active_rank);
     free(intra_comm);
 
     // Finalize cwipi

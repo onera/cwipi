@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
   const char **code_name         = malloc(sizeof(char *));
   const char **coupled_code_name = malloc(sizeof(char *));
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t));
+  CWP_Status_t is_active_rank    = CWP_STATUS_ON;
 
   int n_code = 1;
   int n_part = 1;
@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
 
   code_name        [0] = all_code_names[code_id];
   coupled_code_name[0] = all_code_names[(code_id+1)%2];
-  is_active_rank   [0] = CWP_STATUS_ON;
 
 
 
@@ -308,7 +307,6 @@ int main(int argc, char *argv[])
 
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   //  Finalize CWIPI

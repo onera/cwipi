@@ -917,7 +917,7 @@ main(int argc, char *argv[]) {
   int code_id;
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   int n_vtx_seg;
   if (rank < comm_world_size / 2) {
@@ -939,8 +939,6 @@ main(int argc, char *argv[]) {
   }
 
   else {
-    is_active_rank[0] = CWP_STATUS_ON;
-
     CWP_Init(MPI_COMM_WORLD,
              n_code,
              (const char **) code_name,
@@ -1612,7 +1610,6 @@ main(int argc, char *argv[]) {
   // Free memory
   free(code_name);
   free(coupled_code_name);
-  free(is_active_rank);
   free(intra_comm);
 
 

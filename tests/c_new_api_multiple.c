@@ -199,7 +199,7 @@ main
   CWP_Init(MPI_COMM_WORLD,
            1,
            &code_name,
-           &is_active_rank,
+           is_active_rank,
            &intra_comm);
 
   // EXIT_SUCCESS ?

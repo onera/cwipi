@@ -139,7 +139,7 @@ def run_coupling():
 
   code_name = ["codePython"]
 
-  is_active_rank = [True] * n_code
+  is_active_rank = True
 
   intra_comm = pycwp.init(comm,
                           code_name,

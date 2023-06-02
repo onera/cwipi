@@ -481,7 +481,7 @@ int main(int argc, char *argv[])
 
   const char **code_name         = malloc(sizeof(char *) * 2);
   const char **coupled_code_name = malloc(sizeof(char *) * 2);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * 2);
+  CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
 
   int has_code[2] = {0, 0};
@@ -501,8 +501,6 @@ int main(int argc, char *argv[])
   int n_vtx_seg[2];
   int n_part   [2];
   int code_id  [2];
-  is_active_rank[0] = CWP_STATUS_OFF;
-  is_active_rank[1] = CWP_STATUS_OFF;
   CWP_Comm_t comm_type[2];
   for (int icode = 0; icode < 2; icode++) {
     if (has_code[icode]) {
@@ -511,11 +509,10 @@ int main(int argc, char *argv[])
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
       n_vtx_seg        [n_code] = all_n_vtx_seg [icode];
       n_part           [n_code] = all_n_part    [icode];
+      comm_type        [n_code] = all_comm_type[icode];
       if (all_comm_type[icode] == CWP_COMM_PAR_WITHOUT_PART) {
         n_part[n_code] = 1;
       }
-      is_active_rank   [n_code] = CWP_STATUS_ON;
-      comm_type        [n_code] = all_comm_type[icode];
       // log_trace("%s\n", code_name[n_code]);
       n_code++;
     }
@@ -891,7 +888,6 @@ int main(int argc, char *argv[])
 
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   //  Finalize CWIPI

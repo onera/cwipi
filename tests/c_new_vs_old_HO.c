@@ -468,7 +468,7 @@ main
   // Initialize CWIPI
   const char **code_name         = malloc(sizeof(char *) * 2);
   const char **coupled_code_name = malloc(sizeof(char *) * 2);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * 2);
+  CWP_Status_t is_active_rank    = CWP_STATUS_ON;
 
 
   int has_code[2] = {0, 0};
@@ -483,15 +483,12 @@ main
 
   int n_code = 0;
   int code_id  [2];
-  is_active_rank[0] = CWP_STATUS_OFF;
-  is_active_rank[1] = CWP_STATUS_OFF;
   for (int icode = 0; icode < 2; icode++) {
     if (has_code[icode]) {
       // log_trace("I run %s\n", all_code_names[icode]);
       code_id          [n_code] = icode+1;
       code_name        [n_code] = all_code_names[icode];
       coupled_code_name[n_code] = all_code_names[(icode+1)%2];
-      is_active_rank   [n_code] = CWP_STATUS_ON;
       n_code++;
     }
   }
@@ -1062,7 +1059,6 @@ main
 
   free(coupled_code_name);
   free(code_name);
-  free(is_active_rank);
   free(intra_comm);
 
   // Finalize MPI

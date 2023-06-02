@@ -403,7 +403,7 @@ typedef void (*ma_fonction_t)( int i );
  * \param [in]  global_comm    MPI global communicator
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
- * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+ * \param [in]  is_active_rank Is current rank have to be used by CWIPI
  * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
  *
  */
@@ -414,7 +414,7 @@ CWP_Init
  const MPI_Comm           global_comm,
  const int                n_code,
  const char             **code_names,
- const CWP_Status_t      *is_active_rank,
+ const CWP_Status_t       is_active_rank,
  MPI_Comm                *intra_comms
 );
 
