@@ -353,21 +353,6 @@ CWP_client_State_update
 );
 
 /**
- * \brief Time_update CWIPI.
- *
- * \param [in] local_code_name  Local code name
- * \param [in]  current_time Current time
- *
- */
-
-void
-CWP_client_Time_update
-(
- const char* local_code_name,
- const double current_time
-);
-
-/**
  * \brief Time_step_beg CWIPI.
  *
  * \param [in] local_code_name  Local code name

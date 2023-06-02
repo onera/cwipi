@@ -411,11 +411,6 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
-  case CWP_MSG_CWP_TIME_UPDATE: {
-    char name[] = "CWP_Time_update";
-    strcpy(function, name);
-    } break;
-
   case CWP_MSG_CWP_TIME_STEP_BEG: {
     char name[] = "CWP_Time_step_beg";
     strcpy(function, name);
@@ -2406,105 +2401,6 @@ CWP_client_State_update
   CWP_State_t endian_state = state;
   CWP_swap_endian_4bytes((int *) &endian_state, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_state, sizeof(CWP_State_t));
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-}
-
-void
-CWP_client_Time_update
-(
- const char* local_code_name,
- const double current_time
-)
-{
-  t_message msg;
-
-  // verbose
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
-    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_update\n", clt->code_name);
-    PDM_printf_flush();
-  }
-
-  // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_TIME_UPDATE);
-
-  // send message
-  if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_update failed to send message header\n");
-  }
-
-  // receive status msg
-  MPI_Barrier(clt->comm);
-  if (clt->flags  & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    if (clt->i_rank == 0) verbose(message);
-  }
-
-  // send code name
-  write_name(local_code_name);
-
-  // send time
-  double endian_current_time = current_time;
-  CWP_swap_endian_8bytes(&endian_current_time, 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
-
-  // for each coupling of the code, update the coordinates if deformable and field always
-  for ( std::map<std::string, t_coupling>::const_iterator it_c = clt_cwp.coupling.begin() ; it_c != clt_cwp.coupling.end() ; ++it_c ) {
-
-    // field
-    for ( std::map<std::string, t_field>::const_iterator it_f = clt_cwp.coupling[it_c->first].field.begin() ; it_f != clt_cwp.coupling[it_c->first].field.end() ; ++it_f ) {
-
-      if ((it_f->second).map_type == CWP_FIELD_MAP_SOURCE) {
-
-        for (int j_part = 0; j_part < clt_cwp.coupling[it_c->first].n_part; j_part++) {
-
-          double *endian_data = (double *) malloc(sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
-          memcpy(endian_data, (it_f->second).data[j_part], sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
-          CWP_swap_endian_8bytes(endian_data, (it_f->second).n_component * (it_f->second).n_entities[j_part]);
-          CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * (it_f->second).n_component * (it_f->second).n_entities[j_part]);
-          free(endian_data);
-
-        }
-      }
-    }
-
-    // coordinates
-    if (clt_cwp.coupling[it_c->first].mesh_dynamic == CWP_DYNAMIC_MESH_DEFORMABLE) {
-
-      for (int j_part = 0; j_part < clt_cwp.coupling[it_c->first].n_part; j_part++) {
-
-        double *endian_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
-        memcpy(endian_coord, clt_cwp.coupling[it_c->first].vtx_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
-        CWP_swap_endian_8bytes(endian_coord, 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
-        CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_vtx[j_part]);
-        free(endian_coord);
-
-        if (clt_cwp.coupling[it_c->first].usr_coord != NULL) {
-          double *endian_user_coord = (double *) malloc(sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
-          memcpy(endian_user_coord, clt_cwp.coupling[it_c->first].usr_coord[j_part], sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
-          CWP_swap_endian_8bytes(endian_user_coord, 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
-          CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_user_coord, sizeof(double) * 3 * clt_cwp.coupling[it_c->first].n_user_vtx[j_part]);
-          free(endian_user_coord);
-        }
-      }
-    }
-  }
 
   // receive status msg
   MPI_Barrier(clt->comm);

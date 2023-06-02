@@ -289,19 +289,6 @@ CWP_server_State_update
 );
 
 /**
- * \brief Time_update CWIPI.
- *
- * \param [in]  p_server       Pointer on server data structure
- *
- */
-
-void
-CWP_server_Time_update
-(
-  p_server                 svr
-);
-
-/**
  * \brief Time_step_beg CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure

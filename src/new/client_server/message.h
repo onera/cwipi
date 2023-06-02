@@ -67,7 +67,7 @@ extern "C" {
 #define CWP_MSG_CWP_PROPERTIES_DUMP                      15
 #define CWP_MSG_CWP_VISU_SET                             16
 #define CWP_MSG_CWP_STATE_UPDATE                         17
-#define CWP_MSG_CWP_TIME_UPDATE                          18
+// remove time update message
 #define CWP_MSG_CWP_STATE_GET                            19
 #define CWP_MSG_CWP_CODES_NB_GET                         20
 #define CWP_MSG_CWP_CODES_LIST_GET                       21

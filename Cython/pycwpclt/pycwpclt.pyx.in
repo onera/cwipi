@@ -161,8 +161,9 @@ cdef extern from "client_server/client.h":
   # --> functions about current code properties
   void CWP_client_State_update(char* local_code_name,
                                CWP_State_t state)
-  void CWP_client_Time_update(char* local_code_name,
-                              double current_time)
+  void CWP_client_Time_step_beg(char* local_code_name,
+                                double current_time)
+  void CWP_client_Time_step_end(char* local_code_name)
   void CWP_client_Output_file_set(FILE *output_file)
 
   # --> functions about other code properties
@@ -779,19 +780,28 @@ def state_update(char*       local_code_name,
 
     CWP_client_State_update(local_code_name,
                             state)
-
-def time_update(char*  local_code_name,
-                double current_time):
+def time_step_beg(char*  local_code_name,
+                  double current_time):
     """
-    Update code time.
+    Begin time step.
 
     Parameters:
       local_code_name (char*)  : Local code name
       current_time    (double) : Current time
     """
 
-    CWP_client_Time_update(local_code_name,
-                           current_time)
+    CWP_client_Time_step_beg(local_code_name,
+                             current_time)
+
+def time_step_end(char*  local_code_name):
+    """
+    End time step.
+
+    Parameters:
+      local_code_name (char*)  : Local code name
+    """
+
+    CWP_client_Time_step_end(local_code_name)
 
 def output_file_set(output_file):
     """
@@ -1142,7 +1152,7 @@ def param_reduce(CWP_Op_t    op,
                  char       *param_name,
                  CWP_Type_t  data_type,
                  int         n_code,
-                 NPY.ndarray code_names not None):
+                 list        code_names not None):
     """
     Return the result of a reduce operation about a parameter.
     The parameter name has to be the same for all codes.
