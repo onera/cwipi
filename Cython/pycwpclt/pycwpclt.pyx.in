@@ -1078,7 +1078,13 @@ def param_list_get(char        *code_name,
 
     param_names = []
     for i in range(n_param):
-      param_names.append(c_param_names[i])
+      if isinstance(c_param_names[i], bytes):
+        py_unicode_param_names = c_param_names[i].decode('ascii')
+      else :
+        py_unicode_param_names = c_param_names[i]
+      param_names.append(py_unicode_param_names)
+
+    free(c_param_names)
 
     param_names = NPY.array(param_names)
 
