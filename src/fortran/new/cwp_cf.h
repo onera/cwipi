@@ -93,25 +93,6 @@ CWP_State_update_cf
 );
 
 
-/**
- * \brief Update code time.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] l_local_code_name Length of Fortran local code name
- * \param [in]  current_time Current time
- *
- */
-
-void
-CWP_Time_update_cf
-(
- const char* local_code_name,
- const int l_local_code_name,
- const double current_time
-);
-
-
-
 /*----------------------------------------------------------------------------*
  * Functions about other code properties                               *
  *----------------------------------------------------------------------------*/

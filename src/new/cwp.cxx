@@ -578,46 +578,6 @@ CWP_Loc_codes_list_get
 
 
 /**
- * \brief Update code time.
- *
- * \param [in] local_code_name  Local code name
- * \param [in]  current_time Current time
- *
- */
-
-void
-CWP_Time_update
-(
- const char* local_code_name,
- const double current_time
-)
-{
-  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
-  
-  int is_locked = properties.isLocked(local_code_name);
-
-  if (!is_locked) {
-    properties.lock(local_code_name);
-  }
-
-  properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
-
-  if (!is_locked) {
-    properties.unLock(local_code_name);
-  }
-  
-  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
-
-  MPI_Barrier (intra_comm);
-
-  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
-  
-  couplingDB.timeUpdate(properties.codePropertiesGet(local_code_name),
-                        current_time);
-
-}
-
-/**
  * \brief Begin code time step.
  *
  * \param [in] local_code_name  Local code name

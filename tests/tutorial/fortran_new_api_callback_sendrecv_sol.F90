@@ -213,14 +213,16 @@ program fortran_new_api_callback_sendrecv_sol
   print *, "Fortran ", i_rank, " < wait_issend"
 
   write (strnum, '(i1)') i_rank
-  call visu("check_Fortran_"//strnum//".vtk", &
-            n_vtx,                            &
-            vtx_coord,                        &
-            n_elt,                            &
-            elt_vtx_idx,                      &
-            elt_vtx,                          &
-            send_field_data,                  &
-            recv_field_data)
+  if (.false.) then
+    call visu("check_Fortran_"//strnum//".vtk", &
+              n_vtx,                            &
+              vtx_coord,                        &
+              n_elt,                            &
+              elt_vtx_idx,                      &
+              elt_vtx,                          &
+              send_field_data,                  &
+              recv_field_data)
+  endif
 
   ! End time step :
   call CWP_Time_step_end(code_names(1))

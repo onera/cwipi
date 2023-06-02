@@ -449,22 +449,6 @@ CWP_State_update
  const CWP_State_t state
 );
 
-
-/**
- * \brief Update code time.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] current_time     Current time
- *
- */
-
-void
-CWP_Time_update
-(
- const char*  local_code_name,
- const double current_time
-);
-
 /**
  * \brief Begin code time step.
  *

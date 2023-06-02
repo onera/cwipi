@@ -175,8 +175,6 @@ cdef extern from "cwp.h":
   # --> functions about current code properties
   void CWP_State_update(char* local_code_name,
                         CWP_State_t state)
-  void CWP_Time_update(char* local_code_name,
-                       double current_time)
   void CWP_Time_step_beg(char* local_code_name,
                          double current_time)
   void CWP_Time_step_end(char* local_code_name)
@@ -894,19 +892,6 @@ def state_update(char *      local_code_name,
 
     CWP_State_update(local_code_name,
                      state)
-
-def time_update(char * local_code_name,
-                double current_time):
-    """
-    Update code time.
-
-    Parameters:
-      local_code_name (str)  : Local code name
-      current_time    (double) : Current time
-    """
-
-    CWP_Time_update(local_code_name,
-                    current_time)
 
 def time_step_beg(char * local_code_name,
                   double current_time):

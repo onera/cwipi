@@ -187,10 +187,6 @@ module cwp
         CWP_State_update_
     end interface CWP_State_update
 
-    interface CWP_Time_update ; module procedure &
-        CWP_Time_update_
-    end interface CWP_Time_update
-
     interface CWP_Time_step_beg ; module procedure &
         CWP_Time_step_beg_
     end interface CWP_Time_step_beg
@@ -519,7 +515,6 @@ module cwp
   private :: c_f_char_array,&
              CWP_Init_ ,&
              CWP_State_update_ ,&
-             CWP_Time_update_ ,&
              CWP_Time_step_beg_ ,&
              CWP_Time_step_end_ ,&
              CWP_User_structure_set_ ,&
@@ -629,15 +624,6 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name
         integer(c_int), value             :: l_local_code_name, state
       end subroutine CWP_State_update_cf
-
-      subroutine CWP_Time_update_cf(local_code_name, l_local_code_name, current_time) &
-        bind(c, name='CWP_Time_update_cf')
-        use, intrinsic :: iso_c_binding
-        implicit none
-        character(kind = c_char, len = 1) :: local_code_name
-        integer(c_int), value             :: l_local_code_name
-        real(c_double), value             :: current_time
-      end subroutine CWP_Time_update_cf
 
       subroutine CWP_Time_step_beg_cf(local_code_name, l_local_code_name, current_time) &
         bind(c, name='CWP_Time_step_beg_cf')
@@ -1916,33 +1902,6 @@ contains
                              state)
 
   end subroutine CWP_State_update_
-
-
-  !>
-  !! \brief Update code time.
-  !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in]  current_time Current time
-  !!
-  !!
-
-  subroutine CWP_Time_update_(local_code_name, &
-                             current_time)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = *) :: local_code_name
-    double precision, intent(in)      :: current_time
-    integer(c_int)                    :: l_local_code_name
-
-    l_local_code_name = len(local_code_name)
-
-    call CWP_Time_update_cf(local_code_name,   &
-                            l_local_code_name, &
-                            current_time)
-
-  end subroutine CWP_Time_update_
 
   !>
   !! \brief Begin code time step.
