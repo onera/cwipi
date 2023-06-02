@@ -97,8 +97,6 @@ def runTest():
     print("pycwpclt.properties_dump:\n")
     pycwpclt.properties_dump()
 
-    comm.Barrier()
-
     # CODES
     print("pycwpclt.code:\n", flush=True)
     n_code = pycwpclt.codes_nb_get()
@@ -556,14 +554,9 @@ def runTest():
                                       face_vtx,
                                       None)
 
-    print("cpl2.mesh_interf_del:\n")
+    print("cpl2.mesh_interf_del:\n", flush=True)
 
     cpl2.mesh_interf_del()
-
-    del cpl
-    del cpl2
-
-    comm.Barrier()
 
     # FINALIZE
     pycwpclt.finalize()

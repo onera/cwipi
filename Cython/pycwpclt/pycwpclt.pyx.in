@@ -1084,6 +1084,11 @@ def param_list_get(char        *code_name,
         py_unicode_param_names = c_param_names[i]
       param_names.append(py_unicode_param_names)
 
+    # appenratly python does a copy so I can free here
+    for i in range(n_param):
+      free(c_param_names[i])
+    free(c_param_names)
+
     return {
             'n_param'     : n_param,
             'param_names' : param_names

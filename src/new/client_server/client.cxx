@@ -1198,13 +1198,6 @@ CWP_client_Finalize()
     free(clt_cwp.loc_code_names);
   }
 
-  if (clt_cwp.param_names != NULL) {
-    for (int i = 0; i < clt_cwp.n_param_names; i++) {
-      if (clt_cwp.param_names[i] != NULL) free(clt_cwp.param_names[i]);
-    }
-    free(clt_cwp.param_names);
-  }
-
   if (!clt_cwp.char_param_value.empty()) {
     for (const auto& x : clt_cwp.char_param_value) {
       if (x.second != NULL) {
@@ -1762,12 +1755,11 @@ CWP_client_Param_list_get
   *nParam = clt_cwp.n_param_names;
 
   // read param names
-  clt_cwp.param_names = (char **) malloc(sizeof(char *) * (clt_cwp.n_param_names));
+  *paramNames = (char **) malloc(sizeof(char *) * (clt_cwp.n_param_names));
   for (int i = 0; i < clt_cwp.n_param_names; i++) {
-    (clt_cwp.param_names)[i] = (char *) malloc(sizeof(char));
-    read_name(&((clt_cwp.param_names)[i]));
+    (*paramNames)[i] = (char *) malloc(sizeof(char));
+    read_name(&((*paramNames)[i]));
   }
-  *paramNames = clt_cwp.param_names;
 }
 
 int

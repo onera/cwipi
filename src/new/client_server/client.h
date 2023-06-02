@@ -234,7 +234,7 @@ CWP_client_Param_n_get
  * \param [out] nParam         Number of parameters
  * \param [out] paramNames     Parameter names
  *
- *
+ * <p> It is up to the user to free the retreived pointer array <\p>
  */
 
 void
