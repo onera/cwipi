@@ -46,6 +46,7 @@ if(CWP_ENABLE_DOCUMENTATION)
     if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
       execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
       set(DOC_PRELOAD "LD_PRELOAD=${PRELOAD_ASAN}")
+      set(RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
     endif()
 
     # Only regenerate Sphinx when:
@@ -53,7 +54,7 @@ if(CWP_ENABLE_DOCUMENTATION)
     # - Our doc files have been updated
     # - The Sphinx config has been updated
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
-                       COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD}
+                       COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN}
                          ${SPHINX_EXECUTABLE} -Q -b html # -Q to suppress warning output
                          #-w sphinx_build_warnings.log
                          # Tell Breathe where to find the Doxygen output

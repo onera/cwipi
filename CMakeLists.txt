@@ -595,6 +595,10 @@ else ()
 
 endif()
 
+if (CMAKE_BUILD_TYPE STREQUAL "Sanitize" AND CWP_ENABLE_DOCUMENTATION)
+  message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
+endif ()
+
 add_subdirectory(src)
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
