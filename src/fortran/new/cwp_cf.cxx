@@ -926,33 +926,6 @@ void CWP_Visu_set_cf (
   free ( c_format_option);
 }
 
-/**
- * \brief End visualization output.
- *
- * \param [in]  f_local_code_name   Fortran local code name
- * \param [in]  l_local_code_name   Length of Fortran local code name
- * \param [in]  f_cpl_id            Fortran Coupling identifier
- * \param [in]  l_cpl_id            Length of Fortran coupling identifier
- */
-
-void CWP_Visu_end_cf (
-  const char *f_local_code_name,
-  const int l_local_code_name,
-  const char *f_cpl_id,
-  const int l_cpl_id
-)
-{
-  char *c_local_code_name, *c_cpl_id;
-
-  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
-
-  CWP_Visu_end(c_local_code_name, c_cpl_id);
-
-  free ( c_local_code_name);
-  free ( c_cpl_id);
-}
-
 /*----------------------------------------------------------------------------*
  * Functions about User target points                                         *
  *----------------------------------------------------------------------------*/

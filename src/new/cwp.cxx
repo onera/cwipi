@@ -881,9 +881,13 @@ const char *cpl_id
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  const string &cpl_id_str = cpl_id;
+  // end (free) visualization
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.visuEnd();
+  }
 
-  CWP_Visu_end(local_code_name, cpl_id);
+  const string &cpl_id_str = cpl_id;
 
   couplingDB.couplingDel(properties.codePropertiesGet(string(local_code_name)),
                          cpl_id_str);
@@ -1381,26 +1385,6 @@ CWP_Visu_set
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.visuSet(freq, format, format_option);
-  }
-}
-
-/**
- * \brief End visualization output.
- *
- * \param [in] local_code_name  Local code name
- *
- */
-
-void
-CWP_Visu_end
-(
- const char                 *local_code_name,
- const char                 *cpl_id
-)
-{
-  if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    cpl.visuEnd();
   }
 }
 

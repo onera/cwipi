@@ -951,21 +951,6 @@ CWP_Visu_set
  const char                 *format_option
 );
 
-/**
- * \brief End visualization output.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- *
- */
-
-void
-CWP_Visu_end
-(
- const char  *local_code_name,
- const char  *cpl_id
-);
-
 /*----------------------------------------------------------------------------*
  * Functions about User target points                                         *
  *----------------------------------------------------------------------------*/

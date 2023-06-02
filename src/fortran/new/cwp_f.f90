@@ -259,10 +259,6 @@ module cwp
         CWP_Visu_set_
     end interface CWP_Visu_set
 
-    interface CWP_Visu_end ; module procedure &
-        CWP_Visu_end_
-    end interface CWP_Visu_end
-
     interface CWP_User_tgt_pts_set ; module procedure &
         CWP_User_tgt_pts_set_
     end interface CWP_User_tgt_pts_set
@@ -541,7 +537,6 @@ module cwp
              CWP_Spatial_interp_weights_compute_ ,&
              CWP_Spatial_interp_property_set_ ,&
              CWP_Visu_set_ ,&
-             CWP_Visu_end_ ,&
              CWP_User_tgt_pts_set_ ,&
              CWP_Mesh_interf_finalize_ ,&
              CWP_Mesh_interf_vtx_set_ ,&
@@ -865,14 +860,6 @@ module cwp
         integer(c_int), value :: format
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_format_option
       end subroutine CWP_Visu_set_cf
-
-      subroutine CWP_Visu_end_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
-            bind(c, name = 'CWP_Visu_end_cf')
-        use, intrinsic :: iso_c_binding
-        implicit none
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
-      end subroutine CWP_Visu_end_cf
 
       subroutine CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, coord, global_num) &
               bind(c, name = 'CWP_User_tgt_pts_set_cf')
@@ -2684,28 +2671,6 @@ contains
     l_format_option = len(format_option)
 
     call CWP_Visu_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, freq, format, format_option, l_format_option)
-  end subroutine
-
-  !>
-  !! \brief End visualization output.
-  !!
-  !! \param [in]  local_code_name  Local code name
-  !! \param [in]  cpl_id           Coupling identifier
-  !!
-
-  subroutine CWP_Visu_end_ (local_code_name, &
-                           cpl_id)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = *) :: local_code_name, cpl_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id
-
-    l_local_code_name = len(local_code_name)
-    l_cpl_id = len(cpl_id)
-
-    call CWP_Visu_end_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
   end subroutine
 
 
