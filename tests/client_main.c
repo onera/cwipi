@@ -354,6 +354,11 @@ int main ( int argc, char *argv[] )
       exit_check = 1;
     }
 
+    for (int i = 0; i < code1_n_double; i++) {
+      free(param_names[i]);
+    }
+    free(param_names);
+
   }
 
   if (id_code == 1) {
@@ -365,6 +370,11 @@ int main ( int argc, char *argv[] )
     if (!(strcmp(param_names[0], "toto2") == 0) ){
       exit_check = 1;
     }
+
+    for (int i = 0; i < code2_n_char; i++) {
+      free(param_names[i]);
+    }
+    free(param_names);
 
   }
 
