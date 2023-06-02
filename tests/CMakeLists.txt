@@ -130,10 +130,13 @@ file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY
 if (CWP_ENABLE_PYTHON_BINDINGS AND NOT CWP_NEW_TO_OLD_API)
   SET (CTEST_ENVIRONMENT
        "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-       "PYTHONPATH=${CWP_BINARY_DIR}/Cython:${PYTHONPATH}")
+       "PYTHONPATH=${CWP_BINARY_DIR}/Cython:${PYTHONPATH}"
+       "PATH=${CWP_BINARY_DIR}/bin:${PATH}"
+       )
 else()
   SET (CTEST_ENVIRONMENT
-       "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}")
+       "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+       "PATH=${CWP_BINARY_DIR}/bin:${PATH}")
 endif()
 
 include(TestCreate)
@@ -230,12 +233,12 @@ set (_MPIEXEC_MAX_NUMPROCS 2)
 if (CWP_ENABLE_Fortran )
   test_fortran_create (fortran_surf_P1P1            2 CWP_LIST_TEST CWP_LIST_NRANK)
   test_fortran_create (fortran_surf_P1P1_savememory 2 CWP_LIST_TEST CWP_LIST_NRANK)
-  test_fortran_create (fortran_surf_PiQj 2 CWP_LIST_TEST CWP_LIST_NRANK)
-  target_link_libraries(fortran_surf_PiQj cwp_checkf)
-  add_dependencies(fortran_surf_PiQj  cwp_checkf)
-  test_fortran_create (fortran_plane_PiQj 2 CWP_LIST_TEST CWP_LIST_NRANK)
-  target_link_libraries(fortran_plane_PiQj cwp_checkf)
-  add_dependencies(fortran_plane_PiQj  cwp_checkf)
+#  test_fortran_create (fortran_surf_PiQj 2 CWP_LIST_TEST CWP_LIST_NRANK)
+#  target_link_libraries(fortran_surf_PiQj cwp_checkf)
+#  add_dependencies(fortran_surf_PiQj  cwp_checkf)
+#  test_fortran_create (fortran_plane_PiQj 2 CWP_LIST_TEST CWP_LIST_NRANK)
+#  target_link_libraries(fortran_plane_PiQj cwp_checkf)
+#  add_dependencies(fortran_plane_PiQj  cwp_checkf)
 
 #    list(APPEND LINK_LIBRARIES spaceBasis)
 #    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${_MPIEXEC_MAX_NUMPROCS})

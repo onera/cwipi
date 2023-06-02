@@ -232,7 +232,7 @@ main
     system("mkdir -p client_new_api_c_poly_block_o/code2");
     system("rm -f ./client_new_api_c_poly_block_o/code1/cwp_config_srv.txt");
     system("rm -f ./client_new_api_c_poly_block_o/code2/cwp_config_srv.txt");
-    system("mpirun -n 1 cwp_server -cn code1 -p 49102 49102 -c \"client_new_api_c_poly_block_o/code1/cwp_config_srv.txt\" : -n 1 cwp_server -cn code2 -p 49103 49103 -c \"client_new_api_c_poly_block_o/code2/cwp_config_srv.txt\" &");
+    system("mpirun -n 1 cwp_server -cn code1 -p 48102 48102 -c \"client_new_api_c_poly_block_o/code1/cwp_config_srv.txt\" : -n 1 cwp_server -cn code2 -p 48103 48103 -c \"client_new_api_c_poly_block_o/code2/cwp_config_srv.txt\" &");
   }
 
   while (access(config, R_OK) != 0) {
