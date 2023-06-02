@@ -233,7 +233,7 @@ CWP_server_Init
 
   int            n_code;
   char         **code_names     = NULL;
-  CWP_Status_t   is_active_rank = CWP_SATUS_OFF;
+  CWP_Status_t   is_active_rank = CWP_STATUS_OFF;
 
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
