@@ -45,7 +45,7 @@ def runTest():
         os.system("mkdir -p python_new_api_client_server_o/code2")
         os.system("rm -f ./python_new_api_client_server_o/code1/cwp_config_srv.txt")
         os.system("rm -f ./python_new_api_client_server_o/code2/cwp_config_srv.txt")
-        os.system("mpiexec -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"python_new_api_client_server_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"python_new_api_client_server_o/code2/cwp_config_srv.txt\" &")
+        os.system("mpiexec -n 1 cwp_server -cn code0 -p 49100 49100 -c \"python_new_api_client_server_o/code1/cwp_config_srv.txt\" : -n 1  cwp_server -cn code1 -p 49101 49101 -c \"python_new_api_client_server_o/code2/cwp_config_srv.txt\" &")
 
     while (os.access(config, os.R_OK) != 0):
         time.sleep(1)
@@ -501,14 +501,14 @@ def runTest():
     print("pycwpclt.Coupling:\n")
 
     cpl2 = pycwpclt.Coupling(code_names[i_rank],
-                         "test_vol",
-                         code_names[(i_rank+1)%2],
-                         pycwpclt.INTERFACE_VOLUME,
-                         pycwpclt.COMM_PAR_WITH_PART,
-                         pycwpclt.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                         1,
-                         pycwpclt.DYNAMIC_MESH_STATIC,
-                         pycwpclt.TIME_EXCH_USER_CONTROLLED)
+                             "test_vol",
+                             code_names[(i_rank+1)%2],
+                             pycwpclt.INTERFACE_VOLUME,
+                             pycwpclt.COMM_PAR_WITH_PART,
+                             pycwpclt.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                             1,
+                             pycwpclt.DYNAMIC_MESH_STATIC,
+                             pycwpclt.TIME_EXCH_USER_CONTROLLED)
 
     block_id = cpl2.mesh_interf_block_add(pycwpclt.BLOCK_CELL_POLY)
 
@@ -520,12 +520,12 @@ def runTest():
     print("cpl2.mesh_interf_c_poly_block_set:\n")
 
     cpl2.mesh_interf_c_poly_block_set(0,
-                                     block_id,
-                                     connec_faces_idx,
-                                     connec_faces,
-                                     connec_cells_idx,
-                                     connec_cells,
-                                     None)
+                                      block_id,
+                                      connec_faces_idx,
+                                      connec_faces,
+                                      connec_cells_idx,
+                                      connec_cells,
+                                      None)
 
     print("cpl2.mesh_interf_c_poly_block_get:\n")
 
@@ -546,13 +546,13 @@ def runTest():
     print("cpl2.mesh_interf_from_cellface_set:\n")
 
     cpl2.mesh_interf_from_cellface_set(0,
-                                      1,
-                                      cell_face_idx,
-                                      cell_face,
-                                      4,
-                                      face_vtx_idx,
-                                      face_vtx,
-                                      None)
+                                       1,
+                                       cell_face_idx,
+                                       cell_face,
+                                       4,
+                                       face_vtx_idx,
+                                       face_vtx,
+                                       None)
 
     print("cpl2.mesh_interf_del:\n", flush=True)
 

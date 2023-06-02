@@ -1817,7 +1817,7 @@ cdef class PartData (object):
           part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
 
         Returns:
-          request (int) : Exchange resquest
+          request (int) : Exchange request
         """
         data_dtype = part1_to_part2_data[0].dtype # TO DO more robust check ?
         # data_dtype = recover_dtype(part1_to_part2_data, pyptp.py_comm)
@@ -1846,7 +1846,7 @@ cdef class PartData (object):
 
         Returns:
           part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
-          request    (int)     : Exchange resquest
+          request    (int)     : Exchange request
         """
         data_dtype = part2_data[0].dtype # TO DO more robust check ?
         # data_dtype = recover_dtype(part2_data, pyptp.py_comm)
@@ -1869,7 +1869,7 @@ cdef class PartData (object):
         Wait issend partitionned data.
 
         Parameters:
-          request (int) : Exchange resquest
+          request (int) : Exchange request
         """
 
         CWP_Part_data_wait_issend(self.local_code_name,
@@ -1883,7 +1883,7 @@ cdef class PartData (object):
         Wait irecv partitionned data.
 
         Parameters:
-          request (int) : Exchange resquest
+          request (int) : Exchange request
         """
 
         CWP_Part_data_wait_irecv(self.local_code_name,
@@ -2734,7 +2734,7 @@ cdef class Coupling (object):
           part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
 
         Returns:
-          request (int) : Exchange resquest
+          request (int) : Exchange request
         """
 
         cdef int idx = self.partData_name[part_data_id]
@@ -2756,7 +2756,7 @@ cdef class Coupling (object):
 
         Returns:
           part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
-          request    (int)     : Exchange resquest
+          request    (int)     : Exchange request
         """
 
         cdef int idx = self.partData_name[part_data_id]
@@ -2772,7 +2772,7 @@ cdef class Coupling (object):
 
         Parameters:
           part_data_id (str)   : Partitionned data id
-          request      (int)   : Exchange resquest
+          request      (int)   : Exchange request
         """
 
         cdef int idx = self.partData_name[part_data_id]
@@ -2786,7 +2786,7 @@ cdef class Coupling (object):
 
         Parameters:
           part_data_id (str)   : Partitionned data id
-          request      (int)   : Exchange resquest
+          request      (int)   : Exchange request
         """
 
         cdef int idx = self.partData_name[part_data_id]
