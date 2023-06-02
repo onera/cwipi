@@ -72,8 +72,8 @@ main(int argc, char *argv[]) {
   // partitionned over all processors. This induces that the mesh
   // is static.
   // ------------------------------------------------------- To fill in
-  int n_part = 1;
-  const char  *coupling_name     = "code1_code2";
+//  int n_part = 1;
+//  const char  *coupling_name     = "code1_code2";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
 
   if (I_am_code1) {
@@ -111,9 +111,9 @@ main(int argc, char *argv[]) {
   // global numbering.
   // ------------------------------------------------------- To fill in
 
-  int n_elts = 5;
-  int connec_idx[6] = {0,3,7,11,16,21};
-  int connec[21]    = {1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8};
+//  int n_elts = 5;
+//  int connec_idx[6] = {0,3,7,11,16,21};
+//  int connec[21]    = {1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8};
 
   // ---------------------------------------------------- End To fill in
 
@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
   // Do not forget to begin the time step AFTER creating the fields,
   // but BEFORE setting the fields data!
   // ------------------------------------------------------- To fill in
-  const char *field_name      = "a super fancy field";
+//  const char *field_name      = "a super fancy field";
   int         n_components    = 1;
   double     *send_field_data = malloc(sizeof(double) * n_vtx * n_components);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);

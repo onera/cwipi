@@ -46,6 +46,7 @@
 #include "bftc_mem_usage.h"
 #include "bftc_mem.h"
 #include "bftc_printf.h"
+#include "cwp_priv.h"
 
 /*-----------------------------------------------------------------------------*/
 
@@ -861,7 +862,11 @@ bftc_mem_realloc(void        *ptr,
       fflush(_bftc_mem_global_file);
     }
 
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wuse-after-free")
+
     _bftc_mem_block_realloc(ptr, p_loc, new_size);
+
+CWP_GCC_SUPPRESS_WARNING_POP
 
     _bftc_mem_global_n_reallocs += 1;
 

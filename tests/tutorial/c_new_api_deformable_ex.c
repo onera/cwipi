@@ -24,6 +24,7 @@
 #include <math.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 #include "pdm_error.h"
 #include "pdm_priv.h"
 #include "pdm_generate_mesh.h"
@@ -62,7 +63,11 @@ main(int argc, char *argv[]) {
   // elements. Operate the localization with the octree method.
   // ------------------------------------------------------- To fill in
   int n_part = 1;
+  CWP_UNUSED(n_part); // For remove compilation warning
+
   const char  *coupling_name     = "coupling";
+  CWP_UNUSED(coupling_name); // For remove compilation warning
+
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   coupled_code_name[0] = "code1";
 
@@ -84,6 +89,8 @@ main(int argc, char *argv[]) {
   // coupling case here a user generated mesh would be read/loaded/given.
   int     n_vtx = 0;
   int     n_elt = 0;
+  CWP_UNUSED(n_elt); // For remove compilation warning
+
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
@@ -100,10 +107,19 @@ main(int argc, char *argv[]) {
   // Interations :
   // At each iteration the mesh coordinates and the exchanged fields are modified.
   const char *send_field_name = "chinchilla";
+  CWP_UNUSED(send_field_name); // For remove compilation warning
+
   const char *recv_field_name = "girafe";
+  CWP_UNUSED(recv_field_name); // For remove compilation warning
+
   int         n_components    = 1;
+  CWP_UNUSED(n_components); // For remove compilation warning
+  
   double     *send_field_data = malloc(sizeof(double) * n_vtx);
+  CWP_UNUSED(send_field_data); // For remove compilation warning
+
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
+  CWP_UNUSED(recv_field_data); // For remove compilation warning
 
   const int    itdeb = 1;
   const int    itend = 10;

@@ -552,8 +552,8 @@ program testf
 
   do i = 1, n_part
     do j = 1, n_elt_part(i)
-      my_part(i)%data(2*(j-1)+1) =   my_part(i)%g_num(j)
-      my_part(i)%data(2*j      ) = 2*my_part(i)%g_num(j)
+      my_part(i)%data(2*(j-1)+1) =  int(my_part(i)%g_num(j))
+      my_part(i)%data(2*j      ) = int(2*my_part(i)%g_num(j))
     enddo
 
     call PDM_pointer_array_part_set(gnum_elt,         &

@@ -49,7 +49,8 @@ program fortran_new_api_deformable_sol
   double precision                            :: omega
   double precision                            :: phi
   double precision                            :: time
-  integer                                     :: i, j, it, itdeb, itend, n2, n_partition
+  integer                                     :: i, j, it, itdeb, itend
+!  integer                                     :: n2, n_partition
   integer                                     :: n_vtx, n_elt
 
   double precision,                   pointer :: send_field_data(:) => null()

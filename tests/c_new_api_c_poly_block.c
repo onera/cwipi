@@ -188,7 +188,6 @@ int main(int argc, char *argv[]) {
 
   int n_code_name = 0;
   const char **codeNames = NULL;
-  double *times_init = NULL;
   CWP_Status_t is_active_rank = CWP_STATUS_ON;
 
   if (rank == 0) {

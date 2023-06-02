@@ -104,21 +104,21 @@ endif()
 
 
 
-if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
-  file(GLOB SOURCESF
-       fortran_surf_PiQj_common.F90)
-
-  add_library(cwp_checkf ${SOURCESF})
-   target_include_directories(cwp_checkf PRIVATE ${CMAKE_SOURCE_DIR}
-                                         PRIVATE ${CMAKE_BINARY_DIR}
-                                         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-   if (MPI_Fortran_ADDITIONAL_INCLUDE_DIRS)
-      target_include_directories(cwp_checkf PRIVATE ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS})
-   endif()
-   target_include_directories(cwp_checkf PRIVATE ${TEST_INC})
-   target_link_libraries(cwp_checkf ${LINK_LIBRARIES})
-   set_target_properties(cwp_checkf PROPERTIES LINKER_LANGUAGE "Fortran")
-endif()
+#if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
+#  file(GLOB SOURCESF
+#       fortran_surf_PiQj_common.F90)
+#
+#  add_library(cwp_checkf ${SOURCESF})
+#   target_include_directories(cwp_checkf PRIVATE ${CMAKE_SOURCE_DIR}
+#                                         PRIVATE ${CMAKE_BINARY_DIR}
+#                                         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+#   if (MPI_Fortran_ADDITIONAL_INCLUDE_DIRS)
+#      target_include_directories(cwp_checkf PRIVATE ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS})
+#   endif()
+#   target_include_directories(cwp_checkf PRIVATE ${TEST_INC})
+#   target_link_libraries(cwp_checkf ${LINK_LIBRARIES})
+#   set_target_properties(cwp_checkf PROPERTIES LINKER_LANGUAGE "Fortran")
+#endif()
 
 get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)
 

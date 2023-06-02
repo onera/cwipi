@@ -21,7 +21,7 @@ program fortran_new_api_deformable_sol
 
   integer                                     :: n_code
   character(len = 99),                pointer :: code_names(:)         => null()
-  integer                                     :: is_active_rank = CWP_STATUS_ON
+!  integer                                     :: is_active_rank = CWP_STATUS_ON
   integer,                            pointer :: intra_comms(:)        => null()
 
   integer                                     :: n_part
@@ -29,15 +29,15 @@ program fortran_new_api_deformable_sol
   character(len = 99)                         :: coupling_name
 
   double precision,   dimension(:,:), pointer :: coords    => null()
-  integer(c_long),    dimension(:),   pointer :: vtx_g_num => null()
+!  integer(c_long),    dimension(:),   pointer :: vtx_g_num => null()
 
   double precision,   dimension(:,:), pointer :: xyz_dest  => null()
-  integer(c_long),    dimension(:),   pointer :: pts_g_num => null()
+!  integer(c_long),    dimension(:),   pointer :: pts_g_num => null()
 
   integer,            dimension(:),   pointer :: elt_vtx_idx => null()
   integer,            dimension(:),   pointer :: elt_vtx     => null()
-  integer(c_long),    dimension(:),   pointer :: elt_g_num   => null()
-  integer(c_int)                              :: id_block
+!  integer(c_long),    dimension(:),   pointer :: elt_g_num   => null()
+!  integer(c_int)                              :: id_block
 
   character(len = 99)                         :: send_field_name
   character(len = 99)                         :: recv_field_name
@@ -49,7 +49,7 @@ program fortran_new_api_deformable_sol
   double precision                            :: omega
   double precision                            :: phi
   double precision                            :: time
-  integer                                     :: i, j, it, itdeb, itend, n2, n_partition
+  integer                                     :: i, j, it, itdeb, itend
   integer                                     :: n_vtx, n_elt
 
   double precision,                   pointer :: send_field_data(:) => null()
@@ -60,6 +60,7 @@ program fortran_new_api_deformable_sol
   !--------------------------------------------------------------------
 
   ! MPI Initialization :
+
   call MPI_Init(ierr)
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)

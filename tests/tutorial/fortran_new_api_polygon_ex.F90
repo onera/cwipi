@@ -27,12 +27,12 @@ program fortran_new_api_polygon_ex
   character(len = 99)                     :: coupling_name
 
   double precision, dimension(:,:), pointer :: coords => null()
-  integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
+!  integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
 
   integer, pointer, dimension(:)          :: connec_idx => null()
   integer, pointer, dimension(:)          :: connec => null()
-  integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
-  integer(c_int)                          :: id_block
+!  integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
+!  integer(c_int)                          :: id_block
 
   character(len = 99)                     :: field_name
   integer(c_int)                          :: n_components
@@ -42,8 +42,8 @@ program fortran_new_api_polygon_ex
   double precision,              pointer  :: send_field_data(:) => null()
   double precision,              pointer  :: recv_field_data(:) => null()
 
-  integer(c_int)                          :: n_uncomputed_tgts
-  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
+!  integer(c_int)                          :: n_uncomputed_tgts
+!  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
 
   logical                                 :: I_am_code1
   !--------------------------------------------------------------------
