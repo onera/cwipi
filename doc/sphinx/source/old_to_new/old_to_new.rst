@@ -21,8 +21,7 @@ In anticipation for this feature, the initial time of each local code must be pr
 In summary, from version 1.x onwards the following additional arguments are required at CWIPI initialization:
    - ``n_code``: the number of codes executed on current MPI rank ;
    - ``code_names``: the list of local code names ;
-   - ``is_active_rank``: this array indicates whether current MPI rank will participate in the coupling for each local code ;
-   - ``time_init``: the array of initial times of local codes.
+   - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling.
 
 Create a coupling
 =================
@@ -57,14 +56,149 @@ Thus, a coupling object is created between exactly two codes.
 .. image:: ./images/coupling.png
    :scale: 90%
 
-Each code defines a coupling interface mesh for this given coupling.
+Define mesh
+===========
 
+Each code defines a coupling interface mesh for the given coupling.
 
 .. image:: ./images/mesh.png
    :scale: 90%
 
+In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in a element->vertex fashion.
+In version 1.x, to aim more flexibility in the way the mesh is provided there are several fuctions to define the mesh.
+In any case, you proceed the same way to define the mesh vertex coordinates. A C example code is given bellow.
+
+
+Mesh vertices coordinates
+-------------------------
+
+The coordinates of the mesh vertices should be provided in the following way::
+
+  CWP_Mesh_interf_vtx_set("code_name",
+                          "coupling_name",
+                          partition_identifier,
+                          number_of_vertices,
+                          coordinates,
+                          NULL);
+
+The different ways to give the mesh to CWIPI are explained bellow with C code. Note that all functions with the ``partition_identifier``
+argument should be called for all partitions on the given MPI rank.
+
+Polygonal/Polyghedral Mesh
+--------------------------
+
+This way of defining the mesh is the most similar to the way the mesh where defined in version 0.x.
+If you want to provide a polygonal (2D) mesh in a element->vertex fashion, you should do::
+
+  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
+                                                   "coupling_name",
+                                                   polygonal_block_type);
+
+  CWP_Mesh_interf_f_poly_block_set("code_name",
+                                   "coupling_name",
+                                   partition_identifier,
+                                   block_idendifier,
+                                   number_of_faces,
+                                   face_vertex_index,
+                                   face_vertex_connectivity,
+                                   NULL);
+
+If you want to provide a polyhedral (3D) mesh in a element->vertex fashion, you should do::
+
+  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
+                                                   "coupling_name",
+                                                   polyhedral_block_type);
+
+  CWP_Mesh_interf_c_poly_block_set("code_name",
+                                   "coupling_name",
+                                   partition_identifier,
+                                   block_idendifier,
+                                   number_of_cells,
+                                   face_edge_index,
+                                   face_edge_connectivity,
+                                   cell_vertex_index,
+                                   cell_vertex_connectivity,
+                                   NULL);
+
+Standard element Mesh
+---------------------
+
+If you want to provide your mesh per standard element type, you should do for each element type::
+
+  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
+                                                   "coupling_name",
+                                                   standard_block_type);
+
+  CWP_Mesh_interf_block_std_set("code_name",
+                                "coupling_name",
+                                partition_identifier,
+                                block_idendifier,
+                                number_of_elements,
+                                element_vertex_connectivity,
+                                NULL);
+
+Standard high-order element Mesh
+--------------------------------
+
+If you want to provide your mesh per standard high-order element type, you should do for each element type::
+
+  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
+                                                   "coupling_name",
+                                                   high_order_standard_block_type);
+
+  CWP_Mesh_interf_block_ho_set("code_name",
+                               "coupling_name",
+                               partition_identifier,
+                               block_idendifier,
+                               number_of_elements,
+                               order,
+                               element_vertex_connectivity,
+                               NULL);
+
+   CWP_Mesh_interf_ho_ordering_from_IJK_set("code_name",
+                                            "coupling_name",
+                                            high_order_standard_block_type,
+                                            order,
+                                            number_of_vertices_per_element,
+                                            high_element_vertex_ordering_per_element);
+
+Downward topological connections Mesh
+-------------------------------------
+
+If you want to provide a polygonal (2D) mesh in a downward topological connection fashion, you should do::
+
+  CWP_Mesh_interf_from_faceedge_set("code_name",
+                                    "coupling_name",
+                                    partition_identifier,
+                                    number_of_faces,
+                                    face_edge_index,
+                                    face_edge_connectivity,
+                                    number_of_edges,
+                                    edge_vertex_connectivity,
+                                    NULL);
+
+If you want to provide a polyhedral (3D) mesh in a downward topological connection fashion, you should do::
+
+  CWP_Mesh_interf_from_cellface_set("code_name",
+                                    "coupling_name",
+                                    partition_identifier,
+                                    number_of_cells,
+                                    cell_face_index,
+                                    cell_face_connectivity,
+                                    number_of_faces,
+                                    face_vertex_index,
+                                    face_vertex_connectivity,
+                                    NULL);
+
+Finalize Mesh
+-------------
+
+In any case, it is mandatory to finalize the mesh definition using ``CWP_Mesh_interf_finalize``. The ``NULL`` argument in the previous
+code blocks allows to provide a global numbering. Since it is only used low-level in CWIPI, the finalize function allow to generate them
+if not provided.
+
 Exchange fields
-================
+===============
 
 The exchange of fields is no longer performed in one function call since this new API gives more flexibility.
 The object-oriented aspect comes out more in this version.
