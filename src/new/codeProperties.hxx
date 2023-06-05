@@ -965,9 +965,9 @@ namespace cwipi {
       int nIntParam    = _winGlobData[1];
 
       if (nIntParam > 0) {
-
-        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamIdxName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
+        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamIdxName);
+        // MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamValue);
 
         MPI_Get (_winIntParamIdxNameData, nIntParam + 1,
