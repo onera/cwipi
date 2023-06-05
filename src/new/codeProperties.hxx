@@ -965,9 +965,8 @@ namespace cwipi {
       int nIntParam    = _winGlobData[1];
 
       if (nIntParam > 0) {
-        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamIdxName);
-        // MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
+        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamValue);
 
         MPI_Get (_winIntParamIdxNameData, nIntParam + 1,
@@ -1079,7 +1078,6 @@ namespace cwipi {
       int nDoubleParam    = _winGlobData[2];
 
       if (nDoubleParam > 0) {
-
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamIdxName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamValue);
@@ -2087,9 +2085,9 @@ namespace cwipi {
                 "Type not taken into account \n");
     }
 
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamName);
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamIdxName);
 
     *names = (char **) malloc(sizeof(char *) * nTypeParam);
@@ -2208,9 +2206,9 @@ namespace cwipi {
                 "Type not taken into account \n");
     }
 
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamName);
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamIdxName);
 
     int sName = name.size();
