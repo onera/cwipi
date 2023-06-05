@@ -279,6 +279,8 @@ def runTest():
     if (i_rank == 1):
         print("recv_part_data : {param}\n".format(param=recv_data))
 
+    cpl.part_data_del(part_data_name)
+
     # MESH
     polygon = 0
     ho = 1

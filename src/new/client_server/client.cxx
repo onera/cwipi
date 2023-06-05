@@ -2021,11 +2021,6 @@ CWP_client_Cpl_create
 
   clt_cwp.coupling[s].n_part = n_part;
   clt_cwp.coupling[s].mesh_dynamic = displacement;
-
-  clt_cwp.coupling[s].n_elt = (int *) malloc(sizeof(int) *  n_part);
-  for (int j_part = 0; j_part < n_part; j_part++) {
-    clt_cwp.coupling[s].n_elt[j_part] = 0;
-  }
 }
 
 void
@@ -2224,8 +2219,6 @@ CWP_client_Cpl_del
       it_gd = clt_cwp.coupling[s].global_data.erase(it_gd);
     }
   }
-
-  if (clt_cwp.coupling[s].n_elt != NULL) free(clt_cwp.coupling[s].n_elt);
 
   clt_cwp.coupling.erase(s);
 }
@@ -3876,6 +3869,14 @@ CWP_client_Mesh_interf_block_std_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] += n_elts;
 
   // free
@@ -4169,6 +4170,14 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] = n_elts;
 
   // free
@@ -4421,6 +4430,14 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] = n_elts;
 
   // free
@@ -4790,9 +4807,10 @@ CWP_client_Mesh_interf_del
     }
   }
 
-  // reinitialize the n_elt size array
-  for (int j_part = 0; j_part < clt_cwp.coupling[s].n_part; j_part++) {
-    clt_cwp.coupling[s].n_elt[j_part] = 0;
+  // free memory
+  if (clt_cwp.coupling[s].n_elt != NULL) {
+    free(clt_cwp.coupling[s].n_elt);
+    clt_cwp.coupling[s].n_elt = NULL;
   }
 }
 
@@ -4919,6 +4937,14 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] = n_cells;
 
   // free
@@ -5045,6 +5071,14 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] = n_faces;
 
   // free
@@ -5944,6 +5978,14 @@ CWP_client_Mesh_interf_block_ho_set
 
   // set number of mesh elements
   std::string s1(cpl_id);
+
+  if (clt_cwp.coupling[s1].n_elt == NULL) {
+    clt_cwp.coupling[s1].n_elt = (int *) malloc(sizeof(int) *  clt_cwp.coupling[s1].n_part);
+    for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+      clt_cwp.coupling[s1].n_elt[j_part] = 0;
+    }
+  }
+
   clt_cwp.coupling[s1].n_elt[i_part] += n_elts;
 
   // free

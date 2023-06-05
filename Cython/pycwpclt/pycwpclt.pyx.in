@@ -1331,6 +1331,9 @@ cdef class PartData (object):
                                     n_components,
                                     _part1_to_part2_data,
                            <int *> request.data)
+
+        for i in range(self.n_part):
+          free(_part1_to_part2_data[i])
         free(_part1_to_part2_data)
 
     def irecv(self,
@@ -1352,14 +1355,15 @@ cdef class PartData (object):
         cdef int s_data = data_dtype.itemsize
 
         # cdef int request
-        cdef void** _part2_data = np_list_to_void_pointers(part2_data)
+        self._part2_data = np_list_to_void_pointers(part2_data)
         CWP_client_Part_data_irecv(self.local_code_name,
                                    self.cpl_id,
                                    self.part_data_id,
                                    s_data,
                                    n_components,
-                                   _part2_data,
+                                   self._part2_data,
                            <int *> request.data)
+
         capsule = PyCapsule_New(_part2_data, NULL, NULL)
         self.recv_part_data[request[0]] = capsule
 
@@ -1392,6 +1396,11 @@ cdef class PartData (object):
                                         request)
         cdef void *ptr = PyCapsule_GetPointer(self.recv_part_data[request], NULL)
         free(ptr)
+
+        # free C memory
+        for i in range(self.n_part):
+          free(self._part2_data[i])
+        free(self._part2_data)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
@@ -2114,7 +2123,7 @@ cdef class Coupling (object):
         """
 
         cdef int idx = self.partData_name[part_data_id]
-        # TO DO del self.partData
+        self.partData[idx].__del__()
         del self.partData_name[part_data_id]
 
     # --> Global Data
