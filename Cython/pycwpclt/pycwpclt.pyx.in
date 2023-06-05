@@ -1355,13 +1355,13 @@ cdef class PartData (object):
         cdef int s_data = data_dtype.itemsize
 
         # cdef int request
-        self._part2_data = np_list_to_void_pointers(part2_data)
+        cdef void **_part2_data = np_list_to_void_pointers(part2_data)
         CWP_client_Part_data_irecv(self.local_code_name,
                                    self.cpl_id,
                                    self.part_data_id,
                                    s_data,
                                    n_components,
-                                   self._part2_data,
+                                   _part2_data,
                            <int *> request.data)
 
         capsule = PyCapsule_New(_part2_data, NULL, NULL)
@@ -1396,11 +1396,6 @@ cdef class PartData (object):
                                         request)
         cdef void *ptr = PyCapsule_GetPointer(self.recv_part_data[request], NULL)
         free(ptr)
-
-        # free C memory
-        for i in range(self.n_part):
-          free(self._part2_data[i])
-        free(self._part2_data)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
