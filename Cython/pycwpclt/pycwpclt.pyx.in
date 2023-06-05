@@ -1254,7 +1254,7 @@ cdef class PartData (object):
     cdef int                   n_part
     cdef int                  *n_elt
     cdef long                **_gnum_elt
-    # TODO: cdef dict                  recv_part_data
+    cdef dict                  recv_part_data
 
     def __init__(self,
                  char                    *local_code_name,
@@ -1281,7 +1281,7 @@ cdef class PartData (object):
         self.n_elt     = list_to_int_pointer([array.size for array in gnum_elt])
         self._gnum_elt = np_list_to_long_pointers(gnum_elt)
 
-        # TODO: self.recv_part_data = dict()
+        self.recv_part_data = dict()
 
         CWP_client_Part_data_create(self.local_code_name,
                                     self.cpl_id,
@@ -1360,7 +1360,8 @@ cdef class PartData (object):
                                    n_components,
                                    _part2_data,
                            <int *> request.data)
-        # TODO: self.recv_part_data[request] = _part2_data
+        capsule = PyCapsule_New(_part2_data, NULL, NULL)
+        self.recv_part_data[request[0]] = capsule
 
     def wait_issend(self,
                     int request):
@@ -1375,7 +1376,6 @@ cdef class PartData (object):
                                          self.cpl_id,
                                          self.part_data_id,
                                          request)
-        # TODO: free(self.recv_part_data[request])
 
     def wait_irecv(self,
                   int request):
@@ -1390,6 +1390,8 @@ cdef class PartData (object):
                                         self.cpl_id,
                                         self.part_data_id,
                                         request)
+        cdef void *ptr = PyCapsule_GetPointer(self.recv_part_data[request], NULL)
+        free(ptr)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
