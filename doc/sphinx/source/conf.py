@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'CWIPI'
-copyright = '2018, E. Quemerais'
+copyright = '2023, E. Quemerais'
 author = 'E. Quemerais'
 
 # The version info for the project you're documenting, acts as replacement for
