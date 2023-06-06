@@ -66,7 +66,7 @@ Each code defines a coupling interface mesh for the given coupling.
 
 In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in a element->vertex fashion.
 In version 1.x, to aim more flexibility in the way the mesh is provided there are several fuctions to define the mesh.
-In any case, you proceed the same way to define the mesh vertex coordinates. A C example code is given bellow.
+In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given bellow.
 
 
 Mesh vertices coordinates
@@ -200,9 +200,10 @@ if not provided.
 Exchange fields
 ===============
 
-The exchange of fields is no longer performed in one function call since this new API gives more flexibility.
-The object-oriented aspect comes out more in this version.
-The user creates a coupling between two codes each having a mesh on which several fields can be defined.
+In version 0.x the field data array was provided upon exchange. More fexibility and clarity is provided by version 1.x with
+an object-oriented point of view. On a code's mesh within a coupling, several field objects can be created. The field definition
+is given once and for all at start. Setting the field objets means giving an array pointer in which the field data is defined. This pointer
+should be changed is the field data is to be updated. The only case a field has to be set again is if the mesh topology changes.
 The non-blocking exchange functions were kept and are the way to go.
 
 On the defined coupling, you can add as many field objects as you want.
