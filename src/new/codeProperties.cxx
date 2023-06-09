@@ -256,6 +256,7 @@ namespace cwipi
       strncpy (tmpValue,
                _winStrParamValueData + _winStrParamIdxValueData[i],
                min (sValue, (int) sValueMax));
+      tmpValue[sValue] = '\0';
 
       PDM_printf (fmtStrName, tmpName, tmpValue);
 

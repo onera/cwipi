@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "cwp.h"
 #include "cwp_priv.h"
@@ -126,7 +127,74 @@ main(int argc, char *argv[]) {
            intra_comm);
 
   // Dump properties
-  CWP_Properties_dump();
+  if (I_am_code1) {
+    // CWP_Properties_dump();
+  }
+
+  if (I_am_code2) {
+    CWP_Properties_dump();
+  }
+
+  // Add parameters
+  int toto = 5;
+  const char *tata = "Bonjour code 1!";
+  if (I_am_code1) {
+    CWP_Param_lock("code1");
+    CWP_Param_add("code1", "toto", CWP_INT, &toto);
+    CWP_Param_add("code1", "tata", CWP_CHAR, &tata);
+    CWP_Param_unlock("code1");
+  }
+
+  toto = 12;
+  if (I_am_code2) {
+    CWP_Param_lock("code2");
+    CWP_Param_add("code2", "toto", CWP_INT, &toto);
+    CWP_Param_unlock("code2");
+  }
+
+  // Get number of parameters
+  int n_param = CWP_Param_n_get("code1", CWP_INT);
+  if (verbose) {
+    log_trace("n_param code1 : %d\n", n_param);
+  }
+
+  printf("%d : -------> 1\n", i_rank);
+  fflush(stdout);
+
+  // Get parameter
+  int get_toto = 0;
+  if (I_am_code1) {
+    CWP_Param_get("code1", "toto", CWP_INT, &get_toto);
+    if (verbose) {
+      log_trace("toto code1 : %d\n", get_toto);
+    }
+  }
+
+  printf("%d : -------> 2\n", i_rank);
+  fflush(stdout);
+
+  char *get_tata = NULL;
+  CWP_Param_get("code1", "tata", CWP_CHAR, &get_tata);
+  if (verbose) {
+    log_trace("tata code1 : %s\n", get_tata);
+  }
+
+  printf("%d : -------> 3\n", i_rank);
+  fflush(stdout);
+
+  // Get parameter list
+  char **param_list = NULL;
+  CWP_Param_list_get("code1", CWP_INT, &n_param, &param_list);
+  if (verbose) {
+    for (int i = 0; i < n_param; i++) {
+      log_trace("param_list[%d] : %s\n", i, param_list[i]);
+    }
+  }
+
+  printf("%d : -------> 4\n", i_rank);
+  fflush(stdout);
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Code information
   int          n_codes   = CWP_Codes_nb_get();
@@ -145,43 +213,6 @@ main(int argc, char *argv[]) {
     }
   }
 
-  // Add parameters
-  int toto = 5;
-  if (I_am_code1) {
-    CWP_Param_lock("code1");
-    CWP_Param_add("code1", "toto", CWP_INT, &toto);
-    CWP_Param_unlock("code1");
-  }
-
-  toto = 12;
-  if (I_am_code2) {
-    CWP_Param_lock("code2");
-    CWP_Param_add("code2", "toto", CWP_INT, &toto);
-    CWP_Param_unlock("code2");
-  }
-
-  // Get number of parameters
-  int n_param = CWP_Param_n_get("code1", CWP_INT);
-  if (verbose) {
-    log_trace("n_param code1 : %d\n", n_param);
-  }
-
-  // Get parameter
-  int get_toto = 0;
-  if (I_am_code1) {
-    CWP_Param_get("code1", "toto", CWP_INT, &get_toto);
-    log_trace("toto code1 : %d\n", get_toto);
-  }
-
-  // Get parameter list
-  char **param_list = NULL;
-  CWP_Param_list_get("code1", CWP_INT, &n_param, &param_list);
-  if (verbose) {
-    for (int i = 0; i < n_param; i++) {
-      log_trace("param_list[%d] : %s\n", i, param_list[i]);
-    }
-  }
-
   // Parameter reduce
   int param_value = 0;
   CWP_Param_reduce(CWP_OP_SUM,
@@ -190,6 +221,10 @@ main(int argc, char *argv[]) {
                    &param_value,
                    2,
                    code_list);
+
+  printf("%d : -------> 5\n", i_rank);
+  fflush(stdout);
+
   if (verbose) {
     log_trace("param_value code1 : %d\n", param_value);
   }
@@ -206,6 +241,7 @@ main(int argc, char *argv[]) {
     free(param_list[i]);
   }
   free(param_list);
+  free(get_tata);
 
   // Finalize MPI
   MPI_Finalize();
