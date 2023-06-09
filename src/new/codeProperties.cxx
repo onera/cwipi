@@ -396,6 +396,7 @@ namespace cwipi
       strncpy (tmpValue,
                _winStrParamValueData + _winStrParamIdxValueData[i],
                min (sValue, (int) sValueMax));
+      tmpValue[sValue] = '\0';
 
       sprintf(buffer, fmtStrName, tmpName, tmpValue);
       properties.append(buffer);
