@@ -170,38 +170,76 @@ main(int argc, char *argv[]) {
     CWP_Param_unlock("code4");
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-
   int titi;
   char *titi2;
 
-  CWP_Param_get("code4", "toto", CWP_INT, &titi);
-  printf("code 4 : toto : %d\n", titi);
+  while (1) {
+    if (CWP_Param_is("code4", "toto", CWP_INT) == 1) {
+      CWP_Param_get("code4", "toto", CWP_INT, &titi);
+      printf("code 4 : toto : %d\n", titi);
+      break;
+    }
+  }
 
-  CWP_Param_get("code4", "toto2", CWP_CHAR, &titi2);
-  printf("code 4 : toto2 : %s\n", titi2);
-  free (titi2);
+  while (1) {
+    if (CWP_Param_is("code4", "toto2", CWP_CHAR) == 1) {
+      CWP_Param_get("code4", "toto2", CWP_CHAR, &titi2);
+      printf("code 4 : toto2 : %s\n", titi2);
+      free (titi2);
+      break;
+    }
+  }
 
-  CWP_Param_get("code3", "toto", CWP_INT, &titi);
-  printf("code 3 : toto : %d\n", titi);
+  while (1) {
+    if (CWP_Param_is("code3", "toto", CWP_INT) == 1) {
+      CWP_Param_get("code3", "toto", CWP_INT, &titi);
+      printf("code 3 : toto : %d\n", titi);
+      break;
+    }
+  }
 
-  CWP_Param_get("code3", "toto2", CWP_CHAR, &titi2);
-  printf("code 3 : toto2 : %s\n", titi2);
-  free (titi2);
+  while (1) {
+    if (CWP_Param_is("code3", "toto2", CWP_CHAR) == 1) {
+      CWP_Param_get("code3", "toto2", CWP_CHAR, &titi2);
+      printf("code 3 : toto2 : %s\n", titi2);
+      free (titi2);
+      break;
+    }
+  }
 
-  CWP_Param_get("code2", "toto", CWP_INT, &titi);
-  printf("code 2 : toto : %d\n", titi);
+  while (1) {
+    if (CWP_Param_is("code2", "toto", CWP_INT) == 1) {
+      CWP_Param_get("code2", "toto", CWP_INT, &titi);
+      printf("code 2 : toto : %d\n", titi);
+      break;
+    }
+  }
 
-  CWP_Param_get("code2", "toto2", CWP_CHAR, &titi2);
-  printf("code 2 : toto2 : %s\n", titi2);
-  free (titi2);
+  while (1) {
+    if (CWP_Param_is("code2", "toto2", CWP_CHAR) == 1) {
+      CWP_Param_get("code2", "toto2", CWP_CHAR, &titi2);
+      printf("code 2 : toto2 : %s\n", titi2);
+      free (titi2);
+      break;
+    }
+  }
 
-  CWP_Param_get("code1", "toto", CWP_INT, &titi);
-  printf("code 1 : toto : %d\n", titi);
+  while (1) {
+    if (CWP_Param_is("code1", "toto", CWP_INT) == 1) {
+      CWP_Param_get("code1", "toto", CWP_INT, &titi);
+      printf("code 1 : toto : %d\n", titi);
+      break;
+    }
+  }
 
-  CWP_Param_get("code1", "toto2", CWP_CHAR, &titi2);
-  printf("code 1 : toto2 : %s\n", titi2);
-  free (titi2);
+  while (1) {
+    if (CWP_Param_is("code1", "toto2", CWP_CHAR) == 1) {
+      CWP_Param_get("code1", "toto2", CWP_CHAR, &titi2);
+      printf("code 1 : toto2 : %s\n", titi2);
+      free (titi2);
+      break;
+    }
+  }
 
   assert(titi == 111);
 
