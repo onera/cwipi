@@ -176,7 +176,8 @@ main(int argc, char *argv[]) {
   while (1) {
     if (CWP_Param_is("code4", "toto", CWP_INT) == 1) {
       CWP_Param_get("code4", "toto", CWP_INT, &titi);
-      printf("code 4 : toto : %d\n", titi);
+      printf("%d : code 4 : toto : %d\n", rank, titi);
+      fflush(stdout);
       break;
     }
   }

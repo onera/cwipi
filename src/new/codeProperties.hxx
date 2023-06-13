@@ -2130,21 +2130,32 @@ namespace cwipi {
    const string &name
   )
   {
-    int rank;
-    MPI_Comm_rank(_globalComm, &rank);
+    int i_rank;
+    MPI_Comm_rank(_globalComm, &i_rank);
 
-    int oldLockStatus   = _winGlobData[0];
-    int oldNIntParam    = _winGlobData[1];
-    int oldNDoubleParam = _winGlobData[2];
-    int oldNStrParam    = _winGlobData[3];
-    int lockStatus      = oldLockStatus;
-    int nIntParam       = oldNIntParam;
-    int nDoubleParam    = oldNDoubleParam;
-    int nStrParam       = oldNStrParam;
+    int lockStatus = _winGlobData[0];
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
-    if (rank != _rootRankInGlobalComm) {
+    if (typeid(T) == typeid(string)) {
+      _updateStrValues();
+
+    }
+    else if (typeid(T) == typeid(int)) {
+      _updateIntValues ();
+
+
+    }
+    else if (typeid(T) == typeid(double)) {
+      _updateDoubleValues ();
+
+    }
+    else {
+      PDM_error(__FILE__, __LINE__, 0,
+                "Type not taken into account \n");
+    }
+
+    if (i_rank != _rootRankInGlobalComm) {
 
       do {
         MPI_Request rq1;
@@ -2158,73 +2169,60 @@ namespace cwipi {
         }
       }  while (lockStatus);
 
-      nIntParam    = _winGlobData[1];
-      nDoubleParam = _winGlobData[2];
-      nStrParam    = _winGlobData[3];
-
     }
 
     else {
       if (lockStatus) {
         PDM_error(__FILE__, __LINE__, 0,
-                   "Unlock parameters before read its on the current rank\n");
+                  "Unlock parameters before read its on the current rank\n");
       }
 
     }
 
-    MPI_Win  *winTypeParamIdxName = NULL;
-    MPI_Win  *winTypeParamName = NULL;
-
-    int  *winTypeParamIdxNameData = NULL;
-    char *winTypeParamNameData = NULL;
-
     int nTypeParam = 0;
 
+    int  *winTypeParamIdxNameData = NULL;
+    char *winTypeParamNameData    = NULL;
+
     if (typeid(T) == typeid(string)) {
-      nTypeParam = nStrParam;
-      winTypeParamIdxName      = &_winStrParamIdxName;
-      winTypeParamName         = &_winStrParamName;
+
+      nTypeParam               = _winGlobData[3];
       winTypeParamIdxNameData  = _winStrParamIdxNameData;
       winTypeParamNameData     = _winStrParamNameData;
+
     }
     else if (typeid(T) == typeid(int)) {
-      nTypeParam = nIntParam;
-      winTypeParamIdxName     = &_winIntParamIdxName;
-      winTypeParamName        = &_winIntParamName;
-      winTypeParamIdxNameData = _winIntParamIdxNameData;
-      winTypeParamNameData    = _winIntParamNameData;
+
+      nTypeParam               = _winGlobData[1];
+      winTypeParamIdxNameData  = _winIntParamIdxNameData;
+      winTypeParamNameData     = _winIntParamNameData;
+
+
     }
     else if (typeid(T) == typeid(double)) {
-      nTypeParam = nDoubleParam;
-      winTypeParamIdxName     = &_winDoubleParamIdxName;
-      winTypeParamName        = &_winDoubleParamName;
-      winTypeParamIdxNameData = _winDoubleParamIdxNameData;
-      winTypeParamNameData    = _winDoubleParamNameData;
+
+      nTypeParam               = _winGlobData[2];
+      winTypeParamIdxNameData  = _winDoubleParamIdxNameData;
+      winTypeParamNameData     = _winDoubleParamNameData;
+
     }
     else {
       PDM_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
 
-    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
-                  *winTypeParamName);
-    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
-                  *winTypeParamIdxName);
-
     int sName = name.size();
     int found = 0;
     for (int i = 0; i < nTypeParam; i++) {
       int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
       if (sName == sParam) {
-       found = !strncmp(name.c_str(),
-               winTypeParamNameData + winTypeParamIdxNameData[i],
-               sName);
+        found = !strncmp(name.c_str(),
+                winTypeParamNameData + winTypeParamIdxNameData[i],
+                sName);
       }
       if (found) break;
     }
 
-    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
-    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
     MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
 
     return found;
