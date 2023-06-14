@@ -2184,11 +2184,16 @@ namespace cwipi {
     int  *winTypeParamIdxNameData = NULL;
     char *winTypeParamNameData    = NULL;
 
+    MPI_Win  *winTypeParamIdxName = NULL;
+    MPI_Win  *winTypeParamName = NULL;
+
     if (typeid(T) == typeid(string)) {
 
       nTypeParam               = _winGlobData[3];
       winTypeParamIdxNameData  = _winStrParamIdxNameData;
       winTypeParamNameData     = _winStrParamNameData;
+      winTypeParamIdxName      = &_winStrParamIdxName;
+      winTypeParamName         = &_winStrParamName;
 
     }
     else if (typeid(T) == typeid(int)) {
@@ -2196,7 +2201,8 @@ namespace cwipi {
       nTypeParam               = _winGlobData[1];
       winTypeParamIdxNameData  = _winIntParamIdxNameData;
       winTypeParamNameData     = _winIntParamNameData;
-
+      winTypeParamIdxName     = &_winIntParamIdxName;
+      winTypeParamName        = &_winIntParamName;
 
     }
     else if (typeid(T) == typeid(double)) {
@@ -2204,12 +2210,19 @@ namespace cwipi {
       nTypeParam               = _winGlobData[2];
       winTypeParamIdxNameData  = _winDoubleParamIdxNameData;
       winTypeParamNameData     = _winDoubleParamNameData;
+      winTypeParamIdxName     = &_winDoubleParamIdxName;
+      winTypeParamName        = &_winDoubleParamName;
 
     }
     else {
       PDM_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
+                  *winTypeParamName);
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
+                  *winTypeParamIdxName);
 
     int sName = name.size();
     int found = 0;
@@ -2223,6 +2236,8 @@ namespace cwipi {
       if (found) break;
     }
 
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
     MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
 
     return found;
