@@ -1817,7 +1817,7 @@ contains
       strlen      = f_size_array(i)
       call c_f_pointer(fptr2(i), fptr, [strlen])
       f_char_array(i) = transfer(fptr(1:strlen), f_char_array(i))
-      f_char_array(i) = f_char_array(i)(1:strlen)//char(0)
+      f_char_array(i) = f_char_array(i)(1:strlen)
       if (present(free_all)) then
         if (free_all) then
           call pdm_fortran_free_c(fptr2(i))
