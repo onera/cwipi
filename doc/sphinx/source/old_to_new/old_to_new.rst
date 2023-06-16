@@ -30,7 +30,7 @@ The key concepts used in CWIPI have been revisited in version 1.x.
 Most importantly, the notion of *Field* as an object has been introduced (see section `Exchange fields`_).
 The ``solver_type`` argument is now an attribute of the Field object.
 Thus, a single Coupling object can now be used to exchange multiple fields with different degrees-of-freedom locations (mesh nodes, cell centers or user-defined target points).
-All output-specfic arguments are now passed to ``CWP_Visu_set``.
+All output-specific arguments are now passed to ``CWP_Visu_set``.
 
 On the other hand, some new arguments are now required.
 First, as a coupling involves exactly two codes, the identifier of the local code involved in the coupling must be specified.
@@ -65,7 +65,7 @@ Each code defines a coupling interface mesh for the given coupling.
    :scale: 90%
 
 In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in a element->vertex fashion.
-In version 1.x, to aim more flexibility in the way the mesh is provided there are several fuctions to define the mesh.
+In version 1.x, to aim more flexibility in the way the mesh is provided there are several functions to define the mesh.
 In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given bellow.
 
 
@@ -84,7 +84,7 @@ The coordinates of the mesh vertices should be provided in the following way::
 The different ways to give the mesh to CWIPI are explained bellow with C code. Note that all functions with the ``partition_identifier``
 argument should be called for all partitions on the given MPI rank.
 
-Polygonal/Polyghedral Mesh
+Polygonal/Polyhedral Mesh
 --------------------------
 
 This way of defining the mesh is the most similar to the way the mesh where defined in version 0.x.
@@ -200,9 +200,9 @@ if not provided.
 Exchange fields
 ===============
 
-In version 0.x the field data array was provided upon exchange. More fexibility and clarity is provided by version 1.x with
+In version 0.x the field data array was provided upon exchange. More flexibility and clarity is provided by version 1.x with
 an object-oriented point of view. On a code's mesh within a coupling, several field objects can be created. The field definition
-is given once and for all at start. Setting the field objets means giving an array pointer in which the field data is defined. This pointer
+is given once and for all at start. Setting the field objects means giving an array pointer in which the field data is defined. This pointer
 should be changed is the field data is to be updated. The only case a field has to be set again is if the mesh topology changes.
 The non-blocking exchange functions were kept and are the way to go.
 
