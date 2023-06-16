@@ -189,16 +189,16 @@ program testf
 
   toto = 5
   if (code_names(1) == "code1") then
-    ! call CWP_Param_lock("code1")
+    call CWP_Param_lock("code1")
     call CWP_Param_add("code1", "toto", toto)
-    ! call CWP_Param_unlock("code1")
+    call CWP_Param_unlock("code1")
   endif
 
   toto = 12
   if (code_names(1) == "code2") then
-    ! call CWP_Param_lock("code2")
+    call CWP_Param_lock("code2")
     call CWP_Param_add("code2", "toto", toto)
-    ! call CWP_Param_unlock("code2")
+    call CWP_Param_unlock("code2")
   endif
 
   if (debug) then

@@ -177,9 +177,8 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+    // Update and print integer
     _updateIntValues ();
-    _updateDoubleValues ();
-    _updateStrValues ();
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
@@ -221,6 +220,7 @@ namespace cwipi
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+
       strncpy (tmpName,
                _winIntParamNameData + _winIntParamIdxNameData[i],
                min (sParam, (int) sParamMax));
@@ -229,6 +229,9 @@ namespace cwipi
       PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
 
     }
+
+    // Update and print double
+    _updateDoubleValues ();
 
     PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
 
@@ -242,6 +245,9 @@ namespace cwipi
       PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
 
     }
+
+    // Update and print string
+    _updateStrValues ();
 
     PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
 
@@ -312,9 +318,8 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+    // Update and print integer
     _updateIntValues ();
-    _updateDoubleValues ();
-    _updateStrValues ();
 
     sprintf(buffer, "  - %d integer control parameters \n", _winGlobData[1]);
     properties.append(buffer);
@@ -367,6 +372,9 @@ namespace cwipi
 
     }
 
+    // Update and print double
+    _updateDoubleValues ();
+
     sprintf(buffer, "  - %d double control parameters \n", _winGlobData[2]);
     properties.append(buffer);
 
@@ -381,6 +389,9 @@ namespace cwipi
       properties.append(buffer);
 
     }
+
+    // Update and print string
+    _updateStrValues ();
 
     sprintf(buffer, "  - %d string control parameters \n", _winGlobData[3]);
     properties.append(buffer);
