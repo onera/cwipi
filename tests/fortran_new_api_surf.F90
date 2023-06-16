@@ -74,6 +74,8 @@ program testf
 
   real(c_double)                :: tata
   real(c_double)                :: check_tata
+  integer(c_int),       pointer :: tata => null()
+  character(len = 99)           :: str_param
 
   integer(c_int)                :: n_elt2
   integer(c_int),       pointer :: connec_idx2(:) => null()
@@ -205,6 +207,19 @@ program testf
 
     write(iiunit,*) i_rank, " --> ", "loc_code_list(", 1, ") :", loc_code_list(1)
     call flush(iiunit)
+  endif
+
+  str_param = "patate"
+  if (code_names(1) == "code1") then
+    call CWP_Param_lock("code1")
+    call CWP_Param_add("code1", "str_param", str_param)
+    call CWP_Param_unlock("code1")
+  endif
+
+  if (code_names(1) == "code2") then
+    call CWP_Param_lock("code2")
+    call CWP_Param_add("code2", "str_param", str_param)
+    call CWP_Param_unlock("code2")
   endif
 
   toto = 5

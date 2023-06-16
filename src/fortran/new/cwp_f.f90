@@ -1304,12 +1304,13 @@ module cwp
                                 param_name,        &
                                 l_param_name,      &
                                 data_type,         &
-                                initial_value)     &
+                                initial_value,     &
+                                l_initial_value)   &
       bind(c, name='CWP_Param_add_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind = c_char, len = 1) :: local_code_name, param_name
-      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: l_local_code_name, l_param_name, l_initial_value
       integer(c_int), value :: data_type
       type(c_ptr),    value :: initial_value
     end subroutine CWP_Param_add_cf
@@ -4366,7 +4367,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
     integer, intent(in)               :: initial_value
-    integer(kind = c_int)             :: l_local_code_name, l_param_name
+    integer(kind = c_int)             :: l_local_code_name, l_param_name, l_initial_value
 
     integer, dimension(1), target :: cvalue
     integer, pointer               :: cptrvalue(:)
@@ -4380,13 +4381,15 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_param_name      = len(param_name)
+    l_initial_value   = 0
 
     call CWP_Param_add_cf(local_code_name,   &
                           l_local_code_name, &
                           param_name,        &
                           l_param_name,      &
                           data_type,         &
-                          c_loc(cptrvalue))
+                          c_loc(cptrvalue),  &
+                          l_initial_value)
 
   end subroutine CWP_Param_add_int_
 
@@ -4400,8 +4403,8 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
-    real(kind = c_double), intent(in) :: initial_value
-    integer(kind = c_int)             :: l_local_code_name, l_param_name
+    real(kind = 8), intent(in)        :: initial_value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name, l_initial_value
 
     real(kind = c_double), dimension(1), target :: cvalue
     real(kind = c_double), pointer              :: cptrvalue(:)
@@ -4415,13 +4418,15 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_param_name      = len(param_name)
+    l_initial_value   = 0
 
     call CWP_Param_add_cf(local_code_name,   &
                           l_local_code_name, &
                           param_name,        &
                           l_param_name,      &
                           data_type,         &
-                          c_loc(cptrvalue))
+                          c_loc(cptrvalue),  &
+                          l_initial_value)
 
   end subroutine CWP_Param_add_double_
 
@@ -4435,7 +4440,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
     character(len=*), intent(in)      :: initial_value
-    integer(kind = c_int)             :: l_local_code_name, l_param_name
+    integer(kind = c_int)             :: l_local_code_name, l_param_name, l_initial_value
 
     character(len=512), dimension(1), target :: cvalue
     character(len=512), pointer            :: cptrvalue(:)
@@ -4449,13 +4454,15 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_param_name      = len(param_name)
+    l_initial_value   = len(initial_value)
 
     call CWP_Param_add_cf(local_code_name,   &
                           l_local_code_name, &
                           param_name,        &
                           l_param_name,      &
                           data_type,         &
-                          c_loc(cptrvalue))
+                          c_loc(cptrvalue),  &
+                          l_initial_value)
 
   end subroutine CWP_Param_add_char_
 

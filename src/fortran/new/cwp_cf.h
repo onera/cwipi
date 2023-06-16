@@ -1020,7 +1020,8 @@ CWP_Param_add_cf
  const char        *f_param_name,
  const int          l_param_name,
  const CWP_Type_t   data_type,
- void              *initial_value
+ void              *f_initial_value,
+ const int          l_initial_value
 );
 
 

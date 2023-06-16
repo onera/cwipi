@@ -2595,16 +2595,29 @@ CWP_Param_add_cf
  const char        *f_param_name,
  const int          l_param_name,
  const CWP_Type_t   data_type,
- void              *initial_value
+ void              *f_initial_value,
+ const int          l_initial_value
 )
 {
+
   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
 
-  CWP_Param_add(c_local_code_name,
+  if (data_type == CWP_CHAR) {
+    char *c_initial_value      = _fortran_to_c_string((char *) f_initial_value,      l_initial_value     );
+
+    CWP_Param_add(c_local_code_name,
+                  c_param_name,
+                  data_type,
+                  c_initial_value);
+  }
+
+  else {
+    CWP_Param_add(c_local_code_name,
                 c_param_name,
                 data_type,
-                initial_value);
+                f_initial_value);
+  }
 
   free ( c_local_code_name);
   free ( c_param_name);
