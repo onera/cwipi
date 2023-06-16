@@ -2588,7 +2588,7 @@ CWP_Spatial_interp_property_set_cf
  */
 
 void
-CWP_Param_add_cf
+CWP_Param_add_cf // to remove?
 (
  const char        *f_local_code_name,
  const int          l_local_code_name,
@@ -2610,6 +2610,8 @@ CWP_Param_add_cf
                   c_param_name,
                   data_type,
                   c_initial_value);
+
+    free(c_initial_value);
   }
 
   else {
@@ -2621,6 +2623,79 @@ CWP_Param_add_cf
 
   free ( c_local_code_name);
   free ( c_param_name);
+}
+
+void
+CWP_Param_add_int_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       int          initial_value
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_add(c_local_code_name,
+                c_param_name,
+                CWP_INT,
+       (void *) &initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+}
+
+
+void
+CWP_Param_add_double_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       double       initial_value
+)
+{
+
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_add(c_local_code_name,
+                c_param_name,
+                CWP_DOUBLE,
+       (void *) &initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+}
+
+
+void
+CWP_Param_add_char_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       char        *f_initial_value,
+ const int          l_initial_value
+)
+{
+
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+  char *c_initial_value   = _fortran_to_c_string(f_initial_value,   l_initial_value  );
+
+  CWP_Param_add(c_local_code_name,
+                c_param_name,
+                CWP_CHAR,
+       (void *) &c_initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+  free(c_initial_value);
 }
 
 
@@ -2636,7 +2711,7 @@ CWP_Param_add_cf
  */
 
 void
-CWP_Param_set_cf
+CWP_Param_set_cf // to remove?
 (
  const char        *f_local_code_name,
  const int          l_local_code_name,
@@ -2657,6 +2732,78 @@ CWP_Param_set_cf
   free ( c_local_code_name);
   free ( c_param_name);
 }
+
+
+void
+CWP_Param_set_int_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       int          initial_value
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_set(c_local_code_name,
+                c_param_name,
+                CWP_INT,
+       (void *) &initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+}
+
+
+void
+CWP_Param_set_double_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       double       initial_value
+)
+{
+
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_set(c_local_code_name,
+                c_param_name,
+                CWP_DOUBLE,
+       (void *) &initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+}
+
+
+void
+CWP_Param_set_char_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+       char        *initial_value
+)
+{
+
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_set(c_local_code_name,
+                c_param_name,
+                CWP_DOUBLE,
+       (void *) &initial_value);
+
+  free(c_local_code_name);
+  free(c_param_name);
+}
+
 
 /**
  *
@@ -2812,7 +2959,7 @@ CWP_Param_is_cf
  */
 
 void
-CWP_Param_get_cf
+CWP_Param_get_cf // to remove?
 (
  const char       *f_code_name,
  const int         l_code_name,
@@ -2900,7 +3047,7 @@ CWP_Param_get_double_cf
  */
 
 void
-CWP_Param_reduce_cf
+CWP_Param_reduce_cf // to remove?
 (
  const CWP_Op_t    op,
  const char       *f_param_name,

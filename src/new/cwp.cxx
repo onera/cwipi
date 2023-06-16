@@ -2840,7 +2840,7 @@ CWP_Param_add
 (
  const char        *local_code_name,
  const char        *param_name,
- const CWP_Type_t  data_type,
+ const CWP_Type_t   data_type,
  void              *initial_value
 )
 {

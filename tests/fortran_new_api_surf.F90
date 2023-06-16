@@ -74,8 +74,8 @@ program testf
 
   real(c_double)                :: tata
   real(c_double)                :: check_tata
-  integer(c_int),       pointer :: tata => null()
   character(len = 99)           :: str_param
+  character(len = 99)           :: check_str_param
 
   integer(c_int)                :: n_elt2
   integer(c_int),       pointer :: connec_idx2(:) => null()
@@ -275,6 +275,8 @@ program testf
       write(iiunit,*) "check_tata =", check_tata
       call flush(iiunit)
     endif
+
+    call CWP_Properties_dump()
   endif
   !<<--
 
