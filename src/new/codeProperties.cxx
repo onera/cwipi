@@ -177,21 +177,76 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
-    // Update and print integer
+
+    char tmpName [81];
+    char tmpValue[81];
+    unsigned int sParamMax;
+
+    /* Integer parameters */
     _updateIntValues ();
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
-    unsigned int sParamMax = 0;
+    sParamMax = 0;
     for (int i = 0; i < _winGlobData[1]; i++) {
       unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
+
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtIntName[22];
+    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
+
+    for (int i = 0; i < _winGlobData[1]; i++) {
+      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+
+      strncpy(tmpName,
+              _winIntParamNameData + _winIntParamIdxNameData[i],
+              min (sParam, (int) sParamMax));
+      tmpName[sParam] = '\0';
+
+      PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
+    }
+
+
+
+
+    /* Double parameters */
+    _updateDoubleValues ();
+
+    PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
+
+    sParamMax = 0;
     for (int i = 0; i < _winGlobData[2]; i++) {
       unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
 
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtDoubleName[26];
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
+
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+
+      strncpy(tmpName,
+              _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
+              min (sParam, (int) sParamMax));
+      tmpName[sParam] = '\0';
+
+      PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+    }
+
+
+
+    /* Char parameters */
+    _updateStrValues ();
+
+    PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
+
+    sParamMax = 0;
     unsigned int sValueMax = 0;
     for (int i = 0; i < _winGlobData[3]; i++) {
       unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
@@ -200,56 +255,10 @@ namespace cwipi
       sValueMax = max(sValue, sValueMax);
     }
 
-
-    if (sParamMax > 80) sParamMax = 80;
-    if (sValueMax > 80) sValueMax = 80;
-
-    char fmtIntName[22];
-    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
-
-    char fmtDoubleName[26];
-    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
-
     char fmtStrName[27];
     sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
             sParamMax, sParamMax,
             sValueMax, sValueMax);
-
-    char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
-    char *tmpValue = (char *) malloc (sizeof(char) * (sValueMax + 1));
-
-    for (int i = 0; i < _winGlobData[1]; i++) {
-      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
-
-      strncpy (tmpName,
-               _winIntParamNameData + _winIntParamIdxNameData[i],
-               min (sParam, (int) sParamMax));
-      tmpName[sParam] = '\0';
-
-      PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
-
-    }
-
-    // Update and print double
-    _updateDoubleValues ();
-
-    PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
-
-    for (int i = 0; i < _winGlobData[2]; i++) {
-      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
-      strncpy (tmpName,
-               _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
-               min (sParam, (int) sParamMax));
-      tmpName[sParam] = '\0';
-
-      PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
-
-    }
-
-    // Update and print string
-    _updateStrValues ();
-
-    PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
 
     for (int i = 0; i < _winGlobData[3]; i++) {
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
@@ -265,11 +274,7 @@ namespace cwipi
       tmpValue[sValue] = '\0';
 
       PDM_printf (fmtStrName, tmpName, tmpValue);
-
     }
-
-    free (tmpName);
-    free (tmpValue);
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
 
@@ -318,6 +323,11 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+
+    char tmpName [81];
+    char tmpValue[81];
+
+
     // Update and print integer
     _updateIntValues ();
 
@@ -329,36 +339,11 @@ namespace cwipi
       unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
-    for (int i = 0; i < _winGlobData[2]; i++) {
-      unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
-      sParamMax = max(sParam, sParamMax);
-    }
-
-    unsigned int sValueMax = 0;
-    for (int i = 0; i < _winGlobData[3]; i++) {
-      unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
-      sParamMax = max(sParam, sParamMax);
-      unsigned int sValue = (unsigned int) (_winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i]);
-      sValueMax = max(sValue, sValueMax);
-    }
-
 
     if (sParamMax > 80) sParamMax = 80;
-    if (sValueMax > 80) sValueMax = 80;
 
     char fmtIntName[22];
     sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
-
-    char fmtDoubleName[26];
-    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
-
-    char fmtStrName[27];
-    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
-            sParamMax, sParamMax,
-            sValueMax, sValueMax);
-
-    char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
-    char *tmpValue = (char *) malloc (sizeof(char) * (sValueMax + 1));
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
@@ -374,6 +359,17 @@ namespace cwipi
 
     // Update and print double
     _updateDoubleValues ();
+
+    sParamMax = 0;
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtDoubleName[26];
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
 
     sprintf(buffer, "  - %d double control parameters \n", _winGlobData[2]);
     properties.append(buffer);
@@ -392,6 +388,23 @@ namespace cwipi
 
     // Update and print string
     _updateStrValues ();
+
+    sParamMax = 0;
+    unsigned int sValueMax = 0;
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+      unsigned int sValue = (unsigned int) (_winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i]);
+      sValueMax = max(sValue, sValueMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+    if (sValueMax > 80) sValueMax = 80;
+
+    char fmtStrName[27];
+    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
+            sParamMax, sParamMax,
+            sValueMax, sValueMax);
 
     sprintf(buffer, "  - %d string control parameters \n", _winGlobData[3]);
     properties.append(buffer);
@@ -413,9 +426,6 @@ namespace cwipi
       properties.append(buffer);
 
     }
-
-    free (tmpName);
-    free (tmpValue);
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
 

@@ -67,10 +67,13 @@ program testf
   integer(c_int)                :: n_computed_tgts
   integer(c_int),       pointer :: computed_tgts(:) => null()
 
-  integer(c_int),       target  :: toto
+  integer(c_int)                :: toto
+  integer(c_int)                :: check_toto
   integer(c_int)                :: n_param
   type(c_ptr)                   :: param_value = C_NULL_PTR
-  integer(c_int),       pointer :: tata => null()
+
+  real(c_double)                :: tata
+  real(c_double)                :: check_tata
 
   integer(c_int)                :: n_elt2
   integer(c_int),       pointer :: connec_idx2(:) => null()
@@ -206,15 +209,19 @@ program testf
 
   toto = 5
   if (code_names(1) == "code1") then
+    tata = 3.14d0
     call CWP_Param_lock("code1")
     call CWP_Param_add("code1", "toto", toto)
+    call CWP_Param_add("code1", "tata", tata)
     call CWP_Param_unlock("code1")
   endif
 
   toto = 12
   if (code_names(1) == "code2") then
+    tata = 1.23d0
     call CWP_Param_lock("code2")
     call CWP_Param_add("code2", "toto", toto)
+    call CWP_Param_add("code2", "tata", tata)
     call CWP_Param_unlock("code2")
   endif
 
@@ -237,14 +244,20 @@ program testf
   !                                                       "toto", &
   !                                                       CWP_INT)
 
-  if (code_names(1) == "code1") then
+  if (.true.) then!code_names(1) == "code1") then
     call CWP_Param_get("code1",  &
                        "toto",   &
-                       CWP_INT,  &
-                       param_value)
-    call c_f_pointer(param_value, tata)
+                       check_toto)
     if (debug) then
-      write(iiunit,*) "tata =", loc(tata)
+      write(iiunit,*) "check_toto =", check_toto
+      call flush(iiunit)
+    endif
+
+    call CWP_Param_get("code1",  &
+                       "tata",   &
+                       check_tata)
+    if (debug) then
+      write(iiunit,*) "check_tata =", check_tata
       call flush(iiunit)
     endif
   endif
@@ -282,10 +295,16 @@ program testf
   endif
   call CWP_Param_reduce(CWP_OP_SUM, &
                         "toto",     &
-                        CWP_INT,    &
-                        param_value,&
+                        check_toto, &
                         2,          &
                         g_code_names)
+
+  call CWP_Param_reduce(CWP_OP_MAX, &
+                        "tata",     &
+                        check_tata, &
+                        2,          &
+                        g_code_names)
+
   if (debug) then
     write(iiunit,*) "<< CWP_Param_reduce"
     call flush(iiunit)
@@ -293,7 +312,8 @@ program testf
 
   call c_f_pointer(param_value, res)
   if (debug) then
-    write(iiunit,*) "res of sum reduce : ", loc(res)
+    write(iiunit,*) "res of sum reduce : ", check_toto
+    write(iiunit,*) "res of max reduce : ", check_tata
     call flush(iiunit)
   endif
 
