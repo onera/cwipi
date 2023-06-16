@@ -182,7 +182,7 @@ namespace cwipi
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
-    unsigned int sParamMax = -1;
+    unsigned int sParamMax = 0;
     for (int i = 0; i < _winGlobData[1]; i++) {
       unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
@@ -192,7 +192,7 @@ namespace cwipi
       sParamMax = max(sParam, sParamMax);
     }
 
-    unsigned int sValueMax = -1;
+    unsigned int sValueMax = 0;
     for (int i = 0; i < _winGlobData[3]; i++) {
       unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
@@ -324,7 +324,7 @@ namespace cwipi
     sprintf(buffer, "  - %d integer control parameters \n", _winGlobData[1]);
     properties.append(buffer);
 
-    unsigned int sParamMax = -1;
+    unsigned int sParamMax = 0;
     for (int i = 0; i < _winGlobData[1]; i++) {
       unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
@@ -334,7 +334,7 @@ namespace cwipi
       sParamMax = max(sParam, sParamMax);
     }
 
-    unsigned int sValueMax = -1;
+    unsigned int sValueMax = 0;
     for (int i = 0; i < _winGlobData[3]; i++) {
       unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
