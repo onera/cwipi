@@ -427,12 +427,18 @@ module cwp
         CWP_Param_is_
     end interface CWP_Param_is
 
-    interface CWP_Param_get ; module procedure &
-        CWP_Param_get_
+    interface CWP_Param_get
+      module procedure CWP_Param_get_
+      module procedure CWP_Param_get_int
+      module procedure CWP_Param_get_double
+      ! module procedure CWP_Param_get_char
     end interface CWP_Param_get
 
-    interface CWP_Param_reduce ; module procedure &
-        CWP_Param_reduce_
+    interface CWP_Param_reduce
+      module procedure CWP_Param_reduce_
+      module procedure CWP_Param_reduce_int
+      module procedure CWP_Param_reduce_double
+      ! module procedure CWP_Param_reduce_char
     end interface CWP_Param_reduce
 
     interface CWP_Param_lock ; module procedure &
@@ -576,7 +582,11 @@ module cwp
              CWP_Param_n_get_ ,&
              CWP_Param_is_ ,&
              CWP_Param_get_ ,&
+             CWP_Param_get_int ,&
+             CWP_Param_get_double ,&
              CWP_Param_reduce_,&
+             CWP_Param_reduce_int,&
+             CWP_Param_reduce_double,&
              CWP_Param_lock_ ,&
              CWP_Param_unlock_,&
              CWP_Codes_list_get_,&
@@ -1380,6 +1390,34 @@ module cwp
       type(c_ptr)           :: value
     end subroutine CWP_Param_get_cf
 
+    subroutine CWP_Param_get_int_cf(local_code_name,   &
+                                    l_local_code_name, &
+                                    param_name,        &
+                                    l_param_name,      &
+                                    value)             &
+      bind(c, name='CWP_Param_get_int_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int)        :: value
+    end subroutine CWP_Param_get_int_cf
+
+    subroutine CWP_Param_get_double_cf(local_code_name,   &
+                                       l_local_code_name, &
+                                       param_name,        &
+                                       l_param_name,      &
+                                       value)             &
+      bind(c, name='CWP_Param_get_double_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      real(c_double)        :: value
+    end subroutine CWP_Param_get_double_cf
+
+    ! TODO: CWP_Param_get_char_cf
+
     subroutine CWP_Param_reduce_cf(op,           &
                                    param_name,   &
                                    l_param_name, &
@@ -1399,6 +1437,47 @@ module cwp
       type(c_ptr),    value             :: code_names
       type(c_ptr),    value             :: l_code_names
     end subroutine CWP_Param_reduce_cf
+
+    subroutine CWP_Param_reduce_int_cf(op,           &
+                                        param_name,   &
+                                        l_param_name, &
+                                        res,          &
+                                        n_codes,      &
+                                        code_names,   &
+                                        l_code_names) &
+
+      bind(c, name='CWP_Param_reduce_int_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int), value             :: op, n_codes
+      integer(c_int)                    :: res
+      character(kind = c_char, len = 1) :: param_name
+      integer(c_int), value             :: l_param_name
+      type(c_ptr),    value             :: code_names
+      type(c_ptr),    value             :: l_code_names
+    end subroutine CWP_Param_reduce_int_cf
+
+
+    subroutine CWP_Param_reduce_double_cf(op,           &
+                                          param_name,   &
+                                          l_param_name, &
+                                          res,          &
+                                          n_codes,      &
+                                          code_names,   &
+                                          l_code_names) &
+
+      bind(c, name='CWP_Param_reduce_double_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int), value             :: op, n_codes
+      real(c_double)                    :: res
+      character(kind = c_char, len = 1) :: param_name
+      integer(c_int), value             :: l_param_name
+      type(c_ptr),    value             :: code_names
+      type(c_ptr),    value             :: l_code_names
+    end subroutine CWP_Param_reduce_double_cf
+
+    ! TODO: CWP_Param_reduce_char_cf
 
 
     subroutine CWP_Param_lock_cf(local_code_name,   &
@@ -1907,7 +1986,7 @@ contains
   !! \brief Begin code time step.
   !!
   !! \param [in] local_code_name  Local code name
-  !! \param [in]  current_time Current time
+  !! \param [in] current_time     Current time
   !!
   !!
 
@@ -1998,11 +2077,11 @@ contains
   end function CWP_User_structure_get_
 
   !>
-  !! \brief Writing output to fortran file (shared by fortran and C code).
+  !! \brief Writing output to Fortran file (shared by fortran and C code).
   !!
-  !! This function set the file fortran logical unit for writing output.
+  !! This function set the file Fortran logical unit for writing output.
   !!
-  !!  \param [in]  iunit        File fortan logical unit
+  !!  \param [in]  iunit        File Fortan logical unit
   !!
   !!
 
@@ -2067,7 +2146,7 @@ contains
 
   end function CWP_State_get_
 
-  !>
+    !>
     !! \brief Return list of codes known by CWIPI.
     !!
     !! \return List of code names
@@ -2710,7 +2789,7 @@ contains
   !! \param [in]  cpl_id           Coupling identifier
   !! \param [in]  i_part           Current partition
   !! \param [in]  n_pts            Number of points
-  !! \param [in]  coord            Coordinates (size = 3    !! \p n_pts)
+  !! \param [in]  coord            Coordinates (size = 3 * \p n_pts)
   !! \param [in]  global_num       Pointer to parent element number (or NULL)
   !!
 
@@ -2919,10 +2998,10 @@ contains
   !>
   !! \brief Get the properties of a standard block of the interface mesh.
   !!
-  !! \param [in]  local_code_name  Local code name
-  !! \param [in]  cpl_id           Coupling identifier
-  !! \param [in]  i_part           Partition identifier
-  !! \param [in]  block_id         Block identifier
+  !! \param [in]   local_code_name  Local code name
+  !! \param [in]   cpl_id           Coupling identifier
+  !! \param [in]   i_part           Partition identifier
+  !! \param [in]   block_id         Block identifier
   !! \param [out]  n_elts           Number of elements
   !! \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
   !! \param [out]  global_num       Pointer to global element number (or NULL)
@@ -2979,7 +3058,7 @@ contains
   !! \param [in]  global_num       Pointer to global element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_f_poly_block_set_( local_code_name, &
+  subroutine CWP_Mesh_interf_f_poly_block_set_(local_code_name, &
                                                cpl_id,          &
                                                i_part,          &
                                                block_id,        &
@@ -3025,10 +3104,10 @@ contains
   !>
   !! \brief Get the properties of a polygon block of the interface mesh partition.
   !!
-  !! \param [in]  local_code_name  Local code name
-  !! \param [in]  cpl_id           Coupling identifier
-  !! \param [in]  i_part           Current partition
-  !! \param [in]  block_id         Block identifier
+  !! \param [in]   local_code_name  Local code name
+  !! \param [in]   cpl_id           Coupling identifier
+  !! \param [in]   i_part           Current partition
+  !! \param [in]   block_id         Block identifier
   !! \param [out]  n_elts           Number of elements
   !! \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
   !!                               size = \p n_elts + 1)
@@ -3038,13 +3117,13 @@ contains
   !!
 
   subroutine CWP_Mesh_interf_f_poly_block_get_(local_code_name, &
-                                              cpl_id,          &
-                                              i_part,          &
-                                              block_id,        &
-                                              n_elts,          &
-                                              connec_idx,      &
-                                              connec,          &
-                                              global_num)
+                                               cpl_id,          &
+                                               i_part,          &
+                                               block_id,        &
+                                               n_elts,          &
+                                               connec_idx,      &
+                                               connec,          &
+                                               global_num)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -3387,7 +3466,7 @@ contains
   !! \param [in]  visu_status     Visualization status
   !!
 
-  subroutine CWP_Field_create_ (local_code_name,      &
+  subroutine CWP_Field_create_(local_code_name,      &
                                cpl_id,               &
                                field_id,             &
                                data_type,            &
@@ -3431,11 +3510,11 @@ contains
   !! \param [in] cpl_id            Coupling identifier
   !! \param [in] field_id          Field identifier
   !! \param [in] i_part            Current partition
-  !! \param [in] data_type         Choice if data is setted for the source or the target
+  !! \param [in] data_type         Choice if data is set for the source or the target
   !! \param [in] data              Storage array (Mapping)
   !!
 
-  subroutine CWP_Field_data_set_ (local_code_name, &
+  subroutine CWP_Field_data_set_(local_code_name, &
                                  cpl_id,          &
                                  field_id,        &
                                  i_part,          &
@@ -3480,8 +3559,8 @@ contains
   !!
 
   function CWP_Field_target_dof_location_get_(local_code_name, &
-                                             cpl_id,          &
-                                             field_id)        &
+                                              cpl_id,          &
+                                              field_id)        &
     result (dof_location)
 
     use, intrinsic :: iso_c_binding
@@ -3517,8 +3596,8 @@ contains
   !!
 
   function CWP_Field_storage_get_(local_code_name, &
-                                 cpl_id,          &
-                                 field_id)        &
+                                  cpl_id,          &
+                                  field_id)        &
     result (storage)
 
     use, intrinsic :: iso_c_binding
@@ -3545,15 +3624,15 @@ contains
   !>
   !! \brief Delete a field.
   !!
-  !! \param [in] local_code_name Local code name
-  !! \param [in]  cpl_id         Coupling identifier
-  !! \param [in]  field_id       Field identifier
+  !! \param [in]  local_code_name Local code name
+  !! \param [in]  cpl_id          Coupling identifier
+  !! \param [in]  field_id        Field identifier
   !!
   !!
 
   subroutine CWP_Field_del_(local_code_name, &
-                           cpl_id,          &
-                           field_id)
+                            cpl_id,          &
+                            field_id)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -3576,9 +3655,9 @@ contains
 
   !>
   !! \brief Send a spatially interpolated field to the coupled code with
-  !!        nonblocking communications.
+  !!        non-blocking communications.
   !!
-  !! This function is independant of \ref CWP_Time_exch_t mode. The user has to
+  !! This function is independent of \ref CWP_Time_exch_t mode. The user has to
   !! manually check the consistency of the exchanges.
   !!
   !! \param [in] local_code_name  Local code name
@@ -3586,7 +3665,7 @@ contains
   !! \param [in]  src_field_id    Source field id
   !!
 
-  subroutine CWP_Field_issend_ (local_code_name, &
+  subroutine CWP_Field_issend_(local_code_name, &
                                cpl_id,          &
                                src_field_id)
 
@@ -3612,9 +3691,9 @@ contains
   !>
   !!
   !! \brief Receive a spatially interpolated field from the coupled code
-  !!        with nonblocking communications.
+  !!        with non-blocking communications.
   !!
-  !! This function is independant of \ref CWP_Time_exch_t mode. The user has to
+  !! This function is independent of \ref CWP_Time_exch_t mode. The user has to
   !! manually check the consistency of the exchanges.
   !!
   !! \param [in] local_code_name  Local code name
@@ -3622,7 +3701,7 @@ contains
   !! \param [in]  tgt_field_id    Target field id
   !!
 
-  subroutine CWP_Field_irecv_ (local_code_name, &
+  subroutine CWP_Field_irecv_(local_code_name, &
                               cpl_id,          &
                               tgt_field_id)
 
@@ -3712,7 +3791,7 @@ contains
 
   !>
   !!
-  !!  \brief Unsetting of an user interpolation.
+  !!  \brief Unsetting of a user interpolation.
   !!
   !!  \param [in] local_code_name  Local code name
   !!  \param [in] cpl_id           Coupling identifier
@@ -3740,7 +3819,7 @@ contains
 
   !>
   !!
-  !! \brief Setting of an user interpolation from location.
+  !! \brief Setting of a user interpolation from location.
   !!
   !! This function takes into account an user interpolation function written with
   !! void (*\ref CWP_Interp_function_t) interface.
@@ -3786,7 +3865,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_src_field_id    = len(src_field_id)
 
-    print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
+    ! print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
 
     call CWP_Interp_function_set_cf(local_code_name,   &
                                     l_local_code_name, &
@@ -4268,7 +4347,7 @@ contains
 
   !>
   !!
-  !! \brief Add a new parameter and intialize it.
+  !! \brief Add a new parameter and initialize it.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] param_name       Parameter name
@@ -4313,20 +4392,20 @@ contains
 
 
   subroutine CWP_Param_add_double_(local_code_name, &
-                                  param_name,      &
-                                  initial_value)
+                                   param_name,      &
+                                   initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
-    real(kind = 8), intent(in)               :: initial_value
+    real(kind = c_double), intent(in) :: initial_value
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
-    real(kind = 8), dimension(1), target :: cvalue
-    real(kind = 8), pointer              :: cptrvalue(:)
-    integer                              :: data_type
+    real(kind = c_double), dimension(1), target :: cvalue
+    real(kind = c_double), pointer              :: cptrvalue(:)
+    integer                                     :: data_type
 
     data_type = CWP_DOUBLE
 
@@ -4347,8 +4426,8 @@ contains
   end subroutine CWP_Param_add_double_
 
   subroutine CWP_Param_add_char_(local_code_name, &
-                                param_name,      &
-                                initial_value)
+                                 param_name,      &
+                                 initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4392,18 +4471,18 @@ contains
   !!
 
   subroutine CWP_Param_set_int_(local_code_name, &
-                               param_name,      &
-                               value)
+                                param_name,      &
+                                value)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
-    integer, intent(in)               :: value
+    integer(c_int), intent(in)        :: value
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
-    integer, dimension(1), target :: cvalue
+    integer, dimension(1), target  :: cvalue
     integer, pointer               :: cptrvalue(:)
 
     integer                        :: data_type = CWP_INT
@@ -4458,8 +4537,8 @@ contains
   end subroutine CWP_Param_set_double_
 
   subroutine CWP_Param_set_char_(local_code_name, &
-                                param_name,      &
-                                value)
+                                 param_name,      &
+                                 value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4502,8 +4581,8 @@ contains
   !!
 
   subroutine CWP_Param_del_(local_code_name, &
-                           param_name,      &
-                           data_type)
+                            param_name,      &
+                            data_type)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4561,7 +4640,7 @@ contains
 
   !>
   !!
-  !! \brief eturn the list of parameters for the code \p code_name.
+  !! \brief Return the list of parameters for the code \p code_name.
   !!
   !! \param [in] code_name      Local or distant code name
   !! \param [in] data_type      Parameter type
@@ -4643,9 +4722,9 @@ contains
   !!
 
   subroutine CWP_Param_get_(code_name,  &
-                           param_name, &
-                           data_type,  &
-                           value)
+                            param_name, &
+                            data_type,  &
+                            value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4668,6 +4747,55 @@ contains
                           value)
 
   end subroutine CWP_Param_get_
+
+  subroutine CWP_Param_get_int(code_name,  &
+                               param_name, &
+                               value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer(c_int), intent(out)       :: value
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    call CWP_Param_get_int_cf(code_name,    &
+                              l_code_name,  &
+                              param_name,   &
+                              l_param_name, &
+                              value)
+
+  end subroutine CWP_Param_get_int
+
+
+  subroutine CWP_Param_get_double(code_name,  &
+                               param_name, &
+                               value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    real(c_double), intent(out)       :: value
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    call CWP_Param_get_double_cf(code_name,    &
+                                 l_code_name,  &
+                                 param_name,   &
+                                 l_param_name, &
+                                 value)
+
+  end subroutine CWP_Param_get_double
 
   !>
   !!
@@ -4714,6 +4842,72 @@ contains
                              c_loc(l_code_names))
 
   end subroutine CWP_Param_reduce_
+
+  subroutine CWP_Param_reduce_int(op,         &
+                                  param_name, &
+                                  res,        &
+                                  n_codes,    &
+                                  code_names)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer, intent(in)                                           :: op
+    integer(c_int), intent(out)                                   :: res
+    integer(c_int)                                                :: n_codes, i
+    character(kind = c_char, len = *)                             :: param_name
+    integer(kind = c_int)                                         :: l_param_name
+    character(kind = c_char, len = *), dimension(n_codes), target :: code_names
+    integer, dimension(n_codes), target                           :: l_code_names
+
+    l_param_name = len(param_name)
+    do i=1,n_codes
+      l_code_names(i) = len(code_names(i))
+    end do
+
+    call CWP_Param_reduce_int_cf(op,                &
+                                 param_name,        &
+                                 l_param_name,      &
+                                 res,               &
+                                 n_codes,           &
+                                 c_loc(code_names), &
+                                 c_loc(l_code_names))
+
+  end subroutine CWP_Param_reduce_int
+
+  subroutine CWP_Param_reduce_double(op,         &
+                                     param_name, &
+                                     res,        &
+                                     n_codes,    &
+                                     code_names)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer, intent(in)                                           :: op
+    real(c_double), intent(out)                                   :: res
+    integer(c_int)                                                :: n_codes, i
+    character(kind = c_char, len = *)                             :: param_name
+    integer(kind = c_int)                                         :: l_param_name
+    character(kind = c_char, len = *), dimension(n_codes), target :: code_names
+    integer, dimension(n_codes), target                           :: l_code_names
+
+    l_param_name = len(param_name)
+    do i=1,n_codes
+      l_code_names(i) = len(code_names(i))
+    end do
+
+    call CWP_Param_reduce_double_cf(op,                &
+                                    param_name,        &
+                                    l_param_name,      &
+                                    res,               &
+                                    n_codes,           &
+                                    c_loc(code_names), &
+                                    c_loc(l_code_names))
+
+  end subroutine CWP_Param_reduce_double
+
+
 
   !>
   !!
@@ -4764,12 +4958,12 @@ contains
 
 
   !>
-  !! \brief Send a data array.
+  !! \brief Initiate the sending of a data array.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] global_data_id   GlobalData identifier
-  !! \param [in] send_data
+  !! \param [in] send_data        Pointer to data array
   !!
   !!
 
@@ -4984,12 +5178,12 @@ contains
   end subroutine CWP_Global_data_issend_real4
 
   !>
-  !! \brief Recv a data array.
+  !! \brief Initiate the reception of a data array.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] global_data_id   GlobalData identifier
-  !! \param [in] recv_data
+  !! \param [in] recv_data        Pointer to data array
   !!
   !!
 
@@ -5205,7 +5399,7 @@ contains
 
 
   !>
-  !! \brief Wait of send a data array.
+  !! \brief Finalize the sending of a data array.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -5237,7 +5431,7 @@ contains
 
 
   !>
-  !! \brief Wait of recv a data array.
+  !! \brief Finalize the reception of a data array.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -5269,7 +5463,7 @@ contains
 
 
   !>
-  !! \brief Create partitionned data exchange object
+  !! \brief Create partitioned data exchange object
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -5318,7 +5512,7 @@ contains
 
 
   !>
-  !! \brief Delete partitionned data exchange object
+  !! \brief Delete partitioned data exchange object
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -5356,19 +5550,18 @@ contains
   !>
   !! \brief Send a data array.
   !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] part_data_id     PartData identifier
-  !! \param [in] s_data
-  !! \param [in] n_components
-  !! \param [in] part1_to_part2_data
-  !! \param [in] request
+  !! \param [in]  local_code_name      Local code name
+  !! \param [in]  cpl_id               Coupling identifier
+  !! \param [in]  part_data_id         PartData identifier
+  !! \param [in]  n_components         Number of components
+  !! \param [in]  part1_to_part2_data  Pointer to data array to send
+  !! \param [out] request              MPI request
   !!
   !!
 
-  subroutine CWP_Part_data_issend_(f_local_code_name,   &
-                                   f_cpl_id,            &
-                                   f_part_data_id,      &
+  subroutine CWP_Part_data_issend_(local_code_name,     &
+                                   cpl_id,              &
+                                   part_data_id,        &
                                    n_components,        &
                                    part1_to_part2_data, &
                                    request)
@@ -5376,7 +5569,7 @@ contains
     use pdm_pointer_array
     implicit none
 
-    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)        :: n_components
     type(PDM_pointer_array_t), target :: part1_to_part2_data
     integer(c_int), intent(out)       :: request
@@ -5384,17 +5577,17 @@ contains
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
     s_data = part1_to_part2_data%s_data
 
-    call CWP_Part_data_issend_cf(f_local_code_name,               &
+    call CWP_Part_data_issend_cf(local_code_name,                 &
                                  l_local_code_name,               &
-                                 f_cpl_id,                        &
+                                 cpl_id,                          &
                                  l_cpl_id,                        &
-                                 f_part_data_id,                  &
+                                 part_data_id,                    &
                                  l_part_data_id,                  &
                                  s_data,                          &
                                  n_components,                    &
@@ -5407,27 +5600,26 @@ contains
   !>
   !! \brief Receive a data array.
   !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] part_data_id     PartData identifier
-  !! \param [in] s_data
-  !! \param [in] n_components
-  !! \param [in] part1_to_part2_data
-  !! \param [in] request
+  !! \param [in]    local_code_name      Local code name
+  !! \param [in]    cpl_id               Coupling identifier
+  !! \param [in]    part_data_id         PartData identifier
+  !! \param [in]    n_components         Number of components
+  !! \param [inout] part2_data           Pointer to data array to receive
+  !! \param [out]   request              MPI request
   !!
   !!
 
-  subroutine CWP_Part_data_irecv_(f_local_code_name, &
-                                  f_cpl_id,          &
-                                  f_part_data_id,    &
-                                  n_components,      &
-                                  part2_data,        &
+  subroutine CWP_Part_data_irecv_(local_code_name, &
+                                  cpl_id,          &
+                                  part_data_id,    &
+                                  n_components,    &
+                                  part2_data,      &
                                   request)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
 
-    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)        :: n_components
     type(PDM_pointer_array_t), target :: part2_data
     integer(c_int), intent(out)       :: request
@@ -5436,38 +5628,38 @@ contains
     integer(c_long)                   :: s_data
     integer(c_int)                    :: n_part, n_ref, i
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
     s_data = part2_data%s_data
 
-    call CWP_Part_data_irecv_cf(f_local_code_name,      &
+    call CWP_Part_data_irecv_cf(local_code_name,        &
                                 l_local_code_name,      &
-                                f_cpl_id,               &
+                                cpl_id,                 &
                                 l_cpl_id,               &
-                                f_part_data_id,         &
+                                part_data_id,           &
                                 l_part_data_id,         &
                                 s_data,                 &
                                 n_components,           &
                                 c_loc(part2_data%cptr), &
                                 request)
 
-    call CWP_Part_data_n_part_get_cf(f_local_code_name, &
+    call CWP_Part_data_n_part_get_cf(local_code_name,   &
                                      l_local_code_name, &
-                                     f_cpl_id,          &
+                                     cpl_id,            &
                                      l_cpl_id,          &
-                                     f_part_data_id,    &
+                                     part_data_id,      &
                                      l_part_data_id,    &
                                      n_part)
 
     ! Compute lengths
     do i = 1, n_part
-      call CWP_Part_data_n_ref_get_cf(f_local_code_name, &
+      call CWP_Part_data_n_ref_get_cf(local_code_name,   &
                                       l_local_code_name, &
-                                      f_cpl_id,          &
+                                      cpl_id,            &
                                       l_cpl_id,          &
-                                      f_part_data_id,    &
+                                      part_data_id,      &
                                       l_part_data_id,    &
                                       i-1,               &
                                       n_ref)
@@ -5484,31 +5676,30 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] recv_data
-  !! \param [in] request
+  !! \param [in] request          MPI request
   !!
   !!
 
-  subroutine CWP_Part_data_wait_issend_(f_local_code_name, &
-                                        f_cpl_id,          &
-                                        f_part_data_id,    &
+  subroutine CWP_Part_data_wait_issend_(local_code_name, &
+                                        cpl_id,          &
+                                        part_data_id,    &
                                         request)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
     integer(c_int)                :: request
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
-    call CWP_Part_data_wait_issend_cf(f_local_code_name, &
+    call CWP_Part_data_wait_issend_cf(local_code_name,   &
                                       l_local_code_name, &
-                                      f_cpl_id,          &
+                                      cpl_id,            &
                                       l_cpl_id,          &
-                                      f_part_data_id,    &
+                                      part_data_id,      &
                                       l_part_data_id,    &
                                       request)
 
@@ -5521,31 +5712,30 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] recv_data
-  !! \param [in] request
+  !! \param [in] request          MPI request
   !!
   !!
 
-  subroutine CWP_Part_data_wait_irecv_(f_local_code_name, &
-                                       f_cpl_id,          &
-                                       f_part_data_id,    &
+  subroutine CWP_Part_data_wait_irecv_(local_code_name, &
+                                       cpl_id,          &
+                                       part_data_id,    &
                                        request)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
     integer(c_int)                :: request
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
-    call CWP_Part_data_wait_irecv_cf(f_local_code_name, &
+    call CWP_Part_data_wait_irecv_cf(local_code_name,   &
                                      l_local_code_name, &
-                                     f_cpl_id,          &
+                                     cpl_id,            &
                                      l_cpl_id,          &
-                                     f_part_data_id,    &
+                                     part_data_id,      &
                                      l_part_data_id,    &
                                      request)
 

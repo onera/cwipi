@@ -2822,6 +2822,53 @@ CWP_Param_get_cf
 }
 
 
+void
+CWP_Param_get_int_cf
+(
+ const char       *f_code_name,
+ const int         l_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+       int        *value
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+
+  CWP_Param_get(c_code_name,
+                c_param_name,
+                CWP_INT,
+                value);
+
+  free(c_code_name);
+  free(c_param_name);
+}
+
+void
+CWP_Param_get_double_cf
+(
+ const char       *f_code_name,
+ const int         l_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+       double     *value
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+
+  CWP_Param_get(c_code_name,
+                c_param_name,
+                CWP_DOUBLE,
+                value);
+
+  free(c_code_name);
+  free(c_param_name);
+}
+
+// TODO: CWP_Param_get_char_cf
+
+
 /**
  *
  * \brief Return the result of a reduce operation about a parameter.
@@ -2873,6 +2920,80 @@ CWP_Param_reduce_cf
   free(c_code_names);
   free(c_param_name);
 }
+
+
+void
+CWP_Param_reduce_int_cf
+(
+ const CWP_Op_t    op,
+ const char       *f_param_name,
+ const int         l_param_name,
+       int        *res,
+ const int         n_codes,
+ const char       *f_code_names,
+ const int        *l_code_names
+)
+{
+  char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+  char **c_code_names = (char **) malloc(n_codes * sizeof(char *));
+  int idx = 0;
+  for (int i = 0 ; i < n_codes ; i++) {
+    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
+    idx += l_code_names[i];
+  }
+
+  CWP_Param_reduce(op,
+                   c_param_name,
+                   CWP_INT,
+          (void *) res,
+                   n_codes,
+   (const char **) c_code_names);
+
+  for (int i = 0; i < n_codes; i++) {
+    free(c_code_names[i]);
+  }
+  free(c_code_names);
+  free(c_param_name);
+}
+
+
+void
+CWP_Param_reduce_double_cf
+(
+ const CWP_Op_t    op,
+ const char       *f_param_name,
+ const int         l_param_name,
+       double     *res,
+ const int         n_codes,
+ const char       *f_code_names,
+ const int        *l_code_names
+)
+{
+  char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+  char **c_code_names = (char **) malloc(n_codes * sizeof(char *));
+  int idx = 0;
+  for (int i = 0 ; i < n_codes ; i++) {
+    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
+    idx += l_code_names[i];
+  }
+
+  CWP_Param_reduce(op,
+                   c_param_name,
+                   CWP_DOUBLE,
+          (void *) res,
+                   n_codes,
+   (const char **) c_code_names);
+
+  for (int i = 0; i < n_codes; i++) {
+    free(c_code_names[i]);
+  }
+  free(c_code_names);
+  free(c_param_name);
+}
+
+
+// TODO: CWP_Param_reduce_char_cf
+
 
 
 /**
