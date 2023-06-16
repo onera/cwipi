@@ -1779,7 +1779,7 @@ CWP_Mesh_interf_c_poly_block_set
 
 
 /**
- * \brief Get the properties of a polyhedron block of the interface mesh partition..
+ * \brief Get the properties of a polyhedron block of the interface mesh partition.
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -2108,10 +2108,10 @@ CWP_Interp_field_n_components_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [out] n_elt_src
- * \param [out] src_to_tgt_idx
+ * \param [in]  field_id                  Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_src                 Number of source elements
+ * \param [out] src_to_tgt_idx            Source elements to target elements index
  *
  */
 
@@ -2148,12 +2148,12 @@ CWP_Interp_src_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [out] n_elt_tgt
- * \param [out] n_referenced_tgt
- * \param [out] referenced_tgt
- * \param [out] tgt_come_from_src_idx
+ * \param [in]  field_id                  Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_tgt                 Number of target elements
+ * \param [out] n_referenced_tgt          Number of referenced target elements
+ * \param [out] referenced_tgt            Referenced target elements
+ * \param [out] tgt_come_from_src_idx     Target to origin source elements index
  *
  */
 
@@ -2495,7 +2495,7 @@ CWP_Interp_closest_points_coord_get
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] data_type         Choice if data is setted for the source or the target
+ * \param [in] data_type         Choice if data is set for the source or the target
  * \param [in] data              Storage array (Mapping)
  *
  */
@@ -2525,7 +2525,7 @@ CWP_Field_data_set
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  field_id          Field identifier
  * \param [in]  i_part            Current partition
- * \param [in]  data_type         Choice if data is setted for the source or the target
+ * \param [in]  data_type         Choice if data is set for the source or the target
  * \param [out] data              Storage array (Mapping)
  *
  */
@@ -2637,9 +2637,9 @@ CWP_Field_del
 
 /**
  * \brief Send a spatially interpolated field to the coupled code with
- *        nonblocking communications.
+ *        non-blocking communications.
  *
- * This function is independant of \ref CWP_Time_exch_t mode. The user has to
+ * This function is independent of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
  * \param [in]  local_code_name  Local code name
@@ -2667,9 +2667,9 @@ CWP_Field_issend
 /**
  *
  * \brief Receive a spatially interpolated field from the coupled code
- *        with nonblocking communications.
+ *        with non-blocking communications.
  *
- * This function is independant of \ref CWP_Time_exch_t mode. The user has to
+ * This function is independent of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
  * \param [in] local_code_name  Local code name
@@ -2826,7 +2826,7 @@ CWP_Field_wait_irecv
 
 /**
  *
- * \brief Add a new parameter and intialize it.
+ * \brief Add a new parameter and initialize it.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -3349,15 +3349,15 @@ CWP_Global_data_wait_irecv
 }
 
 /**
- * \brief Create partitionned data exchange object
+ * \brief Create partitioned data exchange object
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
- * \param [in] gnum_elt
- * \param [in] n_elt
- * \param [in] n_part
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
+ * \param [in] gnum_elt         Element global number array
+ * \param [in] n_elt            Number of elements per partition
+ * \param [in] n_part           Number of partitions
  *
  */
 
@@ -3382,12 +3382,12 @@ CWP_Part_data_create
 }
 
 /**
- * \brief Delete partitionned data exchange object
+ * \brief Delete partitioned data exchange object
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] exch_type
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] exch_type        Send or receive
  *
  */
 
@@ -3409,13 +3409,13 @@ CWP_Part_data_del
 /**
  * \brief Send a data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part1_to_part2_data
- * \param [in] request
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Part data identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] part1_to_part2_data Partition send to partition receive data link
+ * \param [in] request             MPI request
  *
  */
 
@@ -3444,11 +3444,11 @@ CWP_Part_data_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] s_data
- * \param [in] n_components
- * \param [in] part2_data
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] s_data           Data size
+ * \param [in] n_components     Number of components
+ * \param [in] part2_data       Received data from send
+ * \param [in] request          MPI request
  *
  */
 
@@ -3477,8 +3477,8 @@ CWP_Part_data_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 
@@ -3501,8 +3501,8 @@ CWP_Part_data_wait_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id
- * \param [in] request
+ * \param [in] part_data_id     Part data identifier
+ * \param [in] request          MPI request
  *
  */
 

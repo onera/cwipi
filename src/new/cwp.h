@@ -68,7 +68,7 @@ extern "C" {
 
 /**
  * \typedef CWP_g_num_t
- * \brief Long int in cwipi
+ * \brief Long int in CWIPI
  *
  */
 
@@ -291,7 +291,7 @@ typedef enum {
   CWP_SPATIAL_INTERP_FROM_INTERSECTION,                          /*!< Meshes intersection */
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT, /*!< Location into a mesh (all targets are located) */
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,         /*!< Location into a mesh with the octree method*/
-  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE,        /*!< Location into a mesh with the dbbtree method */
+  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE,        /*!< Location into a mesh with the bounding box tree method */
   CWP_SPATIAL_INTERP_FROM_IDENTITY
 
 } CWP_Spatial_interp_t;
@@ -528,11 +528,11 @@ CWP_User_structure_get
 );
 
 //**
-// * \brief Writing output to fortran file.
+// * \brief Writing output to Fortran file.
 // *
-// * This function set the file fortran logical unit for writing output.
+// * This function set the file Fortran logical unit for writing output.
 // *
-// * \param [in]  iunit        File fortan logical unit
+// * \param [in]  iunit        File Fortran logical unit
 // *
 // */
 
@@ -1282,7 +1282,7 @@ CWP_Mesh_interf_c_poly_block_set
 
 
 /**
- * \brief Get the properties of a polyhedron block of the interface mesh partition..
+ * \brief Get the properties of a polyhedron block of the interface mesh partition.
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -1451,7 +1451,7 @@ CWP_Field_create
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] map_type          Choice if data is setted for the source or the target
+ * \param [in] map_type          Choice if data is set for the source or the target
  * \param [in] data              Storage array (Mapping)
  *
  */
@@ -1475,7 +1475,7 @@ CWP_Field_data_set
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  field_id          Field identifier
  * \param [in]  i_part            Current partition
- * \param [in]  map_type          Choice if data is setted for the source or the target
+ * \param [in]  map_type          Choice if data is set for the source or the target
  * \param [out] data              Storage array (Mapping)
  *
  */
@@ -1554,9 +1554,9 @@ CWP_Field_del
 
 /**
  * \brief Send a spatially interpolated field to the coupled code with
- *        nonblocking communications.
+ *        non-blocking communications.
  *
- * This function is independant of \ref CWP_Time_exch_t mode. The user has to
+ * This function is independent of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
  * \param [in]  local_code_name Local code name
@@ -1577,9 +1577,9 @@ CWP_Field_issend
 /**
  *
  * \brief Receive a spatially interpolated field from the coupled code
- *        with nonblocking communications.
+ *        with non-blocking communications.
  *
- * This function is independant of \ref CWP_Time_exch_t mode. The user has to
+ * This function is independent of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
  * \param [in]  local_code_name Local code name
@@ -1737,7 +1737,7 @@ CWP_Interp_src_data_get
  * \param [out] n_elt_tgt                 Number of target elements
  * \param [out] n_referenced_tgt          Number of referenced target elements
  * \param [out] referenced_tgt            Referenced target elements
- * \param [out] tgt_come_from_src_idx     Traget to origin source elements index
+ * \param [out] tgt_come_from_src_idx     Target to origin source elements index
  *
  */
 
@@ -1922,7 +1922,7 @@ CWP_Interp_closest_points_coord_get
 
 /**
  *
- * \brief Add a new parameter and intialize it.
+ * \brief Add a new parameter and initialize it.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -2207,7 +2207,7 @@ CWP_Global_data_wait_irecv
 );
 
 /**
- * \brief Create partitionned data exchange object
+ * \brief Create partitioned data exchange object
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -2232,7 +2232,7 @@ CWP_Part_data_create
  );
 
 /**
- * \brief Delete partitionned data exchange object
+ * \brief Delete partitioned data exchange object
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -2740,7 +2740,7 @@ CWP_Field_data_type_get
  * \param [in] field_id        Field identifier
  * \param [in] i_part          Current partition
  * \param [in] order           Order
- * \param [in] storage_type    Choice if data is setted for the source or the target
+ * \param [in] storage_type    Choice if data is set for the source or the target
  * \param [in] data            Storage array (Mapping)
  *
  */

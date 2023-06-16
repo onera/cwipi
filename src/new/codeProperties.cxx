@@ -161,7 +161,7 @@ namespace cwipi
     PDM_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
     PDM_printf ("  - Is it a local code : %d\n", _isLocal);
     if (_isLocal) {
-      PDM_printf ("  - Is it a coupled rank : %d\n", _isActiveRank);
+      PDM_printf ("  - Is it an active rank? : %d\n", _isActiveRank);
     }
     PDM_printf ("  - Ranks in global communicator :");
     for (size_t i = 0; i < _intraRanks->size(); i++) {
@@ -295,7 +295,7 @@ namespace cwipi
     sprintf(buffer, "  - Is it a local code : %d\n", _isLocal);
     properties.append(buffer);
     if (_isLocal) {
-      sprintf(buffer, "  - Is it a coupled rank : %d\n", _isActiveRank);
+      sprintf(buffer, "  - Is it an active rank? : %d\n", _isActiveRank);
       properties.append(buffer);
     }
     sprintf(buffer, "  - Ranks in global communicator :");
