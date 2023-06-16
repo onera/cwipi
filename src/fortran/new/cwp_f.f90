@@ -391,30 +391,6 @@ module cwp
         CWP_Interp_closest_points_coord_get_
     end interface CWP_Interp_closest_points_coord_get
 
-    ! interface CWP_Param_add_int ; module procedure &
-    !     CWP_Param_add_int_
-    ! end interface CWP_Param_add_int
-
-    interface CWP_Param_add_double ; module procedure &
-        CWP_Param_add_double_
-    end interface CWP_Param_add_double
-
-    interface CWP_Param_add_char ; module procedure &
-        CWP_Param_add_char_
-    end interface CWP_Param_add_char
-
-    interface CWP_Param_set_int ; module procedure &
-        CWP_Param_set_int_
-    end interface CWP_Param_set_int
-
-    interface CWP_Param_set_double ; module procedure &
-        CWP_Param_set_double_
-    end interface CWP_Param_set_double
-
-    interface CWP_Param_set_char ; module procedure &
-        CWP_Param_set_char_
-    end interface CWP_Param_set_char
-
     interface CWP_Param_del ; module procedure &
         CWP_Param_del_
     end interface CWP_Param_del
@@ -428,17 +404,15 @@ module cwp
     end interface CWP_Param_is
 
     interface CWP_Param_get
-      module procedure CWP_Param_get_
       module procedure CWP_Param_get_int
       module procedure CWP_Param_get_double
-      ! module procedure CWP_Param_get_char
+      module procedure CWP_Param_get_char
     end interface CWP_Param_get
 
     interface CWP_Param_reduce
-      module procedure CWP_Param_reduce_
       module procedure CWP_Param_reduce_int
       module procedure CWP_Param_reduce_double
-      ! module procedure CWP_Param_reduce_char
+      module procedure CWP_Param_reduce_char
     end interface CWP_Param_reduce
 
     interface CWP_Param_lock ; module procedure &
@@ -581,12 +555,12 @@ module cwp
              CWP_Param_del_ ,&
              CWP_Param_n_get_ ,&
              CWP_Param_is_ ,&
-             CWP_Param_get_ ,&
              CWP_Param_get_int ,&
              CWP_Param_get_double ,&
-             CWP_Param_reduce_,&
+             CWP_Param_get_char, &
              CWP_Param_reduce_int,&
              CWP_Param_reduce_double,&
+             CWP_Param_reduce_char, &
              CWP_Param_lock_ ,&
              CWP_Param_unlock_,&
              CWP_Codes_list_get_,&
@@ -1298,24 +1272,6 @@ module cwp
     end subroutine CWP_Properties_dump
 
 
-    ! to remove?
-    subroutine CWP_Param_add_cf(local_code_name,   &
-                                l_local_code_name, &
-                                param_name,        &
-                                l_param_name,      &
-                                data_type,         &
-                                initial_value,     &
-                                l_initial_value)   &
-      bind(c, name='CWP_Param_add_cf')
-      use, intrinsic :: iso_c_binding
-      implicit none
-      character(kind = c_char, len = 1) :: local_code_name, param_name
-      integer(c_int), value :: l_local_code_name, l_param_name, l_initial_value
-      integer(c_int), value :: data_type
-      type(c_ptr),    value :: initial_value
-    end subroutine CWP_Param_add_cf
-
-
     subroutine CWP_Param_add_int_cf(local_code_name,   &
                                     l_local_code_name, &
                                     param_name,        &
@@ -1357,22 +1313,6 @@ module cwp
       integer(c_int), value :: l_local_code_name, l_param_name, l_initial_value
       character(kind = c_char, len = 1) :: initial_value
     end subroutine CWP_Param_add_char_cf
-
-    ! to remove?
-    subroutine CWP_Param_set_cf(local_code_name,   &
-                                l_local_code_name, &
-                                param_name,        &
-                                l_param_name,      &
-                                data_type,         &
-                                value)             &
-      bind(c, name='CWP_Param_set_cf')
-      use, intrinsic :: iso_c_binding
-      implicit none
-      character(kind = c_char, len = 1) :: local_code_name, param_name
-      integer(c_int), value :: l_local_code_name, l_param_name
-      integer(c_int), value :: data_type
-      type(c_ptr),    value :: value
-    end subroutine CWP_Param_set_cf
 
     subroutine CWP_Param_set_int_cf(local_code_name,   &
                                     l_local_code_name, &
@@ -1461,22 +1401,6 @@ module cwp
     end function CWP_Param_is_cf
 
 
-    ! to remove?
-    subroutine CWP_Param_get_cf(local_code_name,   &
-                                l_local_code_name, &
-                                param_name,        &
-                                l_param_name,      &
-                                data_type,         &
-                                value)             &
-      bind(c, name='CWP_Param_get_cf')
-      use, intrinsic :: iso_c_binding
-      implicit none
-      character(kind = c_char, len = 1) :: local_code_name, param_name
-      integer(c_int), value :: l_local_code_name, l_param_name
-      integer(c_int), value :: data_type
-      type(c_ptr)           :: value
-    end subroutine CWP_Param_get_cf
-
     subroutine CWP_Param_get_int_cf(local_code_name,   &
                                     l_local_code_name, &
                                     param_name,        &
@@ -1503,39 +1427,21 @@ module cwp
       real(c_double)        :: value
     end subroutine CWP_Param_get_double_cf
 
-    ! TODO :
-    ! subroutine CWP_Param_get_char_cf(local_code_name,   &
-    !                                    l_local_code_name, &
-    !                                    param_name,        &
-    !                                    l_param_name,      &
-    !                                    value)             &
-    !   bind(c, name='CWP_Param_get_char_cf')
-    !   use, intrinsic :: iso_c_binding
-    !   implicit none
-    !   character(kind = c_char, len = 1) :: local_code_name, param_name
-    !   integer(c_int), value             :: l_local_code_name, l_param_name
-    !   character(kind = c_char, len = 1) :: value
-    ! end subroutine CWP_Param_get_char_cf
-
-    subroutine CWP_Param_reduce_cf(op,           &
-                                   param_name,   &
-                                   l_param_name, &
-                                   data_type,    &
-                                   res,          &
-                                   n_codes,      &
-                                   code_names,   &
-                                   l_code_names) &
-
-      bind(c, name='CWP_Param_reduce_cf')
+    subroutine CWP_Param_get_char_cf(local_code_name,   &
+                                     l_local_code_name, &
+                                     param_name,        &
+                                     l_param_name,      &
+                                     val,               &
+                                     l_value)           &
+      bind(c, name='CWP_Param_get_char_cf')
       use, intrinsic :: iso_c_binding
       implicit none
-      integer(c_int), value             :: op, data_type, n_codes
-      type(c_ptr)                       :: res
-      character(kind = c_char, len = 1) :: param_name
-      integer(c_int), value             :: l_param_name
-      type(c_ptr),    value             :: code_names
-      type(c_ptr),    value             :: l_code_names
-    end subroutine CWP_Param_reduce_cf
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value             :: l_local_code_name, l_param_name
+      type(c_ptr)                       :: val
+      integer(c_int)                    :: l_value
+    end subroutine CWP_Param_get_char_cf
+
 
     subroutine CWP_Param_reduce_int_cf(op,           &
                                         param_name,   &
@@ -1576,7 +1482,26 @@ module cwp
       type(c_ptr),    value             :: l_code_names
     end subroutine CWP_Param_reduce_double_cf
 
-    ! TODO: CWP_Param_reduce_char_cf
+    subroutine CWP_Param_reduce_char_cf(op,           &
+                                        param_name,   &
+                                        l_param_name, &
+                                        res,          &
+                                        l_res,        &
+                                        n_codes,      &
+                                        code_names,   &
+                                        l_code_names) &
+
+      bind(c, name='CWP_Param_reduce_char_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int), value             :: op, n_codes
+      type(c_ptr)                       :: res
+      integer(c_int)                    :: l_res
+      character(kind = c_char, len = 1) :: param_name
+      integer(c_int), value             :: l_param_name
+      type(c_ptr),    value             :: code_names
+      type(c_ptr),    value             :: l_code_names
+    end subroutine CWP_Param_reduce_char_cf
 
 
     subroutine CWP_Param_lock_cf(local_code_name,   &
@@ -4762,33 +4687,6 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_get_(code_name,  &
-                            param_name, &
-                            data_type,  &
-                            value)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = *) :: code_name
-    character(kind = c_char, len = *) :: param_name
-    integer, intent(in)               :: data_type
-    type(c_ptr)                       :: value
-    integer(kind = c_int)             :: l_code_name
-    integer(kind = c_int)             :: l_param_name
-
-    l_code_name  = len(code_name)
-    l_param_name = len(param_name)
-
-    call CWP_Param_get_cf(code_name,    &
-                          l_code_name,  &
-                          param_name,   &
-                          l_param_name, &
-                          data_type,    &
-                          value)
-
-  end subroutine CWP_Param_get_
-
   subroutine CWP_Param_get_int(code_name,  &
                                param_name, &
                                value)
@@ -4838,8 +4736,34 @@ contains
 
   end subroutine CWP_Param_get_double
 
+  subroutine CWP_Param_get_char(code_name,  &
+                                param_name, &
+                                val)
 
-  ! TODO: subroutine CWP_Param_get_char...
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+    character(c_char), pointer        :: val(:)
+    type(c_ptr)                       :: cptr = C_NULL_PTR
+    integer(c_int)                    :: l_value
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    call CWP_Param_get_char_cf(code_name,    &
+                               l_code_name,  &
+                               param_name,   &
+                               l_param_name, &
+                               cptr,         &
+                               l_value)
+
+    call c_f_pointer(cptr, val, [l_value])
+
+  end subroutine CWP_Param_get_char
 
 
   !>
@@ -4853,40 +4777,6 @@ contains
   !! \param [in]  n_codes      Number of codes
   !! \param [in]  code_names   Codes name
   !!
-
-  subroutine CWP_Param_reduce_(op,         &
-                               param_name, &
-                               data_type,  &
-                               res,        &
-                               n_codes,    &
-                               code_names)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    integer, intent(in)                                           :: op, data_type
-    type(c_ptr)                                                   :: res
-    integer(c_int)                                                :: n_codes, i
-    character(kind = c_char, len = *)                             :: param_name
-    integer(kind = c_int)                                         :: l_param_name
-    character(kind = c_char, len = *), dimension(n_codes), target :: code_names
-    integer, dimension(n_codes), target                           :: l_code_names
-
-    l_param_name = len(param_name)
-    do i=1,n_codes
-      l_code_names(i) = len(code_names(i))
-    end do
-
-    call CWP_Param_reduce_cf(op,                &
-                             param_name,        &
-                             l_param_name,      &
-                             data_type,         &
-                             res,               &
-                             n_codes,           &
-                             c_loc(code_names), &
-                             c_loc(l_code_names))
-
-  end subroutine CWP_Param_reduce_
 
   subroutine CWP_Param_reduce_int(op,         &
                                   param_name, &
@@ -4951,6 +4841,43 @@ contains
                                     c_loc(l_code_names))
 
   end subroutine CWP_Param_reduce_double
+
+  subroutine CWP_Param_reduce_char(op,         &
+                                   param_name, &
+                                   res,        &
+                                   n_codes,    &
+                                   code_names)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer, intent(in)                                           :: op
+    character(c_char), pointer                                    :: res(:)
+    integer(c_int)                                                :: n_codes, i
+    character(kind = c_char, len = *)                             :: param_name
+    integer(kind = c_int)                                         :: l_param_name
+    character(kind = c_char, len = *), dimension(n_codes), target :: code_names
+    integer, dimension(n_codes), target                           :: l_code_names
+    type(c_ptr)                                                   :: cptr = C_NULL_PTR
+    integer(c_int)                                                :: l_res
+
+    l_param_name = len(param_name)
+    do i=1,n_codes
+      l_code_names(i) = len(code_names(i))
+    end do
+
+    call CWP_Param_reduce_char_cf(op,                &
+                                  param_name,        &
+                                  l_param_name,      &
+                                  cptr,              &
+                                  l_res,             &
+                                  n_codes,           &
+                                  c_loc(code_names), &
+                                  c_loc(l_code_names))
+
+    call c_f_pointer(cptr, res, [l_res])
+
+  end subroutine CWP_Param_reduce_char
 
 
 
@@ -5513,10 +5440,10 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] exch_type
-  !! \param [in] gnum_elt
-  !! \param [in] n_elt
-  !! \param [in] n_part
+  !! \param [in] exch_type        Exchange type
+  !! \param [in] gnum_elt         Global ids
+  !! \param [in] n_elt            Number of elements in partitions (size = \p n_part)
+  !! \param [in] n_part           Number of partitions
   !!
   !!
 
@@ -5562,7 +5489,7 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] exch_type
+  !! \param [in] exch_type        Exchange type
   !!
   !!
 

@@ -2588,44 +2588,6 @@ CWP_Spatial_interp_property_set_cf
  */
 
 void
-CWP_Param_add_cf // to remove?
-(
- const char        *f_local_code_name,
- const int          l_local_code_name,
- const char        *f_param_name,
- const int          l_param_name,
- const CWP_Type_t   data_type,
- void              *f_initial_value,
- const int          l_initial_value
-)
-{
-
-  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
-
-  if (data_type == CWP_CHAR) {
-    char *c_initial_value      = _fortran_to_c_string((char *) f_initial_value,      l_initial_value     );
-
-    CWP_Param_add(c_local_code_name,
-                  c_param_name,
-                  data_type,
-                  c_initial_value);
-
-    free(c_initial_value);
-  }
-
-  else {
-    CWP_Param_add(c_local_code_name,
-                c_param_name,
-                data_type,
-                f_initial_value);
-  }
-
-  free ( c_local_code_name);
-  free ( c_param_name);
-}
-
-void
 CWP_Param_add_int_cf
 (
  const char        *f_local_code_name,
@@ -2709,30 +2671,6 @@ CWP_Param_add_char_cf
  * \param [in] value            Value
  *
  */
-
-void
-CWP_Param_set_cf // to remove?
-(
- const char        *f_local_code_name,
- const int          l_local_code_name,
- const char        *f_param_name,
- const int          l_param_name,
- const CWP_Type_t   data_type,
- void              *value
-)
-{
-  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
-
-  CWP_Param_set(c_local_code_name,
-                c_param_name,
-                data_type,
-                value);
-
-  free ( c_local_code_name);
-  free ( c_param_name);
-}
-
 
 void
 CWP_Param_set_int_cf
@@ -2959,30 +2897,6 @@ CWP_Param_is_cf
  */
 
 void
-CWP_Param_get_cf // to remove?
-(
- const char       *f_code_name,
- const int         l_code_name,
- const char       *f_param_name,
- const int         l_param_name,
- const CWP_Type_t  data_type,
- void             *value
-)
-{
-  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
-  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
-
-  CWP_Param_get(c_code_name,
-                c_param_name,
-                data_type,
-                value);
-
-  free ( c_code_name);
-  free ( c_param_name);
-}
-
-
-void
 CWP_Param_get_int_cf
 (
  const char       *f_code_name,
@@ -3026,8 +2940,30 @@ CWP_Param_get_double_cf
   free(c_param_name);
 }
 
-// TODO: CWP_Param_get_char_cf
+void
+CWP_Param_get_char_cf
+(
+ const char       *f_code_name,
+ const int         l_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+       char      **value,
+       int        *l_value
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
 
+  CWP_Param_get(c_code_name,
+                c_param_name,
+                CWP_CHAR,
+                value);
+
+  *l_value = strlen(*value);
+
+  free(c_code_name);
+  free(c_param_name);
+}
 
 /**
  *
@@ -3045,42 +2981,6 @@ CWP_Param_get_double_cf
  * \param [in]  l_code_names Length of codes name
  *
  */
-
-void
-CWP_Param_reduce_cf // to remove?
-(
- const CWP_Op_t    op,
- const char       *f_param_name,
- const int         l_param_name,
- const CWP_Type_t  data_type,
- void             *res,
- const int         n_codes,
- const char       *f_code_names,
- const int        *l_code_names
-)
-{
-  char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
-  char **c_code_names = (char **) malloc(n_codes * sizeof(char *));
-  int idx = 0;
-  for (int i = 0 ; i < n_codes ; i++) {
-    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
-    idx += l_code_names[i];
-  }
-
-  CWP_Param_reduce(op,
-                   c_param_name,
-                   data_type,
-                   res,
-                   n_codes,
-   (const char **) c_code_names);
-
-  for (int i = 0; i < n_codes; i++) {
-    free(c_code_names[i]);
-  }
-  free(c_code_names);
-  free(c_param_name);
-}
-
 
 void
 CWP_Param_reduce_int_cf
@@ -3152,7 +3052,42 @@ CWP_Param_reduce_double_cf
 }
 
 
-// TODO: CWP_Param_reduce_char_cf
+void
+CWP_Param_reduce_char_cf
+(
+ const CWP_Op_t    op,
+ const char       *f_param_name,
+ const int         l_param_name,
+       char      **res,
+       int        *l_res,
+ const int         n_codes,
+ const char       *f_code_names,
+ const int        *l_code_names
+)
+{
+  char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+  char **c_code_names = (char **) malloc(n_codes * sizeof(char *));
+  int idx = 0;
+  for (int i = 0 ; i < n_codes ; i++) {
+    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
+    idx += l_code_names[i];
+  }
+
+  CWP_Param_reduce(op,
+                   c_param_name,
+                   CWP_CHAR,
+          (void *) res,
+                   n_codes,
+   (const char **) c_code_names);
+
+  *l_res = strlen(*res);
+
+  for (int i = 0; i < n_codes; i++) {
+    free(c_code_names[i]);
+  }
+  free(c_code_names);
+  free(c_param_name);
+}
 
 
 

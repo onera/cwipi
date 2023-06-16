@@ -75,7 +75,7 @@ program testf
   real(c_double)                :: tata
   real(c_double)                :: check_tata
   character(len = 99)           :: str_param
-  character(len = 99)           :: check_str_param
+  character(c_char), pointer    :: check_str_param(:) => null()
 
   integer(c_int)                :: n_elt2
   integer(c_int),       pointer :: connec_idx2(:) => null()
@@ -216,6 +216,7 @@ program testf
     call CWP_Param_unlock("code1")
   endif
 
+  str_param = "gnocchi"
   if (code_names(1) == "code2") then
     call CWP_Param_lock("code2")
     call CWP_Param_add("code2", "str_param", str_param)
@@ -276,7 +277,13 @@ program testf
       call flush(iiunit)
     endif
 
-    call CWP_Properties_dump()
+    call CWP_Param_get("code1",  &
+                       "str_param",   &
+                       check_str_param)
+    if (debug) then
+      write(iiunit,*) "check_str_param = ", check_str_param
+      call flush(iiunit)
+    endif
   endif
   !<<--
 
