@@ -1,0 +1,109 @@
+#=============================================================================
+# This file contains the functions in C to be called in an user interpolation
+# function (ie. callback) to retreive local geometric data.
+#=============================================================================
+
+# IMPORT
+
+import sys
+
+try:
+  from pycwp import pycwp
+except:
+  if i_rank == 0:
+    print("      Error : CWIPI module not found (update PYTHONPATH variable)")
+    sys.exit(1)
+
+# GENERAL GEOMETRIC DATA
+
+# Get the number of components of the field
+
+n_components = pycwp.interp_field_n_components_get(local_code_name,
+                                                   cpl_id,
+                                                   field_id)
+
+# Get the field data storage type
+
+# TO DO for field storage
+
+# Get the location of the degrees of freedom
+
+# TO DO for field dof location
+
+# Get data from the source of the exchange
+
+src_data = pycwp.interp_src_data_get(local_code_name,
+                                     cpl_id,
+                                     field_id,
+                                     i_part)
+
+n_elt_src = src_data["n_elt_src"]
+src_to_tgt_idx = src_data["src_to_tgt_idx"]
+
+# Get data from the target of the exchange
+
+tgt_data = pycwp.interp_tgt_data_get(local_code_name,
+                                     cpl_id,
+                                     field_id,
+                                     i_part)
+
+n_tgt          = tgt_data["n_elt_tgt"]
+ref_tgt        = tgt_data["referenced_tgt"]
+tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
+
+# LOCATION SPATIAL INTERPOLATION ALGORITHM
+
+# Get the weigths computed by the location spatial interpolation algorithm
+
+weights = pycwp.interp_location_weights_get(local_code_name,
+                                            cpl_id,
+                                            field_id,
+                                            i_part)
+
+# Get the point data
+
+point_data = pycwp.interp_location_point_data_get(local_code_name,
+                                                  cpl_id,
+                                                  field_id,
+                                                  i_part)
+
+points_coords           = point_data["points_coords"]
+points_uvw              = point_data["points_uvw"]
+points_dist2            = point_data["points_dist2"]
+points_projected_coords = point_data["points_projected_coords"]
+
+# Get the spatial interpolation internal cell->vertex connectivity
+
+connectivity_data = pycwp.interp_location_internal_cell_vtx_get(local_code_name,
+                                                                cpl_id,
+                                                                field_id,
+                                                                i_part)
+
+cell_vtx_idx = connectivity_data["cell_vtx_idx"]
+cell_vtx     = connectivity_data["cell_vtx"]
+
+# INTERSECTION SPATIAL INTERPOLATION ALGORITHM
+
+# Get the intersection volumes
+
+volumes = pycwp.interp_intersection_volumes_get(local_code_name,
+                                                cpl_id,
+                                                field_id,
+                                                i_part)
+
+# Get local target elements volumes
+
+# TO DO add to Cython interface CWP_Interp_intersection_tgt_elt_volumes_get
+
+# CLOSEST POINTS SPATIAL INTERPOLATION ALGORITHM
+
+# Get squared distances to closest points
+
+distances2 = pycwp.interp_closest_points_distances_get(local_code_name,
+                                                       cpl_id,
+                                                       field_id,
+                                                       i_part)
+
+# Get coordinates of closest source points
+
+# TO DO add to Cython interface CWP_Interp_closest_points_coord_get
