@@ -709,7 +709,13 @@ int main
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  // MPI_Barrier(MPI_COMM_WORLD);
+
+  for (int icode = 0; icode < n_code; icode++) {
+    CWP_Cpl_barrier(code_name[icode],
+                    cpl_name);
+  }
+
   if (i_rank == 0) {
     printf("Create coupling OK\n");
     fflush(stdout);

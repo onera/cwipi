@@ -818,6 +818,29 @@ CWP_Cpl_create
                             recv_freq_type);
 }
 
+
+/**
+ *
+ * \brief MPI Barrier on the coupling communicator.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ */
+
+void
+CWP_Cpl_barrier
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
+{
+  if (_is_active_rank(local_code_name)) {
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.barrier();
+  }
+}
+
 /**
  *
  * \brief Delete a coupling object.

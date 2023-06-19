@@ -203,6 +203,10 @@ cdef extern from "cwp.h":
                       int                  n_part,
                       CWP_Dynamic_mesh_t   displacement,
                       CWP_Time_exch_t      recv_freq_type)
+
+  void CWP_Cpl_barrier(char *local_code_name,
+                       char *cpl_id)
+
   void CWP_Cpl_del(char *local_code_name,
                    char *cpl_id)
   int CWP_N_uncomputed_tgts_get(char *local_code_name,
@@ -2395,6 +2399,14 @@ cdef class Coupling (object):
                        n_part,
                        displacement,
                        recv_freq_type)
+
+
+    def barrier(self):
+      """
+      MPI Barrier on the coupling communicator
+      """
+      CWP_Cpl_barrier(self.local_code_name,
+                      self.cpl_id)
 
     def __del__(self):
         """

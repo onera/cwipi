@@ -247,7 +247,9 @@ def runTest():
     cpl[icode].mesh_interf_finalize()
 
 
-  comm.Barrier()
+  #comm.Barrier()
+  for icode in range(n_code):
+    cpl[icode].barrier()
   if i_rank == 0:
     print("Set mesh OK")
 

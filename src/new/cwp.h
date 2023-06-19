@@ -672,6 +672,22 @@ CWP_Cpl_create
 );
 
 
+/**
+ *
+ * \brief MPI Barrier on the coupling communicator.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ */
+
+void
+CWP_Cpl_barrier
+(
+ const char *local_code_name,
+ const char *cpl_id
+);
+
 
 /**
  *

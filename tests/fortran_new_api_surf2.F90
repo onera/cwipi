@@ -241,7 +241,14 @@ program testf
                       "text")
   enddo
 
-  call MPI_Barrier(MPI_comm_world, ierr)
+
+  do i = 1, n_code
+    call CWP_Cpl_barrier(code_name(i), &
+                         coupling_name)
+  enddo
+
+
+  ! call MPI_Barrier(MPI_comm_world, ierr)
   if (i_rank == 0) then
     print *, "Create coupling OK"
   endif

@@ -215,6 +215,10 @@ module cwp
         CWP_Cpl_create_
     end interface CWP_Cpl_create
 
+    interface CWP_Cpl_barrier ; module procedure &
+        CWP_Cpl_barrier_
+    end interface CWP_Cpl_barrier
+
     interface CWP_Cpl_Del ; module procedure &
         CWP_Cpl_Del_
     end interface CWP_Cpl_Del
@@ -502,6 +506,7 @@ module cwp
              CWP_Output_file_set_,&
              CWP_State_get_ ,&
              CWP_Cpl_create_ ,&
+             CWP_Cpl_barrier_ ,&
              CWP_Cpl_Del_ ,&
              CWP_N_uncomputed_tgts_get_ ,&
              CWP_Uncomputed_tgts_get_ ,&
@@ -677,6 +682,14 @@ module cwp
         integer(c_int), value :: displacement
         integer(c_int), value :: freq
       end subroutine CWP_Cpl_Create_cf
+
+      subroutine CWP_Cpl_barrier_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
+        bind(c, name = 'CWP_Cpl_barrier_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(c_int), value             :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Cpl_barrier_cf
 
       subroutine CWP_Cpl_del_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
         bind(c, name = 'CWP_Cpl_del_cf')
@@ -2267,6 +2280,33 @@ contains
                             displacement,       &
                             freq)
   end subroutine CWP_Cpl_Create_
+
+
+  !>
+  !! \brief MPI Barrier on the coupling communicator.
+  !!
+  !! \param [in]  local_code_name     Local code name
+  !! \param [in]  cpl_id              Coupling identifier
+  !!
+  !!
+
+  subroutine CWP_Cpl_barrier_(local_code_name, &
+                              cpl_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(c_int)                    :: l_local_code_name, l_cpl_id
+
+    l_local_code_name   = len(local_code_name)
+    l_cpl_id            = len(cpl_id)
+
+    call CWP_Cpl_barrier_cf(local_code_name,   &
+                            l_local_code_name, &
+                            cpl_id,            &
+                            l_cpl_id)
+  end subroutine CWP_Cpl_barrier_
 
 
   !>

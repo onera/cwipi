@@ -573,6 +573,16 @@ namespace cwipi {
     inline  int 
     freqWriterGet ();
 
+
+    /**
+     *
+     * \brief MPI Barrier on the coupling communicator.
+     *
+     */
+
+    void
+    barrier();
+
     /*----------------------------------------------------------------------------*
      * Methods  about mesh                                                     *
      *----------------------------------------------------------------------------*/

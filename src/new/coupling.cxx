@@ -2863,6 +2863,29 @@ namespace cwipi {
     }
   }
 
+
+  /**
+   *
+   * \brief MPI Barrier on the coupling communicator.
+   *
+   */
+
+  void
+  Coupling::barrier()
+  {
+    MPI_Comm unionComm = _communication.unionCommGet();
+
+    if (!_coupledCodeProperties.localCodeIs()) {
+      MPI_Barrier(unionComm);
+      return;
+    }
+
+    if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+      MPI_Barrier(unionComm);
+      return;
+    }
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods  about mesh                                                        *
    *----------------------------------------------------------------------------*/
