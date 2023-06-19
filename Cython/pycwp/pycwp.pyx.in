@@ -458,11 +458,21 @@ cdef extern from "cwp.h":
                                            char                  *field_id,
                                            int                    i_part,
                                            double               **volumes)
+  void CWP_Interp_intersection_tgt_elt_volumes_get(char                  *local_code_name,
+                                                   char                  *cpl_id,
+                                                   char                  *field_id,
+                                                   int                    i_part,
+                                                   double               **tgt_elt_volumes)
   void CWP_Interp_closest_points_distances_get(char                  *local_code_name,
                                                char                  *cpl_id,
                                                char                  *field_id,
                                                int                    i_part,
                                                double               **distances2)
+  void CWP_Interp_closest_points_coord_get(char                  *local_code_name,
+                                           char                  *cpl_id,
+                                           char                  *field_id,
+                                           int                    i_part,
+                                           double               **closest_src_coord)
 
   # --> functions about control parameters
   void CWP_Param_add(char        *local_code_name,
@@ -1445,6 +1455,49 @@ def interp_field_n_components_get(char * local_code_name,
 
     return n_components
 
+def interp_field_target_dof_location_get(char * local_code_name,
+                                         char * cpl_id,
+                                         char * field_id):
+    """
+    Get target degrees of freedom location.
+
+    Parameters:
+      local_code_name (str) : Local code name
+      cpl_id          (str) : Coupling identifier
+      field_id        (str) : Field identifier
+
+    Returns:
+      dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+    """
+
+    cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(local_code_name,
+                                                                        cpl_id,
+                                                                        field_id)
+
+    return dof_loc
+
+def interp_field_storage_get(char * local_code_name,
+                             char * cpl_id,
+                             char * field_id):
+    """
+    Get field storage type.
+
+    Parameters:
+      local_code_name (str) : Local code name
+      cpl_id          (str) : Coupling identifier
+      field_id        (str) : Field identifier
+
+    Returns:
+      storage (CWP_Field_storage_t) : Field storage type
+    """
+
+    cdef CWP_Field_storage_t storage = CWP_Field_storage_get(local_code_name,
+                                                             cpl_id,
+                                                             field_id)
+
+    return storage
+
+
 def interp_src_data_get(char * local_code_name,
                         char * cpl_id,
                         char * field_id,
@@ -1706,6 +1759,47 @@ def interp_intersection_volumes_get(char * local_code_name,
 
     return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
+def intersection_tgt_elt_volumes_get(char * local_code_name,
+                                     char * cpl_id,
+                                     char * field_id,
+                                     int    i_part):
+    """
+    Get spatial local target elements volumes (intersection algorithm).
+
+    Parameters:
+      local_code_name (str) : Local code name
+      cpl_id          (str) : Coupling identifier
+      field_id        (str) : Field identifier
+      i_part          (int) : Parition identifier
+
+    Returns:
+      tgt_elt_volumes (double *) : Volume of target elements
+    """
+
+    cdef double *tgt_elt_volumes
+
+    CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name,
+                                                cpl_id,
+                                                field_id,
+                                                i_part,
+                                                &(tgt_elt_volumes))
+
+    # get size
+    cdef int  n_elt_tgt;
+    cdef int  n_referenced_tgt;
+    cdef int *c_referenced_tgt;
+    cdef int *c_tgt_come_from_src_idx;
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(c_referenced_tgt),
+                            &(c_tgt_come_from_src_idx))
+
+    return create_numpy_d(tgt_elt_volumes, n_elt_tgt, False)
+
 def interp_closest_points_distances_get(char * local_code_name,
                                         char * cpl_id,
                                         char * field_id,
@@ -1747,7 +1841,46 @@ def interp_closest_points_distances_get(char * local_code_name,
 
     return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
+def interp_closest_points_coord_get(char * local_code_name,
+                                    char * cpl_id,
+                                    char * field_id,
+                                    int    i_part):
+    """
+    Get coordinates of closest source points (closest points algorithm).
 
+    Parameters:
+      local_code_name (str) : Local code name
+      cpl_id          (str) : Coupling identifier
+      field_id        (str) : Field identifier
+      i_part          (int) : Parition identifier
+
+    Returns:
+      closest_src_coord (double *) : Coordinates of closest source points
+    """
+
+    cdef double *closest_src_coord
+
+    CWP_Interp_closest_points_coord_get(local_code_name,
+                                        cpl_id,
+                                        field_id,
+                                        i_part,
+                                        &(closest_src_coord))
+
+    # get size
+    cdef int  n_elt_tgt;
+    cdef int  n_referenced_tgt;
+    cdef int *c_referenced_tgt;
+    cdef int *c_tgt_come_from_src_idx;
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(c_referenced_tgt),
+                            &(c_tgt_come_from_src_idx))
+
+    return create_numpy_d(closest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
 #-----------------------------------------------------------------------------
 # PARTDATA CLASS
@@ -2150,34 +2283,6 @@ cdef class Field (object):
                              self.cpl_id,
                              self.field_id)
 
-    def target_dof_location_get(self):
-        """
-        Get target degrees of freedom location.
-
-        Returns:
-          dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
-        """
-
-        cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.local_code_name,
-                                                                            self.cpl_id,
-                                                                            self.field_id)
-
-        return dof_loc
-
-    def storage_get(self):
-        """
-        Get field storage type.
-
-        Returns:
-          storage (CWP_Field_storage_t) : Field storage type
-        """
-
-        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(self.local_code_name,
-                                                                 self.cpl_id,
-                                                                 self.field_id)
-
-        return storage
-
     # --> LOCALISATION
     def n_uncomputed_tgts_get(self,
                               int   i_part):
@@ -2527,32 +2632,6 @@ cdef class Coupling (object):
 
         cdef int idx = self.fields_name[field_id]
         self.fields[idx].wait_irecv()
-
-    def field_get(self,
-                  char * field_id):
-        """
-        Get field properties.
-
-        Parameters:
-          field_id   (str)  : Field id
-
-        Returns:
-          n_comp  (int)                 : Number of field components
-          dof_loc (CWP_Dof_location_t)  : Location of degrees of freedom
-          storage (CWP_Field_storage_t) : Field storage type
-        """
-
-        cdef int idx = self.fields_name[field_id]
-
-        cdef int n_comp = self.fields[idx].n_component_get()
-        cdef CWP_Dof_location_t dof_loc = self.fields[idx].target_dof_location_get()
-        cdef CWP_Field_storage_t storage = self.fields[idx].storage_get()
-
-        return {
-                'n_comp' : n_comp,
-                'dof_loc': dof_loc,
-                'storage': storage
-               }
 
     def field_n_uncomputed_tgts_get(self,
                                     char *  field_id,

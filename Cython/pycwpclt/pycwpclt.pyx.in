@@ -1816,32 +1816,6 @@ cdef class Coupling (object):
                                   n_entities,
                                   data)
 
-    def field_get(self,
-                  char                  *field_id):
-        """
-        Get field properties.
-
-        Parameters:
-          field_id        (char*)               : Field id
-
-        Returns:
-          n_comp (int) : Number of field components
-          dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
-          storage (CWP_Field_storage_t) : Field storage type
-        """
-
-        cdef int idx = self.fields_name[field_id]
-
-        cdef int n_comp = self.fields[idx].n_component_get()
-        cdef CWP_Dof_location_t dof_loc = self.fields[idx].target_dof_location_get()
-        cdef CWP_Field_storage_t storage = self.fields[idx].storage_get()
-
-        return {
-                'n_comp' : n_comp,
-                'dof_loc': dof_loc,
-                'storage': storage
-               }
-
     def field_issend(self,
                      char *field_id):
         """

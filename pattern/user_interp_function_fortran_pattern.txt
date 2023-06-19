@@ -1,5 +1,5 @@
 !=============================================================================
-! This file contains the functions in C to be called in an user interpolation
+! This file contains the functions in Fortran to be called in an user interpolation
 ! function (ie. callback) to retreive local geometric data.
 !=============================================================================
 
