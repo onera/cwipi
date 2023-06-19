@@ -1,6 +1,6 @@
 #=============================================================================
 # This file contains the functions in C to be called in an user interpolation
-# function (ie. callback) to retreive local geometric data.
+# function (ie. callback) to retrieve local geometric data.
 #=============================================================================
 
 # IMPORT
@@ -57,7 +57,7 @@ tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
 
 # LOCATION SPATIAL INTERPOLATION ALGORITHM
 
-# Get the weigths computed by the location spatial interpolation algorithm
+# Get the weights computed by the location spatial interpolation algorithm
 
 weights = pycwp.interp_location_weights_get(local_code_name,
                                             cpl_id,

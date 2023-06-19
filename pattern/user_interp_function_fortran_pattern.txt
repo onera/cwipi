@@ -1,6 +1,6 @@
 !=============================================================================
 ! This file contains the functions in Fortran to be called in an user interpolation
-! function (ie. callback) to retreive local geometric data.
+! function (ie. callback) to retrieve local geometric data.
 !=============================================================================
 
 ! VARIABLES
@@ -95,7 +95,7 @@ call CWP_Interp_tgt_data_get(local_code_name,    &
                             referenced_tgt,      &
                             tgt_come_from_src_idx)
 
-! Tranform input C pointers to Fortran pointers
+! Transform input C pointers to Fortran pointers
 
 if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT .or. &
     spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE .or. &
@@ -116,7 +116,7 @@ endif
 
 ! LOCATION SPATIAL INTERPOLATION ALGORITHM
 
-! Get the weigths computed by the location spatial interpolation algorithm
+! Get the weights computed by the location spatial interpolation algorithm
 
 call CWP_Interp_location_weights_get(local_code_name, &
                                     cpl_id,           &

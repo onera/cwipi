@@ -1,6 +1,6 @@
 /*=============================================================================
  * This file contains the functions in Python to be called in an user interpolation
- * function (ie. callback) to retreive local geometric data.
+ * function (ie. callback) to retrieve local geometric data.
  *============================================================================*/
 
 // GENERAL GEOMETRIC DATA
@@ -54,7 +54,7 @@ CWP_Interp_tgt_data_get(local_code_name,
 
 // LOCATION SPATIAL INTERPOLATION ALGORITHM
 
-// Get the weigths computed by the location spatial interpolation algorithm
+// Get the weights computed by the location spatial interpolation algorithm
 
 double *weights = NULL;
 
