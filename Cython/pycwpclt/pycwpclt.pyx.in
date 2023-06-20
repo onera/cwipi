@@ -364,9 +364,9 @@ cdef extern from "client_server/client.h":
                                  int                i_part,
                                  CWP_Field_map_t    map_type,
                                  double             *data)
-  CWP_Dof_location_t CWP_client_Field_target_dof_location_get(char      *local_code_name,
-                                                              char      *cpl_id,
-                                                              char      *field_id)
+  CWP_Dof_location_t CWP_client_Field_dof_location_get(char      *local_code_name,
+                                                       char      *cpl_id,
+                                                       char      *field_id)
   CWP_Field_storage_t CWP_client_Field_storage_get(char      *local_code_name,
                                                    char      *cpl_id         ,
                                                    char      *field_id)
@@ -377,13 +377,13 @@ cdef extern from "client_server/client.h":
   # --> functions about exchange
   void CWP_client_Field_issend(char     *local_code_name,
                                char     *cpl_id,
-                               char     *src_field_id)
+                               char     *field_id)
   void CWP_client_Field_irecv(char        *local_code_name,
                               char        *cpl_id,
                               char        *tgt_field_id)
   void CWP_client_Field_wait_issend(char  *local_code_name,
                                     char  *cpl_id,
-                                    char  *src_field_id)
+                                    char  *field_id)
   void CWP_client_Field_wait_irecv(char    *local_code_name,
                                    char    *cpl_id,
                                    char    *tgt_field_id)
@@ -1480,7 +1480,7 @@ cdef class Field (object):
                                   map_type,
                        <double *> data.data)
 
-    def target_dof_location_get(self):
+    def dof_location_get(self):
         """
         Get target degrees of freedom location.
 
@@ -1488,9 +1488,9 @@ cdef class Field (object):
           dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
         """
 
-        cdef CWP_Dof_location_t dof_loc = CWP_client_Field_target_dof_location_get(self.local_code_name,
-                                                                                   self.cpl_id,
-                                                                                   self.field_id)
+        cdef CWP_Dof_location_t dof_loc = CWP_client_Field_dof_location_get(self.local_code_name,
+                                                                            self.cpl_id,
+                                                                            self.field_id)
 
         return dof_loc
 
@@ -1546,11 +1546,6 @@ cdef class Field (object):
 
         This function waits the end of exchange related to request
         from CWP_Field_irecv
-
-        Parameters:
-          local_code_name (char*) : Local code name
-          cpl_id          (char*) : Coupling identifier
-          tgt_field_id    (char*) : Target field identifier
         """
 
         cdef double *data
@@ -1856,9 +1851,7 @@ cdef class Coupling (object):
         from CWP_Field_irecv
 
         Parameters:
-          local_code_name (char*) : Local code name
-          cpl_id          (char*) : Coupling identifier
-          tgt_field_id    (char*) : Target field identifier
+          field_id    (char*) : Field identifier
         """
 
         cdef int idx = self.fields_name[field_id]

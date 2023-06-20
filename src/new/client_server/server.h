@@ -813,14 +813,14 @@ CWP_server_Field_n_component_get
 
 /**
  *
- * \brief Field_target_dof_location_get CWIPI.
+ * \brief Field_dof_location_get CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
  *
  */
 
 void
-CWP_server_Field_target_dof_location_get
+CWP_server_Field_dof_location_get
 (
   p_server                 svr
 );

@@ -474,49 +474,23 @@ namespace cwipi {
       CWP_Interp_function_t interpolationFunction  = referenceField->interpolationFunctionGet();
       CWP_Interp_function_t interpolationFunctionF = referenceField->interpFunctionFGet();
 
+      CWP_Interp_function_t _interpolationFunction = NULL;
       if (interpolationFunction != NULL) {
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-          // log_trace(">> interpolationFunction : %ld\n", interpolationFunction);
-          // log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
-          // log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
-          (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
-                                    _cpl->IdGet().c_str(),
-                                    referenceField->fieldIDGet().c_str(),
-                                    i_part,
-                                    _cpl->spatialInterpAlgoGet(),
-                                    storage,
-                         (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                         (double *) buffer[i_part]);
-          // log_trace("<< interpolationFunction\n");
-        }
-
+        _interpolationFunction = interpolationFunction;
       }
-
       else if (interpolationFunctionF != NULL) {
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-          log_trace(">> interpolationFunctionF : %ld, sizeof = %zu, * = %zu\n", interpolationFunctionF, sizeof(CWP_Interp_function_t), sizeof(CWP_Interp_function_t *));
-          log_trace("buffer_in  : %ld\n", (void *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE));
-          log_trace("buffer_out : %ld\n", (void *) buffer[i_part]);
-          log_trace("args : %s, %s, %s, %d, %d, %d\n",
-                    _localCodeProperties->nameGet().c_str(),
-                    _cpl->IdGet().c_str(),
-                    referenceField->fieldIDGet().c_str(),
-                    i_part,
-                    _cpl->spatialInterpAlgoGet(),
-                    storage);
-
-          (*interpolationFunctionF)(_localCodeProperties->nameGet().c_str(),
-                                    _cpl->IdGet().c_str(),
-                                    referenceField->fieldIDGet().c_str(),
-                                    i_part,
-                                    _cpl->spatialInterpAlgoGet(),
-                                    storage,
-                         (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                         (double *) buffer[i_part]);
-
-          log_trace("<< interpolationFunctionF\n");
-        }
+        _interpolationFunction = interpolationFunctionF;
       }
+
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+        (*_interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+                                   _cpl->IdGet().c_str(),
+                                   referenceField->fieldIDGet().c_str(),
+                                   i_part,
+                                   (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                   (double *) buffer[i_part]);
+      }
+
 
     }
 

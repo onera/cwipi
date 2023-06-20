@@ -157,8 +157,6 @@ cdef extern from "cwp.h":
                                           char                 *cpl_id,
                                           char                 *field_id,
                                           int                   i_part,
-                                          CWP_Spatial_interp_t  spatial_interp_algorithm,
-                                          CWP_Field_storage_t   storage,
                                           double               *buffer_in,
                                           double               *buffer_out)
 
@@ -385,9 +383,9 @@ cdef extern from "cwp.h":
                           int                i_part,
                           CWP_Field_map_t    map_type,
                           double            *data)
-  CWP_Dof_location_t CWP_Field_target_dof_location_get(char      *local_code_name,
-                                                       char      *cpl_id,
-                                                       char      *field_id)
+  CWP_Dof_location_t CWP_Field_dof_location_get(char      *local_code_name,
+                                                char      *cpl_id,
+                                                char      *field_id)
   CWP_Field_storage_t CWP_Field_storage_get(char      *local_code_name,
                                             char      *cpl_id         ,
                                             char      *field_id)
@@ -398,13 +396,13 @@ cdef extern from "cwp.h":
   # --> functions about exchange
   void CWP_Field_issend(char     *local_code_name,
                         char     *cpl_id,
-                        char     *src_field_id)
+                        char     *field_id)
   void CWP_Field_irecv(char        *local_code_name,
                        char        *cpl_id,
                        char        *tgt_field_id)
   void CWP_Field_wait_issend(char  *local_code_name,
                              char  *cpl_id,
-                             char  *src_field_id)
+                             char  *field_id)
   void CWP_Field_wait_irecv(char  *local_code_name,
                             char  *cpl_id,
                             char  *tgt_field_id)
@@ -412,10 +410,10 @@ cdef extern from "cwp.h":
   # --> functions about user interpolation
   void CWP_Interp_function_unset(char                 *local_code_name,
                                  char                 *cpl_id,
-                                 char                 *src_field_id)
+                                 char                 *field_id)
   void CWP_Interp_function_set(char                       *local_code_name,
                                char                       *cpl_id,
-                               char                       *src_field_id,
+                               char                       *field_id,
                                CWP_interp_function_t  fct)
   int CWP_Interp_field_n_components_get(char    *local_code_name,
                                         char    *cpl_id,
@@ -574,6 +572,9 @@ cdef extern from "cwp.h":
                                 char          *cpl_id,
                                 char          *part_data_id,
                                 int            request)
+
+  CWP_Spatial_interp_t CWP_Cpl_spatial_interp_algo_get(char          *local_code_name,
+                                                       char          *cpl_id)
 
 #-----------------------------------------------------------------------------
 # ENUM
@@ -1434,6 +1435,20 @@ def param_unlock(char * code_name):
 
 # --> functions to use inside user interpolation functions
 
+def cpl_spatial_interp_algo_get(char * local_code_name,
+                                char * cpl_id):
+  """
+  Get the coupling spatial interpolation algorithm.
+
+  Parameters:
+      local_code_name (str) : Local code name
+      cpl_id          (str) : Coupling identifier
+
+  Returns:  Spatial interpolation algorithm
+  """
+  return CWP_Cpl_spatial_interp_algo_get(local_code_name,
+                                         cpl_id)
+
 def interp_field_n_components_get(char * local_code_name,
                                   char * cpl_id,
                                   char * field_id):
@@ -2036,24 +2051,29 @@ cdef void callback(const char           *c_local_code_name,
                    const char           *c_cpl_id,
                    const char           *c_field_id,
                    int                   i_part,
-                   CWP_Spatial_interp_t  spatial_interp_algorithm,
-                   CWP_Field_storage_t   storage,
                    double               *buffer_in,
                    double               *buffer_out):
         """
         User interpolation function interface from location into a mesh.
 
         Parameters:
-          local_code_name             Local code name
-          cpl_id                      Coupling name
-          field_id                    Field name
-          spatial_interp_algorithm    Enum of spatial interpolation algorithm
+          c_local_code_name           Local code name
+          c_cpl_id                    Coupling name
+          c_field_id                  Field name
+          i_part                      Partition identifier
           buffer_in                   Input field array
 
         Returns:
           buffer_out                  Output field array
         """
         global interpolation_function_dict
+
+        cdef CWP_Spatial_interp_t spatial_interp_algorithm = CWP_Cpl_spatial_interp_algo_get(c_local_code_name,
+                                                                                             c_cpl_id)
+
+        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(c_local_code_name,
+                                                                 c_cpl_id,
+                                                                 c_field_id)
 
         cdef NPY.npy_intp dims = 0
 
@@ -2154,8 +2174,6 @@ cdef void callback(const char           *c_local_code_name,
                                                         cpl_id,
                                                         field_id,
                                                         i_part,
-                                                        spatial_interp_algorithm,
-                                                        storage,
                                                         buffer_in_a,
                                                         buffer_out_a)
 
@@ -2588,7 +2606,7 @@ cdef class Coupling (object):
         manually check the consistency of the exchanges.
 
         Parameters:
-          src_field_id    (str) : Source field identifier
+          field_id    (str) : Field identifier
         """
 
         cdef int idx = self.fields_name[field_id]
@@ -2612,7 +2630,7 @@ cdef class Coupling (object):
         Wait the end of an exchange related to request from CWP_Field_issend.
 
         Parameters:
-          src_field_id    (str) : Source field identifier
+          field_id    (str) : Field identifier
         """
 
         cdef int idx = self.fields_name[field_id]
@@ -2753,7 +2771,7 @@ cdef class Coupling (object):
         Unsetting of an user interpolation.
 
         Parameters:
-          field_id (str) : Source field identifier
+          field_id (str) : Field identifier
         """
 
         cdef int idx = self.fields_name[field_id]

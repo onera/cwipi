@@ -571,8 +571,8 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
-  case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET: {
-    char name[] = "CWP_Field_target_dof_location_get";
+  case CWP_MSG_CWP_Field_dof_location_get: {
+    char name[] = "CWP_Field_dof_location_get";
     strcpy(function, name);
     } break;
 
@@ -5375,7 +5375,7 @@ CWP_client_Field_data_set
 }
 
 CWP_Dof_location_t
-CWP_client_Field_target_dof_location_get
+CWP_client_Field_dof_location_get
 (
  const char      *local_code_name,
  const char      *cpl_id,
@@ -5387,16 +5387,16 @@ CWP_client_Field_target_dof_location_get
   // verbose
   MPI_Barrier(clt->comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
-    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n", clt->code_name);
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_dof_location_get\n", clt->code_name);
     PDM_printf_flush();
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET);
+  NEWMESSAGE(msg, CWP_MSG_CWP_Field_dof_location_get);
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_target_dof_location_get failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_dof_location_get failed to send message header\n");
   }
 
   // receive status msg
@@ -5585,7 +5585,7 @@ CWP_client_Field_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *src_field_id
+ const char     *field_id
 )
 {
   t_message msg;
@@ -5620,11 +5620,11 @@ CWP_client_Field_issend
   write_name(cpl_id);
 
   // send source field identifier
-  write_name(src_field_id);
+  write_name(field_id);
 
   // send field to update data pointer on server side
   std::string s1(cpl_id);
-  std::string s2(src_field_id);
+  std::string s2(field_id);
   for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
     double *endian_data = (double *) malloc(sizeof(double) * (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
     memcpy(endian_data, (clt_cwp.coupling[s1].field[s2]).data[j_part], sizeof(double) * (clt_cwp.coupling[s1].field[s2]).n_component * (clt_cwp.coupling[s1].field[s2]).n_entities[j_part]);
@@ -5714,7 +5714,7 @@ CWP_client_Field_wait_issend
 (
  const char  *local_code_name,
  const char  *cpl_id,
- const char  *src_field_id
+ const char  *field_id
 )
 {
   t_message msg;
@@ -5749,7 +5749,7 @@ CWP_client_Field_wait_issend
   write_name(cpl_id);
 
   // send source field identifier
-  write_name(src_field_id);
+  write_name(field_id);
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -5867,7 +5867,7 @@ CWP_client_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id
+ const char                 *field_id
 )
 {
   // t_message msg;
@@ -5892,11 +5892,11 @@ CWP_client_Interp_function_unset
   // write_name(cpl_id);
 
   // // send source field identifier
-  // write_name(src_field_id);
+  // write_name(field_id);
 
  PDM_UNUSED(local_code_name);
  PDM_UNUSED(cpl_id);
- PDM_UNUSED(src_field_id);
+ PDM_UNUSED(field_id);
 
  printf("CWP_client_Interp_function_unset not implemented yet\n");
 }
@@ -5906,13 +5906,13 @@ CWP_client_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id,
+ const char                 *field_id,
  CWP_Interp_function_t  fct
 )
 {
  PDM_UNUSED(local_code_name);
  PDM_UNUSED(cpl_id);
- PDM_UNUSED(src_field_id);
+ PDM_UNUSED(field_id);
  PDM_UNUSED(fct);
 
  printf("CWP_client_Interp_function_set not implemented yet\n");
