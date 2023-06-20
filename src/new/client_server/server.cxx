@@ -1227,6 +1227,57 @@ CWP_server_Cpl_create
 }
 
 void
+CWP_server_Cpl_barrier
+(
+ p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_BARRIER);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_BARRIER);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Cpl_barrier(local_code_name,
+                  cpl_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_BARRIER);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+}
+
+void
 CWP_server_Cpl_del
 (
  p_server                 svr
@@ -6499,6 +6550,18 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Cpl_create(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CPL_BARRIER:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Cpl_barrier signal\n");
+    }
+
+    // launch
+    CWP_server_Cpl_barrier(svr);
 
     break;
 

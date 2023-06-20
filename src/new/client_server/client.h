@@ -323,6 +323,22 @@ CWP_client_Cpl_create
 
 /**
  *
+ * \brief CWP_Cpl_barrier CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ */
+
+void
+CWP_client_Cpl_barrier
+(
+ const char *local_code_name,
+ const char *cpl_id
+);
+
+/**
+ *
  * \brief Cpl_del CWIPI.
  *
  * \param [in] local_code_name  Local code name

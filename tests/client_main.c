@@ -421,7 +421,17 @@ int main ( int argc, char *argv[] )
                           CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   // GLOBAL DATA exchange
   const char *global_data_name  = "andouillette";
@@ -456,7 +466,17 @@ int main ( int argc, char *argv[] )
                        (void **) recv_data);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   if (id_code == 0) {
     CWP_client_Global_data_wait_issend("code1",
@@ -470,7 +490,17 @@ int main ( int argc, char *argv[] )
                                       global_data_name);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   // --> check
   CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
@@ -522,7 +552,17 @@ int main ( int argc, char *argv[] )
                                 n_part);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   double **part1_to_part2_data = NULL;
   int send_request = -1;
@@ -570,7 +610,17 @@ int main ( int argc, char *argv[] )
                                &recv_request);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   if (id_code == 0) {
 
@@ -588,7 +638,17 @@ int main ( int argc, char *argv[] )
                                     recv_request);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   // --> check
   CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
@@ -605,7 +665,17 @@ int main ( int argc, char *argv[] )
   }
   CWP_GCC_SUPPRESS_WARNING_POP
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   if (id_code == 0) {
     CWP_client_Part_data_del("code1",
@@ -621,7 +691,17 @@ int main ( int argc, char *argv[] )
                              CWP_PARTDATA_RECV);
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   // HO mesh
   int block_id = CWP_client_Mesh_interf_block_add(code_name,
@@ -726,7 +806,17 @@ int main ( int argc, char *argv[] )
     }
   }
 
-  MPI_Barrier(comm);
+  // Barrier on coupling communicator >>>>
+  if (id_code == 0) {
+    CWP_client_Cpl_barrier("code1",
+                           cpl_id1);
+  }
+
+  if (id_code == 1) {
+    CWP_client_Cpl_barrier("code2",
+                           cpl_id1);
+  }
+  // <<<<
 
   if (id_code == 0) {
     CWP_client_Mesh_interf_del("code1", cpl_id1);

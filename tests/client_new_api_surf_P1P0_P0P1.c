@@ -307,6 +307,10 @@ main
                       CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
                       "text");                 // Postprocessing option
 
+  // Barrier on coupling communicator
+  CWP_client_Cpl_barrier(code_name,
+                         cpl_name);
+
   // Mesh definition
   int          *pn_vtx         = NULL;
   int          *pn_edge        = NULL;

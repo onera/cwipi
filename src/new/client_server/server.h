@@ -263,6 +263,20 @@ CWP_server_Cpl_create
 
 /**
  *
+ * \brief CWP_Cpl_barrier CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_barrier
+(
+ p_server                 svr
+);
+
+/**
+ *
  * \brief Cpl_del CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure

@@ -133,6 +133,8 @@ extern "C" {
 #define CWP_MSG_CWP_TIME_STEP_BEG                        72
 #define CWP_MSG_CWP_TIME_STEP_END                        73
 
+#define CWP_MSG_CWP_CPL_BARRIER                          74
+
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 
