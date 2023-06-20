@@ -71,7 +71,6 @@ file(GLOB SOURCESF
      fortran/cwipi_set_output_logical_unit.f90
      fortran/printfort.f90
      fortran/mod_fvmc_ho_basis.f90
-     fortran/new/appelle_toto.F90
      # --> new fortran
      # fortran/cwp_output_fortran_unit_set.f90
      # fortran/cwp_printfort_cf.cxx

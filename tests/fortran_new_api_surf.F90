@@ -1,6 +1,83 @@
 
 #include "cwipi_configf.h"
 
+  subroutine my_interpolation(c_local_code_name,          &
+                              c_cpl_id,                   &
+                              c_field_id,                 &
+                              i_part,                   &
+                              c_buffer_in,              &
+                              c_buffer_out)             &
+
+    bind(c)                                      
+
+    use, intrinsic :: iso_c_binding
+
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
+    use mpi
+#endif
+    use cwp
+    use pdm_pointer_array
+  
+    implicit none
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+    include "mpif.h"
+#endif  
+
+    character(kind=c_char,len=1) :: c_local_code_name(*)
+    character(kind=c_char,len=1) :: c_cpl_id(*)
+    character(kind=c_char,len=1) :: c_field_id(*)
+    integer(kind=c_int), value   :: i_part
+    type(c_ptr), value           :: c_buffer_in
+    type(c_ptr), value           :: c_buffer_out
+
+    integer(kind = c_int)             :: n_components
+    integer(kind = c_int)             :: n_elt_src
+    integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer    :: buffer_in(:)      => null()
+    real(kind = c_double), pointer    :: buffer_out(:)     => null()
+    integer                           :: i, j, k
+
+    character(len=:), pointer :: local_code_name
+    character(len=:), pointer :: cpl_id
+    character(len=:), pointer :: field_id
+
+    local_code_name => CWP_C_to_f_string (c_local_code_name)
+    cpl_id => CWP_C_to_f_string (c_cpl_id)
+    field_id => CWP_C_to_f_string (c_field_id)
+
+    !print *, ">> my_interpolation", "'",local_code_name,"'", cpl_id,"'", field_id
+    print *, ">> my_interpolation", i_part, storage, spatial_interp_algorithm
+
+    n_components = CWP_Interp_field_n_components_get(local_code_name, &
+                                                     cpl_id,          &
+                                                     field_id)
+
+    call CWP_Interp_src_data_get(local_code_name, &
+                                 cpl_id,          &
+                                 field_id,        &
+                                 i_part,          &
+                                 n_elt_src,       &
+                                 src_to_tgt_idx)
+
+    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
+    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
+
+    do i = 1, n_elt_src
+      print *, "i = ", i
+      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+        print *, "  j = ", j
+        do k = 1, n_components
+          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+        enddo
+      enddo
+    enddo
+
+    deallocate (local_code_name)
+    deallocate (cpl_id)
+    deallocate (src_fiel_id)
+  end subroutine my_interpolation
+
 program testf
 #ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
     use mpi
@@ -101,6 +178,29 @@ program testf
   integer(c_int)                :: n_comp, j, request
   !--------------------------------------------------------------------
 
+  interface
+    subroutine my_interpolation(local_code_name,          &
+                                cpl_id,                   &
+                                field_id,                 &
+                                i_part,                   &
+                                spatial_interp_algorithm, &
+                                storage,                  &
+                                c_buffer_in,              &
+                                c_buffer_out)         
+     
+      use, intrinsic :: iso_c_binding
+  
+      implicit none
+  
+      character(len=:), pointer         :: local_code_name, cpl_id, field_id
+      integer*4             :: i_part
+      integer*4             :: spatial_interp_algorithm
+      integer*4             :: storage
+      real*8                           :: c_buffer_in(*)
+      real*8                           :: c_buffer_out(*)
+  
+    end subroutine
+  end interface  
 
   !! Initialize MPI
   call MPI_Init(ierr)
@@ -280,429 +380,430 @@ program testf
     call flush(iiunit)
   endif
 
-  ! !! Create a coupling
-  ! coupling_name = "fortran_new_api_surf"
-  ! call CWP_Cpl_create(code_names(1),                                         &
-  !                     coupling_name,                                         &
-  !                     coupled_code_names(1),                                 &
-  !                     CWP_INTERFACE_SURFACE,                                 &
-  !                     CWP_COMM_PAR_WITH_PART,                                &
-  !                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
-  !                     n_part,                                                &
-  !                     CWP_DYNAMIC_MESH_STATIC,                               &
-  !                     CWP_TIME_EXCH_USER_CONTROLLED)
+  !! Create a coupling
+  coupling_name = "fortran_new_api_surf"
+  call CWP_Cpl_create(code_names(1),                                         &
+                      coupling_name,                                         &
+                      coupled_code_names(1),                                 &
+                      CWP_INTERFACE_SURFACE,                                 &
+                      CWP_COMM_PAR_WITH_PART,                                &
+                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
+                      n_part,                                                &
+                      CWP_DYNAMIC_MESH_STATIC,                               &
+                      CWP_TIME_EXCH_USER_CONTROLLED)
 
-  ! call CWP_Visu_set(code_names(1),           &
-  !                   coupling_name,           &
-  !                   1,                       &
-  !                   CWP_VISU_FORMAT_ENSIGHT, &
-  !                   "text")
+  call CWP_Visu_set(code_names(1),           &
+                    coupling_name,           &
+                    1,                       &
+                    CWP_VISU_FORMAT_ENSIGHT, &
+                    "text")
 
-  ! !! Define the interface mesh
-  ! shift = 0.1*i_rank
-  ! call gen_mesh(shift, shift+1.d0, &
-  !               shift, shift+1.d0, &
-  !               rand_level,        &
-  !               n_vtx_seg,         &
-  !               n_vtx,             &
-  !               vtx_coord,         &
-  !               n_elt,             &
-  !               connec_idx,        &
-  !               connec,            &
-  !               vtx_g_num,         &
-  !               elt_g_num)
-
-
-  ! call CWP_Mesh_interf_vtx_set(code_names(1), &
-  !                              coupling_name, &
-  !                              0,             &
-  !                              n_vtx,         &
-  !                              vtx_coord,     &
-  !                              vtx_g_num)
-
-  ! id_block = CWP_Mesh_interf_block_add(code_names(1),       &
-  !                                      coupling_name,       &
-  !                                      CWP_BLOCK_FACE_POLY)
-
-  ! call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
-  !                                       coupling_name, &
-  !                                       0,             &
-  !                                       id_block,      &
-  !                                       n_elt,         &
-  !                                       connec_idx,    &
-  !                                       connec,        &
-  !                                       elt_g_num)
-
-  ! call CWP_Mesh_interf_finalize(code_names(1), &
-  !                               coupling_name)
+  !! Define the interface mesh
+  shift = 0.1*i_rank
+  call gen_mesh(shift, shift+1.d0, &
+                shift, shift+1.d0, &
+                rand_level,        &
+                n_vtx_seg,         &
+                n_vtx,             &
+                vtx_coord,         &
+                n_elt,             &
+                connec_idx,        &
+                connec,            &
+                vtx_g_num,         &
+                elt_g_num)
 
 
-  ! !-->>
-  ! call CWP_Mesh_interf_f_poly_block_get(code_names(1), &
-  !                                       coupling_name, &
-  !                                       0,             &
-  !                                       id_block,      &
-  !                                       n_elt2,        &
-  !                                       connec_idx2,   &
-  !                                       connec2,       &
-  !                                       elt_g_num2)
-  ! !<<--
+  call CWP_Mesh_interf_vtx_set(code_names(1), &
+                               coupling_name, &
+                               0,             &
+                               n_vtx,         &
+                               vtx_coord,     &
+                               vtx_g_num)
+
+  id_block = CWP_Mesh_interf_block_add(code_names(1),       &
+                                       coupling_name,       &
+                                       CWP_BLOCK_FACE_POLY)
+
+  call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
+                                        coupling_name, &
+                                        0,             &
+                                        id_block,      &
+                                        n_elt,         &
+                                        connec_idx,    &
+                                        connec,        &
+                                        elt_g_num)
+
+  call CWP_Mesh_interf_finalize(code_names(1), &
+                                coupling_name)
 
 
-  ! !! Create fields
-  ! field_name = "field"
-  ! visu_status = CWP_STATUS_ON
-  ! allocate(field_data(3*n_vtx))
-  ! if (code_names(1) == "code1") then
-  !   map_type  = CWP_FIELD_MAP_SOURCE
-  !   exch_type = CWP_FIELD_EXCH_SEND
-  !   field_data(1:3*n_vtx:3) = vtx_coord(1,1:n_vtx)
-  !   field_data(2:3*n_vtx:3) = vtx_coord(2,1:n_vtx)
-  !   field_data(3:3*n_vtx:3) = vtx_coord(3,1:n_vtx)
-  ! else
-  !   map_type  = CWP_FIELD_MAP_TARGET
-  !   exch_type = CWP_FIELD_EXCH_RECV
-  ! endif
-  ! call CWP_Field_create(code_names(1),                &
-  !                       coupling_name,                &
-  !                       field_name,                   &
-  !                       CWP_DOUBLE,                   &
-  !                       CWP_FIELD_STORAGE_INTERLACED, &
-  !                       3,                            &
-  !                       CWP_DOF_LOCATION_NODE,        &
-  !                       exch_type,                    &
-  !                       visu_status)
-
-  ! call CWP_Time_step_beg(code_names(1), &
-  !                        0.d0)
-
-  ! call CWP_Field_data_set(code_names(1), &
-  !                         coupling_name, &
-  !                         field_name,    &
-  !                         0,             &
-  !                         map_type,      &
-  !                         field_data)
-
-  ! !! Set tolerance for spatial interpolation
-  ! call CWP_Spatial_interp_property_set(code_names(1), &
-  !                                      coupling_name, &
-  !                                      "tolerance",   &
-  !                                      "double",      &
-  !                                      "1e-3")
-
-  ! !! Set user-defined interpolation function
-  ! ! if (code_names(1) == "code1") then
-  ! !   call CWP_Interp_function_set(code_names(1), &
-  ! !                                coupling_name, &
-  ! !                                field_name,    &
-  ! !                                my_interpolation)
-  ! ! endif
-
-  ! !! Compute spatial interpolation weights
-  ! call CWP_Spatial_interp_weights_compute(code_names(1), &
-  !                                         coupling_name)
+  !-->>
+  call CWP_Mesh_interf_f_poly_block_get(code_names(1), &
+                                        coupling_name, &
+                                        0,             &
+                                        id_block,      &
+                                        n_elt2,        &
+                                        connec_idx2,   &
+                                        connec2,       &
+                                        elt_g_num2)
+  !<<--
 
 
-  ! !! Exchange interpolated field
-  ! if (code_names(1) == "code1") then
-  !   call CWP_Field_issend(code_names(1), &
-  !                         coupling_name, &
-  !                         field_name)
-  ! else
-  !   call CWP_Field_irecv(code_names(1), &
-  !                        coupling_name, &
-  !                        field_name)
-  ! endif
+  !! Create fields
+  field_name = "field"
+  visu_status = CWP_STATUS_ON
+  allocate(field_data(3*n_vtx))
+  if (code_names(1) == "code1") then
+    map_type  = CWP_FIELD_MAP_SOURCE
+    exch_type = CWP_FIELD_EXCH_SEND
+    field_data(1:3*n_vtx:3) = vtx_coord(1,1:n_vtx)
+    field_data(2:3*n_vtx:3) = vtx_coord(2,1:n_vtx)
+    field_data(3:3*n_vtx:3) = vtx_coord(3,1:n_vtx)
+  else
+    map_type  = CWP_FIELD_MAP_TARGET
+    exch_type = CWP_FIELD_EXCH_RECV
+  endif
+  call CWP_Field_create(code_names(1),                &
+                        coupling_name,                &
+                        field_name,                   &
+                        CWP_DOUBLE,                   &
+                        CWP_FIELD_STORAGE_INTERLACED, &
+                        3,                            &
+                        CWP_DOF_LOCATION_NODE,        &
+                        exch_type,                    &
+                        visu_status)
+
+  call CWP_Time_step_beg(code_names(1), &
+                         0.d0)
+
+  call CWP_Field_data_set(code_names(1), &
+                          coupling_name, &
+                          field_name,    &
+                          0,             &
+                          map_type,      &
+                          field_data)
+
+  !! Set tolerance for spatial interpolation
+  call CWP_Spatial_interp_property_set(code_names(1), &
+                                       coupling_name, &
+                                       "tolerance",   &
+                                       "double",      &
+                                       "1e-3")
+
+! Set user-defined interpolation function
+ if (code_names(1) == "code1") then
+
+   call CWP_Interp_function_set(code_names(1), &
+                                coupling_name, &
+                                field_name,    &
+                               my_interpolation)
+ endif
+
+  !! Compute spatial interpolation weights
+  call CWP_Spatial_interp_weights_compute(code_names(1), &
+                                          coupling_name)
 
 
-
-  ! if (code_names(1) == "code1") then
-  !   call CWP_Field_wait_issend(code_names(1), &
-  !                              coupling_name, &
-  !                              field_name)
-
-
-  !   call CWP_Interp_src_data_get(code_names(1), &
-  !                                coupling_name, &
-  !                                field_name,    &
-  !                                0,             &
-  !                                n_elt_src,     &
-  !                                src_to_tgt_idx)
-  !   call CWP_Interp_location_weights_get(code_names(1), &
-  !                                        coupling_name, &
-  !                                        field_name,    &
-  !                                        0,             &
-  !                                        interp_weights)
-  !   if (debug) then
-  !     write(iiunit,*) "-- CWP_Interp_src_data_get & CWP_Interp_location_weights_get --"
-  !     write(iiunit,*) "n_elt_src      : ", n_elt_src
-  !     write(iiunit,*) "src_to_tgt_idx : ", src_to_tgt_idx
-  !     write(iiunit,*) "interp_weights : ", interp_weights
-  !     write(iiunit,*) ""
-  !   endif
-  ! else
-  !   call CWP_Field_wait_irecv(code_names(1), &
-  !                             coupling_name, &
-  !                             field_name)
-
-  !   call CWP_Interp_tgt_data_get(code_names(1), &
-  !                                coupling_name, &
-  !                                field_name,    &
-  !                                0,             &
-  !                                n_elt_tgt,     &
-  !                                n_ref_tgt,     &
-  !                                ref_tgt,       &
-  !                                tgt_to_src_idx)
-  !   if (debug) then
-  !     write(iiunit,*) "-- CWP_Interp_tgt_data_get --"
-  !     write(iiunit,*) "n_elt_tgt      : ", n_elt_tgt
-  !     write(iiunit,*) "n_ref_tgt      : ", n_ref_tgt
-  !     write(iiunit,*) "ref_tgt        : ", ref_tgt
-  !     write(iiunit,*) "tgt_to_src_idx : ", tgt_to_src_idx
-  !     write(iiunit,*) ""
-  !   endif
-  ! endif
+  !! Exchange interpolated field
+  if (code_names(1) == "code1") then
+    call CWP_Field_issend(code_names(1), &
+                          coupling_name, &
+                          field_name)
+  else
+    call CWP_Field_irecv(code_names(1), &
+                         coupling_name, &
+                         field_name)
+  endif
 
 
 
-  ! !! Check
-  ! n_wrong = 0
-  ! if (code_names(1) == "code2") then
-
-  !   n_computed_tgts = CWP_N_computed_tgts_get(code_names(1), &
-  !                                             coupling_name, &
-  !                                             field_name,    &
-  !                                             0)
-  !   if (debug) then
-  !     write(iiunit,*) n_computed_tgts, " computed tgts /", n_vtx
-  !   endif
-
-  !   computed_tgts => CWP_computed_tgts_get(code_names(1), &
-  !                                          coupling_name, &
-  !                                          field_name,    &
-  !                                          0)
-
-  !   do i = 1, n_computed_tgts
-  !     ivtx = computed_tgts(i)
-
-  !     distance = sqrt(sum(vtx_coord(:,ivtx) - field_data(3*i-2:3*i)))
-
-  !     if (distance > 1.d-6) then
-  !       n_wrong = n_wrong + 1
-  !       if (debug) then
-  !         write(iiunit,*) "error vtx", ivtx, "distance =", distance
-  !         write(iiunit,*) "coord =", vtx_coord(:,ivtx), " recv =", field_data(3*i-2:3*i)
-  !       endif
-  !     endif
-
-  !   enddo
-
-  !   if (debug) then
-  !     write(iiunit,*) "n_wrong =", n_wrong
-  !   endif
-  ! endif
+  if (code_names(1) == "code1") then
+    call CWP_Field_wait_issend(code_names(1), &
+                               coupling_name, &
+                               field_name)
 
 
+    call CWP_Interp_src_data_get(code_names(1), &
+                                 coupling_name, &
+                                 field_name,    &
+                                 0,             &
+                                 n_elt_src,     &
+                                 src_to_tgt_idx)
+    call CWP_Interp_location_weights_get(code_names(1), &
+                                         coupling_name, &
+                                         field_name,    &
+                                         0,             &
+                                         interp_weights)
+    if (debug) then
+      write(iiunit,*) "-- CWP_Interp_src_data_get & CWP_Interp_location_weights_get --"
+      write(iiunit,*) "n_elt_src      : ", n_elt_src
+      write(iiunit,*) "src_to_tgt_idx : ", src_to_tgt_idx
+      write(iiunit,*) "interp_weights : ", interp_weights
+      write(iiunit,*) ""
+    endif
+  else
+    call CWP_Field_wait_irecv(code_names(1), &
+                              coupling_name, &
+                              field_name)
 
-  ! !! Global data
-  ! global_data_name = "chocolatine"
-  ! allocate(global_data(3,2))
-  ! if (code_names(1) == "code1") then
-  !   do i = 1,2
-  !     global_data(:,i) = [i,2*i,3*i]
-  !   enddo
-  !   call CWP_Global_data_issend(code_names(1),    &
-  !                               coupling_name,    &
-  !                               global_data_name, &
-  !                               global_data)
-  ! else
-  !   call CWP_Global_data_irecv(code_names(1),    &
-  !                              coupling_name,    &
-  !                              global_data_name, &
-  !                              global_data)
-  ! endif
+    call CWP_Interp_tgt_data_get(code_names(1), &
+                                 coupling_name, &
+                                 field_name,    &
+                                 0,             &
+                                 n_elt_tgt,     &
+                                 n_ref_tgt,     &
+                                 ref_tgt,       &
+                                 tgt_to_src_idx)
+    if (debug) then
+      write(iiunit,*) "-- CWP_Interp_tgt_data_get --"
+      write(iiunit,*) "n_elt_tgt      : ", n_elt_tgt
+      write(iiunit,*) "n_ref_tgt      : ", n_ref_tgt
+      write(iiunit,*) "ref_tgt        : ", ref_tgt
+      write(iiunit,*) "tgt_to_src_idx : ", tgt_to_src_idx
+      write(iiunit,*) ""
+    endif
+  endif
 
-  ! ! call MPI_Barrier(MPI_comm_world, ierr)
 
-  ! if (code_names(1) == "code1") then
-  !   call CWP_Global_data_wait_issend(code_names(1), &
-  !                                    coupling_name, &
-  !                                    global_data_name)
-  ! else
-  !   call CWP_Global_data_wait_irecv(code_names(1),    &
-  !                                   coupling_name,    &
-  !                                   global_data_name)
-  ! endif
+
+  !! Check
+  n_wrong = 0
+  if (code_names(1) == "code2") then
+
+    n_computed_tgts = CWP_N_computed_tgts_get(code_names(1), &
+                                              coupling_name, &
+                                              field_name,    &
+                                              0)
+    if (debug) then
+      write(iiunit,*) n_computed_tgts, " computed tgts /", n_vtx
+    endif
+
+    computed_tgts => CWP_computed_tgts_get(code_names(1), &
+                                           coupling_name, &
+                                           field_name,    &
+                                           0)
+
+    do i = 1, n_computed_tgts
+      ivtx = computed_tgts(i)
+
+      distance = sqrt(sum(vtx_coord(:,ivtx) - field_data(3*i-2:3*i)))
+
+      if (distance > 1.d-6) then
+        n_wrong = n_wrong + 1
+        if (debug) then
+          write(iiunit,*) "error vtx", ivtx, "distance =", distance
+          write(iiunit,*) "coord =", vtx_coord(:,ivtx), " recv =", field_data(3*i-2:3*i)
+        endif
+      endif
+
+    enddo
+
+    if (debug) then
+      write(iiunit,*) "n_wrong =", n_wrong
+    endif
+  endif
+
+
+
+  !! Global data
+  global_data_name = "chocolatine"
+  allocate(global_data(3,2))
+  if (code_names(1) == "code1") then
+    do i = 1,2
+      global_data(:,i) = [i,2*i,3*i]
+    enddo
+    call CWP_Global_data_issend(code_names(1),    &
+                                coupling_name,    &
+                                global_data_name, &
+                                global_data)
+  else
+    call CWP_Global_data_irecv(code_names(1),    &
+                               coupling_name,    &
+                               global_data_name, &
+                               global_data)
+  endif
 
   ! call MPI_Barrier(MPI_comm_world, ierr)
 
-  ! if (debug) then
-  !   write(iiunit,*) "-- Global data --"
-  !   write(iiunit,*) "size = ", size(global_data,1), size(global_data,2)
-  !   do i = 1,size(global_data,2)
-  !     write(iiunit,*) global_data(:,i)
-  !   enddo
-  ! endif
+  if (code_names(1) == "code1") then
+    call CWP_Global_data_wait_issend(code_names(1), &
+                                     coupling_name, &
+                                     global_data_name)
+  else
+    call CWP_Global_data_wait_irecv(code_names(1),    &
+                                    coupling_name,    &
+                                    global_data_name)
+  endif
 
-  ! deallocate(global_data)
+  call MPI_Barrier(MPI_comm_world, ierr)
 
+  if (debug) then
+    write(iiunit,*) "-- Global data --"
+    write(iiunit,*) "size = ", size(global_data,1), size(global_data,2)
+    do i = 1,size(global_data,2)
+      write(iiunit,*) global_data(:,i)
+    enddo
+  endif
 
-  ! !! Part data
-  ! if (debug) then
-  !   write(iiunit,*) "-- Part data --"
-  ! endif
-  ! part_data_name = "All work and no play makes Jack a dull boy"
-
-  ! if (code_names(1) == "code1") then
-  !   n_part    = 2
-  !   exch_type = CWP_PARTDATA_SEND
-  ! else
-  !   n_part    = 1
-  !   exch_type = CWP_PARTDATA_RECV
-  ! endif
+  deallocate(global_data)
 
 
-  ! call PDM_pointer_array_create(gnum_elt,       &
-  !                               n_part,         &
-  !                               PDM_TYPE_G_NUM)
+  !! Part data
+  if (debug) then
+    write(iiunit,*) "-- Part data --"
+  endif
+  part_data_name = "All work and no play makes Jack a dull boy"
 
-  ! call PDM_pointer_array_create(part_data,     &
-  !                               n_part,        &
-  !                               PDM_TYPE_INT)
-
-  ! allocate(my_part(n_part))
-  ! if (code_names(1) == "code1") then
-  !   allocate(n_elt_part(n_part))
-  !   n_elt_part = [3, 2]
-  ! else
-  !   allocate(n_elt_part(n_part))
-  !   n_elt_part = [5]
-  ! endif
-
-  ! n_comp = 2
-  ! do i = 1, n_part
-  !   allocate(my_part(i)%g_num(n_elt_part(i)), &
-  !            my_part(i)%data (n_elt_part(i) * n_comp))
-  ! enddo
-
-  ! if (code_names(1) == "code1") then
-  !   my_part(1)%g_num = [1, 3, 5]
-  !   my_part(2)%g_num = [2, 4]
-  ! else
-  !   my_part(1)%g_num = [1, 4, 2, 5, 3]
-  ! endif
-
-  ! do i = 1, n_part
-  !   do j = 1, n_elt_part(i)
-  !     my_part(i)%data(2*(j-1)+1) =  int(my_part(i)%g_num(j))
-  !     my_part(i)%data(2*j      ) = int(2*my_part(i)%g_num(j))
-  !   enddo
-
-  !   call PDM_pointer_array_part_set(gnum_elt,         &
-  !                                   i-1,              &
-  !                                   my_part(i)%g_num)
-
-  !   call PDM_pointer_array_part_set(part_data,        &
-  !                                   i-1,              &
-  !                                   my_part(i)%data)
-  ! enddo
-
-  ! call CWP_Part_data_create(code_names(1),  &
-  !                           coupling_name,  &
-  !                           part_data_name, &
-  !                           exch_type,      &
-  !                           gnum_elt,       &
-  !                           n_elt_part,     &
-  !                           n_part)
-
-  ! if (code_names(1) == "code1") then
-  !   call CWP_Part_data_issend(code_names(1),  &
-  !                             coupling_name,  &
-  !                             part_data_name, &
-  !                             n_comp,         &
-  !                             part_data,      &
-  !                             request)
-  ! else
-  !   call CWP_Part_data_irecv(code_names(1),  &
-  !                            coupling_name,  &
-  !                            part_data_name, &
-  !                            n_comp,         &
-  !                            part_data,      &
-  !                            request)
-  ! endif
+  if (code_names(1) == "code1") then
+    n_part    = 2
+    exch_type = CWP_PARTDATA_SEND
+  else
+    n_part    = 1
+    exch_type = CWP_PARTDATA_RECV
+  endif
 
 
-  ! if (code_names(1) == "code1") then
-  !   call CWP_Part_data_wait_issend(code_names(1),  &
-  !                                  coupling_name,  &
-  !                                  part_data_name, &
-  !                                  request)
-  !   if (debug) then
-  !     do i = 1, n_part
-  !       call PDM_pointer_array_part_get(part_data, &
-  !                                       i-1,       &
-  !                                       recv_data)
-  !       do j = 1, n_elt_part(i)
-  !         write(iiunit, *) my_part(i)%g_num(j), " sends    ", recv_data(2*(j-1)+1:2*j)
-  !       enddo
-  !     enddo
-  !   endif
-  ! else
-  !   call CWP_Part_data_wait_irecv(code_names(1),  &
-  !                                 coupling_name,  &
-  !                                 part_data_name, &
-  !                                 request)
+  call PDM_pointer_array_create(gnum_elt,       &
+                                n_part,         &
+                                PDM_TYPE_G_NUM)
 
-  !   if (debug) then
-  !     do i = 1, n_part
-  !       call PDM_pointer_array_part_get(part_data, &
-  !                                       i-1,       &
-  !                                       recv_data)
-  !       do j = 1, n_elt_part(i)
-  !         write(iiunit, *) my_part(i)%g_num(j), " receives ", recv_data(2*(j-1)+1:2*j)
-  !       enddo
-  !     enddo
-  !   endif
-  ! endif
+  call PDM_pointer_array_create(part_data,     &
+                                n_part,        &
+                                PDM_TYPE_INT)
 
-  ! call CWP_Part_data_del(code_names(1),  &
-  !                        coupling_name,  &
-  !                        part_data_name, &
-  !                        exch_type)
+  allocate(my_part(n_part))
+  if (code_names(1) == "code1") then
+    allocate(n_elt_part(n_part))
+    n_elt_part = [3, 2]
+  else
+    allocate(n_elt_part(n_part))
+    n_elt_part = [5]
+  endif
 
-  ! do i = 1, n_part
-  !   deallocate(my_part(i)%g_num, &
-  !              my_part(i)%data)
-  ! enddo
-  ! deallocate(n_elt_part)
-  ! deallocate(my_part)
+  n_comp = 2
+  do i = 1, n_part
+    allocate(my_part(i)%g_num(n_elt_part(i)), &
+             my_part(i)%data (n_elt_part(i) * n_comp))
+  enddo
 
-  ! call PDM_pointer_array_free(part_data)
-  ! call PDM_pointer_array_free(gnum_elt)
+  if (code_names(1) == "code1") then
+    my_part(1)%g_num = [1, 3, 5]
+    my_part(2)%g_num = [2, 4]
+  else
+    my_part(1)%g_num = [1, 4, 2, 5, 3]
+  endif
+
+  do i = 1, n_part
+    do j = 1, n_elt_part(i)
+      my_part(i)%data(2*(j-1)+1) =  int(my_part(i)%g_num(j))
+      my_part(i)%data(2*j      ) = int(2*my_part(i)%g_num(j))
+    enddo
+
+    call PDM_pointer_array_part_set(gnum_elt,         &
+                                    i-1,              &
+                                    my_part(i)%g_num)
+
+    call PDM_pointer_array_part_set(part_data,        &
+                                    i-1,              &
+                                    my_part(i)%data)
+  enddo
+
+  call CWP_Part_data_create(code_names(1),  &
+                            coupling_name,  &
+                            part_data_name, &
+                            exch_type,      &
+                            gnum_elt,       &
+                            n_elt_part,     &
+                            n_part)
+
+  if (code_names(1) == "code1") then
+    call CWP_Part_data_issend(code_names(1),  &
+                              coupling_name,  &
+                              part_data_name, &
+                              n_comp,         &
+                              part_data,      &
+                              request)
+  else
+    call CWP_Part_data_irecv(code_names(1),  &
+                             coupling_name,  &
+                             part_data_name, &
+                             n_comp,         &
+                             part_data,      &
+                             request)
+  endif
 
 
-  ! if (debug) then
-  !   close(iiunit)
-  ! endif
+  if (code_names(1) == "code1") then
+    call CWP_Part_data_wait_issend(code_names(1),  &
+                                   coupling_name,  &
+                                   part_data_name, &
+                                   request)
+    if (debug) then
+      do i = 1, n_part
+        call PDM_pointer_array_part_get(part_data, &
+                                        i-1,       &
+                                        recv_data)
+        do j = 1, n_elt_part(i)
+          write(iiunit, *) my_part(i)%g_num(j), " sends    ", recv_data(2*(j-1)+1:2*j)
+        enddo
+      enddo
+    endif
+  else
+    call CWP_Part_data_wait_irecv(code_names(1),  &
+                                  coupling_name,  &
+                                  part_data_name, &
+                                  request)
 
-  ! call CWP_Time_step_end(code_names(1))
+    if (debug) then
+      do i = 1, n_part
+        call PDM_pointer_array_part_get(part_data, &
+                                        i-1,       &
+                                        recv_data)
+        do j = 1, n_elt_part(i)
+          write(iiunit, *) my_part(i)%g_num(j), " receives ", recv_data(2*(j-1)+1:2*j)
+        enddo
+      enddo
+    endif
+  endif
 
-  ! !! Delete interface mesh
-  ! call CWP_Mesh_interf_del(code_names(1), &
-  !                          coupling_name)
+  call CWP_Part_data_del(code_names(1),  &
+                         coupling_name,  &
+                         part_data_name, &
+                         exch_type)
 
-  ! !! Delete coupling
-  ! call CWP_Cpl_Del(code_names(1), &
-  !                  coupling_name)
+  do i = 1, n_part
+    deallocate(my_part(i)%g_num, &
+               my_part(i)%data)
+  enddo
+  deallocate(n_elt_part)
+  deallocate(my_part)
+
+  call PDM_pointer_array_free(part_data)
+  call PDM_pointer_array_free(gnum_elt)
 
 
-  ! !! Free memory
-  ! deallocate(code_names,         &
-  !            coupled_code_names, &
-  !            intra_comms,        &
-  !            g_code_names)
-  ! deallocate(vtx_coord, connec_idx, connec)
-  ! deallocate(field_data)
+  if (debug) then
+    close(iiunit)
+  endif
+
+  call CWP_Time_step_end(code_names(1))
+
+  !! Delete interface mesh
+  call CWP_Mesh_interf_del(code_names(1), &
+                           coupling_name)
+
+  !! Delete coupling
+  call CWP_Cpl_Del(code_names(1), &
+                   coupling_name)
+
+
+  !! Free memory
+  deallocate(code_names,         &
+             coupled_code_names, &
+             intra_comms,        &
+             g_code_names)
+  deallocate(vtx_coord, connec_idx, connec)
+  deallocate(field_data)
   deallocate(code_list,     &
              loc_code_list, &
              f_param_names)
@@ -804,60 +905,6 @@ subroutine gen_mesh(xmin, xmax, &
 end subroutine gen_mesh
 
 
-  subroutine my_interpolation(local_code_name,          &
-                              cpl_id,                   &
-                              field_id,                 &
-                              i_part,                   &
-                              spatial_interp_algorithm, &
-                              storage,                  &
-                              c_buffer_in,              &
-                              c_buffer_out)             &
-    bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-    integer(kind = c_int)             :: i_part
-    integer(kind = c_int)             :: spatial_interp_algorithm
-    integer(kind = c_int)             :: storage
-    type(c_ptr), value                :: c_buffer_in
-    type(c_ptr), value                :: c_buffer_out
-
-    integer(kind = c_int)             :: n_components
-    integer(kind = c_int)             :: n_elt_src
-    integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
-    real(kind = c_double), pointer    :: buffer_in(:)      => null()
-    real(kind = c_double), pointer    :: buffer_out(:)     => null()
-    integer                           :: i, j, k
-
-    print *, ">> my_interpolation"
-
-
-    n_components = CWP_Interp_field_n_components_get(local_code_name, &
-                                                     cpl_id,          &
-                                                     field_id)
-
-    call CWP_Interp_src_data_get(local_code_name, &
-                                 cpl_id,          &
-                                 field_id,        &
-                                 i_part,          &
-                                 n_elt_src,       &
-                                 src_to_tgt_idx)
-
-    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
-    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
-
-    do i = 1, n_elt_src
-      print *, "i = ", i
-      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
-        print *, "  j = ", j
-        do k = 1, n_components
-          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
-        enddo
-      enddo
-    enddo
-
-  end subroutine my_interpolation
 
 
 

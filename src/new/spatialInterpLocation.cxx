@@ -483,8 +483,6 @@ namespace cwipi {
                                     _cpl->IdGet().c_str(),
                                     referenceField->fieldIDGet().c_str(),
                                     i_part,
-                                    _cpl->spatialInterpAlgoGet(),
-                                    storage,
                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
                          (double *) buffer[i_part]);
           // log_trace("<< interpolationFunction\n");
@@ -509,8 +507,6 @@ namespace cwipi {
                                     _cpl->IdGet().c_str(),
                                     referenceField->fieldIDGet().c_str(),
                                     i_part,
-                                    _cpl->spatialInterpAlgoGet(),
-                                    storage,
                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
                          (double *) buffer[i_part]);
 

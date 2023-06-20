@@ -1804,6 +1804,12 @@ CWP_Field_issend_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
+  printf("field_issend :%s %d / %s %d / %s %d\n", 
+    c_local_code_name, l_local_code_name,
+    c_cpl_id, l_cpl_id,
+    c_src_field_id, l_src_field_id
+    );
+
   CWP_Field_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
   free ( c_local_code_name);

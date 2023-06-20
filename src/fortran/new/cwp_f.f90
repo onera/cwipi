@@ -183,6 +183,10 @@ module cwp
         CWP_Init_
     end interface CWP_Init
 
+    interface CWP_C_to_f_string ; module procedure &
+        CWP_C_to_f_string_
+    end interface CWP_C_to_f_string
+
     interface CWP_State_update ; module procedure &
         CWP_State_update_
     end interface CWP_State_update
@@ -514,6 +518,7 @@ module cwp
 
   private :: c_f_char_array,&
              CWP_Init_ ,&
+             CWP_C_to_f_string_ ,&
              CWP_State_update_ ,&
              CWP_Time_step_beg_ ,&
              CWP_Time_step_end_ ,&
@@ -1014,7 +1019,7 @@ module cwp
 
         character(kind = c_char, len = 1)       :: local_code_name, cpl_id, src_field_id
         integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_src_field_id
-        type(c_funptr),                   value :: user_interpolation_fct
+        type(c_ptr),                   value :: user_interpolation_fct
       end subroutine CWP_Interp_function_set_cf
 
       subroutine CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
@@ -1876,6 +1881,36 @@ contains
 
   end subroutine CWP_Init_
 
+  !>
+  !! \brief Create a Fortran string from a C string
+  !!
+  !! This function creates a Fortran string from a C string. There is a string copy
+  !!
+  !! \param [in]  c_str       C string
+  !!
+  !!  \return      Fortran string
+  !!
+
+  function CWP_C_to_f_string_(c_str)  result(f_str)
+    use iso_c_binding
+
+    implicit none
+    
+    character(kind=c_char,len=1), intent(in) :: c_str(*)
+    character(len=:), pointer :: f_str
+    integer i, nchars
+
+
+    i = 1
+    do
+       if (c_str(i) == c_null_char) exit
+       i = i + 1
+    end do
+    nchars = i - 1  ! Exclude null character from Fortran string
+    allocate(character(len=nchars) :: f_str)
+
+    f_str = transfer(c_str(1:nchars), f_str)
+  end function  
 
   !>
   !! \brief Update code state.
@@ -3764,19 +3799,18 @@ contains
                                            cpl_id,                   &
                                            src_field_id,             &
                                            i_part,                   &
-                                           spatial_interp_algorithm, &
-                                           storage,                  &
-                                           buffer_in,                &
-                                           buffer_out)               &
-          bind (c)
+                                           c_buffer_in,                &
+                                           c_buffer_out)               &
+          bind(c)                                          
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int)             :: i_part
-          integer(kind = c_int)             :: spatial_interp_algorithm
-          integer(kind = c_int)             :: storage
-          type(c_ptr), value                :: buffer_in
-          type(c_ptr), value                :: buffer_out
+      
+          character(kind=c_char,len=1) :: local_code_name(*)
+          character(kind=c_char,len=1) :: cpl_id(*)
+          character(kind=c_char,len=1) :: src_field_id(*)
+          integer(kind=c_int), value   :: i_part
+          type(c_ptr), value           :: c_buffer_in
+          type(c_ptr), value           :: c_buffer_out
         end subroutine user_interpolation_fct
     end interface
 
@@ -3786,7 +3820,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_src_field_id    = len(src_field_id)
 
-    print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
+    !print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
 
     call CWP_Interp_function_set_cf(local_code_name,   &
                                     l_local_code_name, &

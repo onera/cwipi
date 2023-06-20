@@ -368,8 +368,6 @@ typedef void (*CWP_Interp_function_t)
  const char           *cpl_id,
  const char           *field_id,
  int                   i_part,
- CWP_Spatial_interp_t  spatial_interp_algorithm,
- CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 );
