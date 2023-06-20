@@ -33,15 +33,10 @@ _locationUserInterpolation
  const char           *cpl_id,
  const char           *field_id,
  int                   i_part,
- CWP_Spatial_interp_t  spatial_interp_algorithm,
- CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 )
 {
-  CWP_UNUSED(spatial_interp_algorithm);
-  CWP_UNUSED(storage);
-
   int           n_elt_src       = 0;
   int          *src_to_tgt_idx  = NULL;
   CWP_Interp_src_data_get(local_code_name,

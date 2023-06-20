@@ -1,12 +1,12 @@
 
 #include "cwipi_configf.h"
 
-  subroutine my_interpolation(c_local_code_name,          &
-                              c_cpl_id,                   &
-                              c_field_id,                 &
-                              i_part,                   &
-                              c_buffer_in,              &
-                              c_buffer_out)             &
+  subroutine my_interpolation(c_local_code_name, &
+                              c_cpl_id,          &
+                              c_field_id,        &
+                              i_part,            &
+                              c_buffer_in,       &
+                              c_buffer_out)      &
 
     bind(c)                                      
 
@@ -31,23 +31,25 @@
     type(c_ptr), value           :: c_buffer_in
     type(c_ptr), value           :: c_buffer_out
 
+    integer(kind = c_int)             :: dof_location
     integer(kind = c_int)             :: n_components
+    integer(kind = c_int)             :: spatial_interp_algo
     integer(kind = c_int)             :: n_elt_src
     integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
     real(kind = c_double), pointer    :: buffer_in(:)      => null()
     real(kind = c_double), pointer    :: buffer_out(:)     => null()
-    integer                           :: i, j, k
+    integer(c_int),        pointer    :: cell_vtx_idx(:)   => null()
+    integer(c_int),        pointer    :: cell_vtx(:)       => null()
+    real(kind = c_double), pointer    :: weights(:)        => null()
+    integer                           :: i, j, k, vtx_id, idx
 
     character(len=:), pointer :: local_code_name
     character(len=:), pointer :: cpl_id
     character(len=:), pointer :: field_id
 
     local_code_name => CWP_C_to_f_string (c_local_code_name)
-    cpl_id => CWP_C_to_f_string (c_cpl_id)
-    field_id => CWP_C_to_f_string (c_field_id)
-
-    !print *, ">> my_interpolation", "'",local_code_name,"'", cpl_id,"'", field_id
-    print *, ">> my_interpolation", i_part, storage, spatial_interp_algorithm
+    cpl_id          => CWP_C_to_f_string (c_cpl_id)
+    field_id        => CWP_C_to_f_string (c_field_id)
 
     n_components = CWP_Interp_field_n_components_get(local_code_name, &
                                                      cpl_id,          &
@@ -60,22 +62,69 @@
                                  n_elt_src,       &
                                  src_to_tgt_idx)
 
-    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
-    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
+    dof_location = CWP_Field_dof_location_get(local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
 
-    do i = 1, n_elt_src
-      print *, "i = ", i
-      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
-        print *, "  j = ", j
-        do k = 1, n_components
-          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+    spatial_interp_algo = CWP_Cpl_spatial_interp_algo_get(local_code_name, &
+                                                          cpl_id)
+
+    if (spatial_interp_algo /= CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT .and. &
+        spatial_interp_algo /= CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE         .and. &
+        spatial_interp_algo /= CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) then
+      print *, "wrong spatial_interp_algo :", spatial_interp_algo
+      stop
+    endif
+
+    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1) * n_components])
+
+    if (dof_location == CWP_DOF_LOCATION_NODE) then
+
+      call CWP_Interp_location_internal_cell_vtx_get(local_code_name, &
+                                                     cpl_id,          &
+                                                     field_id,        &
+                                                     i_part,          &
+                                                     cell_vtx_idx,    &
+                                                     cell_vtx)
+
+      call c_f_pointer(c_buffer_in, buffer_in, [cell_vtx_idx(n_elt_src+1) * n_components]) ! oversized but should be ok
+
+      call CWP_Interp_location_weights_get(local_code_name, &
+                                           cpl_id,          &
+                                           field_id,        &
+                                           i_part,          &
+                                           weights)
+
+
+      idx = 0
+      do i = 1, n_elt_src
+        do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+          buffer_out(n_components*(j-1)+1:n_components*j) = 0.d0
+          do k = cell_vtx_idx(i)+1, cell_vtx_idx(i+1)
+            idx = idx + 1
+            vtx_id = cell_vtx(k)
+            buffer_out(n_components*(j-1)+1:n_components*j) = &
+            buffer_out(n_components*(j-1)+1:n_components*j) + &
+            weights(idx) * buffer_in(n_components*(vtx_id-1)+1:n_components*vtx_id)
+          enddo
         enddo
       enddo
-    enddo
+
+    else
+      call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src * n_components])
+
+      do i = 1, n_elt_src
+        do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+          do k = 1, n_components
+            buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+          enddo
+        enddo
+      enddo
+    endif
 
     deallocate (local_code_name)
     deallocate (cpl_id)
-    deallocate (src_fiel_id)
+    deallocate (field_id)
   end subroutine my_interpolation
 
 program testf
@@ -179,25 +228,24 @@ program testf
   !--------------------------------------------------------------------
 
   interface
-    subroutine my_interpolation(local_code_name,          &
-                                cpl_id,                   &
-                                field_id,                 &
-                                i_part,                   &
-                                spatial_interp_algorithm, &
-                                storage,                  &
-                                c_buffer_in,              &
-                                c_buffer_out)         
+
+    subroutine my_interpolation(c_local_code_name, &
+                                c_cpl_id,          &
+                                c_field_id,        &
+                                i_part,            &
+                                c_buffer_in,       &
+                                c_buffer_out) bind(c)
      
       use, intrinsic :: iso_c_binding
   
       implicit none
   
-      character(len=:), pointer         :: local_code_name, cpl_id, field_id
-      integer*4             :: i_part
-      integer*4             :: spatial_interp_algorithm
-      integer*4             :: storage
-      real*8                           :: c_buffer_in(*)
-      real*8                           :: c_buffer_out(*)
+      character(kind=c_char,len=1) :: c_local_code_name(*)
+      character(kind=c_char,len=1) :: c_cpl_id(*)
+      character(kind=c_char,len=1) :: c_field_id(*)
+      integer(kind=c_int), value   :: i_part
+      type(c_ptr), value           :: c_buffer_in
+      type(c_ptr), value           :: c_buffer_out
   
     end subroutine
   end interface  
@@ -245,12 +293,6 @@ program testf
                 code_names,      &
                 is_active_rank, &
                 intra_comms)
-
-  ! print *, "> CWP_set_toto", loc(mon_toto)
-  ! call CWP_set_toto(mon_toto)
-  ! print *, "> CWP_call_toto"
-  ! call CWP_call_toto()
-  ! print *, "OK!"
 
   !-->>
   if (debug) then
@@ -490,14 +532,13 @@ program testf
                                        "double",      &
                                        "1e-3")
 
-! Set user-defined interpolation function
- if (code_names(1) == "code1") then
-
-   call CWP_Interp_function_set(code_names(1), &
-                                coupling_name, &
-                                field_name,    &
-                               my_interpolation)
- endif
+  ! Set user-defined interpolation function
+  if (code_names(1) == "code1") then
+    call CWP_Interp_function_set(code_names(1), &
+                                 coupling_name, &
+                                 field_name,    &
+                                 my_interpolation)
+  endif
 
   !! Compute spatial interpolation weights
   call CWP_Spatial_interp_weights_compute(code_names(1), &
@@ -586,7 +627,7 @@ program testf
     do i = 1, n_computed_tgts
       ivtx = computed_tgts(i)
 
-      distance = sqrt(sum(vtx_coord(:,ivtx) - field_data(3*i-2:3*i)))
+      distance = sqrt(sum((vtx_coord(:,ivtx) - field_data(3*i-2:3*i))**2))
 
       if (distance > 1.d-6) then
         n_wrong = n_wrong + 1
@@ -903,22 +944,6 @@ subroutine gen_mesh(xmin, xmax, &
   ! end do
 
 end subroutine gen_mesh
-
-
-
-
-
-  subroutine mon_toto(i) bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_int), value, intent(in) :: i
-    print *, "Toto i = ", i
-    ! print *, "Coucou toto!"
-  end subroutine mon_toto
-
-
-
-
 
 
 

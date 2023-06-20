@@ -149,15 +149,10 @@ _my_interpolation
  const char           *cpl_id,
  const char           *field_id,
  int                   i_part,
- CWP_Spatial_interp_t  spatial_interp_algorithm,
- CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 )
 {
-  CWP_UNUSED(spatial_interp_algorithm);
-  PDM_UNUSED(storage);
-
   int  n_elt_tgt             = 0;
   int  n_referenced_tgt      = 0;
   int *referenced_tgt        = NULL;

@@ -26,8 +26,6 @@ def first_interpolation(local_code_name,
                         cpl_id,
                         field_id,
                         i_part,
-                        spatial_interp_algorithm,
-                        storage,
                         buffer_in,
                         buffer_out):
 
@@ -42,6 +40,9 @@ def first_interpolation(local_code_name,
   n_comp = pycwp.interp_field_n_components_get(local_code_name,
                                                cpl_id,
                                                field_id)
+
+  spatial_interp_algorithm = pycwp.cpl_spatial_interp_algo_get(local_code_name,
+                                                               cpl_id)
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES:
     tgt_data = pycwp.interp_tgt_data_get(local_code_name,
@@ -110,8 +111,6 @@ def second_interpolation(local_code_name,
                          cpl_id,
                          field_id,
                          i_part,
-                         spatial_interp_algorithm,
-                         storage,
                          buffer_in,
                          buffer_out):
 
@@ -126,6 +125,9 @@ def second_interpolation(local_code_name,
   n_comp = pycwp.interp_field_n_components_get(local_code_name,
                                                cpl_id,
                                                field_id)
+
+  spatial_interp_algorithm = pycwp.cpl_spatial_interp_algo_get(local_code_name,
+                                                               cpl_id)
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES:
     tgt_data = pycwp.interp_tgt_data_get(local_code_name,

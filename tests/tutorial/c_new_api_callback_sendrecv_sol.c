@@ -42,14 +42,18 @@ my_interpolation
  const char           *local_code_name,
  const char           *cpl_id,
  const char           *field_id,
- int                   i_part,
- CWP_Spatial_interp_t  spatial_interp_algorithm,
- CWP_Field_storage_t   storage,
- double               *buffer_in,
- double               *buffer_out
-)
-{
-  if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
+       int             i_part,
+       double         *buffer_in,
+       double         *buffer_out
+ )
+  {
+   CWP_Spatial_interp_t spatial_interp_algorithm = CWP_Cpl_spatial_interp_algo_get(local_code_name,
+                                                                                   cpl_id);
+   CWP_Field_storage_t  storage                  = CWP_Field_storage_get(local_code_name,
+                                                                         cpl_id,
+                                                                         field_id);
+
+   if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
     if (storage == CWP_FIELD_STORAGE_INTERLACED) {
 
       // Get interpolation information :

@@ -1670,7 +1670,7 @@ CWP_Field_data_set_cf (
  */
 
 CWP_Dof_location_t
-CWP_Field_target_dof_location_get_cf
+CWP_Field_dof_location_get_cf
 (
  const char      *f_local_code_name,
        int        l_local_code_name,
@@ -1686,7 +1686,7 @@ CWP_Field_target_dof_location_get_cf
   c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
   c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
 
-  CWP_Dof_location_t dof_location = CWP_Field_target_dof_location_get(c_local_code_name, c_cpl_id, c_field_id);
+  CWP_Dof_location_t dof_location = CWP_Field_dof_location_get(c_local_code_name, c_cpl_id, c_field_id);
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -1803,12 +1803,6 @@ CWP_Field_issend_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
-
-  printf("field_issend :%s %d / %s %d / %s %d\n", 
-    c_local_code_name, l_local_code_name,
-    c_cpl_id, l_cpl_id,
-    c_src_field_id, l_src_field_id
-    );
 
   CWP_Field_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
@@ -3407,6 +3401,40 @@ CWP_Part_data_n_ref_get_cf
   free(c_local_code_name);
   free(c_cpl_id);
   free(c_part_data_id);
+}
+
+
+/**
+ *
+ * \brief Get the coupling spatial interpolation algorithm.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ * \return                      Spatial interpolation algorithm
+ */
+
+CWP_Spatial_interp_t
+CWP_Cpl_spatial_interp_algo_get_cf
+(
+ const char *f_local_code_name,
+ const int   l_local_code_name,
+ const char *f_cpl_id,
+ const int   l_cpl_id
+ )
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+
+  CWP_Spatial_interp_t algo = CWP_Cpl_spatial_interp_algo_get(c_local_code_name,
+                                                              c_cpl_id);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+
+  return algo;
 }
 
 /*----------------------------------------------------------------------------*/

@@ -319,9 +319,9 @@ module cwp
         CWP_Field_data_set_
     end interface CWP_Field_data_set
 
-    interface CWP_Field_target_dof_location_get ; module procedure &
-        CWP_Field_target_dof_location_get_
-    end interface CWP_Field_target_dof_location_get
+    interface CWP_Field_dof_location_get ; module procedure &
+        CWP_Field_dof_location_get_
+    end interface CWP_Field_dof_location_get
 
     interface CWP_Field_storage_get ; module procedure &
         CWP_Field_storage_get_
@@ -509,9 +509,9 @@ module cwp
       module procedure CWP_Part_data_wait_irecv_
     end interface CWP_Part_data_wait_irecv
 
-    interface CWP_set_toto
-      module procedure CWP_set_toto_
-    end interface CWP_set_toto
+    interface CWP_Cpl_spatial_interp_algo_get
+      module procedure CWP_Cpl_spatial_interp_algo_get_
+    end interface CWP_Cpl_spatial_interp_algo_get
 
   !
   ! Private
@@ -552,7 +552,7 @@ module cwp
              CWP_Mesh_interf_from_faceedge_set_ ,&
              CWP_Field_create_ ,&
              CWP_Field_data_set_ ,&
-             CWP_Field_target_dof_location_get_ ,&
+             CWP_Field_dof_location_get_ ,&
              CWP_Field_storage_get_ ,&
              CWP_Field_del_ ,&
              CWP_Field_issend_ ,&
@@ -607,7 +607,7 @@ module cwp
              CWP_Part_data_irecv_, &
              CWP_Part_data_wait_issend_, &
              CWP_Part_data_wait_irecv_, &
-             CWP_set_toto_
+             CWP_Cpl_spatial_interp_algo_get_
 
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
@@ -979,12 +979,12 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Field_data_set_cf
 
-      subroutine CWP_Field_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, src_field_id, l_src_field_id) &
+      subroutine CWP_Field_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id) &
             bind(c, name = 'CWP_Field_issend_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Field_issend_cf
 
       subroutine CWP_Field_irecv_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, tgt_field_id, l_tgt_field_id) &
@@ -995,12 +995,12 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_tgt_field_id
       end subroutine CWP_Field_irecv_cf
 
-      subroutine CWP_Field_wait_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, src_field_id, l_src_field_id) &
+      subroutine CWP_Field_wait_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id) &
             bind(c, name = 'CWP_Field_wait_issend_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Field_wait_issend_cf
 
       subroutine CWP_Field_wait_irecv_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, tgt_field_id, l_tgt_field_id) &
@@ -1012,34 +1012,34 @@ module cwp
       end subroutine CWP_Field_wait_irecv_cf
 
       subroutine CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-              src_field_id, l_src_field_id, user_interpolation_fct) &
+              field_id, l_field_id, user_interpolation_fct) &
               bind(c, name = 'CWP_Interp_function_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
-        character(kind = c_char, len = 1)       :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1)       :: local_code_name, cpl_id, field_id
+        integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_field_id
         type(c_ptr),                   value :: user_interpolation_fct
       end subroutine CWP_Interp_function_set_cf
 
       subroutine CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-              src_field_id, l_src_field_id) &
+              field_id, l_field_id) &
               bind(c, name = 'CWP_Interp_function_unset_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Interp_function_unset_cf
 
       function CWP_Interp_field_n_components_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-                                                    src_field_id, l_src_field_id) &
+                                                    field_id, l_field_id) &
         result (n_components)                                                          &
         bind(c, name='CWP_Interp_field_n_components_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-        integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
         integer(c_int)                    :: n_components
       end function CWP_Interp_field_n_components_get_cf
 
@@ -1047,16 +1047,16 @@ module cwp
                                             l_local_code_name, &
                                             cpl_id,            &
                                             l_cpl_id,          &
-                                            src_field_id,      &
-                                            l_src_field_id,    &
+                                            field_id,      &
+                                            l_field_id,    &
                                             i_part,            &
                                             n_elt_src,         &
                                             c_src_to_tgt_idx)    &
           bind(c, name = 'CWP_Interp_src_data_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           integer(c_int)                    :: n_elt_src
           type(c_ptr)                       :: c_src_to_tgt_idx
@@ -1066,8 +1066,8 @@ module cwp
                                             l_local_code_name,       &
                                             cpl_id,                  &
                                             l_cpl_id,                &
-                                            src_field_id,            &
-                                            l_src_field_id,          &
+                                            field_id,            &
+                                            l_field_id,          &
                                             i_part,                  &
                                             n_elt_tgt,               &
                                             n_referenced_tgt,        &
@@ -1076,8 +1076,8 @@ module cwp
           bind(c, name = 'CWP_Interp_tgt_data_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           integer(c_int)                    :: n_elt_tgt, n_referenced_tgt
           type(c_ptr)                       :: c_referenced_tgt, c_tgt_come_from_src_idx
@@ -1087,16 +1087,16 @@ module cwp
                                                     l_local_code_name,        &
                                                     cpl_id,                   &
                                                     l_cpl_id,                 &
-                                                    src_field_id,             &
-                                                    l_src_field_id,           &
+                                                    field_id,             &
+                                                    l_field_id,           &
                                                     i_part,                   &
                                                     c_weights,                &
                                                     s_weights)                & !! TO DO: get with coupling
           bind(c, name = 'CWP_Interp_location_weights_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: c_weights
           integer(kind = c_int)             :: s_weights
@@ -1106,8 +1106,8 @@ module cwp
                                                        l_local_code_name,        &
                                                        cpl_id,                   &
                                                        l_cpl_id,                 &
-                                                       src_field_id,             &
-                                                       l_src_field_id,           &
+                                                       field_id,             &
+                                                       l_field_id,           &
                                                        i_part,                   &
                                                        c_points_coords,          &
                                                        c_points_uvw,             &
@@ -1118,8 +1118,8 @@ module cwp
           bind(c, name = 'CWP_Interp_location_point_data_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: c_points_coords, c_points_uvw, c_points_dist2, c_points_projected_coords
           integer(kind = c_int) :: s_size
@@ -1129,16 +1129,16 @@ module cwp
                                                         l_local_code_name,    &
                                                         cpl_id,               &
                                                         l_cpl_id,             &
-                                                        src_field_id,         &
-                                                        l_src_field_id,       &
+                                                        field_id,         &
+                                                        l_field_id,       &
                                                         i_part,               &
                                                         c_volumes,            &
                                                         s_volumes)            &
           bind(c, name = 'CWP_Interp_intersection_volumes_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: c_volumes
           integer(kind = c_int)             :: s_volumes
@@ -1148,16 +1148,16 @@ module cwp
                                                                 l_local_code_name,    &
                                                                 cpl_id,               &
                                                                 l_cpl_id,             &
-                                                                src_field_id,         &
-                                                                l_src_field_id,       &
+                                                                field_id,         &
+                                                                l_field_id,       &
                                                                 i_part,               &
                                                                 c_tgt_elt_volumes,    &
                                                                 n_elt)                &
           bind(c, name = 'CWP_Interp_intersection_tgt_elt_volumes_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind=c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(c_int), value           :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind=c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(c_int), value           :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value           :: i_part
           type(c_ptr)                     :: c_tgt_elt_volumes
           integer(c_int)                  :: n_elt
@@ -1167,16 +1167,16 @@ module cwp
                                                             l_local_code_name, &
                                                             cpl_id,            &
                                                             l_cpl_id,          &
-                                                            src_field_id,      &
-                                                            l_src_field_id,    &
+                                                            field_id,      &
+                                                            l_field_id,    &
                                                             i_part,            &
                                                             c_distances2,      &
                                                             s_distances2)      &
           bind(c, name = 'CWP_Interp_closest_points_distances_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: c_distances2
           integer(kind = c_int)             :: s_distances2
@@ -1186,16 +1186,16 @@ module cwp
                                                         l_local_code_name,   &
                                                         f_cpl_id,            &
                                                         l_cpl_id,            &
-                                                        f_src_field_id,      &
-                                                        l_src_field_id,      &
+                                                        f_field_id,      &
+                                                        l_field_id,      &
                                                         i_part,              &
                                                         c_closest_src_coord, &
                                                         n_closest_src_pts)   &
       bind (c, name='CWP_Interp_closest_points_coord_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        character(kind=c_char, len = 1) :: f_local_code_name, f_cpl_id, f_src_field_id
-        integer(c_int), value           :: l_local_code_name, l_cpl_id, l_src_field_id
+        character(kind=c_char, len = 1) :: f_local_code_name, f_cpl_id, f_field_id
+        integer(c_int), value           :: l_local_code_name, l_cpl_id, l_field_id
         integer(c_int), value           :: i_part
         type(c_ptr)                     :: c_closest_src_coord
         integer(c_int)                  :: n_closest_src_pts
@@ -1205,8 +1205,8 @@ module cwp
                                                               l_local_code_name,        &
                                                               cpl_id,                   &
                                                               l_cpl_id,                 &
-                                                              src_field_id,             &
-                                                              l_src_field_id,           &
+                                                              field_id,             &
+                                                              l_field_id,           &
                                                               i_part,                   &
                                                               cell_vtx_idx,             &
                                                               n_cell,                   &
@@ -1215,8 +1215,8 @@ module cwp
           bind(c, name = 'CWP_Interp_location_internal_cell_vtx_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
-          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
-          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_field_id
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: cell_vtx_idx, cell_vtx
           integer(kind = c_int) :: n_cell
@@ -1491,20 +1491,20 @@ module cwp
     end subroutine CWP_Mesh_interf_c_poly_block_get_cf
 
 
-    function CWP_Field_target_dof_location_get_cf(local_code_name,   &
-                                                  l_local_code_name, &
-                                                  cpl_id,            &
-                                                  l_cpl_id,          &
-                                                  field_id,          &
-                                                  l_field_id)        &
-      result (dof_location)                                          &
-      bind(c, name='CWP_Field_target_dof_location_get_cf')
+    function CWP_Field_dof_location_get_cf(local_code_name,   &
+                                           l_local_code_name, &
+                                           cpl_id,            &
+                                           l_cpl_id,          &
+                                           field_id,          &
+                                           l_field_id)        &
+      result (dof_location)                                   &
+      bind(c, name='CWP_Field_dof_location_get_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
       integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       integer(c_int)        :: dof_location
-    end function CWP_Field_target_dof_location_get_cf
+    end function CWP_Field_dof_location_get_cf
 
 
     function CWP_Field_storage_get_cf(local_code_name,   &
@@ -1773,22 +1773,17 @@ module cwp
     end subroutine CWP_Part_data_n_ref_get_cf
 
 
-    subroutine CWP_set_toto_cf(fun) &
-    bind(c, name='CWP_set_toto')
-      use iso_c_binding
-      type(C_FUNPTR), value :: fun
-    end subroutine CWP_set_toto_cf
-
-    subroutine CWP_call_toto() bind (c, name='CWP_call_toto')
-    use iso_c_binding
-    end subroutine CWP_call_toto
-
-    subroutine appelle_toto_cf(fun, i) bind (c, name="appelle_toto")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    type(c_funptr), value :: fun
-    integer(c_int), value :: i
-    end subroutine appelle_toto_cf
+    function CWP_Cpl_spatial_interp_algo_get_cf(f_local_code_name,      &
+                                                l_local_code_name,      &
+                                                f_cpl_id,               &
+                                                l_cpl_id) result (algo) &
+    bind (c, name='CWP_Cpl_spatial_interp_algo_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id
+      integer(c_int)                :: algo
+    end function CWP_Cpl_spatial_interp_algo_get_cf
 
   end interface
 
@@ -3514,9 +3509,9 @@ contains
   !!
   !!
 
-  function CWP_Field_target_dof_location_get_(local_code_name, &
-                                             cpl_id,          &
-                                             field_id)        &
+  function CWP_Field_dof_location_get_(local_code_name, &
+                                       cpl_id,          &
+                                       field_id)        &
     result (dof_location)
 
     use, intrinsic :: iso_c_binding
@@ -3530,14 +3525,14 @@ contains
     l_cpl_id          = len(cpl_id)
     l_field_id        = len(field_id)
 
-    dof_location = CWP_Field_target_dof_location_get_cf(local_code_name,   &
-                                                        l_local_code_name, &
-                                                        cpl_id,            &
-                                                        l_cpl_id,          &
-                                                        field_id,          &
-                                                        l_field_id)
+    dof_location = CWP_Field_dof_location_get_cf(local_code_name,   &
+                                                 l_local_code_name, &
+                                                 cpl_id,            &
+                                                 l_cpl_id,          &
+                                                 field_id,          &
+                                                 l_field_id)
 
-  end function CWP_Field_target_dof_location_get_
+  end function CWP_Field_dof_location_get_
 
 
   !>
@@ -3616,31 +3611,31 @@ contains
   !! This function is independant of \ref CWP_Time_exch_t mode. The user has to
   !! manually check the consistency of the exchanges.
   !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in]  cpl_id          Coupling identifier
-  !! \param [in]  src_field_id    Source field id
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !! \param [in]  field_id         Field identifier
   !!
 
-  subroutine CWP_Field_issend_ (local_code_name, &
+  subroutine CWP_Field_issend_(local_code_name, &
                                cpl_id,          &
-                               src_field_id)
+                               field_id)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Field_issend_cf (local_code_name,    &
                               l_local_code_name,  &
                               cpl_id,             &
                               l_cpl_id,           &
-                              src_field_id,       &
-                              l_src_field_id)
+                              field_id,       &
+                              l_field_id)
   end subroutine CWP_Field_issend_
 
 
@@ -3686,28 +3681,28 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] src_field_id     Source field id
+  !! \param [in] field_id         Field identifier
   !!
 
-  subroutine CWP_Field_wait_issend_ (local_code_name, &
+  subroutine CWP_Field_wait_issend_(local_code_name, &
                                     cpl_id,          &
-                                    src_field_id)
+                                    field_id)
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Field_wait_issend_cf (local_code_name,    &
                                    l_local_code_name,  &
                                    cpl_id,             &
                                    l_cpl_id,           &
-                                   src_field_id,       &
-                                   l_src_field_id)
+                                   field_id,       &
+                                   l_field_id)
   end subroutine CWP_Field_wait_issend_
 
 
@@ -3751,25 +3746,25 @@ contains
   !!
   !!  \param [in] local_code_name  Local code name
   !!  \param [in] cpl_id           Coupling identifier
-  !!  \param [in] src_field_id     Source field id
+  !!  \param [in] field_id         Field identifier
   !!
   !!
 
   subroutine CWP_Interp_function_unset_ (local_code_name, &
-                                             cpl_id, &
-                                             src_field_id)
+                                         cpl_id,          &
+                                         field_id)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-            & src_field_id, l_src_field_id)
+            & field_id, l_field_id)
 
   end subroutine CWP_Interp_function_unset_
 
@@ -3782,43 +3777,43 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] src_field_id     Source field id
+  !! \param [in] field_id         Field identifier
   !! \param [in] fct              Function
   !!
 
-  subroutine CWP_Interp_function_set_(local_code_name, &
-                                      cpl_id, &
-                                      src_field_id, &
+  subroutine CWP_Interp_function_set_(local_code_name,        &
+                                      cpl_id,                 &
+                                      field_id,               &
                                       user_interpolation_fct)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
     interface
-        subroutine user_interpolation_fct (local_code_name,          &
-                                           cpl_id,                   &
-                                           src_field_id,             &
-                                           i_part,                   &
-                                           c_buffer_in,                &
-                                           c_buffer_out)               &
+        subroutine user_interpolation_fct(c_local_code_name, &
+                                          c_cpl_id,          &
+                                          c_field_id,        &
+                                          i_part,            &
+                                          c_buffer_in,       &
+                                          c_buffer_out)      &
           bind(c)                                          
           use, intrinsic :: iso_c_binding
           implicit none
       
-          character(kind=c_char,len=1) :: local_code_name(*)
-          character(kind=c_char,len=1) :: cpl_id(*)
-          character(kind=c_char,len=1) :: src_field_id(*)
+          character(kind=c_char,len=1) :: c_local_code_name(*)
+          character(kind=c_char,len=1) :: c_cpl_id(*)
+          character(kind=c_char,len=1) :: c_field_id(*)
           integer(kind=c_int), value   :: i_part
           type(c_ptr), value           :: c_buffer_in
           type(c_ptr), value           :: c_buffer_out
         end subroutine user_interpolation_fct
     end interface
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int)             :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int)             :: l_local_code_name, l_cpl_id, l_field_id
     l_local_code_name = len(local_code_name)
     l_cpl_id          = len(cpl_id)
-    l_src_field_id    = len(src_field_id)
+    l_field_id        = len(field_id)
 
     !print *, "CWP_Interp_function_set_ ", loc(user_interpolation_fct), c_funloc(user_interpolation_fct)
 
@@ -3826,8 +3821,8 @@ contains
                                     l_local_code_name, &
                                     cpl_id,            &
                                     l_cpl_id,          &
-                                    src_field_id,      &
-                                    l_src_field_id,    &
+                                    field_id,      &
+                                    l_field_id,    &
                                     c_funloc(user_interpolation_fct))
   end subroutine CWP_Interp_function_set_
 
@@ -3837,25 +3832,25 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] src_field_id     Source field id
+  !! \param [in] field_id         Field identifier
   !!
 
   function CWP_Interp_field_n_components_get_ (local_code_name, &
-                                               cpl_id, &
-                                               src_field_id) &
+                                               cpl_id,          &
+                                               field_id)        &
     result (n_components)
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer                :: n_components
     l_local_code_name = len(local_code_name)
-    l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
 
     n_components = CWP_Interp_field_n_components_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-                                                      & src_field_id, l_src_field_id)
+                                                      & field_id, l_field_id)
 
   end function CWP_Interp_field_n_components_get_
 
@@ -3865,7 +3860,7 @@ contains
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
-  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [out] i_part           Partition identifier
   !!  \param [out] n_elt_src        Number of local source entities in current partition
   !!  \param [out] src_to_tgt_idx   Index for source->target mapping
@@ -3873,7 +3868,7 @@ contains
 
   subroutine CWP_Interp_src_data_get_(local_code_name, &
                                       cpl_id, &
-                                      src_field_id, &
+                                      field_id, &
                                       i_part, &
                                       n_elt_src, &
                                       src_to_tgt_idx)
@@ -3881,22 +3876,22 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part, n_elt_src
     integer(c_int),  dimension(:), pointer :: src_to_tgt_idx
     type(c_ptr)      :: c_src_to_tgt_idx
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_src_data_get_cf(local_code_name, &
                                     l_local_code_name, &
                                     cpl_id, &
                                     l_cpl_id, &
-                                    src_field_id, &
-                                    l_src_field_id, &
+                                    field_id, &
+                                    l_field_id, &
                                     i_part, &
                                     n_elt_src, &
                                     c_src_to_tgt_idx)
@@ -3911,7 +3906,7 @@ contains
   !!
   !!  \param [in]  local_code_name       Local code name
   !!  \param [in]  cpl_id                Coupling identifier
-  !!  \param [in]  src_field_id          Source field id
+  !!  \param [in]  field_id              Field identifier
   !!  \param [out] i_part                Partition identifier
   !!  \param [out] n_elt_tgt             Number of local target entities in current partition
   !!  \param [out] n_referenced_tgt      Number of referenced target entities in current partition
@@ -3921,7 +3916,7 @@ contains
 
   subroutine CWP_Interp_tgt_data_get_(local_code_name, &
                                       cpl_id, &
-                                      src_field_id, &
+                                      field_id, &
                                       i_part, &
                                       n_elt_tgt, &
                                       n_referenced_tgt, &
@@ -3931,22 +3926,22 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part, n_elt_tgt, n_referenced_tgt
     integer(c_int),  dimension(:), pointer :: referenced_tgt, tgt_come_from_src_idx
     type(c_ptr)      :: c_referenced_tgt, c_tgt_come_from_src_idx
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_tgt_data_get_cf(local_code_name, &
                                     l_local_code_name, &
                                     cpl_id, &
                                     l_cpl_id, &
-                                    src_field_id, &
-                                    l_src_field_id, &
+                                    field_id, &
+                                    l_field_id, &
                                     i_part, &
                                     n_elt_tgt, &
                                     n_referenced_tgt, &
@@ -3964,22 +3959,22 @@ contains
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
-  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part           Partition identifier
   !!  \param [out] weights          Interpolation weights
   !!
 
-  subroutine CWP_Interp_location_weights_get_(local_code_name,          &
-                                              cpl_id,                   &
-                                              src_field_id,             &
-                                              i_part,                   &
+  subroutine CWP_Interp_location_weights_get_(local_code_name, &
+                                              cpl_id,          &
+                                              field_id,        &
+                                              i_part,          &
                                               weights)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part
     double precision, dimension(:), pointer :: weights
     integer(kind = c_int) :: s_weights
@@ -3987,14 +3982,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_location_weights_get_cf(local_code_name, &
                                             l_local_code_name, &
                                             cpl_id, &
                                             l_cpl_id, &
-                                            src_field_id, &
-                                            l_src_field_id, &
+                                            field_id, &
+                                            l_field_id, &
                                             i_part, &
                                             c_weights, &
                                             s_weights)
@@ -4009,7 +4004,7 @@ contains
   !!
   !!  \param [in]  local_code_name          Local code name
   !!  \param [in]  cpl_id                   Coupling identifier
-  !!  \param [in]  src_field_id             Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part                   Partition identifier
   !!  \param [out] points_coords            Cartesian coordinates of points inside local elements
   !!  \param [out] points_uvw               Parametric coordinates of points inside local elements
@@ -4019,7 +4014,7 @@ contains
 
   subroutine CWP_Interp_location_point_data_get_(local_code_name, &
                                                  cpl_id, &
-                                                 src_field_id, &
+                                                 field_id, &
                                                  i_part, &
                                                  points_coords, &
                                                  points_uvw, &
@@ -4029,8 +4024,8 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part
     double precision, pointer :: points_coords(:,:)
     double precision, pointer :: points_uvw(:,:)
@@ -4041,14 +4036,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_location_point_data_get_cf(local_code_name, &
                                                l_local_code_name, &
                                                cpl_id, &
                                                l_cpl_id, &
-                                               src_field_id, &
-                                               l_src_field_id, &
+                                               field_id, &
+                                               l_field_id, &
                                                i_part, &
                                                c_points_coords, &
                                                c_points_uvw, &
@@ -4069,7 +4064,7 @@ contains
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
-  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part           Partition identifier
   !!  \param [out] cell_vtx_idx     Index for local cell->vertex connectivity
   !!  \param [out] cell_vtx         Local cell->vertex connectivity
@@ -4077,7 +4072,7 @@ contains
 
   subroutine CWP_Interp_location_internal_cell_vtx_get_(local_code_name, &
                                                         cpl_id, &
-                                                        src_field_id, &
+                                                        field_id, &
                                                         i_part, &
                                                         cell_vtx_idx, &
                                                         cell_vtx)
@@ -4085,8 +4080,8 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part
     integer(c_int),  dimension(:), pointer :: cell_vtx_idx, cell_vtx
     type(c_ptr)      :: c_cell_vtx_idx, c_cell_vtx
@@ -4094,14 +4089,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_location_internal_cell_vtx_get_cf(local_code_name, &
                                                       l_local_code_name, &
                                                       cpl_id, &
                                                       l_cpl_id, &
-                                                      src_field_id, &
-                                                      l_src_field_id, &
+                                                      field_id, &
+                                                      l_field_id, &
                                                       i_part, &
                                                       c_cell_vtx_idx, &
                                                       n_cell, &
@@ -4118,22 +4113,22 @@ contains
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
-  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part           Partition identifier
   !!  \param [out] volumes          Volumes of intersection polyhedra
   !!
 
   subroutine CWP_Interp_intersection_volumes_get_(local_code_name, &
                                                   cpl_id, &
-                                                  src_field_id, &
+                                                  field_id, &
                                                   i_part, &
                                                   volumes)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part
     double precision,  dimension(:), pointer :: volumes
     integer(kind = c_int) :: s_volumes
@@ -4141,14 +4136,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_intersection_volumes_get_cf(local_code_name, &
                                                 l_local_code_name, &
                                                 cpl_id, &
                                                 l_cpl_id, &
-                                                src_field_id, &
-                                                l_src_field_id, &
+                                                field_id, &
+                                                l_field_id, &
                                                 i_part, &
                                                 c_volumes, &
                                                 s_volumes)
@@ -4164,22 +4159,22 @@ contains
   !!
   !!  \param [in]  local_code_name           Local code name
   !!  \param [in]  cpl_id                    Coupling identifier
-  !!  \param [in]  src_field_id              Source field id
+  !!  \param [in]  field_id                  Field identifier
   !!  \param [in]  i_part                    Partition identifier
   !!  \param [out] tgt_elt_volumes           Volumes of local target elements
   !!
 
   subroutine CWP_Interp_intersection_tgt_elt_volumes_get_(local_code_name, &
                                                           cpl_id,          &
-                                                          src_field_id,    &
+                                                          field_id,        &
                                                           i_part,          &
                                                           tgt_elt_volumes)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind=c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(c_int)                  :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind=c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int)                  :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int)                  :: i_part
     double precision, pointer       :: tgt_elt_volumes(:)
     type(c_ptr)                     :: c_tgt_elt_volumes = C_NULL_PTR
@@ -4187,14 +4182,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_intersection_tgt_elt_volumes_get_cf(local_code_name,   &
                                                         l_local_code_name, &
                                                         cpl_id,            &
                                                         l_cpl_id,          &
-                                                        src_field_id,      &
-                                                        l_src_field_id,    &
+                                                        field_id,          &
+                                                        l_field_id,        &
                                                         i_part,            &
                                                         c_tgt_elt_volumes, &
                                                         n_elt)
@@ -4209,22 +4204,22 @@ contains
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
-  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part           Partition identifier
   !!  \param [out] distances2       Squared distances from closest source points
   !!
 
   subroutine CWP_Interp_closest_points_distances_get_(local_code_name, &
                                                       cpl_id, &
-                                                      src_field_id, &
+                                                      field_id, &
                                                       i_part, &
                                                       distances2)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int) :: i_part
     double precision,  dimension(:), pointer :: distances2
     integer(kind = c_int) :: s_distances2
@@ -4232,14 +4227,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
+    l_field_id = len(field_id)
 
     call CWP_Interp_closest_points_distances_get_cf(local_code_name, &
                                                     l_local_code_name, &
                                                     cpl_id, &
                                                     l_cpl_id, &
-                                                    src_field_id, &
-                                                    l_src_field_id, &
+                                                    field_id, &
+                                                    l_field_id, &
                                                     i_part, &
                                                     c_distances2, &
                                                     s_distances2)
@@ -4255,22 +4250,22 @@ contains
   !!
   !!  \param [in]  local_code_name    Local code name
   !!  \param [in]  cpl_id             Coupling identifier
-  !!  \param [in]  src_field_id       Source field id
+  !!  \param [in]  field_id           Field identifier
   !!  \param [in]  i_part             Partition identifier
   !!  \param [out] closest_src_coord  Coordinates of closest source points
   !!
 
   subroutine CWP_Interp_closest_points_coord_get_(local_code_name,   &
                                                   cpl_id,            &
-                                                  src_field_id,      &
+                                                  field_id,          &
                                                   i_part,            &
                                                   closest_src_coord)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
-    character(kind=c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(c_int)                  :: l_local_code_name, l_cpl_id, l_src_field_id
+    character(kind=c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int)                  :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int), intent(in)      :: i_part
     double precision, pointer       :: closest_src_coord(:,:)
 
@@ -4279,14 +4274,14 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id          = len(cpl_id)
-    l_src_field_id    = len(src_field_id)
+    l_field_id        = len(field_id)
 
     call CWP_Interp_closest_points_coord_get_cf(local_code_name,     &
                                                 l_local_code_name,   &
                                                 cpl_id,              &
                                                 l_cpl_id,            &
-                                                src_field_id,        &
-                                                l_src_field_id,      &
+                                                field_id,            &
+                                                l_field_id,          &
                                                 i_part,              &
                                                 c_closest_src_coord, &
                                                 n_closest_src_pts)
@@ -4312,8 +4307,8 @@ contains
   !!
 
   subroutine CWP_Param_add_int_(local_code_name, &
-                               param_name,      &
-                               initial_value)
+                                param_name,      &
+                                initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4347,8 +4342,8 @@ contains
 
 
   subroutine CWP_Param_add_double_(local_code_name, &
-                                  param_name,      &
-                                  initial_value)
+                                   param_name,      &
+                                   initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4381,8 +4376,8 @@ contains
   end subroutine CWP_Param_add_double_
 
   subroutine CWP_Param_add_char_(local_code_name, &
-                                param_name,      &
-                                initial_value)
+                                 param_name,      &
+                                 initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4426,8 +4421,8 @@ contains
   !!
 
   subroutine CWP_Param_set_int_(local_code_name, &
-                               param_name,      &
-                               value)
+                                param_name,      &
+                                value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4459,8 +4454,8 @@ contains
   end subroutine CWP_Param_set_int_
 
   subroutine CWP_Param_set_double_(local_code_name, &
-                                  param_name,      &
-                                  value)
+                                   param_name,      &
+                                   value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4492,8 +4487,8 @@ contains
   end subroutine CWP_Param_set_double_
 
   subroutine CWP_Param_set_char_(local_code_name, &
-                                param_name,      &
-                                value)
+                                 param_name,      &
+                                 value)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4536,8 +4531,8 @@ contains
   !!
 
   subroutine CWP_Param_del_(local_code_name, &
-                           param_name,      &
-                           data_type)
+                            param_name,      &
+                            data_type)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4575,7 +4570,7 @@ contains
   !!
 
   function CWP_Param_n_get_(code_name, &
-                           data_type) &
+                            data_type) &
     result (n_param)
     use, intrinsic :: iso_c_binding
     implicit none
@@ -5588,26 +5583,23 @@ contains
 
 
 
-  subroutine CWP_set_toto_(fun)
-    use iso_c_binding
+  function CWP_Cpl_spatial_interp_algo_get_(f_local_code_name, &
+                                            f_cpl_id) result(algo)
+    use, intrinsic :: iso_c_binding
     implicit none
-    interface
-      subroutine fun(i) bind(c)
-        use, intrinsic :: iso_c_binding
-        implicit none
-        integer(c_int), value, intent(in) :: i
-      end subroutine fun
-    end interface
+    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id
+    integer(c_int)                :: l_local_code_name, l_cpl_id
+    integer(c_int)                :: algo
 
-    call CWP_set_toto_cf(c_funloc(fun))
-  end subroutine CWP_set_toto_
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
 
+    algo = CWP_Cpl_spatial_interp_algo_get_cf(f_local_code_name, &
+                                              l_local_code_name, &
+                                              f_cpl_id,          &
+                                              l_cpl_id)
 
-
-
-
-
-
+  end function CWP_Cpl_spatial_interp_algo_get_
 
 
 end module cwp

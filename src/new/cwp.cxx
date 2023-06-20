@@ -110,8 +110,6 @@ using namespace std;
  * Global variable
  *============================================================================*/
 
-static ma_fonction_t toto_f;
-
 /*----------------------------------------------------------------------------
  * Output listing File (C printing)
  *----------------------------------------------------------------------------*/
@@ -1967,15 +1965,15 @@ CWP_Mesh_interf_shared_pdm_nodal
  *
  * \brief Create a new field.
  *
- * \param [in] local_code_name Local code name
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field id
- * \param [in]  data_type      Data type
- * \param [in]  storage        Storage type
- * \param [in]  n_component    Number of component
- * \param [in]  target_location Target location
- * \param [in]  exch_type      Exchange type
- * \param [in]  visu_status    Visualization status
+ * \param [in]  local_code_name Local code name
+ * \param [in]  cpl_id          Coupling identifier
+ * \param [in]  field_id        Field id
+ * \param [in]  data_type       Data type
+ * \param [in]  storage         Storage type
+ * \param [in]  n_component     Number of component
+ * \param [in]  dof_location    Location of the degrees of freedom
+ * \param [in]  exch_type       Exchange type
+ * \param [in]  visu_status     Visualization status
  *
  */
 
@@ -1988,16 +1986,17 @@ CWP_Field_create
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
  const int                    n_component,
- const CWP_Dof_location_t     target_location,
+ const CWP_Dof_location_t     dof_location,
  const CWP_Field_exch_t       exch_type,
- const CWP_Status_t           visu_status)
+ const CWP_Status_t           visu_status
+)
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.fieldCreate(field_id,
                   data_type,
                   storage,
                   n_component,
-                  target_location,
+                  dof_location,
                   exch_type,
                   visu_status);
 }
@@ -2009,7 +2008,7 @@ CWP_Field_create
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id     Source field id
+ * \param [in] field_id         Field identifier
  *
  */
 
@@ -2018,11 +2017,11 @@ CWP_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id
+ const char                 *field_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFunctionUnSet(src_field_id);
+  cpl.interpFunctionUnSet(field_id);
 }
 
 
@@ -2031,11 +2030,11 @@ CWP_Interp_function_f_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id
+ const char                 *field_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFunctionFUnSet(src_field_id);
+  cpl.interpFunctionFUnSet(field_id);
 }
 
 
@@ -2049,7 +2048,7 @@ CWP_Interp_function_f_unset
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id    Source field id
+ * \param [in] field_id         Field identifier
  * \param [in] fct              Function
  *
  */
@@ -2059,12 +2058,12 @@ CWP_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id,
+ const char                 *field_id,
  CWP_Interp_function_t       fct
  )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFunctionSet(src_field_id,fct);
+  cpl.interpFunctionSet(field_id,fct);
 }
 
 void
@@ -2072,12 +2071,12 @@ CWP_Interp_function_f_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id,
+ const char                 *field_id,
  CWP_Interp_function_t       fct
  )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFunctionFSet(src_field_id,fct);
+  cpl.interpFunctionFSet(field_id,fct);
 }
 
 /**
@@ -2086,7 +2085,7 @@ CWP_Interp_function_f_set
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  *
  */
 
@@ -2108,7 +2107,7 @@ CWP_Interp_field_n_components_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id              Field identifier
  * \param [in]  i_part
  * \param [out] n_elt_src
  * \param [out] src_to_tgt_idx
@@ -2148,7 +2147,7 @@ CWP_Interp_src_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part
  * \param [out] n_elt_tgt
  * \param [out] n_referenced_tgt
@@ -2198,7 +2197,7 @@ CWP_Interp_tgt_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] weights                   Spatial interpolation weights
  *
@@ -2239,7 +2238,7 @@ CWP_Interp_location_weights_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] points_coords             Cartesian coordinates of points inside local elements
  * \param [out] points_uvw                Parametric coordinates of points inside local elements
@@ -2293,7 +2292,7 @@ CWP_Interp_location_point_data_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
  * \param [out] cell_vtx                  Local cell->vertex connectivity
@@ -2337,7 +2336,7 @@ CWP_Interp_location_internal_cell_vtx_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] volumes                   Volumes of intersection polyhedra
  *
@@ -2377,7 +2376,7 @@ CWP_Interp_intersection_volumes_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] tgt_elt_volumes           Volumes of local target elements
  *
@@ -2414,7 +2413,7 @@ CWP_Interp_intersection_tgt_elt_volumes_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] distances2                Squared distances from closest source points
  *
@@ -2455,7 +2454,7 @@ CWP_Interp_closest_points_distances_get
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  src_field_id              Source field id
+ * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] closest_src_coord         Coordinates of closest source points
  *
@@ -2550,7 +2549,7 @@ CWP_Field_data_get
 
 /**
  *
- * \brief Get target degrees of freedom location.
+ * \brief Get the degrees of freedom location.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -2561,7 +2560,7 @@ CWP_Field_data_get
  */
 
 CWP_Dof_location_t
-CWP_Field_target_dof_location_get
+CWP_Field_dof_location_get
 (
  const char                  *local_code_name,
  const char                  *cpl_id,
@@ -2643,8 +2642,8 @@ CWP_Field_del
  * manually check the consistency of the exchanges.
  *
  * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id          Coupling identifier
- * \param [in]  src_field_id    Source field id
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  field_id        Field identifier
  *
  *
  */
@@ -2654,11 +2653,11 @@ CWP_Field_issend
 (
  const char        *local_code_name,
  const char        *cpl_id,
- const char        *src_field_id
+ const char        *field_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  std::string referenceFieldID_str = const_cast<char*>(src_field_id);
+  std::string referenceFieldID_str = const_cast<char*>(field_id);
 
   cpl.issend(referenceFieldID_str);
 }
@@ -2699,7 +2698,7 @@ CWP_Field_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id     Source field id
+ * \param [in] field_id         Field identifier
  *
  */
 
@@ -2708,11 +2707,11 @@ CWP_Field_wait_issend
 (
  const char  *local_code_name,
  const char  *cpl_id,
- const char  *src_field_id
+ const char  *field_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  std::string srcFieldID_str = const_cast<char*>(src_field_id);
+  std::string srcFieldID_str = const_cast<char*>(field_id);
   cpl.waitIssend(srcFieldID_str);
 }
 
@@ -3679,18 +3678,28 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
 }
 
 
+/**
+ *
+ * \brief Get the coupling spatial interpolation algorithm.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ * \return                      Spatial interpolation algorithm
+ */
 
-void
-CWP_set_toto(ma_fonction_t f) {
-  toto_f = f;
-}
-
-void
-CWP_call_toto()
+CWP_Spatial_interp_t
+CWP_Cpl_spatial_interp_algo_get
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
 {
-  // printf(">>> toto_f %ld\n", (void *) toto_f);
-  // (*toto_f)(3);
-}
+  cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
+
+  return cpl.spatialInterpAlgoGet();
+};
+
 /*-----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

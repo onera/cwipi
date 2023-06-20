@@ -1142,7 +1142,7 @@ CWP_client_Field_data_set
 
 /**
  *
- * \brief Field_target_dof_location_get CWIPI.
+ * \brief Field_dof_location_get CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1153,7 +1153,7 @@ CWP_client_Field_data_set
  */
 
 CWP_Dof_location_t
-CWP_client_Field_target_dof_location_get
+CWP_client_Field_dof_location_get
 (
  const char      *local_code_name,
  const char      *cpl_id,
@@ -1202,9 +1202,9 @@ CWP_client_Field_del
  * This function is independant of \ref CWP_Time_exch_t mode. The user has to
  * manually check the consistency of the exchanges.
  *
- * \param [in] local_code_name  Local code name
- * \param [in]  cpl_id          Coupling identifier
- * \param [in]  src_field_id    Source field id
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  field_id         Field identifier
  *
  *
  */
@@ -1214,7 +1214,7 @@ CWP_client_Field_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *src_field_id
+ const char     *field_id
 );
 
 /**
@@ -1245,7 +1245,7 @@ CWP_client_Field_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id     Source field id
+ * \param [in] field_id         Field identifier
  *
  */
 
@@ -1254,7 +1254,7 @@ CWP_client_Field_wait_issend
 (
  const char  *local_code_name,
  const char  *cpl_id,
- const char  *src_field_id
+ const char  *field_id
 );
 
 
@@ -1285,7 +1285,7 @@ CWP_client_Field_wait_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id     Source field id
+ * \param [in] field_id         Field identifier
  *
  */
 
@@ -1294,7 +1294,7 @@ CWP_client_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id
+ const char                 *field_id
 );
 
 
@@ -1307,7 +1307,7 @@ CWP_client_Interp_function_unset
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] src_field_id     Source field id
+ * \param [in] field_id         Field identifier
  * \param [in] fct              Function
  *
  */
@@ -1317,7 +1317,7 @@ CWP_client_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *src_field_id,
+ const char                 *field_id,
  CWP_Interp_function_t       fct
 );
 

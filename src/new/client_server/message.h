@@ -99,7 +99,7 @@ extern "C" {
 #define CWP_MSG_CWP_FIELD_CREATE                         45
 #define CWP_MSG_CWP_FIELD_DATA_SET                       46
 #define CWP_MSG_CWP_FIELD_N_COMPONENT_GET                47
-#define CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET        48
+#define CWP_MSG_CWP_Field_dof_location_get               48
 #define CWP_MSG_CWP_FIELD_STORAGE_GET                    49
 #define CWP_MSG_CWP_FIELD_DEL                            50
 #define CWP_MSG_CWP_FIELD_ISSEND                         51

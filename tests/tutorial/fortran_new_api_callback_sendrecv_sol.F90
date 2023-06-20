@@ -1,5 +1,73 @@
 #include "cwipi_configf.h"
 
+  subroutine my_interpolation(c_local_code_name,        &
+                              c_cpl_id,                 &
+                              c_field_id,               &
+                              i_part,                   &
+                              c_buffer_in,              &
+                              c_buffer_out)             &
+    bind(c)
+    use, intrinsic :: iso_c_binding
+
+    use cwp
+
+    implicit none
+
+    character(kind=c_char,len=1)   :: c_local_code_name(*)
+    character(kind=c_char,len=1)   :: c_cpl_id(*)
+    character(kind=c_char,len=1)   :: c_field_id(*)
+    integer(kind=c_int), value     :: i_part
+    type(c_ptr), value             :: c_buffer_in
+    type(c_ptr), value             :: c_buffer_out
+
+    integer(kind = c_int)          :: n_components
+    integer(kind = c_int)          :: n_elt_src
+    integer(kind = c_int), pointer :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer :: buffer_in(:)      => null()
+    real(kind = c_double), pointer :: buffer_out(:)     => null()
+    integer                        :: i, j, k
+
+    character(len=:),      pointer :: local_code_name => null()
+    character(len=:),      pointer :: cpl_id          => null()
+    character(len=:),      pointer :: field_id        => null()
+
+    print *, ">> my_interpolation"
+
+    local_code_name => CWP_C_to_f_string(c_local_code_name)
+    cpl_id          => CWP_C_to_f_string(c_cpl_id)
+    field_id        => CWP_C_to_f_string(c_field_id)
+
+
+    n_components = CWP_Interp_field_n_components_get(local_code_name, &
+                                                     cpl_id,          &
+                                                     field_id)
+
+    call CWP_Interp_src_data_get(local_code_name, &
+                                 cpl_id,          &
+                                 field_id,        &
+                                 i_part,          &
+                                 n_elt_src,       &
+                                 src_to_tgt_idx)
+
+    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
+    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
+
+    do i = 1, n_elt_src
+      print *, "i = ", i
+      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
+        print *, "  j = ", j
+        do k = 1, n_components
+          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
+        enddo
+      enddo
+    enddo
+
+    deallocate(local_code_name)
+    deallocate(cpl_id)
+    deallocate(field_id)
+  end subroutine my_interpolation
+
+
 program fortran_new_api_callback_sendrecv_sol
 
 #ifdef CWP_HAVE_FORTRAN_MPI_MODULE
@@ -48,6 +116,31 @@ program fortran_new_api_callback_sendrecv_sol
   integer                                     :: i, j
   character :: strnum
   !--------------------------------------------------------------------
+
+  interface
+
+    subroutine my_interpolation(c_local_code_name, &
+                                c_cpl_id,          &
+                                c_field_id,        &
+                                i_part,            &
+                                c_buffer_in,       &
+                                c_buffer_out) bind(c)
+
+      use, intrinsic :: iso_c_binding
+
+      implicit none
+
+      character(kind=c_char,len=1) :: c_local_code_name(*)
+      character(kind=c_char,len=1) :: c_cpl_id(*)
+      character(kind=c_char,len=1) :: c_field_id(*)
+      integer(kind=c_int), value   :: i_part
+      type(c_ptr), value           :: c_buffer_in
+      type(c_ptr), value           :: c_buffer_out
+
+    end subroutine
+  end interface
+
+
 
   ! Initialize MPI
   call MPI_Init(ierr)
@@ -171,11 +264,10 @@ program fortran_new_api_callback_sendrecv_sol
                           recv_field_data)
 
   ! Set user-defined interpolation function
-  print *, "my_interpolation : ", loc(my_interpolation)
-  ! call CWP_Interp_function_set(code_names(1), &
-  !                              coupling_name, &
-  !                              field_name,    &
-  !                              my_interpolation)
+  call CWP_Interp_function_set(code_names(1), &
+                               coupling_name, &
+                               field_name,    &
+                               my_interpolation)
 
 
   ! Spatial interpolation
@@ -262,63 +354,6 @@ program fortran_new_api_callback_sendrecv_sol
 
 
 contains
-
-  subroutine my_interpolation(local_code_name,          &
-                              cpl_id,                   &
-                              field_id,                 &
-                              i_part,                   &
-                              spatial_interp_algorithm, &
-                              storage,                  &
-                              c_buffer_in,              &
-                              c_buffer_out)             &
-    bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-    integer(kind = c_int)             :: i_part
-    integer(kind = c_int)             :: spatial_interp_algorithm
-    integer(kind = c_int)             :: storage
-    type(c_ptr), value                :: c_buffer_in
-    type(c_ptr), value                :: c_buffer_out
-
-    integer(kind = c_int)             :: n_components
-    integer(kind = c_int)             :: n_elt_src
-    integer(kind = c_int), pointer    :: src_to_tgt_idx(:) => null()
-    real(kind = c_double), pointer    :: buffer_in(:)      => null()
-    real(kind = c_double), pointer    :: buffer_out(:)     => null()
-    integer                           :: i, j, k
-
-    print *, ">> my_interpolation"
-
-
-    n_components = CWP_Interp_field_n_components_get(local_code_name, &
-                                                     cpl_id,          &
-                                                     field_id)
-
-    call CWP_Interp_src_data_get(local_code_name, &
-                                 cpl_id,          &
-                                 field_id,        &
-                                 i_part,          &
-                                 n_elt_src,       &
-                                 src_to_tgt_idx)
-
-    call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
-    call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
-
-    do i = 1, n_elt_src
-      print *, "i = ", i
-      do j = src_to_tgt_idx(i)+1, src_to_tgt_idx(i+1)
-        print *, "  j = ", j
-        do k = 1, n_components
-          buffer_out(n_components*(j-1)+k) = buffer_in(n_components*(i-1)+k)
-        enddo
-      enddo
-    enddo
-
-  end subroutine my_interpolation
-
-
 
   subroutine visu(filename,    &
                   n_vtx,       &

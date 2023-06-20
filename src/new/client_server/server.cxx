@@ -4507,7 +4507,7 @@ CWP_server_Field_data_set
 }
 
 void
-CWP_server_Field_target_dof_location_get
+CWP_server_Field_dof_location_get
 (
   p_server                 svr
 )
@@ -4516,7 +4516,7 @@ CWP_server_Field_target_dof_location_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET);
+    NEWMESSAGE(message, CWP_MSG_CWP_Field_dof_location_get);
     message.flag = CWP_SVR_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -4538,13 +4538,13 @@ CWP_server_Field_target_dof_location_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET);
+    NEWMESSAGE(message, CWP_MSG_CWP_Field_dof_location_get);
     message.flag = CWP_SVR_LCH_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
   // launch
-  int dof_location = CWP_Field_target_dof_location_get(local_code_name,
+  int dof_location = CWP_Field_dof_location_get(local_code_name,
                                                        cpl_id,
                                                        field_id);
 
@@ -4552,7 +4552,7 @@ CWP_server_Field_target_dof_location_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET);
+    NEWMESSAGE(message, CWP_MSG_CWP_Field_dof_location_get);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -6922,15 +6922,15 @@ CWP_server_msg_handler
 
     break;
 
-  case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET:
+  case CWP_MSG_CWP_Field_dof_location_get:
 
     // verbose
     if (svr_debug) {
-      printf("CWP: server received CWP_Field_target_dof_location_get signal\n");
+      printf("CWP: server received CWP_Field_dof_location_get signal\n");
     }
 
     // launch
-    CWP_server_Field_target_dof_location_get(svr);
+    CWP_server_Field_dof_location_get(svr);
 
     break;
 
