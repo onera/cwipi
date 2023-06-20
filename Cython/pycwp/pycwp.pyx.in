@@ -1470,9 +1470,9 @@ def interp_field_n_components_get(char * local_code_name,
 
     return n_components
 
-def interp_field_target_dof_location_get(char * local_code_name,
-                                         char * cpl_id,
-                                         char * field_id):
+def interp_field_dof_location_get(char * local_code_name,
+                                  char * cpl_id,
+                                  char * field_id):
     """
     Get target degrees of freedom location.
 
@@ -1485,9 +1485,9 @@ def interp_field_target_dof_location_get(char * local_code_name,
       dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
     """
 
-    cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(local_code_name,
-                                                                        cpl_id,
-                                                                        field_id)
+    cdef CWP_Dof_location_t dof_loc = CWP_Field_dof_location_get(local_code_name,
+                                                                 cpl_id,
+                                                                 field_id)
 
     return dof_loc
 

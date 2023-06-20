@@ -30,9 +30,9 @@ storage = pycwp.interp_field_storage_get(local_code_name,
 
 # Get the location of the degrees of freedom
 
-tgt_dof_location = pycwp.interp_field_target_dof_location_get(local_code_name,
-                                                              cpl_id,
-                                                              field_id)
+tgt_dof_location = pycwp.interp_field_dof_location_get(local_code_name,
+                                                       cpl_id,
+                                                       field_id)
 
 # Get data from the source of the exchange
 

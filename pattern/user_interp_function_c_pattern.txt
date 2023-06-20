@@ -19,9 +19,9 @@ CWP_Field_storage_t storage = CWP_Field_storage_get(local_code_name,
 
 // Get the location of the degrees of freedom
 
-CWP_Dof_location_t dof_location = CWP_Field_target_dof_location_get(local_code_name,
-                                                                    cpl_id,
-                                                                    field_id);
+CWP_Dof_location_t dof_location = CWP_Field_dof_location_get(local_code_name,
+                                                             cpl_id,
+                                                             field_id);
 
 // Get data from the source of the exchange
 
