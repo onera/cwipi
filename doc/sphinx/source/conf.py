@@ -155,7 +155,10 @@ breathe_projects_source = {
     "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
                                  "../tests/tutorial/c_new_api_polygon_sol.c",
                                  "../tests/tutorial/fortran_new_api_polygon_sol.F90",
-                                 "../tests/tutorial/python_new_api_polygon_sol.py"] )
+                                 "../tests/tutorial/python_new_api_polygon_sol.py",
+                                 "../pattern/user_interp_function_c_pattern.txt",
+                                 "../pattern/user_interp_function_fortran_pattern.txt",
+                                 "../pattern/user_interp_function_python_pattern.txt"] )
 }
 
 breathe_default_project = "cwipi"
