@@ -49,9 +49,9 @@ def my_interpolation(local_code_name,
                                          cpl_id,
                                          field_id,
                                          i_part)
-    n_tgt          = tgt_data["n_elt_tgt"]
-    ref_tgt        = tgt_data["referenced_tgt"]
-    tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
+    n_tgt          = tgt_data["n_tgt"]
+    ref_tgt        = tgt_data["computed_tgt"]
+    tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
     distance2 = pycwp.interp_nearest_neighbors_distances_get(local_code_name,
                                                              cpl_id,
@@ -77,7 +77,7 @@ def my_interpolation(local_code_name,
                                          cpl_id,
                                          field_id,
                                          i_part)
-    n_src = src_data["n_elt_src"]
+    n_src = src_data["n_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
     weight = pycwp.interp_location_weights_get(local_code_name,

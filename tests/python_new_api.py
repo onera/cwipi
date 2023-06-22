@@ -173,21 +173,21 @@ def runTest():
 
     f.write("pycwp.param_list_get:\n")
     str_param = pycwp.param_list_get(code_names[i_rank], pycwp.CHAR)
-    for i in range(str_param['n_param']):
-        f.write("    --> str_param: {param}\n".format(param=str_param['param_names'][i]))
+    for name in str_param:
+        f.write(f"    --> str_param: {name}\n")
 
     f.write("pycwp.param_is:\n")
-    bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
-    f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
-    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
-    f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
+    exists = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
+    f.write(f"  - exists 'entier': {exists}\n")
+    exists = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
+    f.write(f"  - exists 'chapeau': {exists}\n")
 
     comm.Barrier()
 
     f.write("pycwp.param_list_get:\n")
     int_param = pycwp.param_list_get(code_names[i_rank], pycwp.INT)
-    for i in range(int_param['n_param']):
-        f.write("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
+    for name in int_param:
+        f.write(f"    --> int_param: {name}\n")
 
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
     value = pycwp.param_get(code_names[i_rank], "entier", pycwp.INT)

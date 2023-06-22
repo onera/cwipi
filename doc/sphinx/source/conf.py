@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'CWIPI'
-copyright = '2023, E. Quemerais'
+copyright = '2023, ONERA The French Aerospace Lab'
 author = 'E. Quemerais'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -170,7 +170,8 @@ breathe_default_project = "cwipi"
 #
 # html_theme = 'alabaster'
 
-html_theme = 'scipy'
+# html_theme = 'scipy'
+html_theme = 'sphinx_rtd_theme'
 html_theme_path = ["_themes", ]
 
 html_theme_options = {

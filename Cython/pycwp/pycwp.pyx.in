@@ -26,7 +26,7 @@ cwipi - Coupling With Interpolation Parallel Interface library.
 # IMPORTS
 
 # --> Python
-import numpy     as NPY
+import numpy     as np
 from mpi4py import MPI
 import ctypes
 
@@ -39,12 +39,12 @@ from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 from libc.stdio cimport FILE, fdopen, fopen
 from cpython.object cimport PyObject_AsFileDescriptor
-cimport numpy as NPY
+cimport numpy as np
 cimport mpi4py.MPI as MPI
 from cpython cimport array
 
 # initialize the numpy C API
-NPY.import_array()
+np.import_array()
 
 #-----------------------------------------------------------------------------
 # EXTERN
@@ -743,7 +743,7 @@ cdef ho_n_vtx_get(int block_type, int order):
     return (order + 1) * (order + 2) * (2*order + 3) // 6
 
 cdef extern from "numpy/arrayobject.h":
-    void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
+    void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
 py_mem_domain = 42440
 
@@ -759,13 +759,13 @@ cdef void dealloc_array_capsule(object capsule):
     free(data)
 
 cdef create_numpy(void* array, int nptype, int size, bint flag_owndata=True):
-    dim = <NPY.npy_intp> size
-    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, nptype, array)
+    dim = <np.npy_intp> size
+    nparray = np.PyArray_SimpleNewFromData(1, &dim, nptype, array)
     if flag_owndata and array != NULL:
         # Create a capsule linked to the numpy array to choose how its
         # data will be freed
         capsule = PyCapsule_New(array, NULL, &dealloc_array_capsule)
-        NPY.set_array_base(nparray, capsule)
+        np.set_array_base(nparray, capsule)
         # Use tracemalloc Python module to trace memory allocations
         PyTraceMalloc_Track(py_mem_domain, <uintptr_t> array, nparray.nbytes)
     return nparray
@@ -778,26 +778,26 @@ cdef create_numpy_or_none(void* array, int nptype, int size, bint flag_owndata=T
 
 # Typed
 cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
-    return create_numpy(<void *> array, NPY.NPY_INT32, size, flag_owndata)
+    return create_numpy(<void *> array, np.NPY_INT32, size, flag_owndata)
 
 cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
-    return create_numpy(<void *> array, NPY.NPY_INT64, size, flag_owndata)
+    return create_numpy(<void *> array, np.NPY_INT64, size, flag_owndata)
 
 cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
-    return create_numpy(<void *> array, NPY.NPY_DOUBLE, size, flag_owndata)
+    return create_numpy(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
 
 cdef create_numpy_or_none_i(int* array, int size, bint flag_owndata=True):
-    return create_numpy_or_none(<void *> array, NPY.NPY_INT32, size, flag_owndata)
+    return create_numpy_or_none(<void *> array, np.NPY_INT32, size, flag_owndata)
 
 cdef create_numpy_or_none_l(long int* array, int size, bint flag_owndata=True):
-    return create_numpy_or_none(<void *> array, NPY.NPY_INT64, size, flag_owndata)
+    return create_numpy_or_none(<void *> array, np.NPY_INT64, size, flag_owndata)
 
 cdef create_numpy_or_none_d(double* array, int size, bint flag_owndata=True):
-    return create_numpy_or_none(<void *> array, NPY.NPY_DOUBLE, size, flag_owndata)
+    return create_numpy_or_none(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
 
 # Other
 cdef void** np_list_to_void_pointers(list datas):
-  cdef NPY.ndarray numpy_void
+  cdef np.ndarray numpy_void
   cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
   for i, numpy_void in enumerate(datas):
     array[i] = <void *> numpy_void.data
@@ -810,7 +810,7 @@ cdef int* list_to_int_pointer(list data):
   return array
 
 cdef long** np_list_to_long_pointers(list datas):
-  cdef NPY.ndarray[NPY.int64_t, ndim=1, mode='c'] numpy_gnum
+  cdef np.ndarray[np.int64_t, ndim=1, mode='c'] numpy_gnum
   cdef long** array = <long **> malloc(len(datas) * sizeof(long*))
   for i, numpy_gnum in enumerate(datas):
     array[i] = <long *> numpy_gnum.data
@@ -830,6 +830,7 @@ def init(MPI.Comm global_comm,
          list     code_names,
          int      is_active_rank):
     """
+    init(global_comm, code_names, is_active_rank)
     Initialize CWIPI library and create intra-communicator.
 
     Parameters:
@@ -838,7 +839,7 @@ def init(MPI.Comm global_comm,
       is_active_rank (int)         : Is current rank have to be used by CWIPI
 
     Returns:
-      intra_comms    (MPI.Comm)    : MPI intra communicators of each code (size = number of codes on current MPI rank)
+      MPI intra-communicators of each code (size = number of codes on current MPI rank) (MPI.Comm list)
     """
     global n_code
     global c_code_names
@@ -898,6 +899,7 @@ def finalize():
 def state_update(char *      local_code_name,
                  CWP_State_t state):
     """
+    state_update(local_code_name, state)
     Update code state.
 
     Parameters:
@@ -911,10 +913,11 @@ def state_update(char *      local_code_name,
 def time_step_beg(char * local_code_name,
                   double current_time):
     """
+    time_step_beg(local_code_name, current_time)
     Begin code time step.
 
     Parameters:
-      local_code_name (str)  : Local code name
+      local_code_name (str)    : Local code name
       current_time    (double) : Current time
     """
 
@@ -923,6 +926,7 @@ def time_step_beg(char * local_code_name,
 
 def time_step_end(char * local_code_name):
     """
+    time_step_end(local_code_name)
     End code time step.
 
     Parameters:
@@ -939,8 +943,8 @@ def output_file_set(output_file):
       output_file(file):  Output file
 
     Note:
-      If this file is written by both cwipi and python, I/O buffering may mix up the output.
-      In this case, calling output_listing.flush() before any cwipi call may help.
+      If this file is written by both CWIPI and Python, I/O buffering may mix up the output.
+      In this case, calling output_listing.flush() before any CWIPI call may help.
     """
 
     cdef int fd
@@ -960,11 +964,12 @@ def output_file_set(output_file):
 def user_structure_set(char * local_code_name,
                        object user_structure):
     """
+    user_structure_set(local_code_name, user_structure)
     Define a user structure associated to a code.
 
     Parameters:
       local_code_name  (str)      : Local code name
-      user_structure   (object) : User structure
+      user_structure   (object)   : User structure
     """
 
     cdef void *c_user_structure = <void *> user_structure
@@ -975,13 +980,14 @@ def user_structure_set(char * local_code_name,
 
 def user_structure_get(char * local_code_name):
     """
+    user_structure_get(local_code_name)
     Return the user structure associated.
 
     Parameters:
       local_code_name  (str) : Local code name
 
     Returns:
-      user_structure   (object) : User structure
+      User structure (object)
     """
 
     cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
@@ -1000,13 +1006,14 @@ def user_structure_get(char * local_code_name):
 
 def state_get(char * code_name):
     """
+    state_get(code_name)
     Get code state.
 
     Parameters:
       local_code_name (str) : Local code name
 
     Returns:
-      state (CWP_State_t) : Current state
+      Current state (CWP_State_t)
     """
 
     cdef CWP_State_t state = CWP_State_get(code_name)
@@ -1018,7 +1025,7 @@ def codes_nb_get():
     Return the number of codes known by CWIPI.
 
     Returns:
-      n_code (int) : Number of codes known by CWIPI
+      Number of codes known by CWIPI (int)
     """
 
     cdef int n_code = CWP_Codes_nb_get()
@@ -1030,7 +1037,7 @@ def codes_list_get():
     Return the list of code names known by CWIPI.
 
     Returns:
-      code_list (list str) : Number of codes known by CWIPI
+      Names of codes known by CWIPI (str list)
     """
 
     cdef char** c_code_list = CWP_Codes_list_get()
@@ -1059,7 +1066,7 @@ def loc_codes_nb_get():
     Return the number of local codes known by CWIPI.
 
     Returns:
-      n_loc_code (int) : Number of codes known by CWIPI
+      Number of local codes known by CWIPI (int)
     """
 
     cdef int n_loc_code = CWP_Loc_codes_nb_get()
@@ -1068,10 +1075,10 @@ def loc_codes_nb_get():
 
 def loc_codes_list_get():
     """
-    Return the list of code names known by CWIPI.
+    Return the list of local code names known by CWIPI.
 
     Returns:
-      loc_code_list (list str) : Number of local codes known by CWIPI
+      Names of local codes known by CWIPI (str list)
     """
 
     cdef char** c_loc_code_list = CWP_Loc_codes_list_get()
@@ -1108,7 +1115,8 @@ def param_add_int(char *       local_code_name,
                   char *       param_name,
                   int          initial_value):
     """
-    Add a new interger parameter and intialize it.
+    param_add_int(local_code_name, param_name, initial_value)
+    Add a new integer parameter and initialize it.
 
     Parameters:
       local_code_name  (str)   : Local code name
@@ -1125,7 +1133,8 @@ def param_add_dbl(char *       local_code_name,
                   char *       param_name,
                   double       initial_value):
     """
-    Add a new double parameter and intialize it.
+    param_add_dbl(local_code_name, param_name, initial_value)
+    Add a new double parameter and initialize it.
 
     Parameters:
       local_code_name  (str)    : Local code name
@@ -1142,7 +1151,8 @@ def param_add_str(char *       local_code_name,
                   char *       param_name,
                   char *       initial_value):
     """
-    Add a new string parameter and intialize it.
+    param_add_str(local_code_name, param_name, initial_value)
+    Add a new string parameter and initialize it.
 
     Parameters:
       local_code_name  (str) : Local code name
@@ -1157,59 +1167,63 @@ def param_add_str(char *       local_code_name,
 
 def param_set_int(char *       local_code_name,
                   char *       param_name,
-                  int          initial_value):
+                  int          current_value):
     """
+    param_set_int(local_code_name, param_name, current_value)
     Set an integer parameter.
 
     Parameters:
-      local_code_name  (str)   : Local code name
-      param_name       (str)   : Parameter name
-      initial_value    (int)   : Initial value
+      local_code_name  (str) : Local code name
+      param_name       (str) : Parameter name
+      current_value    (int) : Current value
     """
 
     CWP_Param_set(local_code_name,
                   param_name,
                   CWP_INT,
-                  &(initial_value))
+                  &(current_value))
 
 def param_set_dbl(char *       local_code_name,
                   char *       param_name,
-                  double       initial_value):
+                  double       current_value):
     """
+    param_set_dbl(local_code_name, param_name, current_value)
     Set a double parameter.
 
     Parameters:
       local_code_name  (str)    : Local code name
       param_name       (str)    : Parameter name
-      initial_value    (double) : Initial value
+      current_value    (double) : Current value
     """
 
     CWP_Param_set(local_code_name,
                   param_name,
                   CWP_DOUBLE,
-                  &(initial_value))
+                  &(current_value))
 
 def param_set_str(char *     local_code_name,
                   char *     param_name,
-                  char *     initial_value):
+                  char *     current_value):
     """
+    param_set_str(local_code_name, param_name, current_value)
     Set a string parameter.
 
     Parameters:
       local_code_name  (str) : Local code name
       param_name       (str) : Parameter name
-      initial_value    (str) : Initial value
+      current_value    (str) : current value
     """
 
     CWP_Param_set(local_code_name,
                   param_name,
                   CWP_CHAR,
-                  &(initial_value))
+                  &(current_value))
 
 def param_del(char *       local_code_name,
               char *       param_name,
               CWP_Type_t   data_type):
     """
+    param_del(local_code_name, param_name, data_type)
     Delete a parameter.
 
     Parameters:
@@ -1226,6 +1240,7 @@ def param_del(char *       local_code_name,
 def param_n_get(char *       code_name,
                 CWP_Type_t   data_type):
     """
+    param_n_get(code_name, data_type)
     Return the number of parameters for the code code_name.
 
     Parameters:
@@ -1233,7 +1248,7 @@ def param_n_get(char *       code_name,
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-      n_param  (int) : Number of parameters for the code code_name
+      Number of parameters for the code code_name (int)
     """
 
     cdef int n_param = CWP_Param_n_get(code_name,
@@ -1244,15 +1259,15 @@ def param_n_get(char *       code_name,
 def param_list_get(char *       code_name,
                    CWP_Type_t   data_type):
     """
-    Return the number of parameters for the code code_name.
+    param_list_get(code_name, data_type)
+    Return the list of parameters for the code code_name.
 
     Parameters:
       code_name        (str)        : Code name
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-      n_param     (int)      : Number of parameters for the code code_name
-      param_names (str list) : Parameter names
+      Parameter names (str list)
     """
 
     cdef int n_param = -1;
@@ -1271,22 +1286,20 @@ def param_list_get(char *       code_name,
         py_unicode_param_names = c_param_names[i]
       param_names.append(py_unicode_param_names)
 
-    # appenratly python does a copy so I can free here
+    # apparently python does a copy so I can free here
     for i in range(n_param):
       free(c_param_names[i])
 
     free(c_param_names)
 
-    return {
-            'n_param'     : n_param,
-            'param_names' : param_names
-           }
+    return param_names
 
 def param_is(char *       code_name,
              char *       param_name,
              CWP_Type_t   data_type):
     """
-    Is this code_name a parameter ?
+    param_is(code_name, param_name, data_type)
+    Is this an existing parameter ?
 
     Parameters:
       code_name        (str)        : Code name
@@ -1294,19 +1307,20 @@ def param_is(char *       code_name,
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-     is_param (int) : 1 : true / 0 : false
+      Existing status (bool)
     """
 
     cdef int is_param = CWP_Param_is(code_name,
                                      param_name,
                                      data_type)
 
-    return is_param
+    return (is_param == 1)
 
 def param_get(char *       code_name,
               char *       param_name,
               CWP_Type_t   data_type):
     """
+    param_get(code_name, param_name, data_type)
     Return the parameter value of param_name on code_name.
 
     Parameters:
@@ -1315,7 +1329,7 @@ def param_get(char *       code_name,
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-     value (data_type) : Parameter value
+      Parameter value (data_type)
     """
 
     cdef int int_value = -1
@@ -1354,17 +1368,18 @@ def param_reduce(CWP_Op_t    op,
                  CWP_Type_t  data_type,
                  list        code_names):
     """
-    Return the result of a reduce operation about a parameter.
+    param_reduce(op, param_name, data_type, code_names)
+    Return the result of a reduction operation about a parameter.
     The parameter name has to be the same for all codes.
 
     Parameters:
-      op         (CWP_Op_t)   :Operation
-      param_name (str)        :Parameter name
-      data_type  (CWP_Type_t) :Parameter type
-      code_names (str list)   :Codes name (size = number of codes in the reduce operation)
+      op         (CWP_Op_t)   : Operation
+      param_name (str)        : Parameter name
+      data_type  (CWP_Type_t) : Parameter type
+      code_names (str list)   : Code names (size = number of codes in the reduction operation)
 
     Returns:
-      res (data_type) : Result
+      Result of reduction (data_type)
     """
 
     cdef int _n_code = len(code_names)
@@ -1415,6 +1430,7 @@ def param_reduce(CWP_Op_t    op,
 
 def param_lock(char * code_name):
     """
+    param_lock(code_name)
     Lock access to local parameters from a distant code.
 
     Parameters:
@@ -1425,6 +1441,7 @@ def param_lock(char * code_name):
 
 def param_unlock(char * code_name):
     """
+    param_unlock(code_name)
     Unlock access to local parameters from a distant code.
 
     Parameters:
@@ -1438,13 +1455,15 @@ def param_unlock(char * code_name):
 def cpl_spatial_interp_algo_get(char * local_code_name,
                                 char * cpl_id):
   """
+  cpl_spatial_interp_algo_get(local_code_name, cpl_id)
   Get the coupling spatial interpolation algorithm.
 
   Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
 
-  Returns:  Spatial interpolation algorithm
+  Returns:
+    Spatial interpolation algorithm (CWP_Spatial_interp_t)
   """
   return CWP_Cpl_spatial_interp_algo_get(local_code_name,
                                          cpl_id)
@@ -1453,7 +1472,8 @@ def interp_field_n_components_get(char * local_code_name,
                                   char * cpl_id,
                                   char * field_id):
     """
-    Get spatial interpolation number of field components.
+    interp_field_n_components_get(local_code_name, cpl_id, field_id)
+    Get number of field components.
 
     Parameters:
       local_code_name (str) : Local code name
@@ -1461,7 +1481,7 @@ def interp_field_n_components_get(char * local_code_name,
       field_id        (str) : Field identifier
 
     Returns:
-      n_components (int) : Number of components in Field field_id
+      Number of components (int)
     """
 
     cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
@@ -1474,7 +1494,8 @@ def interp_field_dof_location_get(char * local_code_name,
                                   char * cpl_id,
                                   char * field_id):
     """
-    Get target degrees of freedom location.
+    interp_field_dof_location_get(local_code_name, cpl_id, field_id)
+    Get the field's degrees of freedom location.
 
     Parameters:
       local_code_name (str) : Local code name
@@ -1482,7 +1503,7 @@ def interp_field_dof_location_get(char * local_code_name,
       field_id        (str) : Field identifier
 
     Returns:
-      dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+      Location of degrees of freedom (CWP_Dof_location_t)
     """
 
     cdef CWP_Dof_location_t dof_loc = CWP_Field_dof_location_get(local_code_name,
@@ -1495,6 +1516,7 @@ def interp_field_storage_get(char * local_code_name,
                              char * cpl_id,
                              char * field_id):
     """
+    interp_field_storage_get(local_code_name, cpl_id, field_id)
     Get field storage type.
 
     Parameters:
@@ -1503,7 +1525,7 @@ def interp_field_storage_get(char * local_code_name,
       field_id        (str) : Field identifier
 
     Returns:
-      storage (CWP_Field_storage_t) : Field storage type
+      Field storage type (CWP_Field_storage_t)
     """
 
     cdef CWP_Field_storage_t storage = CWP_Field_storage_get(local_code_name,
@@ -1518,32 +1540,34 @@ def interp_src_data_get(char * local_code_name,
                         char * field_id,
                         int    i_part):
     """
+    interp_src_data_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation source data.
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      n_elt_src      (int)   : Number of source elements
-      src_to_tgt_idx (int *) : Index of source->target connectivity
+      Dictionary
+        - ``"n_src"``          : Number of sources (int)
+        - ``"src_to_tgt_idx"`` : Index of source->target connectivity (np.ndarray[np.int32_t])
     """
 
-    cdef int   n_elt_src = -1
+    cdef int   n_src = -1
     cdef int  *src_to_tgt_idx
 
     CWP_Interp_src_data_get(local_code_name,
                             cpl_id,
                             field_id,
                             i_part,
-                            &(n_elt_src),
+                            &(n_src),
                             &(src_to_tgt_idx))
 
     return {
-            'n_elt_src'     : n_elt_src,
-            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_elt_src+1, False)
+            'n_src'          : n_src,
+            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_src+1, False)
            }
 
 def interp_tgt_data_get(char * local_code_name,
@@ -1551,38 +1575,40 @@ def interp_tgt_data_get(char * local_code_name,
                         char * field_id,
                         int    i_part):
     """
+    interp_tgt_data_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation target data.
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      n_elt_src      (int)   : Number of source elements
-      src_to_tgt_idx (int *) : Index of source->target connectivity
+      Dictionary
+        - ``"n_tgt"``          : Number of targets (int)
+        - ``"computed_tgt"``   : Computed targets (np.ndarray[np.int32_t])
+        - ``"tgt_to_src_idx"`` : Index of target->source connectivity (np.ndarray[np.int32_t])
     """
 
-    cdef int   n_elt_tgt        = -1
-    cdef int   n_referenced_tgt = -1
-    cdef int  *referenced_tgt
-    cdef int  *tgt_come_from_src_idx
+    cdef int   n_tgt          = -1
+    cdef int   n_computed_tgt = -1
+    cdef int  *computed_tgt
+    cdef int  *tgt_to_src_idx
 
     CWP_Interp_tgt_data_get(local_code_name,
                             cpl_id,
                             field_id,
                             i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(referenced_tgt),
-                            &(tgt_come_from_src_idx))
+                            &(n_tgt),
+                            &(n_computed_tgt),
+                            &(computed_tgt),
+                            &(tgt_to_src_idx))
 
     return {
-            'n_elt_tgt'             : n_elt_tgt,
-            'n_referenced_tgt'      : n_referenced_tgt,
-            'referenced_tgt'        : create_numpy_i(referenced_tgt,        n_referenced_tgt,   flag_owndata=False),
-            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_referenced_tgt+1, flag_owndata=False)
+            'n_tgt'          : n_tgt,
+            'computed_tgt'   : create_numpy_i(computed_tgt,   n_computed_tgt,   flag_owndata=False),
+            'tgt_to_src_idx' : create_numpy_i(tgt_to_src_idx, n_computed_tgt+1, flag_owndata=False)
            }
 
 def interp_location_weights_get(char * local_code_name,
@@ -1590,16 +1616,17 @@ def interp_location_weights_get(char * local_code_name,
                                 char * field_id,
                                 int    i_part):
     """
+    interp_location_weights_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation weights (location algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int)   : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      weights (double *) : Location interpolation weigths
+      Interpolation weights (np.ndarray[np.double_t])
     """
 
     cdef double *weights
@@ -1644,19 +1671,21 @@ def interp_location_point_data_get(char * local_code_name,
                                    char * field_id,
                                    int    i_part):
     """
+    interp_location_point_data_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation point data (location algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int)   : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      points_coords           (double *) : Coordinates
-      points_uvw              (double *) : Coordinates in uvw system
-      points_dist2            (double *) : Squared distance
-      points_projected_coords (double *) : Coordiantes of projected points
+      Dictionary
+        - ``"points_coords"``           : Cartesian coordinates (np.ndarray[np.double_t])
+        - ``"points_uvw"``              : Parametric coordinates (np.ndarray[np.double_t])
+        - ``"points_dist2"``            : Squared distance (np.ndarray[np.double_t])
+        - ``"points_projected_coords"`` : Coordinates of projected points (np.ndarray[np.double_t])
     """
 
     cdef double *points_coords
@@ -1684,9 +1713,9 @@ def interp_location_point_data_get(char * local_code_name,
                             &(c_src_to_tgt_idx))
 
     return {
-            'points_coords' : create_numpy_d(points_coords, c_src_to_tgt_idx[n_elt_src], False),
-            'points_uvw' : create_numpy_d(points_uvw, c_src_to_tgt_idx[n_elt_src], False),
-            'points_dist2' : create_numpy_d(points_dist2, c_src_to_tgt_idx[n_elt_src], False),
+            'points_coords'           : create_numpy_d(points_coords,           c_src_to_tgt_idx[n_elt_src], False),
+            'points_uvw'              : create_numpy_d(points_uvw,              c_src_to_tgt_idx[n_elt_src], False),
+            'points_dist2'            : create_numpy_d(points_dist2,            c_src_to_tgt_idx[n_elt_src], False),
             'points_projected_coords' : create_numpy_d(points_projected_coords, c_src_to_tgt_idx[n_elt_src], False)
            }
 
@@ -1695,17 +1724,19 @@ def interp_location_internal_cell_vtx_get(char * local_code_name,
                                           char * field_id,
                                           int    i_part):
     """
+    interp_location_internal_cell_vtx_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation internal cell->vertex connectivity (location algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      cell_vtx_idx (int *) : Index of internal cell->vtx connectivity
-      cell_vtx     (int *) : Internal cell->vtx connectivity
+      Dictionary
+        - ``"cell_vtx_idx"`` : Index of internal cell->vtx connectivity (np.ndarray[np.int32_t])
+        - ``"cell_vtx"``     : Internal cell->vtx connectivity (np.ndarray[np.int32_t])
     """
 
     cdef int *cell_vtx_idx
@@ -1738,16 +1769,17 @@ def interp_intersection_volumes_get(char * local_code_name,
                                     char * field_id,
                                     int    i_part):
     """
+    interp_intersection_volumes_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation volumes (intersection algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      volumes (double *) : Volumes
+      Intersection volumes (np.ndarray[np.double_t])
     """
 
     cdef double *volumes
@@ -1779,16 +1811,17 @@ def intersection_tgt_elt_volumes_get(char * local_code_name,
                                      char * field_id,
                                      int    i_part):
     """
+    intersection_tgt_elt_volumes_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial local target elements volumes (intersection algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      tgt_elt_volumes (double *) : Volume of target elements
+      Volume of target elements (np.ndarray[np.double_t])
     """
 
     cdef double *tgt_elt_volumes
@@ -1820,16 +1853,17 @@ def interp_nearest_neighbors_distances_get(char * local_code_name,
                                            char * field_id,
                                            int    i_part):
     """
+    interp_nearest_neighbors_distances_get(local_code_name, cpl_id, field_id, i_part)
     Get spatial interpolation distances (nearest neighbors algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      distances2 (double *) : Squared distances
+      Squared distances (np.ndarray[np.double_t])
     """
 
     cdef double *distances2
@@ -1861,16 +1895,17 @@ def interp_nearest_neighbors_coord_get(char * local_code_name,
                                        char * field_id,
                                        int    i_part):
     """
+    interp_nearest_neighbors_coord_get(local_code_name, cpl_id, field_id, i_part)
     Get coordinates of nearest source points (nearest neighbors algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
       cpl_id          (str) : Coupling identifier
       field_id        (str) : Field identifier
-      i_part          (int) : Parition identifier
+      i_part          (int) : Partition identifier
 
     Returns:
-      nearest_src_coord (double *) : Coordinates of nearest source points
+      Coordinates of nearest source points (np.ndarray[np.double_t])  (x0, y0, z0, x1, y1, z1, ...)
     """
 
     cdef double *nearest_src_coord
@@ -1902,7 +1937,7 @@ def interp_nearest_neighbors_coord_get(char * local_code_name,
 cdef class PartData (object):
 
     """
-    Create a CWIPI partitionned data object
+    Create a CWIPI partitioned data object
     """
 
     cdef str                   local_code_name
@@ -1920,13 +1955,15 @@ cdef class PartData (object):
                  CWP_PartData_exch_t exch_type,
                  list                gnum_elt):
         """
-        Initialize partitionned data object.
+        __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
+        Initialize partitioned data object.
 
         Parameters:
-          local_code_name (str)                 : Local code name
-          cpl_id          (str)                 : Coupling id
-          part_data_id    (str)                 : Partitionned data id
-          exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
+          local_code_name (str)                         : Local code name
+          cpl_id          (str)                         : Coupling id
+          part_data_id    (str)                         : Partitioned data id
+          exch_type       (CWP_PartData_exch_t)         : Enum if SEND or RECV side
+          gnum_elt        (np.ndarray[np.int64_t] list) : Global ids
         """
 
         self.local_code_name = local_code_name
@@ -1958,23 +1995,24 @@ cdef class PartData (object):
 
     # --> DATA
     def issend(self,
-               int             n_components,
-               list            part1_to_part2_data,
-               NPY.ndarray[NPY.int32_t] request):
+               int                    n_components,
+               list                   send_data,
+               np.ndarray[np.int32_t] request):
         """
-        Issend partitionned data.
+        issend(n_components, send_data, request)
+        Issend partitioned data.
 
         Parameters:
-          n_components        (int)             : Number of components
-          part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+          n_components (int)  : Number of components
+          send_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
 
         Returns:
-          request (int) : Exchange request
+          Exchange request (np.ndarray[np.int32_t])
         """
-        data_dtype = part1_to_part2_data[0].dtype # TO DO more robust check ?
-        # data_dtype = recover_dtype(part1_to_part2_data, pyptp.py_comm)
+        data_dtype = send_data[0].dtype # TO DO more robust check ?
+        # data_dtype = recover_dtype(send_data, pyptp.py_comm)
         cdef int s_data = data_dtype.itemsize
-        cdef void** _part1_to_part2_data   = np_list_to_void_pointers(part1_to_part2_data)
+        cdef void** _send_data   = np_list_to_void_pointers(send_data)
 
         # cdef int request
         CWP_Part_data_issend(self.local_code_name,
@@ -1982,43 +2020,47 @@ cdef class PartData (object):
                              self.part_data_id,
                              s_data,
                              n_components,
-                             _part1_to_part2_data,
+                             _send_data,
                     <int *> request.data)
+        # TODO : Pourquoi on retourne pas un int déjà?
         # return request
 
     def irecv(self,
-              int   n_components,
-              list  part2_data,
-              NPY.ndarray[NPY.int32_t] request):
+              int                    n_components,
+              list                   recv_data,
+              np.ndarray[np.int32_t] request):
         """
-        Irecv partitionned data.
+        irecv(n_components, recv_data, request)
+        Irecv partitioned data.
 
         Parameters:
           n_components (int)  : Number of components
+          recv_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
 
         Returns:
-          part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
-          request    (int)     : Exchange request
+          Exchange request (np.ndarray[np.int32_t])
         """
-        data_dtype = part2_data[0].dtype # TO DO more robust check ?
-        # data_dtype = recover_dtype(part2_data, pyptp.py_comm)
+        data_dtype = recv_data[0].dtype # TO DO more robust check ?
+        # data_dtype = recover_dtype(recv_data, pyptp.py_comm)
         cdef int s_data = data_dtype.itemsize
 
         # cdef int request
-        cdef void** _part2_data = np_list_to_void_pointers(part2_data)
+        cdef void** _recv_data = np_list_to_void_pointers(recv_data)
         CWP_Part_data_irecv(self.local_code_name,
                             self.cpl_id,
                             self.part_data_id,
                             s_data,
                             n_components,
-                            _part2_data,
+                            _recv_data,
                     <int *> request.data)
+        # TODO : Pourquoi on retourne pas un int déjà?
         # return request
 
     def wait_issend(self,
                     int request):
         """
-        Wait issend partitionned data.
+        wait_issend(request)
+        Wait issend partitioned data.
 
         Parameters:
           request (int) : Exchange request
@@ -2032,7 +2074,8 @@ cdef class PartData (object):
     def wait_irecv(self,
                    int request):
         """
-        Wait irecv partitionned data.
+        wait_irecv(request)
+        Wait irecv partitioned data.
 
         Parameters:
           request (int) : Exchange request
@@ -2075,7 +2118,7 @@ cdef void callback(const char           *c_local_code_name,
                                                                  c_cpl_id,
                                                                  c_field_id)
 
-        cdef NPY.npy_intp dims = 0
+        cdef np.npy_intp dims = 0
 
         if (buffer_in == NULL):
           print("Error: User interpolation input field array is NULL")
@@ -2200,6 +2243,7 @@ cdef class Field (object):
                  CWP_Field_exch_t       exch_type,
                  CWP_Status_t           visu_status):
         """
+        __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Initialize field object.
 
         Parameters:
@@ -2239,16 +2283,17 @@ cdef class Field (object):
 
     # --> DATA
     def data_set(self,
-                 int                i_part,
-                 CWP_Field_map_t    map_type,
-                 NPY.ndarray[NPY.double_t] data):
+                 int                       i_part,
+                 CWP_Field_map_t           map_type,
+                 np.ndarray[np.double_t] data):
         """
+        data_set(i_part, map_type, data)
         Set field data.
 
         Parameters:
-          i_part    (int)                       : Current partition
-          map_type  (CWP_Field_map_t)           : Choice if data is setted for the source or the target
-          data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+          i_part    (int)                     : Current partition
+          map_type  (CWP_Field_map_t)         : Choice if data is set for the source or the target
+          data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
 
         CWP_Field_data_set(self.local_code_name,
@@ -2260,11 +2305,9 @@ cdef class Field (object):
 
     def issend(self):
         """
-        Send a spatially interpolated field to the coupled code with
-        nonblocking communications.
+        Send a spatially interpolated field to the coupled code with non-blocking communications.
 
-        This function is independant of CWP_Time_exch_t mode. The user has to
-        manually check the consistency of the exchanges.
+        This function is independent of CWP_Time_exch_t mode. The user has to manually check the consistency of the exchanges.
         """
 
         CWP_Field_issend(self.local_code_name,
@@ -2273,7 +2316,7 @@ cdef class Field (object):
 
     def irecv(self):
         """
-        Wait the end of an exchange related to request from CWP_Field_issend.
+        Receive a spatially interpolated field from the coupled code with non-blocking communications.
         """
 
         CWP_Field_irecv(self.local_code_name,
@@ -2292,9 +2335,6 @@ cdef class Field (object):
     def wait_irecv(self):
         """
         Wait the end of an exchange related to request from CWP_Field_irecv.
-
-        This function waits the end of exchange related to request
-        from CWP_Field_irecv
         """
 
         CWP_Field_wait_irecv(self.local_code_name,
@@ -2302,16 +2342,18 @@ cdef class Field (object):
                              self.field_id)
 
     # --> LOCALISATION
+    #TODO: @property?
     def n_uncomputed_tgts_get(self,
                               int   i_part):
       """
+      n_uncomputed_tgts_get(i_part)
       Get the number of uncomputed targets.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        n_unc_tgt (int) : Number of uncomputed targets
+        Number of uncomputed targets (int)
       """
 
       cdef int n_unc_tgt = CWP_N_uncomputed_tgts_get(self.local_code_name,
@@ -2324,13 +2366,14 @@ cdef class Field (object):
     def uncomputed_tgts_get(self,
                             int   i_part):
       """
+      uncomputed_tgts_get(i_part)
       Get the uncomputed targets.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        unc_tgt (int *) : Uncomputed targets
+        Uncomputed targets (np.ndarray[np.int32_t])
       """
 
       cdef int *unc_tgt = CWP_Uncomputed_tgts_get(self.local_code_name,
@@ -2345,16 +2388,18 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
 
+    #TODO: @property?
     def n_computed_tgts_get(self,
                             int   i_part):
       """
+      n_computed_tgts_get(i_part)
       Get the number of computed targets.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        n_c_tgt (int) : Number of computed targets
+        Number of computed targets (int)
       """
 
       cdef int n_c_tgt = CWP_N_computed_tgts_get(self.local_code_name,
@@ -2367,13 +2412,14 @@ cdef class Field (object):
     def computed_tgts_get(self,
                           int   i_part):
       """
+      computed_tgts_get(i_part)
       Get the computed targets.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        c_tgt (int *) : Computed targets
+        Computed targets (np.ndarray[np.int32_t])
       """
 
       cdef int *c_tgt = CWP_Computed_tgts_get(self.local_code_name,
@@ -2388,16 +2434,18 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
 
+    #TODO: @property?
     def n_involved_srcs_get(self,
                             int   i_part):
       """
+      n_involved_srcs_get(i_part)
       Get the number of involved sources.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        n_i_src (int) : Number of involved sources
+        Number of involved sources (int)
       """
 
       cdef int n_i_src = CWP_N_involved_srcs_get(self.local_code_name,
@@ -2410,13 +2458,14 @@ cdef class Field (object):
     def involved_srcs_get(self,
                           int   i_part):
       """
+      involved_srcs_get(i_part)
       Get the involved sources.
 
       Parameters:
         i_part    (int)  : Current partition
 
       Returns:
-        n_i_src (int *) : involved sources
+        Involved sources (np.ndarray[np.int32_t])
       """
 
       cdef int *i_src = CWP_Involved_srcs_get(self.local_code_name,
@@ -2434,7 +2483,7 @@ cdef class Field (object):
     # USER INTERPOLATION FUNCTION
     def interp_function_unset(self):
         """
-        Unsetting of an user interpolation.
+        Unsetting of a user interpolation function.
         """
 
         CWP_Interp_function_unset(self.local_code_name,
@@ -2444,12 +2493,13 @@ cdef class Field (object):
     def interp_function_set(self,
                             fct):
         """
+        interp_function_set(fct)
         Setting of an user interpolation from location.
         This function takes into account an user interpolation function written with
         void (`CWP_Interp_function_t`) interface.
 
         Parameters:
-          fct                                       : Function
+          fct : Function
         """
 
         cdef str fct_id = self.field_id + self.cpl_id # concatenate the str
@@ -2489,6 +2539,7 @@ cdef class Coupling (object):
                  CWP_Dynamic_mesh_t   displacement,
                  CWP_Time_exch_t      recv_freq_type):
         """
+        __init__(local_code_name, cpl_id, coupled_code_name, entities_dim, comm_type, spatial_interp, n_part, displacement, recv_freq_type)
         Initialize coupling object.
 
         Parameters:
@@ -2549,7 +2600,8 @@ cdef class Coupling (object):
                      CWP_Field_exch_t       exch_type,
                      CWP_Status_t           visu_status):
         """
-        Create field object and add in self.fields dictionnary.
+        #TODO: remove access to Field Class from Coupling object?
+        Create field object and add in self.fields dictionary.
 
         Parameters:
           field_id        (str)                 : Field id
@@ -2579,15 +2631,16 @@ cdef class Coupling (object):
                   char *             field_id,
                   int                i_part,
                   CWP_Field_map_t    map_type,
-                  NPY.ndarray[NPY.double_t] data):
+                  np.ndarray[np.double_t] data):
         """
-        Set field data for a given Field object in the dictionnary.
+        #TODO: remove access to Field Class from Coupling object?
+        Set field data for a given Field object in the dictionary.
 
         Parameters:
           field_id  (str)                       : Field id
           i_part    (int)                       : Current partition
-          data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
-          data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+          data_type (CWP_Field_map_t)           : Choice if data is set for the source or the target
+          data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
 
         cdef int idx = self.fields_name[field_id]
@@ -2599,10 +2652,11 @@ cdef class Coupling (object):
     def field_issend(self,
                      char * field_id):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Send a spatially interpolated field to the coupled code with
-        nonblocking communications.
+        non-blocking communications.
 
-        This function is independant of CWP_Time_exch_t mode. The user has to
+        This function is independent of CWP_Time_exch_t mode. The user has to
         manually check the consistency of the exchanges.
 
         Parameters:
@@ -2615,6 +2669,7 @@ cdef class Coupling (object):
     def field_irecv(self,
                     char * field_id):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Wait the end of an exchange related to request from CWP_Field_issend.
 
         Parameters:
@@ -2627,6 +2682,7 @@ cdef class Coupling (object):
     def field_wait_issend(self,
                           char * field_id):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Wait the end of an exchange related to request from CWP_Field_issend.
 
         Parameters:
@@ -2639,6 +2695,7 @@ cdef class Coupling (object):
     def field_wait_irecv(self,
                          char * field_id):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Wait the end of an exchange related to request from CWP_Field_irecv.
 
         This function waits the end of exchange related to request
@@ -2655,6 +2712,7 @@ cdef class Coupling (object):
                                     char *  field_id,
                                     int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the number of uncomputed targets.
 
         Parameters:
@@ -2674,6 +2732,7 @@ cdef class Coupling (object):
                                   char *  field_id,
                                   int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the uncomputed targets.
 
         Parameters:
@@ -2693,6 +2752,7 @@ cdef class Coupling (object):
                                   char *  field_id,
                                   int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the number of computed targets.
 
         Parameters:
@@ -2712,6 +2772,7 @@ cdef class Coupling (object):
                                 char *  field_id,
                                 int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the computed targets.
 
         Parameters:
@@ -2731,6 +2792,7 @@ cdef class Coupling (object):
                                   char *  field_id,
                                   int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the number of involved sources.
 
         Parameters:
@@ -2750,6 +2812,7 @@ cdef class Coupling (object):
                                 char *  field_id,
                                 int     i_part):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Get the involved sources.
 
         Parameters:
@@ -2768,7 +2831,8 @@ cdef class Coupling (object):
     def field_interp_function_unset(self,
                                     char * field_id):
         """
-        Unsetting of an user interpolation.
+        #TODO: remove access to Field Class from Coupling object?
+        Unsetting of a user interpolation function.
 
         Parameters:
           field_id (str) : Field identifier
@@ -2781,6 +2845,7 @@ cdef class Coupling (object):
                                   char * field_id,
                                   fct):
         """
+        #TODO: remove access to Field Class from Coupling object?
         Setting of an user interpolation from location.
         This function takes into account an user interpolation function written with
         void (`CWP_Interp_function_t`) interface.
@@ -2796,7 +2861,8 @@ cdef class Coupling (object):
     def field_del(self,
                   char * field_id):
         """
-        Delete Field object and field form self.fiels dictionnary
+        #TODO: remove access to Field Class from Coupling object?
+        Delete Field object and field form self.fiels dictionary
 
         Parameters:
           field_id        (str)               : Field id
@@ -2811,10 +2877,11 @@ cdef class Coupling (object):
                          CWP_PartData_exch_t  exch_type,
                          list                 gnum_elt):
         """
-        Create partitionned data object and add in self.partData dictionnary.
+        #TODO: remove access to PartData Class from Coupling object?
+        Create partitioned data object and add in self.partData dictionary.
 
         Parameters:
-          part_data_id    (str)                 : Partitionned data id
+          part_data_id    (str)                 : Partitioned data id
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
           gnum_elt        (long)                : Global number of entities
         """
@@ -2833,14 +2900,15 @@ cdef class Coupling (object):
                          char *                      part_data_id,
                          int                         n_components,
                          list                        send_data,
-                         NPY.ndarray[NPY.int32_t]    request):
+                         np.ndarray[np.int32_t]    request):
         """
-        Issend partitionned data.
+        #TODO: remove access to PartData Class from Coupling object?
+        Issend partitioned data.
 
         Parameters:
-          part_data_id        (str)             : Partitionned data id
+          part_data_id        (str)             : Partitioned data id
           n_components        (int)             : Number of components
-          part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+          part1_to_part2_data (list)            : List of partitioned data arrays, each being 1 dimensional and with same datatype
 
         Returns:
           request (int) : Exchange request
@@ -2855,16 +2923,17 @@ cdef class Coupling (object):
                         char *                         part_data_id,
                         int                         n_components,
                         list                        recv_data,
-                        NPY.ndarray[NPY.int32_t]    request):
+                        np.ndarray[np.int32_t]    request):
         """
-        Irecv partitionned data.
+        #TODO: remove access to PartData Class from Coupling object?
+        Irecv partitioned data.
 
         Parameters:
-          part_data_id (str)  : Partitionned data id
+          part_data_id (str)  : Partitioned data id
           n_components (int)  : Number of components
 
         Returns:
-          part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+          part2_data (list)    : List of partitioned data arrays, each being 1 dimensional and with same datatype
           request    (int)     : Exchange request
         """
 
@@ -2877,10 +2946,11 @@ cdef class Coupling (object):
                               char * part_data_id,
                               int    request):
         """
-        Wait issend partitionned data.
+        #TODO: remove access to PartData Class from Coupling object?
+        Wait issend partitioned data.
 
         Parameters:
-          part_data_id (str)   : Partitionned data id
+          part_data_id (str)   : Partitioned data id
           request      (int)   : Exchange request
         """
 
@@ -2891,10 +2961,11 @@ cdef class Coupling (object):
                              char * part_data_id,
                              int    request):
         """
-        Wait issend partitionned data.
+        #TODO: remove access to PartData Class from Coupling object?
+        Wait issend partitioned data.
 
         Parameters:
-          part_data_id (str)   : Partitionned data id
+          part_data_id (str)   : Partitioned data id
           request      (int)   : Exchange request
         """
 
@@ -2905,10 +2976,11 @@ cdef class Coupling (object):
     def part_data_del(self,
                       char * part_data_id):
         """
-        Delete PartData object and partitionned data form self.partData dictionnary
+        #TODO: remove access to PartData Class from Coupling object?
+        Delete PartData object and partitioned data form self.partData dictionary
 
         Parameters:
-          part_data_id       (str)  : Partitionned data id
+          part_data_id       (str)  : Partitioned data id
         """
 
         cdef int idx = self.partData_name[part_data_id]
@@ -2921,15 +2993,16 @@ cdef class Coupling (object):
                            char *      global_data_id,
                            int         send_stride,
                            int         n_send_entity,
-                           NPY.ndarray send_data):
+                           np.ndarray send_data):
       """
-      Send a data array.
+      global_data_issend(global_data_id, send_stride, n_send_entity, send_data)
+      Initiate the sending of a data array.
 
       Parameters:
         global_data_id  (str)   : Global data identifier
         send_stride     (int)   : Constant number of components
         n_send_entity   (int)   : Number of sent entities
-        send_data       (list)  : List of partitioned data array with same datatype
+        send_data       (list)  : List of global data arrays with same datatype
       """
 
       cdef int s_data = send_data.dtype.itemsize
@@ -2946,15 +3019,16 @@ cdef class Coupling (object):
                           char *      global_data_id,
                           int         recv_stride,
                           int         n_recv_entity,
-                          NPY.ndarray recv_data):
+                          np.ndarray recv_data):
       """
-      recv a data array.
+      global_data_irecv(global_data_id, recv_stride, n_recv_entity, recv_data)
+      Initiate the reception of a data array.
 
       Parameters:
         global_data_id  (str)   : Global data identifier
         recv_stride     (int)   : Constant number of components
         n_recv_entity   (int)   : Number of sent entities
-        recv_data       (list)  : List of partitioned data array with same datatype
+        recv_data       (list)  : List of global data arrays with same datatype
       """
 
       cdef int s_data = recv_data.dtype.itemsize
@@ -2970,7 +3044,8 @@ cdef class Coupling (object):
     def global_data_wait_issend(self,
                                 char *  global_data_id):
       """
-      Wait for send of a data array.
+      global_data_wait_issend(global_data_id)
+      Finalize the sending of a data array.
 
       Parameters:
         global_data_id  (str) : Global data identifier
@@ -2983,7 +3058,8 @@ cdef class Coupling (object):
     def global_data_wait_irecv(self,
                                char * global_data_id):
       """
-      Wait for receive of a data array.
+      global_data_wait_irecv(global_data_id)
+      Finalize the reception of a data array.
 
       Parameters:
         global_data_id  (str) : Global data identifier
@@ -2994,6 +3070,7 @@ cdef class Coupling (object):
                                  global_data_id)
 
     # --> MESH
+    #TODO: Python Class?
     def mesh_interf_finalize(self):
         """
         Finalize interface mesh.
@@ -3006,16 +3083,17 @@ cdef class Coupling (object):
 
     def mesh_interf_vtx_set(self,
                             int                       i_part,
-                            NPY.ndarray[NPY.double_t] coord not None,
-                            NPY.ndarray[NPY.int64_t]  global_num):
+                            np.ndarray[np.double_t] coord not None,
+                            np.ndarray[np.int64_t]  global_num):
         """
-        Set vertices.
+        mesh_interf_vtx_set(i_part, coord, global_num)
+        Set interface mesh vertices.
 
         Parameters:
           i_part     (int)                       : Current partition
           n_pts      (int)                       : Number of points
-          coord      (NPY.ndarray[NPY.double_t]) : Coordinates (size = 3 * n_pts)
-          global_num (NPY.ndarray[NPY.long])     : Pointer to parent element number (or None)
+          coord      (np.ndarray[np.double_t])   : Coordinates (size = 3 * n_pts)
+          global_num (np.ndarray[np.int64_t])    : Global vertex ids (or None)
         """
 
         if len(coord)%3 != 0:
@@ -3042,13 +3120,14 @@ cdef class Coupling (object):
     def mesh_interf_block_add(self,
                               CWP_Block_t block_type):
         """
+        mesh_interf_block_add(block_type)
         Add a connectivity block to the interface mesh.
 
         Parameters:
           block_type (CWP_Block_t) : Block type
 
         Returns:
-          block_id (int) : Block identifier
+          Block identifier (int)
         """
 
         cdef int block_id = CWP_Mesh_interf_block_add(self.local_code_name,
@@ -3060,17 +3139,18 @@ cdef class Coupling (object):
     def mesh_interf_block_std_set(self,
                                   int                      i_part,
                                   int                      block_id,
-                                  NPY.ndarray[NPY.int32_t] connec not None,
-                                  NPY.ndarray[NPY.int64_t] global_num):
+                                  np.ndarray[np.int32_t] connec not None,
+                                  np.ndarray[np.int64_t] global_num):
         """
+        mesh_interf_block_std_set(i_part, block_id, connec, global_num)
         Set a standard block to the interface mesh.
         This function adds a connectivity block to the interface mesh.
 
         Parameters:
-          i_part     (int)                      : Partition identifier
-          block_id   (int)                      : Block identifier
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          i_part     (int)                    : Partition identifier
+          block_id   (int)                    : Block identifier
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
         """
 
         cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
@@ -3105,6 +3185,7 @@ cdef class Coupling (object):
                                   int i_part,
                                   int block_id):
         """
+        mesh_interf_block_std_get(i_part, block_id)
         Get the properties of a standard block of the interface mesh.
 
         Parameters:
@@ -3112,9 +3193,10 @@ cdef class Coupling (object):
           block_id   (int) : Block identifier
 
         Returns:
-          n_elts     (int)                      : Number of elements
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          Dictionary
+            - ``"n_elts"``     : Number of elements (int)
+            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = n_vertex_elt * n_elts)
+            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
         """
 
         cdef int n_elts = -1
@@ -3142,19 +3224,20 @@ cdef class Coupling (object):
     def mesh_interf_f_poly_block_set(self,
                                      int                      i_part,
                                      int                      block_id,
-                                     NPY.ndarray[NPY.int32_t] connec_idx not None,
-                                     NPY.ndarray[NPY.int32_t] connec not None,
-                                     NPY.ndarray[NPY.int64_t] global_num):
+                                     np.ndarray[np.int32_t] connec_idx not None,
+                                     np.ndarray[np.int32_t] connec not None,
+                                     np.ndarray[np.int64_t] global_num):
         """
+        mesh_interf_f_poly_block_set(i_part, block_id, connec_idx, connec, global_num)
         Set the connectivity of a polygon block in a interface mesh partition.
 
         Parameters:
-          i_part     (int)                      : Partition identifier
-          block_id   (int)                      : Block identifier
-          n_elts     (int)                      : Number of elements
-          connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
-          global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+          i_part     (int)                    : Partition identifier
+          block_id   (int)                    : Block identifier
+          n_elts     (int)                    : Number of elements
+          connec_idx (np.ndarray[np.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = connec_idx[n_elts])
+          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
         """
         cdef int n_elts = len(connec_idx) - 1
 
@@ -3181,6 +3264,7 @@ cdef class Coupling (object):
                                      int  i_part,
                                      int  block_id):
         """
+        mesh_interf_f_poly_block_get(i_part, block_id)
         Get the connectivity of a polygon block in a interface mesh partition.
 
         Parameters:
@@ -3188,10 +3272,11 @@ cdef class Coupling (object):
           block_id   (int)                      : Block identifier
 
         Returns:
-          n_elts     (int)                      : Number of elements
-          connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
-          global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+          Dictionary
+            - ``"n_elts"``     : Number of elements (int)
+            - ``"connec_idx"`` : Connectivity index (np.ndarray[np.int32_t])
+            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t])
+            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
         """
 
         cdef int n_elts = -1
@@ -3218,22 +3303,23 @@ cdef class Coupling (object):
     def mesh_interf_c_poly_block_set(self,
                                      int                      i_part,
                                      int                      block_id,
-                                     NPY.ndarray[NPY.int32_t] connec_faces_idx not None,
-                                     NPY.ndarray[NPY.int32_t] connec_faces not None,
-                                     NPY.ndarray[NPY.int32_t] connec_cells_idx not None,
-                                     NPY.ndarray[NPY.int32_t] connec_cells not None,
-                                     NPY.ndarray[NPY.int64_t] global_num):
+                                     np.ndarray[np.int32_t] connec_faces_idx not None,
+                                     np.ndarray[np.int32_t] connec_faces not None,
+                                     np.ndarray[np.int32_t] connec_cells_idx not None,
+                                     np.ndarray[np.int32_t] connec_cells not None,
+                                     np.ndarray[np.int64_t] global_num):
         """
+        mesh_interf_c_poly_block_set(i_part, block_id, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num)
         Set the properties of a polyhedron block in a interface mesh partition.
 
         Parameters:
-          i_part           (int)                      : Partition identifier
-          block_id         (int)                      : Block identifier
-          connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
-          connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
-          connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-          connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
-          global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+          i_part           (int)                    : Partition identifier
+          block_id         (int)                    : Block identifier
+          connec_faces_idx (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
+          connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
+          connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
+          connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
+          global_num       (np.ndarray[np.int64_t]) : Global element ids (or None)
         """
         cdef int n_faces = len(connec_faces_idx) - 1
         cdef int n_elts  = len(connec_cells_idx) - 1
@@ -3267,6 +3353,7 @@ cdef class Coupling (object):
                                      int  i_part,
                                      int  block_id):
         """
+        mesh_interf_c_poly_block_get(i_part, block_id)
         Get the properties of a polyhedron block of the interface mesh partition.
 
         Parameters:
@@ -3274,13 +3361,14 @@ cdef class Coupling (object):
           block_id         (int)                      : Block identifier
 
         Returns:
-          n_elts           (int)                      : Number of elements
-          n_faces          (int)                      : Number of faces
-          connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
-          connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
-          connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-          connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
-          global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+          Dictionary
+            - ``"n_elts"``           : Number of elements (int)
+            - ``"n_faces"``          : Number of faces (int)
+            - ``"connec_faces_idx"`` : Polyhedron face to vertex index (np.ndarray[np.int32_t])
+            - ``"connec_faces"``     : Polyhedron face to vertex connectivity (np.ndarray[np.int32_t])
+            - ``"connec_cells_idx"`` : Polyhedron to face index (np.ndarray[np.int32_t])
+            - ``"connec_cells"``     : Polyhedron to face connectivity (np.ndarray[np.int32_t])
+            - ``"global_num"``       : Global element ids (np.ndarray[np.int64_t] or None)
         """
 
         cdef int n_elts  = -1
@@ -3318,18 +3406,19 @@ cdef class Coupling (object):
                                  int                      i_part,
                                  int                      block_id,
                                  int                      order,
-                                 NPY.ndarray[NPY.int32_t] connec not None,
-                                 NPY.ndarray[NPY.int64_t] global_num):
+                                 np.ndarray[np.int32_t] connec not None,
+                                 np.ndarray[np.int64_t] global_num):
       """
+        mesh_interf_block_ho_set(i_part, block_id, order, connec, global_num)
         Set a high-order block to the interface mesh.
         This function adds a connectivity block to the interface mesh.
 
         Parameters:
-          i_part     (int)                      : Partition identifier
-          block_id   (int)                      : Block identifier
-          order      (int)                      : Element order
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          i_part     (int)                    : Partition identifier
+          block_id   (int)                    : Block identifier
+          order      (int)                    : Element order
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
       """
 
       cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
@@ -3367,6 +3456,7 @@ cdef class Coupling (object):
                                  int  i_part,
                                  int  block_id):
       """
+        mesh_interf_block_ho_get(i_part, block_id)
         Get the properties of a high-order block of the interface mesh.
 
         Parameters:
@@ -3374,10 +3464,11 @@ cdef class Coupling (object):
           block_id   (int) : Block identifier
 
         Returns:
-          n_elts     (int)                      : Number of elements
-          order      (int)                      : Element order
-          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          Dictionary
+            - ``"n_elts"``     : Number of elements (int)
+            - ``"order"``      : Element order (int)
+            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t])
+            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
       """
 
       cdef int   n_elts = -1
@@ -3409,14 +3500,15 @@ cdef class Coupling (object):
     def mesh_interf_ho_ordering_from_IJK_set(self,
                                              CWP_Block_t              block_type,
                                              int                      order,
-                                             NPY.ndarray[NPY.int32_t] ijk_grid not None):
+                                             np.ndarray[np.int32_t] ijk_grid not None):
       """
+        mesh_interf_ho_ordering_from_IJK_set(block_type, order, ijk_grid)
         Define ho element ordering from the location in the (u, v, w) grid.
 
         Parameters:
-          block_type (CWP_Block_t)              Block type
-          order      (int)                      Element order
-          ijk_grid   (NPY.ndarray[NPY.int32_t]) User ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+          block_type (CWP_Block_t)            Block type
+          order      (int)                    Element order
+          ijk_grid   (np.ndarray[np.int32_t]) User ordering to (u, v, w) grid (size = elt_dim * n_nodes)
       """
 
       cdef int elt_dim = std_elt_dim(block_type)
@@ -3439,26 +3531,27 @@ cdef class Coupling (object):
                             self.cpl_id)
 
     def mesh_interf_from_cellface_set(self,
-                                      int                      i_part,
-                                      int                      n_cells,
-                                      NPY.ndarray[NPY.int32_t] cell_face_idx not None,
-                                      NPY.ndarray[NPY.int32_t] cell_face not None,
-                                      int                      n_faces,
-                                      NPY.ndarray[NPY.int32_t] face_vtx_idx not None,
-                                      NPY.ndarray[NPY.int32_t] face_vtx not None,
-                                      NPY.ndarray[NPY.int64_t] global_num):
+                                      int                    i_part,
+                                      int                    n_cells,
+                                      np.ndarray[np.int32_t] cell_face_idx not None,
+                                      np.ndarray[np.int32_t] cell_face not None,
+                                      int                    n_faces,
+                                      np.ndarray[np.int32_t] face_vtx_idx not None,
+                                      np.ndarray[np.int32_t] face_vtx not None,
+                                      np.ndarray[np.int64_t] global_num):
         """
+        mesh_interf_from_cellface_set(i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, global_num)
         Define the interface mesh from a cell to face connectivity.
 
         Parameters:
-          i_part        (int)                      : Current partition
-          n_cells       (int)                      : Number of cells
-          cell_face_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-          cell_face     (NPY.ndarray[NPY.int32_t]) : Cell to face connectivity (size = cell_face_idx[n_elts])
-          n_faces       (int)                      : Number of faces
-          face_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
-          face_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
-          global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          i_part        (int)                    : Current partition
+          n_cells       (int)                    : Number of cells
+          cell_face_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
+          cell_face     (np.ndarray[np.int32_t]) : Cell to face connectivity (size = cell_face_idx[n_elts])
+          n_faces       (int)                    : Number of faces
+          face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
+          face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
+          global_num    (np.ndarray[np.int64_t]) : Global element ids (or None)
         """
 
         if (global_num is None):
@@ -3485,24 +3578,25 @@ cdef class Coupling (object):
                                             <long *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
-                                      int                      i_part,
-                                      int                      n_faces,
-                                      NPY.ndarray[NPY.int32_t] face_edge_idx not None,
-                                      NPY.ndarray[NPY.int32_t] face_edge not None,
-                                      int                      n_edges,
-                                      NPY.ndarray[NPY.int32_t] edge_vtx not None,
-                                      NPY.ndarray[NPY.int64_t] global_num):
+                                      int                    i_part,
+                                      int                    n_faces,
+                                      np.ndarray[np.int32_t] face_edge_idx not None,
+                                      np.ndarray[np.int32_t] face_edge not None,
+                                      int                    n_edges,
+                                      np.ndarray[np.int32_t] edge_vtx not None,
+                                      np.ndarray[np.int64_t] global_num):
         """
+        mesh_interf_from_faceedge_set(i_part, n_faces, face_edge_idx, face_edge, n_edges, edge_vtx, global_num)
         Define the surface interface mesh from a face to edge connectivity.
 
         Parameters:
-          i_part        (int)                      : Current partition
-          n_faces       (int)                      : Number of faces
-          face_edge_idx (NPY.ndarray[NPY.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
-          face_edge     (NPY.ndarray[NPY.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
-          n_edges       (int)                      : Number of edges
-          edge_vtx      (NPY.ndarray[NPY.int32_t]) : Edge to vertex connectivity (size = 2*n_edges)
-          global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+          i_part        (int)                    : Current partition
+          n_faces       (int)                    : Number of faces
+          face_edge_idx (np.ndarray[np.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
+          face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
+          n_edges       (int)                    : Number of edges
+          edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2*n_edges)
+          global_num    (np.ndarray[np.int64_t]) : Global element ids (or None)
         """
 
         if (global_num is None):
@@ -3540,6 +3634,7 @@ cdef class Coupling (object):
                                     char * property_type,
                                     char * property_value):
         """
+        spatial_interp_property_set(property_name, property_type, property_value)
         Set a property of the spatial interpolation algorithm.
 
         Parameters:
@@ -3560,6 +3655,7 @@ cdef class Coupling (object):
                  CWP_Visu_format_t     visu_format,
                  char *                format_option):
         """
+        visu_set(freq, visu_format, format_option)
         Enable visualization output.
 
         Parameters:
@@ -3576,18 +3672,19 @@ cdef class Coupling (object):
 
     # --> USER TGT
     def user_tgt_pts_set(self,
-                         int                       i_part,
-                         int                       n_pts,
-                         NPY.ndarray[NPY.double_t] coord not None,
-                         NPY.ndarray[NPY.int64_t]  global_num):
+                         int                     i_part,
+                         int                     n_pts,
+                         np.ndarray[np.double_t] coord not None,
+                         np.ndarray[np.int64_t]  global_num):
         """
+        user_tgt_pts_set(i_part, n_pts, coord, global_num)
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
 
         Parameters:
-           i_part     (int)                      : Current partition
-           n_pts      (int)                      : Number of points
-           coord      (NPY.ndarray[NPY.double_t) : Coordinates (size = 3 * n_pts)
-           global_num (NPY.ndarray[NPY.long])    : Global number or NUL (size = n_pts)
+           i_part     (int)                    : Current partition
+           n_pts      (int)                    : Number of points
+           coord      (np.ndarray[np.double_t) : Coordinates (size = 3 * n_pts)
+           global_num (np.ndarray[np.int64_t]) : Global number or None (size = n_pts)
         """
 
         if (global_num is None):
