@@ -355,6 +355,8 @@ def runTest():
     f.flush()
   part_data_name = "part_data"
 
+  part_data = []
+
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
       exch_type = pycwp.PARTDATA_SEND
@@ -365,22 +367,20 @@ def runTest():
         recv_val[ipart][:] = -1234.
 
 
-    cpl[icode].part_data_create(part_data_name,
-                                exch_type,
-                                mesh[icode]["pface_ln_to_gn"])
+    part_data.append(cpl[icode].part_data_create(part_data_name,
+                                                 exch_type,
+                                                 mesh[icode]["pface_ln_to_gn"]))
 
   request = [np.array([-13], dtype=np.int32)] * n_code
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].part_data_issend(part_data_name,
-                                  stride,
-                                  send_val,
-                                  request[icode])
+      part_data[icode].issend(stride,
+                              send_val,
+                              request[icode])
     else:
-      cpl[icode].part_data_irecv(part_data_name,
-                                 stride,
-                                 recv_val,
-                                 request[icode])
+      part_data[icode].irecv(stride,
+                             recv_val,
+                             request[icode])
 
   if verbose:
     f.write("request : {}\n".format(request))
@@ -389,11 +389,9 @@ def runTest():
   error = False
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].part_data_wait_issend(part_data_name,
-                                       request[icode][0])
+      part_data[icode].wait_issend(request[icode][0])
     else:
-      cpl[icode].part_data_wait_irecv(part_data_name,
-                                      request[icode][0])
+      part_data[icode].wait_irecv(request[icode][0])
 
       # check received data
       for ipart in range(n_part[icode]):

@@ -2246,6 +2246,9 @@ cdef class Field (object):
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Initialize field object.
 
+        #TODO: cannot work by itself => either hide constructor from user (possible?)
+        or pass Coupling object to Field constructor (and append Field to the Coupling's field dict)
+
         Parameters:
           local_code_name (str)                 : Local code name
           cpl_id          (str)                 : Coupling id
@@ -2601,7 +2604,7 @@ cdef class Coupling (object):
                      CWP_Status_t           visu_status):
         """
         field_create(field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
-        Create field object and add in self.fields dictionary.
+        Create field object associated to current Coupling object.
 
         Parameters:
           field_id        (str)                 : Field id
@@ -2633,207 +2636,6 @@ cdef class Coupling (object):
         self.n_fields = self.n_fields + 1
 
         return field
-
-    def field_set(self,
-                  char *             field_id,
-                  int                i_part,
-                  CWP_Field_map_t    map_type,
-                  np.ndarray[np.double_t] data):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Set field data for a given Field object in the dictionary.
-
-        Parameters:
-          field_id  (str)                       : Field id
-          i_part    (int)                       : Current partition
-          data_type (CWP_Field_map_t)           : Choice if data is set for the source or the target
-          data      (np.ndarray[np.double_t]) : Storage array (Mapping)
-        """
-
-        cdef int idx = self.fields_name[field_id]
-
-        self.fields[idx].data_set(i_part,
-                                  map_type,
-                                  data)
-
-    def field_issend(self,
-                     char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Send a spatially interpolated field to the coupled code with
-        non-blocking communications.
-
-        This function is independent of CWP_Time_exch_t mode. The user has to
-        manually check the consistency of the exchanges.
-
-        Parameters:
-          field_id    (str) : Field identifier
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].issend()
-
-    def field_irecv(self,
-                    char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Wait the end of an exchange related to request from CWP_Field_issend.
-
-        Parameters:
-          tgt_field_id    (str) : Target field identifier
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].irecv()
-
-    def field_wait_issend(self,
-                          char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Wait the end of an exchange related to request from CWP_Field_issend.
-
-        Parameters:
-          field_id    (str) : Field identifier
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].wait_issend()
-
-    def field_wait_irecv(self,
-                         char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Wait the end of an exchange related to request from CWP_Field_irecv.
-
-        This function waits the end of exchange related to request
-        from CWP_Field_irecv
-
-        Parameters:
-          tgt_field_id    (str) : Target field identifier
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].wait_irecv()
-
-    def field_n_uncomputed_tgts_get(self,
-                                    char *  field_id,
-                                    int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the number of uncomputed targets.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          n_unc_tgt (int) : Number of uncomputed targets
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        n_unc_tgt = self.fields[idx].n_uncomputed_tgts_get(i_part)
-
-        return n_unc_tgt
-
-    def field_uncomputed_tgts_get(self,
-                                  char *  field_id,
-                                  int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the uncomputed targets.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          unc_tgt (int *) : Uncomputed targets
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        py_unc_tgt = self.fields[idx].uncomputed_tgts_get(i_part)
-
-        return py_unc_tgt
-
-    def field_n_computed_tgts_get(self,
-                                  char *  field_id,
-                                  int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the number of computed targets.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          n_c_tgt (int) : Number of computed targets
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        n_c_tgt = self.fields[idx].n_computed_tgts_get(i_part)
-
-        return n_c_tgt
-
-    def field_computed_tgts_get(self,
-                                char *  field_id,
-                                int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the computed targets.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          c_tgt (int *) : Computed targets
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        py_c_tgt = self.fields[idx].computed_tgts_get(i_part)
-
-        return py_c_tgt
-
-    def field_n_involved_srcs_get(self,
-                                  char *  field_id,
-                                  int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the number of involved sources.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          n_i_src (int) : Number of involved sources
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        n_i_src = self.fields[idx].n_involved_srcs_get(i_part)
-
-        return n_i_src
-
-    def field_involved_srcs_get(self,
-                                char *  field_id,
-                                int     i_part):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Get the involved sources.
-
-        Parameters:
-          field_id  (str)  : Field id
-          i_part    (int)  : Current partition
-
-        Returns:
-          n_i_src (int *) : involved sources
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        py_i_src = self.fields[idx].involved_srcs_get(i_part)
-
-        return py_i_src
 
     def field_interp_function_unset(self,
                                     char * field_id):
@@ -2869,7 +2671,7 @@ cdef class Coupling (object):
                   char * field_id):
         """
         #TODO: remove access to Field Class from Coupling object?
-        Delete Field object and field form self.fiels dictionary
+        Delete Field object and field form self.field dictionary
 
         Parameters:
           field_id        (str)               : Field id
@@ -2884,101 +2686,29 @@ cdef class Coupling (object):
                          CWP_PartData_exch_t  exch_type,
                          list                 gnum_elt):
         """
-        #TODO: remove access to PartData Class from Coupling object?
-        Create partitioned data object and add in self.partData dictionary.
+        part_data_create(part_data_id, exch_type, gnum_elt)
+        Create partitioned data object associated to current Coupling object.
 
         Parameters:
           part_data_id    (str)                 : Partitioned data id
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
           gnum_elt        (long)                : Global number of entities
+        Returns:
+          Part Data object (PartData)
         """
 
         self.partData_name[part_data_id] = self.n_partData
 
-        self.partData.append(PartData(self.local_code_name,
-                                      self.cpl_id,
-                                      part_data_id,
-                                      exch_type,
-                                      gnum_elt))
+        part_data = PartData(self.local_code_name,
+                             self.cpl_id,
+                             part_data_id,
+                             exch_type,
+                             gnum_elt)
+
+        self.partData.append(part_data)
 
         self.n_partData = self.n_partData + 1
-
-    def part_data_issend(self,
-                         char *                      part_data_id,
-                         int                         n_components,
-                         list                        send_data,
-                         np.ndarray[np.int32_t]    request):
-        """
-        #TODO: remove access to PartData Class from Coupling object?
-        Issend partitioned data.
-
-        Parameters:
-          part_data_id        (str)             : Partitioned data id
-          n_components        (int)             : Number of components
-          part1_to_part2_data (list)            : List of partitioned data arrays, each being 1 dimensional and with same datatype
-
-        Returns:
-          request (int) : Exchange request
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        self.partData[idx].issend(n_components,
-                                  send_data,
-                                  request)
-
-    def part_data_irecv(self,
-                        char *                         part_data_id,
-                        int                         n_components,
-                        list                        recv_data,
-                        np.ndarray[np.int32_t]    request):
-        """
-        #TODO: remove access to PartData Class from Coupling object?
-        Irecv partitioned data.
-
-        Parameters:
-          part_data_id (str)  : Partitioned data id
-          n_components (int)  : Number of components
-
-        Returns:
-          part2_data (list)    : List of partitioned data arrays, each being 1 dimensional and with same datatype
-          request    (int)     : Exchange request
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        self.partData[idx].irecv(n_components,
-                                 recv_data,
-                                 request)
-
-    def part_data_wait_issend(self,
-                              char * part_data_id,
-                              int    request):
-        """
-        #TODO: remove access to PartData Class from Coupling object?
-        Wait issend partitioned data.
-
-        Parameters:
-          part_data_id (str)   : Partitioned data id
-          request      (int)   : Exchange request
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        self.partData[idx].wait_issend(request)
-
-    def part_data_wait_irecv(self,
-                             char * part_data_id,
-                             int    request):
-        """
-        #TODO: remove access to PartData Class from Coupling object?
-        Wait issend partitioned data.
-
-        Parameters:
-          part_data_id (str)   : Partitioned data id
-          request      (int)   : Exchange request
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        self.partData[idx].wait_irecv(request)
-
+        return part_data
 
     def part_data_del(self,
                       char * part_data_id):
@@ -3089,7 +2819,7 @@ cdef class Coupling (object):
                                  self.cpl_id)
 
     def mesh_interf_vtx_set(self,
-                            int                       i_part,
+                            int                     i_part,
                             np.ndarray[np.double_t] coord not None,
                             np.ndarray[np.int64_t]  global_num):
         """
