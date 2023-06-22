@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "cwipi.h"
 #include "cwp.h"
@@ -31,6 +32,12 @@
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_array.h"
 #include "pdm_logging.h"
+#include "pdm_geom_elem.h"
+
+#define ABS(a)    ((a) < 0   ? -(a) : (a))
+#define MIN(a, b) ((a) < (b) ?  (a) : (b))
+#define MAX(a, b) ((a) > (b) ?  (a) : (b))
+
 
 /*----------------------------------------------------------------------
  *
@@ -514,6 +521,70 @@ int main(int argc, char *argv[])
   if (i_rank == 0) {
     printf("Exchange fields OK\n");
   }
+
+
+  if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+
+    double l_mass[2] = {0., 0.};
+    double l_area[2] = {0., 0.};
+
+    for (int icode = 0; icode < n_code; icode++) {
+      if (is_active_rank == CWP_STATUS_ON) {
+        for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+
+          double *field_val = NULL;
+          if (code_id[icode] == 1) {
+            field_val = send_val[icode][ipart];
+          }
+          else {
+            field_val = recv_val[icode][ipart];
+          }
+
+          double *surface_vector = malloc(sizeof(double) * pn_face[icode][ipart] * 3);
+          double *center         = malloc(sizeof(double) * pn_face[icode][ipart] * 3);
+          PDM_geom_elem_polygon_properties(pn_face[icode][ipart],
+                                           pface_vtx_idx[icode][ipart],
+                                           pface_vtx    [icode][ipart],
+                                           pvtx_coord   [icode][ipart],
+                                           surface_vector,
+                                           center,
+                                           NULL,
+                                           NULL);
+
+          for (int i = 0; i < pn_face[icode][ipart]; i++) {
+            double area = 0.;
+            for (int j = 0; j < 3; j++) {
+              area += surface_vector[3*i+j] * surface_vector[3*i+j];
+            }
+            area = sqrt(area);
+
+            l_area[code_id[icode]-1] += area;
+            l_mass[code_id[icode]-1] += field_val[i] * area;
+          }
+
+
+          free(surface_vector);
+          free(center        );
+        }
+      }
+    }
+
+
+    double g_mass[2];
+    MPI_Allreduce(l_mass, g_mass, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    double g_area[2];
+    MPI_Allreduce(l_area, g_area, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    if (i_rank == 0) {
+      printf("g_area = %20.16e / %20.16e, relative diff = %e\n",
+             g_area[0], g_area[1], ABS(g_area[0] - g_area[1])/ABS(g_area[1]));
+
+      printf("g_mass   = %20.16e / %20.16e, relative diff = %e\n",
+             g_mass[0], g_mass[1], ABS(g_mass[0] - g_mass[1])/ABS(g_mass[1]));
+    }
+  }
+
 
   for (int i_code = 0; i_code < n_code; i_code++) {
     CWP_Time_step_end(code_name[i_code]);

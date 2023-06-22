@@ -934,6 +934,14 @@ int main
       if (is_active_rank == CWP_STATUS_ON) {
         for (int ipart = 0; ipart < n_part[icode]; ipart++) {
 
+          double *field_val = NULL;
+          if (code_id[icode] == 1) {
+            field_val = send_val[ipart];
+          }
+          else {
+            field_val = recv_val[ipart];
+          }
+
           double *cell_volume = malloc(sizeof(double) * pn_cell[icode][ipart]);
           double *cell_center = malloc(sizeof(double) * pn_cell[icode][ipart] * 3);
           PDM_geom_elem_polyhedra_properties_triangulated(1,
@@ -960,17 +968,10 @@ int main
             l_volume[code_id[icode]-1] += cell_volume[i];
           }
 
-          if (code_id[icode] == 1) {
-            for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-              l_mass[0] += send_val[ipart][i] * cell_volume[i];
-            }
+          for (int i = 0; i < pn_cell[icode][ipart]; i++) {
+            l_mass[code_id[icode]-1] += field_val[i] * cell_volume[i];
+          }
 
-          }
-          else {
-            for (int i = 0; i < pn_cell[icode][ipart]; i++) {
-              l_mass[1] += recv_val[ipart][i];
-            }
-          }
 
           free(cell_volume);
           free(cell_center);

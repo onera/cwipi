@@ -765,10 +765,12 @@ namespace cwipi {
         for (int iref = 0; iref < n_ref_tgt[i_part]; iref++) {
 
           int i = ref_tgt[i_part][iref] - 1;
+          double sum_w = 0;
 
           for (int k = come_from_idx[i_part][iref]; k < come_from_idx[i_part][iref+1]; k++) {
 
             double w = _weights[i_part][k]; // volume of intersection (not normalized)
+            sum_w += w;
 
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
               for (int j = 0; j < nComponent; j++) {
@@ -781,6 +783,23 @@ namespace cwipi {
               }
             }
 
+          }
+
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
+          if (sum_w != 0) {
+CWP_GCC_SUPPRESS_WARNING_POP
+            sum_w = 1. / sum_w;
+
+            if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+              for (int j = 0; j < nComponent; j++) {
+                referenceData[n_tgt*j + i] *= sum_w;
+              }
+            }
+            else {
+              for (int j = 0; j < nComponent; j++) {
+                referenceData[nComponent*i + j] *= sum_w;
+              }
+            }
           }
 
         }

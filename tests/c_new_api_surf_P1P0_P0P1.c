@@ -784,18 +784,14 @@ main(int argc, char *argv[]) {
 
     double l_integral[2] = {0., 0.};
     for (int i = 0; i < nElts; i++) {
-      double val = field_value[i];
-      if (icode == 1) {
-        double area = 0.;
-        for (int j = 0; j < 3; j++) {
-          area += surface_vector[3*i+j] * surface_vector[3*i+j];
-        }
-        area = sqrt(area);
 
-        val *= area;
+      double area = 0.;
+      for (int j = 0; j < 3; j++) {
+        area += surface_vector[3*i+j] * surface_vector[3*i+j];
       }
+      area = sqrt(area);
 
-      l_integral[icode] += val;
+      l_integral[icode] += field_value[i] * area;
     }
     free(surface_vector);
     free(center);
