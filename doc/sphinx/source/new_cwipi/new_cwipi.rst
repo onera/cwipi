@@ -23,6 +23,11 @@ Python API documentation : pycwp
    :undoc-members:
    :show-inheritance:
 
+Spatial interpolation methods
+=============================
+
+.. include:: spatial_interp.rst
+
 Advanced functionalities
 ========================
 
