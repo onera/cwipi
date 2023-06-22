@@ -2403,20 +2403,9 @@ CWP_Interp_intersection_tgt_elt_volumes_get_cf
 }
 
 
-/**
- *
- *  \brief Get spatial interpolation weights (location algorithm).
- *
- *  \param [in]  local_code_name  Local code name
- *  \param [in]  cpl_id           Coupling identifier
- *  \param [in]  src_field_id     Source field id
- *  \param [in]  i_part
- *  \param [out] distance2
- *
- */
 
 void
-CWP_Interp_closest_points_distances_get_cf (
+CWP_Interp_nearest_neighbors_distances_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2434,11 +2423,11 @@ CWP_Interp_closest_points_distances_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_closest_points_distances_get(c_local_code_name,
-                                          c_cpl_id,
-                                          c_src_field_id,
-                                          i_part,
-                                          c_distances2);
+  CWP_Interp_nearest_neighbors_distances_get(c_local_code_name,
+                                             c_cpl_id,
+                                             c_src_field_id,
+                                             i_part,
+                                             c_distances2);
 
   int  n_elt_tgt;
   int  n_referenced_tgt;
@@ -2464,12 +2453,12 @@ CWP_Interp_closest_points_distances_get_cf (
 
 /**
  *
- * \brief Get coordinates of closest source points (closest points algorithm).
+ * \brief Get coordinates of closest source points (nearest neighbors algorithm).
  *
  */
 
 void
-CWP_Interp_closest_points_coord_get_cf
+CWP_Interp_nearest_neighbors_coord_get_cf
 (
   const char    *f_local_code_name,
         int      l_local_code_name,
@@ -2488,11 +2477,11 @@ CWP_Interp_closest_points_coord_get_cf
   c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id    = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_closest_points_coord_get(c_local_code_name,
-                                      c_cpl_id,
-                                      c_src_field_id,
-                                      i_part,
-                                      c_closest_src_coord);
+  CWP_Interp_nearest_neighbors_coord_get(c_local_code_name,
+                                         c_cpl_id,
+                                         c_src_field_id,
+                                         i_part,
+                                         c_closest_src_coord);
 
   int  n_elt_tgt;
   int  n_referenced_tgt;

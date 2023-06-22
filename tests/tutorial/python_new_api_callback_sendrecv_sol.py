@@ -44,7 +44,7 @@ def my_interpolation(local_code_name,
   spatial_interp_algorithm = pycwp.cpl_spatial_interp_algo_get(local_code_name,
                                                                cpl_id)
 
-  if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES:
+  if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
     tgt_data = pycwp.interp_tgt_data_get(local_code_name,
                                          cpl_id,
                                          field_id,
@@ -53,10 +53,10 @@ def my_interpolation(local_code_name,
     ref_tgt        = tgt_data["referenced_tgt"]
     tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
 
-    distance2 = pycwp.interp_closest_points_distances_get(local_code_name,
-                                                          cpl_id,
-                                                          field_id,
-                                                          i_part)
+    distance2 = pycwp.interp_nearest_neighbors_distances_get(local_code_name,
+                                                             cpl_id,
+                                                             field_id,
+                                                             i_part)
 
     for i, jtgt in enumerate(ref_tgt):
       itgt = jtgt-1
@@ -166,7 +166,7 @@ def run_coupling():
                           "codeC",
                           pycwp.INTERFACE_SURFACE,
                           pycwp.COMM_PAR_WITH_PART,
-                          pycwp.SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES,
+                          pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES,
                           n_part,
                           pycwp.DYNAMIC_MESH_STATIC,
                           pycwp.TIME_EXCH_USER_CONTROLLED)
@@ -276,7 +276,7 @@ def run_coupling():
 
 
   # Spatial interpolation
-  cpl_CP.spatial_interp_property_set("n_closest_pts",
+  cpl_CP.spatial_interp_property_set("n_neighbors",
                                      "int",
                                      "3")
 

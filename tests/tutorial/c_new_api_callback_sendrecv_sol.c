@@ -53,7 +53,7 @@ my_interpolation
                                                                          cpl_id,
                                                                          field_id);
 
-   if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
+   if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES) {
     if (storage == CWP_FIELD_STORAGE_INTERLACED) {
 
       // Get interpolation information :
@@ -72,9 +72,9 @@ my_interpolation
                               &tgt_come_from_src_ids);
 
       // Get point location information :
-      // For each target, this array gives the squared distance to its closest sources
+      // For each target, this array gives the squared distance to its nearest sources
       double *d2 = NULL;
-      CWP_Interp_closest_points_distances_get(local_code_name,
+      CWP_Interp_nearest_neighbors_distances_get(local_code_name,
                                               cpl_id,
                                               field_id,
                                               i_part,
@@ -82,19 +82,19 @@ my_interpolation
 
       for (int i = 0; i < n_referenced_tgt; i++) {
 
-        int    j_closest  = tgt_come_from_src_ids[i];
-        double d2_closest = d2[j_closest];
+        int    j_nearest  = tgt_come_from_src_ids[i];
+        double d2_nearest = d2[j_nearest];
 
         for (int j = tgt_come_from_src_ids[i]; j < tgt_come_from_src_ids[i+1]; j++) {
 
-          if (d2[j] < d2_closest) {
-            j_closest  = j;
-            d2_closest = d2[j];
+          if (d2[j] < d2_nearest) {
+            j_nearest  = j;
+            d2_nearest = d2[j];
           }
 
         }
 
-        buffer_out[i] = buffer_in[j_closest];
+        buffer_out[i] = buffer_in[j_nearest];
 
       }
 
@@ -153,7 +153,7 @@ main
                  coupled_code_name[0],
                  CWP_INTERFACE_SURFACE,
                  CWP_COMM_PAR_WITH_PART,
-                 CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES,
+                 CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES,
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
@@ -265,7 +265,7 @@ main
   // Set interpolation property and compute weights
   CWP_Spatial_interp_property_set(code_name[0],
                                   coupling_name,
-                                  "n_closest_pts",
+                                  "n_neighbors",
                                   "int",
                                   "3");
 

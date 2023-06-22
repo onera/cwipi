@@ -86,7 +86,7 @@ _read_args
   int                    all_n_part[],
   CWP_Spatial_interp_t  *spatial_interp_algo,
   double                *tolerance,
-  int                   *n_closest_pts,
+  int                   *n_neighbors,
   int                   *visu
 )
 {
@@ -181,7 +181,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *n_closest_pts = atoi(argv[i]);
+        *n_neighbors = atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-visu") == 0) {
@@ -378,9 +378,9 @@ main
   PDM_g_num_t          all_gn_vtx[2]  = {100, 50};
   int                  all_n_rank[2]  = {-1, -1};
   int                  all_n_part[2]  = {1, 1};
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
   double               tolerance      = 1e-2;
-  int                  n_closest_pts  = 5;
+  int                  n_neighbors    = 5;
   int                  visu           = 0;
 
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
@@ -394,7 +394,7 @@ main
              all_n_part,
              &spatial_interp,
              &tolerance,
-             &n_closest_pts,
+             &n_neighbors,
              &visu);
 
 
@@ -670,10 +670,10 @@ main
                                     "double",
                                     char_param);
 
-    sprintf(char_param, "%d", n_closest_pts);
+    sprintf(char_param, "%d", n_neighbors);
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
-                                    "n_closest_pts",
+                                    "n_neighbors",
                                     "int",
                                     char_param);
 

@@ -24,7 +24,7 @@
 
 namespace cwipi {
 
-  const int CWP_CLOSEST_POINTS_N_CLOSEST_PTS  = 4;
+  const int CWP_CLOSEST_POINTS_N_NEIGHBORS    = 4;
   const int CWP_CLOSEST_POINTS_POLYFIT_DEGREE = 1;
 
   typedef enum {

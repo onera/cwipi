@@ -549,7 +549,7 @@ main(int argc, char *argv[]) {
   }
 
   int n_part = 1;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
   CWP_client_Cpl_create(code_name,
                         cpl_name,
                         coupled_code_name,
@@ -682,7 +682,7 @@ main(int argc, char *argv[]) {
 
   CWP_client_Spatial_interp_property_set(code_name,
                                          cpl_name,
-                                         "n_closest_pts",
+                                         "n_neighbors",
                                          "int",
                                          "1");
 

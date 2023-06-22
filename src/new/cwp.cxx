@@ -120,7 +120,7 @@ static FILE* _cwipi_output_listing;
  * Output listing File (C printing)
  *----------------------------------------------------------------------------*/
 
-const char *acceptable_properties[3] = {"n_closest_pts", "polyfit_degree", "tolerance"};
+const char *acceptable_properties[3] = {"n_neighbors", "polyfit_degree", "tolerance"};
 
 /*============================================================================
  * Private function definitions
@@ -381,8 +381,8 @@ CWP_Init
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
   factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.Register<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.Register<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
   factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   /*
@@ -1253,7 +1253,7 @@ CWP_Spatial_interp_weights_compute
 /**
  * \brief Set a property of the spatial interpolation algorithm.
  *
- * Use "n_closest_pts" and "polyfit_degree" for the closest point
+ * Use "n_neighbors" and "polyfit_degree" for the nearest neighbors
  * algorithm. Use "tolerance" for the location algorithm.
  *
  * \param [in]  local_code_name  Local code name
@@ -2432,18 +2432,18 @@ CWP_Interp_intersection_tgt_elt_volumes_get
 
 /**
  *
- * \brief Get spatial interpolation distances (closest points algorithm).
+ * \brief Get spatial interpolation distances (nearest neighbors algorithm).
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
- * \param [out] distances2                Squared distances from closest source points
+ * \param [out] distances2                Squared distances from nearest source points
  *
  */
 
 void
-CWP_Interp_closest_points_distances_get
+CWP_Interp_nearest_neighbors_distances_get
 (
  const char            *local_code_name,
  const char            *cpl_id,
@@ -2456,8 +2456,8 @@ CWP_Interp_closest_points_distances_get
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES &&
-      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES) {
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
@@ -2473,40 +2473,40 @@ CWP_Interp_closest_points_distances_get
 
 /**
  *
- * \brief Get coordinates of closest source points (closest points algorithm).
+ * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
- * \param [out] closest_src_coord         Coordinates of closest source points
+ * \param [out] nearest_src_coord         Coordinates of nearest source points
  *
  */
 
 void
-CWP_Interp_closest_points_coord_get
+CWP_Interp_nearest_neighbors_coord_get
 (
  const char            *local_code_name,
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- double               **closest_src_coord
+ double               **nearest_src_coord
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES &&
-      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES) {
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
-  double **_closest_src_coord = NULL;
+  double **_nearest_src_coord = NULL;
   cpl.closest_point_src_coord_get(field_id,
-                                  &_closest_src_coord);
+                                  &_nearest_src_coord);
 
-  *closest_src_coord = closest_src_coord[i_part];
+  *nearest_src_coord = nearest_src_coord[i_part];
 }
 
 /**

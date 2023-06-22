@@ -309,7 +309,7 @@ main
                    coupled_code_name[icode],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-                   CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES,
+                   CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES,
                    1,
                    CWP_DYNAMIC_MESH_DEFORMABLE,//CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
@@ -463,7 +463,7 @@ main
   for (int icode = 0; icode < n_code; icode++) {
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
-                                    "n_closest_pts",
+                                    "n_neighbors",
                                     "int",
                                     "1");
   }

@@ -104,8 +104,8 @@ module cwp
     ! CWP_Spatial_interp_t
     enum, bind(c)
         enumerator :: &
-                CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES, &
-                CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES, &
+                CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES, &
+                CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES, &
                 CWP_SPATIAL_INTERP_FROM_INTERSECTION, &
                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT, &
                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
@@ -391,13 +391,13 @@ module cwp
         CWP_Interp_intersection_tgt_elt_volumes_get_
     end interface CWP_Interp_intersection_tgt_elt_volumes_get
 
-    interface CWP_Interp_closest_points_distances_get ; module procedure &
-        CWP_Interp_closest_points_distances_get_
-    end interface CWP_Interp_closest_points_distances_get
+    interface CWP_Interp_nearest_neighbors_distances_get ; module procedure &
+        CWP_Interp_nearest_neighbors_distances_get_
+    end interface CWP_Interp_nearest_neighbors_distances_get
 
-    interface CWP_Interp_closest_points_coord_get ; module procedure &
-        CWP_Interp_closest_points_coord_get_
-    end interface CWP_Interp_closest_points_coord_get
+    interface CWP_Interp_nearest_neighbors_coord_get ; module procedure &
+        CWP_Interp_nearest_neighbors_coord_get_
+    end interface CWP_Interp_nearest_neighbors_coord_get
 
     interface CWP_Param_del ; module procedure &
         CWP_Param_del_
@@ -554,8 +554,8 @@ module cwp
              CWP_Interp_location_internal_cell_vtx_get_, &
              CWP_Interp_intersection_volumes_get_, &
              CWP_Interp_intersection_tgt_elt_volumes_get_, &
-             CWP_Interp_closest_points_distances_get_, &
-             CWP_Interp_closest_points_coord_get_, &
+             CWP_Interp_nearest_neighbors_distances_get_, &
+             CWP_Interp_nearest_neighbors_coord_get_, &
              CWP_Param_add_int_ ,&
              CWP_Param_add_double_ ,&
              CWP_Param_add_char_ ,&
@@ -1160,16 +1160,16 @@ module cwp
           integer(c_int)                  :: n_elt
       end subroutine CWP_Interp_intersection_tgt_elt_volumes_get_cf
 
-      subroutine CWP_Interp_closest_points_distances_get_cf(local_code_name,   &
-                                                            l_local_code_name, &
-                                                            cpl_id,            &
-                                                            l_cpl_id,          &
-                                                            field_id,      &
-                                                            l_field_id,    &
-                                                            i_part,            &
-                                                            c_distances2,      &
-                                                            s_distances2)      &
-          bind(c, name = 'CWP_Interp_closest_points_distances_get_cf')
+      subroutine CWP_Interp_nearest_neighbors_distances_get_cf(local_code_name,   &
+                                                               l_local_code_name, &
+                                                               cpl_id,            &
+                                                               l_cpl_id,          &
+                                                               field_id,          &
+                                                               l_field_id,        &
+                                                               i_part,            &
+                                                               c_distances2,      &
+                                                               s_distances2)      &
+          bind(c, name = 'CWP_Interp_nearest_neighbors_distances_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
           character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
@@ -1177,37 +1177,37 @@ module cwp
           integer(c_int), value             :: i_part
           type(c_ptr)                       :: c_distances2
           integer(kind = c_int)             :: s_distances2
-      end subroutine CWP_Interp_closest_points_distances_get_cf
+      end subroutine CWP_Interp_nearest_neighbors_distances_get_cf
 
-      subroutine CWP_Interp_closest_points_coord_get_cf(f_local_code_name,   &
-                                                        l_local_code_name,   &
-                                                        f_cpl_id,            &
-                                                        l_cpl_id,            &
-                                                        f_field_id,      &
-                                                        l_field_id,      &
-                                                        i_part,              &
-                                                        c_closest_src_coord, &
-                                                        n_closest_src_pts)   &
-      bind (c, name='CWP_Interp_closest_points_coord_get_cf')
+      subroutine CWP_Interp_nearest_neighbors_coord_get_cf(f_local_code_name,   &
+                                                           l_local_code_name,   &
+                                                           f_cpl_id,            &
+                                                           l_cpl_id,            &
+                                                           f_field_id,          &
+                                                           l_field_id,          &
+                                                           i_part,              &
+                                                           c_nearest_src_coord, &
+                                                           n_nearest_src_pts)   &
+      bind (c, name='CWP_Interp_nearest_neighbors_coord_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind=c_char, len = 1) :: f_local_code_name, f_cpl_id, f_field_id
         integer(c_int), value           :: l_local_code_name, l_cpl_id, l_field_id
         integer(c_int), value           :: i_part
-        type(c_ptr)                     :: c_closest_src_coord
-        integer(c_int)                  :: n_closest_src_pts
-      end subroutine CWP_Interp_closest_points_coord_get_cf
+        type(c_ptr)                     :: c_nearest_src_coord
+        integer(c_int)                  :: n_nearest_src_pts
+      end subroutine CWP_Interp_nearest_neighbors_coord_get_cf
 
-      subroutine CWP_Interp_location_internal_cell_vtx_get_cf(local_code_name,          &
-                                                              l_local_code_name,        &
-                                                              cpl_id,                   &
-                                                              l_cpl_id,                 &
-                                                              field_id,             &
-                                                              l_field_id,           &
-                                                              i_part,                   &
-                                                              cell_vtx_idx,             &
-                                                              n_cell,                   &
-                                                              cell_vtx)                 &
+      subroutine CWP_Interp_location_internal_cell_vtx_get_cf(local_code_name,   &
+                                                              l_local_code_name, &
+                                                              cpl_id,            &
+                                                              l_cpl_id,          &
+                                                              field_id,          &
+                                                              l_field_id,        &
+                                                              i_part,            &
+                                                              cell_vtx_idx,      &
+                                                              n_cell,            &
+                                                              cell_vtx)          &
 
           bind(c, name = 'CWP_Interp_location_internal_cell_vtx_get_cf')
           use, intrinsic :: iso_c_binding
@@ -4341,20 +4341,20 @@ contains
 
   !>
   !!
-  !!  \brief Get spatial interpolation distances (closest points algorithm).
+  !!  \brief Get spatial interpolation distances (nearest neighbors algorithm).
   !!
   !!  \param [in]  local_code_name  Local code name
   !!  \param [in]  cpl_id           Coupling identifier
   !!  \param [in]  field_id         Field identifier
   !!  \param [in]  i_part           Partition identifier
-  !!  \param [out] distances2       Squared distances from closest source points
+  !!  \param [out] distances2       Squared distances from nearest source points
   !!
 
-  subroutine CWP_Interp_closest_points_distances_get_(local_code_name, &
-                                                      cpl_id, &
-                                                      field_id, &
-                                                      i_part, &
-                                                      distances2)
+  subroutine CWP_Interp_nearest_neighbors_distances_get_(local_code_name, &
+                                                         cpl_id,          &
+                                                         field_id,        &
+                                                         i_part,          &
+                                                         distances2)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4370,37 +4370,37 @@ contains
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
 
-    call CWP_Interp_closest_points_distances_get_cf(local_code_name, &
-                                                    l_local_code_name, &
-                                                    cpl_id, &
-                                                    l_cpl_id, &
-                                                    field_id, &
-                                                    l_field_id, &
-                                                    i_part, &
-                                                    c_distances2, &
-                                                    s_distances2)
+    call CWP_Interp_nearest_neighbors_distances_get_cf(local_code_name, &
+                                                       l_local_code_name, &
+                                                       cpl_id, &
+                                                       l_cpl_id, &
+                                                       field_id, &
+                                                       l_field_id, &
+                                                       i_part, &
+                                                       c_distances2, &
+                                                       s_distances2)
 
     call c_f_pointer(c_distances2, distances2, [s_distances2])
 
-  end subroutine CWP_Interp_closest_points_distances_get_
+  end subroutine CWP_Interp_nearest_neighbors_distances_get_
 
 
   !>
   !!
-  !!  \brief Get coordinates of closest source points (closest points algorithm).
+  !!  \brief Get coordinates of nearest source points (nearest neighbors algorithm).
   !!
   !!  \param [in]  local_code_name    Local code name
   !!  \param [in]  cpl_id             Coupling identifier
   !!  \param [in]  field_id           Field identifier
   !!  \param [in]  i_part             Partition identifier
-  !!  \param [out] closest_src_coord  Coordinates of closest source points
+  !!  \param [out] nearest_src_coord  Coordinates of nearest source points
   !!
 
-  subroutine CWP_Interp_closest_points_coord_get_(local_code_name,   &
-                                                  cpl_id,            &
-                                                  field_id,          &
-                                                  i_part,            &
-                                                  closest_src_coord)
+  subroutine CWP_Interp_nearest_neighbors_coord_get_(local_code_name,   &
+                                                     cpl_id,            &
+                                                     field_id,          &
+                                                     i_part,            &
+                                                     nearest_src_coord)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4408,28 +4408,28 @@ contains
     character(kind=c_char, len = *) :: local_code_name, cpl_id, field_id
     integer(c_int)                  :: l_local_code_name, l_cpl_id, l_field_id
     integer(c_int), intent(in)      :: i_part
-    double precision, pointer       :: closest_src_coord(:,:)
+    double precision, pointer       :: nearest_src_coord(:,:)
 
-    type(c_ptr)                     :: c_closest_src_coord = C_NULL_PTR
-    integer(c_int)                  :: n_closest_src_pts
+    type(c_ptr)                     :: c_nearest_src_coord = C_NULL_PTR
+    integer(c_int)                  :: n_nearest_src_pts
 
     l_local_code_name = len(local_code_name)
     l_cpl_id          = len(cpl_id)
     l_field_id        = len(field_id)
 
-    call CWP_Interp_closest_points_coord_get_cf(local_code_name,     &
-                                                l_local_code_name,   &
-                                                cpl_id,              &
-                                                l_cpl_id,            &
-                                                field_id,            &
-                                                l_field_id,          &
-                                                i_part,              &
-                                                c_closest_src_coord, &
-                                                n_closest_src_pts)
+    call CWP_Interp_nearest_neighbors_coord_get_cf(local_code_name,     &
+                                                   l_local_code_name,   &
+                                                   cpl_id,              &
+                                                   l_cpl_id,            &
+                                                   field_id,            &
+                                                   l_field_id,          &
+                                                   i_part,              &
+                                                   c_nearest_src_coord, &
+                                                   n_nearest_src_pts)
 
-    call c_f_pointer(c_closest_src_coord, closest_src_coord, [3, n_closest_src_pts])
+    call c_f_pointer(c_nearest_src_coord, nearest_src_coord, [3, n_nearest_src_pts])
 
-  end subroutine CWP_Interp_closest_points_coord_get_
+  end subroutine CWP_Interp_nearest_neighbors_coord_get_
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *

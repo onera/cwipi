@@ -209,13 +209,13 @@ namespace cwipi {
         }
       }
 
-      int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
+      int n_neighbors = CWP_CLOSEST_POINTS_N_NEIGHBORS;
       std::map<std::string, int> prop = _cpl->SpatialInterpPropertiesIntGet();
       std::map<std::string, int>::iterator it;
 
-      it = prop.find("n_closest_pts");
+      it = prop.find("n_neighbors");
       if (it != prop.end()) {
-        n_closest_pts = it->second;
+        n_neighbors = it->second;
       }
 
       /* Get PDM results */
@@ -224,7 +224,7 @@ namespace cwipi {
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
             if (_reverse) {
-              _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_closest_pts,
+              _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_neighbors,
                                                                                 _src_n_gnum[i_part]);
               PDM_closest_points_get(_id_pdm,
                                      i_part,
@@ -290,7 +290,7 @@ namespace cwipi {
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
             for (int i_part = 0; i_part < _nPart; i_part++) {
               if (_reverse) {
-                _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_closest_pts,
+                _tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_neighbors,
                                                                                   _src_n_gnum[i_part]);
                 PDM_closest_points_get(_id_pdm,
                                        i_part,
@@ -360,7 +360,7 @@ namespace cwipi {
 
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
               if (_reverse) {
-                cpl_spatial_interp->_tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_closest_pts,
+                cpl_spatial_interp->_tgt_in_src_idx[i_part] = PDM_array_new_idx_from_const_stride_int(n_neighbors,
                                                                                                       cpl_spatial_interp->_src_n_gnum[i_part]);
 
                 PDM_closest_points_get(_id_pdm,
@@ -732,7 +732,7 @@ namespace cwipi {
 
     static void _interp_idw
     (
-      const int     n_closest_pts,
+      const int     n_neighbors,
       const int     stride,
       const double *src_value,
       const double *src_dist2,
@@ -745,7 +745,7 @@ namespace cwipi {
       }
 
       double sum_w = 0.;
-      for (int i = 0; i < n_closest_pts; i++) {
+      for (int i = 0; i < n_neighbors; i++) {
         double w = 1./std::max(eps_dist2, src_dist2[i]);
         sum_w += w;
         for (int j = 0; j < stride; j++) {
@@ -762,7 +762,7 @@ namespace cwipi {
 
     static void _interp_least_squares
     (
-      const int     n_closest_pts,
+      const int     n_neighbors,
       const int     stride,
       const double *src_value,
       const double *src_coord,
@@ -774,8 +774,8 @@ namespace cwipi {
       double A[4*4] = {0.};
       double b[4*stride] = {0.};
 
-      for (int i = 0; i < n_closest_pts; i++) {
-        // log_trace("i = %d / %d\n", i, n_closest_pts);
+      for (int i = 0; i < n_neighbors; i++) {
+        // log_trace("i = %d / %d\n", i, n_neighbors);
         double x = src_coord[3*i    ];
         double y = src_coord[3*i + 1];
         double z = src_coord[3*i + 2];
@@ -831,7 +831,7 @@ namespace cwipi {
         }
       }
       else {
-        _interp_idw(n_closest_pts,
+        _interp_idw(n_neighbors,
                     stride,
                     src_value,
                     src_dist2,
@@ -882,7 +882,7 @@ namespace cwipi {
     static void _interp_weighted_least_squares
     (
       const int     degree,
-      const int     n_closest_pts,
+      const int     n_neighbors,
       const int     stride,
       const double *src_value,
       const double *src_coord,
@@ -895,12 +895,12 @@ namespace cwipi {
       #define siz (1 + degree*3)
       double c[siz*stride];
 
-      if (n_closest_pts >= siz) {
+      if (n_neighbors >= siz) {
 
         /* Special case : coincident points */
         const double eps_dist2 = 1e-24;
 
-        for (int i = 0; i < n_closest_pts; i++) {
+        for (int i = 0; i < n_neighbors; i++) {
           if (src_dist2[i] < eps_dist2) {
             for (int j = 0; j < stride; j++) {
               tgt_value[j] = src_value[stride*i+j];
@@ -915,7 +915,7 @@ namespace cwipi {
         double rhs[siz*stride] = {0.};
         double b[siz];
 
-        for (int i = 0; i < n_closest_pts; i++) {
+        for (int i = 0; i < n_neighbors; i++) {
           double wi = _weight_function(src_dist2[i]);
 
           _basis_vector(3,
@@ -955,7 +955,7 @@ namespace cwipi {
       else {
         // log_trace("singular matrix! ");
         // PDM_log_trace_array_double(tgt_coord, 3, "tgt_coord : ");
-        _interp_idw(n_closest_pts,
+        _interp_idw(n_neighbors,
                     stride,
                     src_value,
                     src_dist2,
@@ -1091,10 +1091,10 @@ namespace cwipi {
                                              &come_from_idx,
                                              &come_from);
 
-        int max_n_closest_pts = 0;
+        int max_n_neighbors = 0;
         for (int i_part = 0; i_part < _nPart; i_part++) {
           for (int i = 0; i < n_ref[i_part]; i++) {
-            max_n_closest_pts = std::max(max_n_closest_pts,
+            max_n_neighbors = std::max(max_n_neighbors,
                                          come_from_idx[i_part][i+1] - come_from_idx[i_part][i]);
           }
         }
@@ -1113,7 +1113,7 @@ namespace cwipi {
         double *tgt_value = NULL;
 
         if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-          src_value = (double *) malloc(sizeof(double) * nComponent * max_n_closest_pts);
+          src_value = (double *) malloc(sizeof(double) * nComponent * max_n_neighbors);
           tgt_value = (double *) malloc(sizeof(double) * nComponent);
         }
 
@@ -1159,7 +1159,7 @@ namespace cwipi {
             int id = ref[i_part][i] - 1;
             // log_trace("tgt pt %d / %d\n", i, n_pts);
 
-            int n_closest_pts = come_from_idx[i_part][i+1] - come_from_idx[i_part][i];
+            int n_neighbors = come_from_idx[i_part][i+1] - come_from_idx[i_part][i];
 
             if (0) {
               for (int k = come_from_idx[i_part][i]; k < come_from_idx[i_part][i+1]; k++) {
@@ -1173,7 +1173,7 @@ namespace cwipi {
 
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
               // interlace src_value
-              for (int k = 0; k < n_closest_pts; k++) {
+              for (int k = 0; k < n_neighbors; k++) {
                 for (int j = 0; j < nComponent; j++) {
                   src_value[nComponent*k + j] = buffer[i_part][j*come_from_idx[i_part][n_ref[i_part]] + come_from_idx[i_part][i] + k];
                 }
@@ -1185,7 +1185,7 @@ namespace cwipi {
             }
 
             if (use_idw_interpolation) {
-              _interp_idw(n_closest_pts,
+              _interp_idw(n_neighbors,
                           nComponent,
                           src_value,
                           _weights[i_part] + come_from_idx[i_part][i],
@@ -1194,7 +1194,7 @@ namespace cwipi {
             else {
               if (1) {
                 _interp_weighted_least_squares(polyfit_degree,
-                                               n_closest_pts,
+                                               n_neighbors,
                                                nComponent,
                                                src_value,
                                                src_coord + 3*come_from_idx[i_part][i],
@@ -1203,7 +1203,7 @@ namespace cwipi {
                                                tgt_value);
               }
               else {
-                _interp_least_squares(n_closest_pts,
+                _interp_least_squares(n_neighbors,
                                       nComponent,
                                       src_value,
                                       src_coord + 3*come_from_idx[i_part][i],
@@ -1215,7 +1215,7 @@ namespace cwipi {
 
               if (0) {
                 log_trace("recv :\n");
-                for (int k = 0; k < n_closest_pts; k++) {
+                for (int k = 0; k < n_neighbors; k++) {
                   log_trace("  from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][come_from_idx[i_part][i] + k]);
                   PDM_log_trace_array_double(src_value + nComponent*k,
                                              nComponent,
@@ -1457,17 +1457,17 @@ namespace cwipi {
 
 
 
-      int n_closest_pts = CWP_CLOSEST_POINTS_N_CLOSEST_PTS;
+      int n_neighbors = CWP_CLOSEST_POINTS_N_NEIGHBORS;
       std::map<std::string, int> prop = _cpl->SpatialInterpPropertiesIntGet();
       std::map<std::string, int>::iterator it;
 
-      it = prop.find("n_closest_pts");
+      it = prop.find("n_neighbors");
       if (it != prop.end()) {
-        n_closest_pts = it->second;
+        n_neighbors = it->second;
       }
 
       _id_pdm = PDM_closest_points_create(_pdmUnionComm,
-                                          n_closest_pts,
+                                          n_neighbors,
                                           PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
 

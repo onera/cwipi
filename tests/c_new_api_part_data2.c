@@ -242,7 +242,7 @@ int main
   const char *cpl_name = "c_new_api_part_data2";
 
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
 
@@ -402,10 +402,10 @@ int main
 
   /* Map source to target */
   for (int icode = 0; icode < n_code; icode++) {
-    if (spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES) {
+    if (spatial_interp == CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES) {
       CWP_Spatial_interp_property_set(code_name[icode],
                                       cpl_name,
-                                      "n_closest_pts",
+                                      "n_neighbors",
                                       "int",
                                       "1");
     }

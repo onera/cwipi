@@ -50,10 +50,10 @@ integer(kind = c_int), pointer  :: cell_vtx(:) => null()
 double precision, dimension(:), pointer :: volumes(:) => null()
 double precision, dimension(:), pointer :: tgt_elt_volumes(:) => null()
 
-! --> for closest point spatial interpolation algorithm
+! --> for nearest neighbors spatial interpolation algorithm
 
 double precision, dimension(:), pointer :: distances2(:) => null()
-double precision, dimension(:), pointer :: closest_src_coord(:) => null()
+double precision, dimension(:), pointer :: nearest_src_coord(:) => null()
 
 ! GENERAL GEOMETRIC DATA
 
@@ -104,8 +104,8 @@ if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_L
   call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * n_elt_src])
   call c_f_pointer(c_buffer_out, buffer_out, [n_components * src_to_tgt_idx(n_elt_src+1)])
 
-else if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES .or. &
-         spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES .or. &
+else if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES .or. &
+         spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES .or. &
          spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION .or. &
          spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) then
 
@@ -162,20 +162,20 @@ call CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name, &
                                                  i_part,          &
                                                  tgt_elt_volumes)
 
-! CLOSEST POINTS SPATIAL INTERPOLATION ALGORITHM
+! NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-! Get squared distances to closest points
+! Get squared distances to nearest points
 
-call CWP_Interp_closest_points_distances_get(local_code_name, &
+call CWP_Interp_nearest_points_distances_get(local_code_name, &
                                              cpl_id,          &
                                              field_id,        &
                                              i_part,          &
                                              distances2)
 
-! Get coordinates of closest source points
+! Get coordinates of nearest source points
 
-call CWP_Interp_closest_points_coord_get(local_code_name, &
+call CWP_Interp_nearest_points_coord_get(local_code_name, &
                                          cpl_id,          &
                                          field_id,        &
                                          i_part,          &
-                                         closest_src_coord)
+                                         nearest_src_coord)

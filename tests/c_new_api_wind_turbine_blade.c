@@ -63,7 +63,7 @@ _usage(int exit_code) {
          "  -n_rank1        number of MPI ranks for code1.\n\n"
          "  -n_rank2        number of MPI ranks for code2.\n\n"
          "  -tol            geometrical tolerance for mesh location.\n\n"
-         "  -n_cls          number of closest sources for interpolation.\n\n"
+         "  -n_cls          number of nearest sources for interpolation.\n\n"
          "  -polyfit_degree polynomial degree for LS interpolation.\n\n"
          "  -algo           spatial interpolation algorithm.\n\n"
          "  -visu           visualize interpolation error.\n\n"
@@ -90,7 +90,7 @@ _read_args
   char                  *all_file_names[],
   int                    all_n_rank[],
   double                *tolerance,
-  int                   *n_closest_pts,
+  int                   *n_neighbors,
   CWP_Spatial_interp_t  *spatial_interp_algo,
   int                   *visu,
   int                   *point_interface
@@ -157,7 +157,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *n_closest_pts = atoi(argv[i]);
+        *n_neighbors = atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-polyfit_degree") == 0) {
@@ -508,10 +508,10 @@ main(int argc, char *argv[]) {
   char   *all_file_names[2] = {NULL};
   int     all_n_rank    [2] = {-1, -1};
   double  tolerance         = 1e-2;
-  int     n_closest_pts     = 5;
+  int     n_neighbors       = 5;
   int     visu              = 0;
   int     point_interface   = 0;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
@@ -524,7 +524,7 @@ main(int argc, char *argv[]) {
               all_file_names,
               all_n_rank,
               &tolerance,
-              &n_closest_pts,
+              &n_neighbors,
               &spatial_interp,
               &visu,
               &point_interface);
@@ -609,8 +609,8 @@ main(int argc, char *argv[]) {
 
   CWP_Interface_t interface_dim = CWP_INTERFACE_SURFACE;
   if (point_interface) {
-    assert(spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES ||
-           spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES);
+    assert(spatial_interp == CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES ||
+           spatial_interp == CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
     interface_dim = CWP_INTERFACE_POINT;
   }
 
@@ -803,10 +803,10 @@ main(int argc, char *argv[]) {
                                     "double",
                                     char_param);
 
-    sprintf(char_param, "%d", n_closest_pts);
+    sprintf(char_param, "%d", n_neighbors);
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
-                                    "n_closest_pts",
+                                    "n_neighbors",
                                     "int",
                                     char_param);
 

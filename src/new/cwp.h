@@ -235,11 +235,11 @@ typedef enum {
 
 /**
  * \enum CWP_Block_t
- * \brief Elements taken into account
+ * \brief Mesh elements supported by CWIPI
  *
  * (alias to PDM_Mesh_nodal_t)
  *
- * CWP_Block_t defines elements taken into account
+ * CWP_Block_t defines all supported mesh elements
  */
 
 typedef enum {
@@ -247,7 +247,7 @@ typedef enum {
   CWP_BLOCK_NODE,          /*!< Node */
   CWP_BLOCK_EDGE2,         /*!< Edge with two nodes */
   CWP_BLOCK_FACE_TRIA3,    /*!< Triangle with three nodes */
-  CWP_BLOCK_FACE_QUAD4,    /*!< Quadrangle with three nodes */
+  CWP_BLOCK_FACE_QUAD4,    /*!< Quadrangle with four nodes */
   CWP_BLOCK_FACE_POLY,     /*!< Generic polygon */
   CWP_BLOCK_CELL_TETRA4,   /*!< Tetrahedron with four nodes */
   CWP_BLOCK_CELL_PYRAM5,   /*!< Pyramid with five nodes */
@@ -267,7 +267,7 @@ typedef enum {
 
 /**
  * \enum CWP_Dynamic_mesh_t
- * \brief Modes of time dynamic mesh.
+ * \brief Modes of dynamic mesh.
  *
  */
 
@@ -286,9 +286,9 @@ typedef enum {
 
 typedef enum {
 
-  CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES,         /*!< Least squares from closest sources */
-  CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES,         /*!< Least squares from closest targets */
-  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                          /*!< Meshes intersection */
+  CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES,         /*!< Least squares from nearest sources */
+  CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES,         /*!< Least squares from nearest targets */
+  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                          /*!< Mesh intersection */
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT, /*!< Location into a mesh (all targets are located) */
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,         /*!< Location into a mesh with the octree method*/
   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE,        /*!< Location into a mesh with the bounding box tree method */
@@ -894,16 +894,14 @@ CWP_Spatial_interp_weights_compute
 /**
  * \brief Set a property of the spatial interpolation algorithm.
  *
+ * Use "n_neighbors" and "polyfit_degree" for the nearest neighbors
+ * algorithms. Use "tolerance" for the location algorithm.
+ *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  property_name    Name of the property
  * \param [in]  property_type    Type of the property ("double" or "int")
  * \param [in]  property_value   Value of the property
- *
- * <p>
- * Use "n_closest_pts" and "polyfit_degree" for the closest point
- * algorithm. Use tolerance" for the location algorithm.
- * </p>
  *
  */
 
@@ -1904,18 +1902,18 @@ CWP_Interp_intersection_tgt_elt_volumes_get
 
 /**
  *
- * \brief Get spatial interpolation distances (closest points algorithm).
+ * \brief Get spatial interpolation distances (nearest neighbors algorithm).
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
- * \param [out] distances2                Squared distances from closest source points
+ * \param [out] distances2                Squared distances from nearest source points
  *
  */
 
 void
-CWP_Interp_closest_points_distances_get
+CWP_Interp_nearest_neighbors_distances_get
 (
  const char            *local_code_name,
  const char            *cpl_id,
@@ -1926,24 +1924,24 @@ CWP_Interp_closest_points_distances_get
 
 /**
  *
- * \brief Get coordinates of closest source points (closest points algorithm).
+ * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
- * \param [out] closest_src_coord         Coordinates of closest source points
+ * \param [out] nearest_src_coord         Coordinates of nearest source points
  *
  */
 
 void
-CWP_Interp_closest_points_coord_get
+CWP_Interp_nearest_neighbors_coord_get
 (
  const char            *local_code_name,
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- double               **closest_src_coord
+ double               **nearest_src_coord
 );
 
 /*----------------------------------------------------------------------------*

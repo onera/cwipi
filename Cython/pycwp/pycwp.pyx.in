@@ -125,8 +125,8 @@ cdef extern from "cwp.h":
       CWP_DYNAMIC_MESH_VARIABLE
 
   ctypedef enum CWP_Spatial_interp_t:
-      CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES
-      CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES
+      CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES
+      CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES
       CWP_SPATIAL_INTERP_FROM_INTERSECTION
       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT
       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
@@ -461,16 +461,16 @@ cdef extern from "cwp.h":
                                                    char                  *field_id,
                                                    int                    i_part,
                                                    double               **tgt_elt_volumes)
-  void CWP_Interp_closest_points_distances_get(char                  *local_code_name,
-                                               char                  *cpl_id,
-                                               char                  *field_id,
-                                               int                    i_part,
-                                               double               **distances2)
-  void CWP_Interp_closest_points_coord_get(char                  *local_code_name,
-                                           char                  *cpl_id,
-                                           char                  *field_id,
-                                           int                    i_part,
-                                           double               **closest_src_coord)
+  void CWP_Interp_nearest_neighbors_distances_get(char                  *local_code_name,
+                                                  char                  *cpl_id,
+                                                  char                  *field_id,
+                                                  int                    i_part,
+                                                  double               **distances2)
+  void CWP_Interp_nearest_neighbors_coord_get(char                  *local_code_name,
+                                              char                  *cpl_id,
+                                              char                  *field_id,
+                                              int                    i_part,
+                                              double               **nearest_src_coord)
 
   # --> functions about control parameters
   void CWP_Param_add(char        *local_code_name,
@@ -633,8 +633,8 @@ DYNAMIC_MESH_STATIC     = CWP_DYNAMIC_MESH_STATIC
 DYNAMIC_MESH_DEFORMABLE = CWP_DYNAMIC_MESH_DEFORMABLE
 DYNAMIC_MESH_VARIABLE   = CWP_DYNAMIC_MESH_VARIABLE
 
-SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES         = CWP_SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES
-SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES         = CWP_SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES
+SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES         = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES
+SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES         = CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES
 SPATIAL_INTERP_FROM_INTERSECTION                          = CWP_SPATIAL_INTERP_FROM_INTERSECTION
 SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT
 SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE         = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
@@ -1815,12 +1815,12 @@ def intersection_tgt_elt_volumes_get(char * local_code_name,
 
     return create_numpy_d(tgt_elt_volumes, n_elt_tgt, False)
 
-def interp_closest_points_distances_get(char * local_code_name,
-                                        char * cpl_id,
-                                        char * field_id,
-                                        int    i_part):
+def interp_nearest_neighbors_distances_get(char * local_code_name,
+                                           char * cpl_id,
+                                           char * field_id,
+                                           int    i_part):
     """
-    Get spatial interpolation distances (closest points algorithm).
+    Get spatial interpolation distances (nearest neighbors algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
@@ -1834,11 +1834,11 @@ def interp_closest_points_distances_get(char * local_code_name,
 
     cdef double *distances2
 
-    CWP_Interp_closest_points_distances_get(local_code_name,
-                                            cpl_id,
-                                            field_id,
-                                            i_part,
-                                            &(distances2))
+    CWP_Interp_nearest_neighbors_distances_get(local_code_name,
+                                               cpl_id,
+                                               field_id,
+                                               i_part,
+                                               &(distances2))
 
     # get size
     cdef int  n_elt_tgt;
@@ -1856,12 +1856,12 @@ def interp_closest_points_distances_get(char * local_code_name,
 
     return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
-def interp_closest_points_coord_get(char * local_code_name,
-                                    char * cpl_id,
-                                    char * field_id,
-                                    int    i_part):
+def interp_nearest_neighbors_coord_get(char * local_code_name,
+                                       char * cpl_id,
+                                       char * field_id,
+                                       int    i_part):
     """
-    Get coordinates of closest source points (closest points algorithm).
+    Get coordinates of nearest source points (nearest neighbors algorithm).
 
     Parameters:
       local_code_name (str) : Local code name
@@ -1870,16 +1870,16 @@ def interp_closest_points_coord_get(char * local_code_name,
       i_part          (int) : Parition identifier
 
     Returns:
-      closest_src_coord (double *) : Coordinates of closest source points
+      nearest_src_coord (double *) : Coordinates of nearest source points
     """
 
-    cdef double *closest_src_coord
+    cdef double *nearest_src_coord
 
-    CWP_Interp_closest_points_coord_get(local_code_name,
-                                        cpl_id,
-                                        field_id,
-                                        i_part,
-                                        &(closest_src_coord))
+    CWP_Interp_nearest_neighbors_coord_get(local_code_name,
+                                           cpl_id,
+                                           field_id,
+                                           i_part,
+                                           &(nearest_src_coord))
 
     # get size
     cdef int  n_elt_tgt;
@@ -1895,7 +1895,7 @@ def interp_closest_points_coord_get(char * local_code_name,
                             &(c_referenced_tgt),
                             &(c_tgt_come_from_src_idx))
 
-    return create_numpy_d(closest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
+    return create_numpy_d(nearest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
 #-----------------------------------------------------------------------------
 # PARTDATA CLASS
@@ -2095,8 +2095,8 @@ cdef void callback(const char           *c_local_code_name,
         cdef int size_in;
         cdef int size_out;
 
-        if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_SOURCES_LEAST_SQUARES or
-            spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_TARGETS_LEAST_SQUARES or
+        if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES or
+            spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES or
             spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
             spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
           CWP_Interp_tgt_data_get(c_local_code_name,
