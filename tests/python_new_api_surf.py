@@ -255,9 +255,10 @@ def runTest():
 
 
   # Create field
-  field_name = "field"
+  field_name  = "field"
   visu_status = pycwp.STATUS_ON
   stride      = 2
+  field       = []
   for icode in range(n_code):
 
     if code_name[icode] == all_code_name[0]:
@@ -280,22 +281,21 @@ def runTest():
       field_val = recv_val
 
 
-    cpl[icode].field_create(field_name,
-                            pycwp.DOUBLE,
-                            pycwp.FIELD_STORAGE_INTERLACED,
-                            stride,
-                            pycwp.DOF_LOCATION_CELL_CENTER,
-                            exch_type,
-                            visu_status)
+    field.append(cpl[icode].field_create(field_name,
+                                         pycwp.DOUBLE,
+                                         pycwp.FIELD_STORAGE_INTERLACED,
+                                         stride,
+                                         pycwp.DOF_LOCATION_CELL_CENTER,
+                                         exch_type,
+                                         visu_status))
 
     pycwp.time_step_beg(code_name[icode],
                         0.0);
 
     for ipart in range(n_part[icode]):
-      cpl[icode].field_set(field_name,
-                           ipart,
-                           map_type,
-                           field_val[ipart])
+      field[icode].data_set(ipart,
+                            map_type,
+                            field_val[ipart])
 
 
   comm.Barrier()
@@ -316,9 +316,9 @@ def runTest():
 
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].field_issend(field_name)
+      field[icode].issend()
     else:
-      cpl[icode].field_irecv(field_name)
+      field[icode].irecv()
 
 
   error = False
@@ -327,9 +327,9 @@ def runTest():
     f.flush()
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].field_wait_issend(field_name)
+      field[icode].wait_issend()
     else:
-      cpl[icode].field_wait_irecv(field_name)
+      field[icode].wait_irecv()
 
       # check received data
       for ipart in range(n_part[icode]):

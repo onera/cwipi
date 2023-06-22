@@ -114,23 +114,23 @@ def runTest():
 
     # for code1
     if (i_rank == 0):
-      cpl.field_create("a super fancy field",
-                       pycwp.DOUBLE,
-                       pycwp.FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       pycwp.DOF_LOCATION_NODE,
-                       pycwp.FIELD_EXCH_SEND,
-                       pycwp.STATUS_ON)
+      field = cpl.field_create("a super fancy field",
+                               pycwp.DOUBLE,
+                               pycwp.FIELD_STORAGE_INTERLACED,
+                               n_components,
+                               pycwp.DOF_LOCATION_NODE,
+                               pycwp.FIELD_EXCH_SEND,
+                               pycwp.STATUS_ON)
 
     # for code2
     if (i_rank == 1):
-      cpl.field_create("a super fancy field",
-                       pycwp.DOUBLE,
-                       pycwp.FIELD_STORAGE_INTERLACED,
-                       n_components,
-                       pycwp.DOF_LOCATION_NODE,
-                       pycwp.FIELD_EXCH_RECV,
-                       pycwp.STATUS_ON)
+      field = cpl.field_create("a super fancy field",
+                               pycwp.DOUBLE,
+                               pycwp.FIELD_STORAGE_INTERLACED,
+                               n_components,
+                               pycwp.DOF_LOCATION_NODE,
+                               pycwp.FIELD_EXCH_RECV,
+                               pycwp.STATUS_ON)
 
     # Begin time step :
     # In this example there is only one time step. It is mandatory to create the
@@ -188,17 +188,15 @@ def runTest():
 
     # for code1
     if (i_rank == 0):
-      cpl.field_set("a super fancy field",
-                    0,
-                    pycwp.FIELD_MAP_SOURCE,
-                    send_field_data)
+      field.data_set(0,
+                     pycwp.FIELD_MAP_SOURCE,
+                     send_field_data)
 
     # for code2
     if (i_rank == 1):
-      cpl.field_set("a super fancy field",
-                    0,
-                    pycwp.FIELD_MAP_TARGET,
-                    recv_field_data)
+      field.data_set(0,
+                     pycwp.FIELD_MAP_TARGET,
+                     recv_field_data)
 
     # Compute interpolation weights :
     # Set a geometric tolerance of 10% of an element size for
@@ -215,29 +213,26 @@ def runTest():
 
     # for code1
     if (i_rank == 0):
-      cpl.field_issend("a super fancy field")
+      field.issend()
 
     # for code2
     if (i_rank == 1):
-      cpl.field_irecv("a super fancy field")
+      field.irecv()
 
     # for code1
     if (i_rank == 0):
-      cpl.field_wait_issend("a super fancy field")
+      field.wait_issend()
 
     # for code2
     if (i_rank == 1):
-      cpl.field_wait_irecv("a super fancy field")
+      field.wait_irecv()
 
     # Check interpolation :
     # These functions allow to know how many and for which target
     # vertices the interpolation operation has been unsuccessful.
     if (i_rank == 1):
-      n_uncomputed_tgts = cpl.field_n_uncomputed_tgts_get("a super fancy field",
-                                                          0);
-
-      uncomputed_tgts = cpl.field_uncomputed_tgts_get("a super fancy field",
-                                                      0);
+      n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
+      uncomputed_tgts   = field.uncomputed_tgts_get(0);
 
     # End time step :
     pycwp.time_step_end(code_name[0])

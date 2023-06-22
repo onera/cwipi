@@ -2283,8 +2283,8 @@ cdef class Field (object):
 
     # --> DATA
     def data_set(self,
-                 int                       i_part,
-                 CWP_Field_map_t           map_type,
+                 int                     i_part,
+                 CWP_Field_map_t         map_type,
                  np.ndarray[np.double_t] data):
         """
         data_set(i_part, map_type, data)
@@ -2600,7 +2600,7 @@ cdef class Coupling (object):
                      CWP_Field_exch_t       exch_type,
                      CWP_Status_t           visu_status):
         """
-        #TODO: remove access to Field Class from Coupling object?
+        field_create(field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Create field object and add in self.fields dictionary.
 
         Parameters:
@@ -2611,21 +2611,28 @@ cdef class Coupling (object):
           target_location (CWP_Dof_location_t)  : Target location
           exch_type       (CWP_Field_exch_t)    : Exchange type
           visu_status     (CWP_Status_t)        : Visualization status
+
+        Returns:
+          Field object (Field)
         """
 
         self.fields_name[field_id] = self.n_fields
 
-        self.fields.append(Field(self.local_code_name,
-                                 self.cpl_id,
-                                 field_id,
-                                 data_type,
-                                 storage,
-                                 n_component,
-                                 target_location,
-                                 exch_type,
-                                 visu_status))
+        field = Field(self.local_code_name,
+                      self.cpl_id,
+                      field_id,
+                      data_type,
+                      storage,
+                      n_component,
+                      target_location,
+                      exch_type,
+                      visu_status)
+
+        self.fields.append(field)
 
         self.n_fields = self.n_fields + 1
+
+        return field
 
     def field_set(self,
                   char *             field_id,

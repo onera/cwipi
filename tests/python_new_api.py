@@ -264,37 +264,35 @@ def runTest():
         f.write("before creating field\n")
         f.flush()
         if (i_rank == 0):
-            cpl.field_create("champs",
-                             pycwp.DOUBLE,
-                             pycwp.FIELD_STORAGE_INTERLACED,
-                             1,
-                             pycwp.DOF_LOCATION_NODE,
-                             pycwp.FIELD_EXCH_SEND,
-                             pycwp.STATUS_OFF)
+            field = cpl.field_create("champs",
+                                     pycwp.DOUBLE,
+                                     pycwp.FIELD_STORAGE_INTERLACED,
+                                     1,
+                                     pycwp.DOF_LOCATION_NODE,
+                                     pycwp.FIELD_EXCH_SEND,
+                                     pycwp.STATUS_OFF)
 
         if (i_rank == 1):
-            cpl.field_create("champs",
-                             pycwp.DOUBLE,
-                             pycwp.FIELD_STORAGE_INTERLACED,
-                             1,
-                             pycwp.DOF_LOCATION_NODE,
-                             pycwp.FIELD_EXCH_RECV,
-                             pycwp.STATUS_OFF)
+            field = cpl.field_create("champs",
+                                     pycwp.DOUBLE,
+                                     pycwp.FIELD_STORAGE_INTERLACED,
+                                     1,
+                                     pycwp.DOF_LOCATION_NODE,
+                                     pycwp.FIELD_EXCH_RECV,
+                                     pycwp.STATUS_OFF)
 
         sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
         recvField = np.arange(4, dtype=np.double)
 
         if (i_rank == 0):
-            cpl.field_set("champs",
-                          0,
-                          pycwp.FIELD_MAP_SOURCE,
-                          sendField)
+            field.data_set(0,
+                           pycwp.FIELD_MAP_SOURCE,
+                           sendField)
 
         if (i_rank == 1):
-            cpl.field_set("champs",
-                          0,
-                          pycwp.FIELD_MAP_TARGET,
-                          recvField)
+            field.data_set(0,
+                           pycwp.FIELD_MAP_TARGET,
+                           recvField)
         f.write("after creating field\n")
         f.flush()
 
@@ -316,24 +314,24 @@ def runTest():
         cpl.spatial_interp_weights_compute()
 
         if (i_rank == 0):
-            f.write("cpl.field_issend (0):\n")
+            f.write("field.issend (0):\n")
             f.flush()
-            cpl.field_issend("champs")
+            field.issend()
 
         if (i_rank == 1):
-            f.write("cpl.field_irecv (1):\n")
+            f.write("field.irecv (1):\n")
             f.flush()
-            cpl.field_irecv("champs")
+            field.irecv()
 
         if (i_rank == 0):
-            f.write("cpl.field_wait_issend (0):\n")
+            f.write("field.wait_issend (0):\n")
             f.flush()
-            cpl.field_wait_issend("champs")
+            field.wait_issend()
 
         if (i_rank == 1):
-            f.write("cpl.field_wait_irecv (1):\n")
+            f.write("field.wait_irecv (1):\n")
             f.flush()
-            cpl.field_wait_irecv("champs")
+            field.wait_irecv()
 
         comm.Barrier()
 

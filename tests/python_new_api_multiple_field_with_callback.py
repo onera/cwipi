@@ -288,13 +288,13 @@ def runTest():
     else :
         exchange_type = pycwp.FIELD_EXCH_RECV
 
-    cpl.field_create(field1_name,
-                     pycwp.DOUBLE,
-                     pycwp.FIELD_STORAGE_INTERLACED,
-                     1,
-                     pycwp.DOF_LOCATION_NODE,
-                     exchange_type,
-                     pycwp.STATUS_OFF)
+    field1 = cpl.field_create(field1_name,
+                              pycwp.DOUBLE,
+                              pycwp.FIELD_STORAGE_INTERLACED,
+                              1,
+                              pycwp.DOF_LOCATION_NODE,
+                              exchange_type,
+                              pycwp.STATUS_OFF)
 
     # FIELD 2 - y
     field2_name = "Field 2"
@@ -309,46 +309,42 @@ def runTest():
     else :
         exchange_type = pycwp.FIELD_EXCH_RECV
 
-    cpl.field_create(field2_name,
-                     pycwp.DOUBLE,
-                     pycwp.FIELD_STORAGE_INTERLACED,
-                     1,
-                     pycwp.DOF_LOCATION_NODE,
-                     exchange_type,
-                     pycwp.STATUS_OFF)
+    field2 = cpl.field_create(field2_name,
+                              pycwp.DOUBLE,
+                              pycwp.FIELD_STORAGE_INTERLACED,
+                              1,
+                              pycwp.DOF_LOCATION_NODE,
+                              exchange_type,
+                              pycwp.STATUS_OFF)
 
 
     pycwp.time_step_beg(code_name, 0.)
 
     if (proc0) :
-        cpl.field_set(field1_name,
-                      0,
+      field1.data_set(0,
                       pycwp.FIELD_MAP_SOURCE,
                       send_field1_data)
     else :
-        cpl.field_set(field1_name,
-                      0,
+      field1.data_set(0,
                       pycwp.FIELD_MAP_TARGET,
                       recv_field1_data)
 
-        # USER FUNCTION
-        cpl.field_interp_function_set(field1_name,
-                                      first_interpolation)
+      # USER FUNCTION
+      cpl.field_interp_function_set(field1_name,
+                                    first_interpolation)
 
     if (proc0) :
-        cpl.field_set(field2_name,
-                      0,
+      field2.data_set(0,
                       pycwp.FIELD_MAP_SOURCE,
                       send_field2_data)
     else :
-        cpl.field_set(field2_name,
-                      0,
+      field2.data_set(0,
                       pycwp.FIELD_MAP_TARGET,
                       recv_field2_data)
 
-        # USER FUNCTION
-        cpl.field_interp_function_set(field2_name,
-                                      second_interpolation)
+      # USER FUNCTION
+      cpl.field_interp_function_set(field2_name,
+                                    second_interpolation)
 
     # INTERPOLATION
     cpl.spatial_interp_property_set("n_neighbors",
@@ -359,18 +355,18 @@ def runTest():
 
     # EXCHANGE
     if (proc0) :
-        cpl.field_issend(field1_name)
-        cpl.field_issend(field2_name)
+        field1.issend()
+        field2.issend()
     else :
-        cpl.field_irecv (field1_name)
-        cpl.field_irecv (field2_name)
+        field1.irecv()
+        field2.irecv()
 
     if (proc0) :
-        cpl.field_wait_issend(field1_name)
-        cpl.field_wait_issend(field2_name)
+        field1.wait_issend()
+        field2.wait_issend()
     else :
-        cpl.field_wait_irecv (field1_name)
-        cpl.field_wait_irecv (field2_name)
+        field1.wait_irecv()
+        field2.wait_irecv()
 
     pycwp.time_step_end(code_name)
 

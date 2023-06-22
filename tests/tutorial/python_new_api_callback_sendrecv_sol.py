@@ -201,13 +201,13 @@ def run_coupling():
   # Define field
   field_name = "coord_x"
 
-  cpl_CP.field_create(field_name,
-                      pycwp.DOUBLE,
-                      pycwp.FIELD_STORAGE_INTERLACED,
-                      1,
-                      pycwp.DOF_LOCATION_NODE,
-                      pycwp.FIELD_EXCH_SENDRECV,
-                      pycwp.STATUS_ON)
+  fieldCP = cpl_CP.field_create(field_name,
+                                pycwp.DOUBLE,
+                                pycwp.FIELD_STORAGE_INTERLACED,
+                                1,
+                                pycwp.DOF_LOCATION_NODE,
+                                pycwp.FIELD_EXCH_SENDRECV,
+                                pycwp.STATUS_ON)
 
    # Create second coupling Python <-> Fortran
   cpl_PF = pycwp.Coupling(code_name[0],
@@ -247,26 +247,24 @@ def run_coupling():
 
 
   # Define field
-  cpl_PF.field_create(field_name,
-                      pycwp.DOUBLE,
-                      pycwp.FIELD_STORAGE_INTERLACED,
-                      1,
-                      pycwp.DOF_LOCATION_NODE,
-                      pycwp.FIELD_EXCH_SENDRECV,
-                      pycwp.STATUS_ON)
+  fieldPF = cpl_PF.field_create(field_name,
+                                pycwp.DOUBLE,
+                                pycwp.FIELD_STORAGE_INTERLACED,
+                                1,
+                                pycwp.DOF_LOCATION_NODE,
+                                pycwp.FIELD_EXCH_SENDRECV,
+                                pycwp.STATUS_ON)
 
   # Begin time step :
   pycwp.time_step_beg(code_name[0],
                       0.0);
 
 
-  cpl_CP.field_set(field_name,
-                   0,
+  fieldCP.data_set(0,
                    pycwp.FIELD_MAP_SOURCE,
                    send_field_data)
 
-  cpl_CP.field_set(field_name,
-                   0,
+  fieldCP.data_set(0,
                    pycwp.FIELD_MAP_TARGET,
                    recv_field_data)
 
@@ -283,20 +281,18 @@ def run_coupling():
   cpl_CP.spatial_interp_weights_compute()
 
   # Exchange interpolated fields
-  cpl_CP.field_issend(field_name)
-  cpl_CP.field_irecv (field_name)
+  fieldCP.issend()
+  fieldCP.irecv ()
 
-  cpl_CP.field_wait_issend(field_name)
-  cpl_CP.field_wait_irecv (field_name)
+  fieldCP.wait_issend()
+  fieldCP.wait_irecv ()
 
   # Set field
-  cpl_PF.field_set(field_name,
-                   0,
+  fieldPF.data_set(0,
                    pycwp.FIELD_MAP_SOURCE,
                    send_field_data)
 
-  cpl_PF.field_set(field_name,
-                   0,
+  fieldPF.data_set(0,
                    pycwp.FIELD_MAP_TARGET,
                    recv_field_data)
 
@@ -313,11 +309,11 @@ def run_coupling():
   cpl_PF.spatial_interp_weights_compute()
 
   # Exchange interpolated fields
-  cpl_PF.field_issend(field_name)
-  cpl_PF.field_irecv (field_name)
+  fieldPF.issend()
+  fieldPF.irecv ()
 
-  cpl_PF.field_wait_issend(field_name)
-  cpl_PF.field_wait_irecv (field_name)
+  fieldPF.wait_issend()
+  fieldPF.wait_irecv ()
 
   # End time step :
   pycwp.time_step_end(code_name[0])
