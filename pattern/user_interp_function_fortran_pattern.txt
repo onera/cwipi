@@ -1,5 +1,5 @@
 !=============================================================================
-! This file contains the functions in Fortran to be called in an user interpolation
+! This file contains the functions in Fortran to be called in a user interpolation
 ! function (ie. callback) to retrieve local geometric data.
 !=============================================================================
 
@@ -16,43 +16,43 @@ type(c_ptr), value                :: c_buffer_out
 
 ! --> Fortran specific
 
-real(kind = c_double), pointer    :: buffer_in(:)      => null()
-real(kind = c_double), pointer    :: buffer_out(:)     => null()s
+real(kind = c_double), pointer    :: buffer_in(:)  => null()
+real(kind = c_double), pointer    :: buffer_out(:) => null()
 
 ! --> for general geometric data
 
-integer(kind = c_int)             :: n_components
-integer(kind = c_int)             :: storage
-integer(kind = c_int)             :: dof_location
+integer(kind = c_int)           :: n_components
+integer(kind = c_int)           :: storage
+integer(kind = c_int)           :: dof_location
 
 integer(kind = c_int)           :: n_elt_src
 integer(kind = c_int), pointer  :: src_to_tgt_idx(:) => null()
 
 integer(kind = c_int)           :: n_elt_tgt
 integer(kind = c_int)           :: n_referenced_tgt
-integer(kind = c_int), pointer  :: referenced_tgt(:) => null()
+integer(kind = c_int), pointer  :: referenced_tgt(:)        => null()
 integer(kind = c_int), pointer  :: tgt_come_from_src_idx(:) => null()
 
 ! --> for location spatial interpolation algorithm
 
 double precision, dimension(:), pointer :: weights(:) => null()
 
-double precision, dimension(:), pointer :: points_coords(:) => null()
-double precision, dimension(:), pointer :: points_uvw(:) => null()
-double precision, dimension(:), pointer :: points_dist2(:) => null()
+double precision, dimension(:), pointer :: points_coords(:)           => null()
+double precision, dimension(:), pointer :: points_uvw(:)              => null()
+double precision, dimension(:), pointer :: points_dist2(:)            => null()
 double precision, dimension(:), pointer :: points_projected_coords(:) => null()
 
-integer(kind = c_int), pointer  :: cell_vtx_idx(:) => null()
-integer(kind = c_int), pointer  :: cell_vtx(:) => null()
+integer(kind = c_int),          pointer :: cell_vtx_idx(:) => null()
+integer(kind = c_int),          pointer :: cell_vtx(:)     => null()
 
 ! --> for intersection spatial interpolation algorithm
 
-double precision, dimension(:), pointer :: volumes(:) => null()
+double precision, dimension(:), pointer :: volumes(:)         => null()
 double precision, dimension(:), pointer :: tgt_elt_volumes(:) => null()
 
 ! --> for nearest neighbors spatial interpolation algorithm
 
-double precision, dimension(:), pointer :: distances2(:) => null()
+double precision, dimension(:), pointer :: distances2(:)        => null()
 double precision, dimension(:), pointer :: nearest_src_coord(:) => null()
 
 ! GENERAL GEOMETRIC DATA
@@ -164,7 +164,7 @@ call CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name, &
 
 ! NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-! Get squared distances to nearest points
+! Get squared distances to nearest source points
 
 call CWP_Interp_nearest_points_distances_get(local_code_name, &
                                              cpl_id,          &

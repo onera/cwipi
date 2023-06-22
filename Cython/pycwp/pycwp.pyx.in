@@ -29,6 +29,7 @@ cwipi - Coupling With Interpolation Parallel Interface library.
 import numpy     as np
 from mpi4py import MPI
 import ctypes
+import sys
 
 # --> Cython
 cimport cython
@@ -2284,11 +2285,41 @@ cdef class Field (object):
                       self.cpl_id,
                       self.field_id)
 
+    @property
+    def dof_location(self):
+      """
+      Get the field's degrees of freedom location.
+
+      Returns:
+        Location of degrees of freedom (CWP_Dof_location_t)
+      """
+
+      cdef CWP_Dof_location_t dof_loc = CWP_Field_dof_location_get(self.local_code_name,
+                                                                   self.cpl_id,
+                                                                   self.field_id)
+
+      return dof_loc
+
+    @property
+    def n_components(self):
+      """
+      Get number of field components.
+
+      Returns:
+        Number of components (int)
+      """
+
+      cdef int n_components = CWP_Interp_field_n_components_get(self.local_code_name,
+                                                                self.cpl_id,
+                                                                self.field_id)
+
+      return n_components
+
     # --> DATA
     def data_set(self,
-                 int                     i_part,
-                 CWP_Field_map_t         map_type,
-                 np.ndarray[np.double_t] data):
+                 int                                       i_part,
+                 CWP_Field_map_t                           map_type,
+                 np.ndarray[np.double_t, ndim=1, mode='c'] data):
         """
         data_set(i_part, map_type, data)
         Set field data.
@@ -2298,6 +2329,22 @@ cdef class Field (object):
           map_type  (CWP_Field_map_t)         : Choice if data is set for the source or the target
           data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
+
+        # check array size
+        if self.dof_location == DOF_LOCATION_NODE:
+          n_dof = 0 # TODO get from mesh
+        elif self.dof_location == DOF_LOCATION_CELL_CENTER:
+          n_dof = 0 # TODO get from mesh
+        elif self.dof_location == CWP_DOF_LOCATION_USER:
+          n_dof = 0 # TODO get from cpl
+        else:
+          print(f"Error: field {self.field_id}: invalid dof_location {self.dof_location}")
+          sys.exit(1)
+
+        if len(data) < self.n_components * n_dof:
+          print(f"Error: field {self.field_id}: data array too short (len = {len(data)} but should be at least {self.n_components * n_dof})")
+          sys.exit(1)
+
 
         CWP_Field_data_set(self.local_code_name,
                            self.cpl_id,
@@ -2344,7 +2391,6 @@ cdef class Field (object):
                              self.cpl_id,
                              self.field_id)
 
-    # --> LOCALISATION
     #TODO: @property?
     def n_uncomputed_tgts_get(self,
                               int   i_part):
@@ -2726,10 +2772,10 @@ cdef class Coupling (object):
 
     # --> Global Data
     def global_data_issend(self,
-                           char      *global_data_id,
-                           int        send_stride,
-                           int        n_send_entity,
-                           np.ndarray send_data):
+                           char       *global_data_id,
+                           int         send_stride,
+                           int         n_send_entity,
+                           np.ndarray  send_data):
       """
       global_data_issend(global_data_id, send_stride, n_send_entity, send_data)
       Initiate the sending of a data array.
@@ -2752,10 +2798,10 @@ cdef class Coupling (object):
                     <void *> send_data.data)
 
     def global_data_irecv(self,
-                          char *      global_data_id,
+                          char       *global_data_id,
                           int         recv_stride,
                           int         n_recv_entity,
-                          np.ndarray recv_data):
+                          np.ndarray  recv_data):
       """
       global_data_irecv(global_data_id, recv_stride, n_recv_entity, recv_data)
       Initiate the reception of a data array.
@@ -2818,9 +2864,9 @@ cdef class Coupling (object):
                                  self.cpl_id)
 
     def mesh_interf_vtx_set(self,
-                            int                     i_part,
-                            np.ndarray[np.double_t] coord not None,
-                            np.ndarray[np.int64_t]  global_num):
+                            int                                       i_part,
+                            np.ndarray[np.double_t, ndim=1, mode='c'] coord not None,
+                            np.ndarray[np.int64_t,  ndim=1, mode='c'] global_num):
         """
         mesh_interf_vtx_set(i_part, coord, global_num)
         Set interface mesh vertices.
@@ -2833,8 +2879,8 @@ cdef class Coupling (object):
         """
 
         if len(coord)%3 != 0:
-          print("Coordinates must be provided in 3 dimensions")
-          exit(1)
+          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
+          sys.exit(1)
 
         cdef int n_pts = len(coord)//3
 
@@ -2873,10 +2919,10 @@ cdef class Coupling (object):
         return block_id
 
     def mesh_interf_block_std_set(self,
-                                  int                      i_part,
-                                  int                      block_id,
-                                  np.ndarray[np.int32_t] connec not None,
-                                  np.ndarray[np.int64_t] global_num):
+                                  int                                      i_part,
+                                  int                                      block_id,
+                                  np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
+                                  np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_block_std_set(i_part, block_id, connec, global_num)
         Set a standard block to the interface mesh.
@@ -2895,8 +2941,8 @@ cdef class Coupling (object):
         cdef int stride = std_block_n_pts_get(block_type)
 
         if len(connec)%stride != 0:
-          print(f"Length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
-          exit(1)
+          print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+          sys.exit(1)
 
         cdef int n_elts = len(connec)//stride
 
@@ -2958,11 +3004,11 @@ cdef class Coupling (object):
                }
 
     def mesh_interf_f_poly_block_set(self,
-                                     int                    i_part,
-                                     int                    block_id,
-                                     np.ndarray[np.int32_t] connec_idx not None,
-                                     np.ndarray[np.int32_t] connec not None,
-                                     np.ndarray[np.int64_t] global_num):
+                                     int                                      i_part,
+                                     int                                      block_id,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec_idx not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
+                                     np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_f_poly_block_set(i_part, block_id, connec_idx, connec, global_num)
         Set the connectivity of a polygon block in a interface mesh partition.
@@ -3037,13 +3083,13 @@ cdef class Coupling (object):
                }
 
     def mesh_interf_c_poly_block_set(self,
-                                     int                      i_part,
-                                     int                      block_id,
-                                     np.ndarray[np.int32_t] connec_faces_idx not None,
-                                     np.ndarray[np.int32_t] connec_faces not None,
-                                     np.ndarray[np.int32_t] connec_cells_idx not None,
-                                     np.ndarray[np.int32_t] connec_cells not None,
-                                     np.ndarray[np.int64_t] global_num):
+                                     int                                      i_part,
+                                     int                                      block_id,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec_faces_idx not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec_faces not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec_cells_idx not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c'] connec_cells not None,
+                                     np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_c_poly_block_set(i_part, block_id, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num)
         Set the properties of a polyhedron block in a interface mesh partition.
@@ -3139,11 +3185,11 @@ cdef class Coupling (object):
 
 
     def mesh_interf_block_ho_set(self,
-                                 int                    i_part,
-                                 int                    block_id,
-                                 int                    order,
-                                 np.ndarray[np.int32_t] connec not None,
-                                 np.ndarray[np.int64_t] global_num):
+                                 int                                      i_part,
+                                 int                                      block_id,
+                                 int                                      order,
+                                 np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
+                                 np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
       """
         mesh_interf_block_ho_set(i_part, block_id, order, connec, global_num)
         Set a high-order block to the interface mesh.
@@ -3163,8 +3209,8 @@ cdef class Coupling (object):
       cdef int stride = ho_n_vtx_get(block_type, order)
 
       if len(connec)%stride != 0:
-        print(f"Length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
-        exit(1)
+        print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+        sys.exit(1)
 
       cdef int n_elts = len(connec)//stride
 
@@ -3234,9 +3280,9 @@ cdef class Coupling (object):
 
 
     def mesh_interf_ho_ordering_from_IJK_set(self,
-                                             CWP_Block_t            block_type,
-                                             int                    order,
-                                             np.ndarray[np.int32_t] ijk_grid not None):
+                                             CWP_Block_t                              block_type,
+                                             int                                      order,
+                                             np.ndarray[np.int32_t, ndim=1, mode='c'] ijk_grid not None):
       """
         mesh_interf_ho_ordering_from_IJK_set(block_type, order, ijk_grid)
         Define ho element ordering from the location in the (u, v, w) grid.
@@ -3267,14 +3313,14 @@ cdef class Coupling (object):
                             self.cpl_id)
 
     def mesh_interf_from_cellface_set(self,
-                                      int                    i_part,
-                                      int                    n_cells,
-                                      np.ndarray[np.int32_t] cell_face_idx not None,
-                                      np.ndarray[np.int32_t] cell_face not None,
-                                      int                    n_faces,
-                                      np.ndarray[np.int32_t] face_vtx_idx not None,
-                                      np.ndarray[np.int32_t] face_vtx not None,
-                                      np.ndarray[np.int64_t] global_num):
+                                      int                                      i_part,
+                                      int                                      n_cells,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] cell_face_idx not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] cell_face not None,
+                                      int                                      n_faces,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx_idx not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx not None,
+                                      np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_from_cellface_set(i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, global_num)
         Define the interface mesh from a cell to face connectivity.
@@ -3314,13 +3360,13 @@ cdef class Coupling (object):
                                             <long *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
-                                      int                    i_part,
-                                      int                    n_faces,
-                                      np.ndarray[np.int32_t] face_edge_idx not None,
-                                      np.ndarray[np.int32_t] face_edge not None,
-                                      int                    n_edges,
-                                      np.ndarray[np.int32_t] edge_vtx not None,
-                                      np.ndarray[np.int64_t] global_num):
+                                      int                                      i_part,
+                                      int                                      n_faces,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_edge_idx not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_edge not None,
+                                      int                                      n_edges,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c'] edge_vtx not None,
+                                      np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_from_faceedge_set(i_part, n_faces, face_edge_idx, face_edge, n_edges, edge_vtx, global_num)
         Define the surface interface mesh from a face to edge connectivity.
@@ -3408,10 +3454,10 @@ cdef class Coupling (object):
 
     # --> USER TGT
     def user_tgt_pts_set(self,
-                         int                     i_part,
-                         int                     n_pts,
-                         np.ndarray[np.double_t] coord not None,
-                         np.ndarray[np.int64_t]  global_num):
+                         int                                       i_part,
+                         int                                       n_pts,
+                         np.ndarray[np.double_t, ndim=1, mode='c'] coord not None,
+                         np.ndarray[np.int64_t,  ndim=1, mode='c'] global_num):
         """
         user_tgt_pts_set(i_part, n_pts, coord, global_num)
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
@@ -3422,6 +3468,10 @@ cdef class Coupling (object):
            coord      (np.ndarray[np.double_t) : Coordinates (size = 3 * n_pts)
            global_num (np.ndarray[np.int64_t]) : Global number or None (size = n_pts)
         """
+
+        if len(coord)%3 != 0:
+          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
+          sys.exit(1)
 
         if (global_num is None):
           CWP_User_tgt_pts_set(self.local_code_name,

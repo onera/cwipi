@@ -1,5 +1,5 @@
 /*=============================================================================
- * This file contains the functions in Python to be called in an user interpolation
+ * This file contains the functions in C to be called in a user interpolation
  * function (ie. callback) to retrieve local geometric data.
  *============================================================================*/
 
@@ -25,7 +25,7 @@ CWP_Dof_location_t dof_location = CWP_Field_dof_location_get(local_code_name,
 
 // Get data from the source of the exchange
 
-int  n_elt_src = 0;
+int  n_elt_src      = 0;
 int *src_to_tgt_idx = NULL;
 
 CWP_Interp_src_data_get(local_code_name,
@@ -114,24 +114,24 @@ CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name,
                                             i_part,
                                             &tgt_elt_volumes);
 
-// CLOSEST POINTS SPATIAL INTERPOLATION ALGORITHM
+// NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-// Get squared distances to closest points
+// Get squared distances to nearest source points
 
 double *distances2 = NULL;
 
-CWP_Interp_closest_points_distances_get(local_code_name,
-                                        cpl_id,
-                                        field_id,
-                                        i_part,
-                                        &distances2);
+CWP_Interp_nearest_neighbors_distances_get(local_code_name,
+                                           cpl_id,
+                                           field_id,
+                                           i_part,
+                                           &distances2);
 
-// Get coordinates of closest source points
+// Get coordinates of nearest source points
 
-double *closest_src_coord = NULL;
+double *nearest_src_coord = NULL;
 
-CWP_Interp_closest_points_coord_get(local_code_name,
-                                    cpl_id,
-                                    field_id,
-                                    i_part,
-                                    &closest_src_coord);
+CWP_Interp_nearest_neighbors_coord_get(local_code_name,
+                                       cpl_id,
+                                       field_id,
+                                       i_part,
+                                       &nearest_src_coord);

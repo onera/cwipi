@@ -1,5 +1,5 @@
 #=============================================================================
-# This file contains the functions in C to be called in an user interpolation
+# This file contains the functions in Python to be called in a user interpolation
 # function (ie. callback) to retrieve local geometric data.
 #=============================================================================
 
@@ -41,7 +41,7 @@ src_data = pycwp.interp_src_data_get(local_code_name,
                                      field_id,
                                      i_part)
 
-n_elt_src = src_data["n_elt_src"]
+n_elt_src      = src_data["n_src"]
 src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
 # Get data from the target of the exchange
@@ -51,9 +51,9 @@ tgt_data = pycwp.interp_tgt_data_get(local_code_name,
                                      field_id,
                                      i_part)
 
-n_tgt          = tgt_data["n_elt_tgt"]
-ref_tgt        = tgt_data["referenced_tgt"]
-tgt_to_src_idx = tgt_data["tgt_come_from_src_idx"]
+n_tgt          = tgt_data["n_tgt"]
+ref_tgt        = tgt_data["computed_tgt"]
+tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
 # LOCATION SPATIAL INTERPOLATION ALGORITHM
 
@@ -102,18 +102,18 @@ elt_tgt_volume = pycwp.intersection_tgt_elt_volumes_get(local_code_name,
                                                         field_id,
                                                         i_part)
 
-# CLOSEST POINTS SPATIAL INTERPOLATION ALGORITHM
+# NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-# Get squared distances to closest points
+# Get squared distances to nearest source points
 
-distances2 = pycwp.interp_closest_points_distances_get(local_code_name,
-                                                       cpl_id,
-                                                       field_id,
-                                                       i_part)
+distances2 = pycwp.interp_nearest_neighbors_distances_get(local_code_name,
+                                                          cpl_id,
+                                                          field_id,
+                                                          i_part)
 
-# Get coordinates of closest source points
+# Get coordinates of nearest source points
 
-clst_src_point_coords = pycwp.interp_closest_points_coord_get(local_code_name,
-                                                              cpl_id,
-                                                              field_id,
-                                                              i_part)
+clst_src_point_coords = pycwp.interp_nearest_neighbors_coord_get(local_code_name,
+                                                                 cpl_id,
+                                                                 field_id,
+                                                                 i_part)
