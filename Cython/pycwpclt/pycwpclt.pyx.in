@@ -451,7 +451,7 @@ cdef extern from "client_server/client.h":
                                          char     *cpl_id,
                                          char     *global_data_id)
 
-  # --> functions about partitionned data
+  # --> functions about partitioned data
   void CWP_client_Part_data_create(char                 *local_code_name,
                                    char                 *cpl_id,
                                    char                 *part_data_id,
@@ -743,8 +743,8 @@ def init(MPI.Comm global_comm,
 
     Parameters:
       global_comm    (MPI.Comm)  : MPI global communicator
-      config         (char*   )  : path to server configuration file
-      code_name      (char*   )  : name of local code
+      config         (str)       : path to server configuration file
+      code_name      (str)       : name of local code
       is_active_rank (int)       : Does current rank have to be used by CWIPI
     """
 
@@ -776,7 +776,7 @@ def state_update(char*       local_code_name,
     Update code state.
 
     Parameters:
-      local_code_name (char*)       : Local code name
+      local_code_name (str)         : Local code name
       state           (CWP_State_t) : State
     """
 
@@ -789,7 +789,7 @@ def time_step_beg(char*  local_code_name,
     Begin time step.
 
     Parameters:
-      local_code_name (char*)  : Local code name
+      local_code_name (str)    : Local code name
       current_time    (double) : Current time
     """
 
@@ -802,7 +802,7 @@ def time_step_end(char*  local_code_name):
     End time step.
 
     Parameters:
-      local_code_name (char*)  : Local code name
+      local_code_name (str)  : Local code name
     """
 
     CWP_client_Time_step_end(local_code_name)
@@ -842,7 +842,7 @@ def state_get(char* code_name):
     Get code state.
 
     Parameters:
-      local_code_name (char*) : Local code name
+      local_code_name (str) : Local code name
 
     Returns:
       Current state (CWP_State_t)
@@ -931,8 +931,8 @@ def param_add_int(char        *local_code_name,
     Add a new integer parameter and initialize it.
 
     Parameters:
-      local_code_name  (char*) : Local code name
-      param_name       (char*) : Parameter name
+      local_code_name  (str)   : Local code name
+      param_name       (str)   : Parameter name
       initial_value    (int)   : Initial value
     """
 
@@ -949,8 +949,8 @@ def param_add_dbl(char        *local_code_name,
     Add a new double parameter and initialize it.
 
     Parameters:
-      local_code_name  (char*)  : Local code name
-      param_name       (char*)  : Parameter name
+      local_code_name  (str)    : Local code name
+      param_name       (str)    : Parameter name
       initial_value    (double) : Initial value
     """
 
@@ -967,9 +967,9 @@ def param_add_str(char        *local_code_name,
     Add a new string parameter and initialize it.
 
     Parameters:
-      local_code_name  (char*) : Local code name
-      param_name       (char*) : Parameter name
-      initial_value    (char*) : Initial value
+      local_code_name  (str) : Local code name
+      param_name       (str) : Parameter name
+      initial_value    (str) : Initial value
     """
 
     CWP_client_Param_add(local_code_name,
@@ -985,9 +985,9 @@ def param_set_int(char        *local_code_name,
     Set an integer parameter.
 
     Parameters:
-      local_code_name  (char*) : Local code name
-      param_name       (char*) : Parameter name
-      current_value    (int)   : Current value
+      local_code_name  (str) : Local code name
+      param_name       (str) : Parameter name
+      current_value    (int) : Current value
     """
 
     CWP_client_Param_set(local_code_name,
@@ -1003,8 +1003,8 @@ def param_set_dbl(char        *local_code_name,
     Set a double parameter.
 
     Parameters:
-      local_code_name  (char*)  : Local code name
-      param_name       (char*)  : Parameter name
+      local_code_name  (str)    : Local code name
+      param_name       (str)    : Parameter name
       current_value    (double) : Current value
     """
 
@@ -1021,9 +1021,9 @@ def param_set_str(char        *local_code_name,
     Set a string parameter.
 
     Parameters:
-      local_code_name  (char*) : Local code name
-      param_name       (char*) : Parameter name
-      current_value    (char*) : Current value
+      local_code_name  (str) : Local code name
+      param_name       (str) : Parameter name
+      current_value    (str) : Current value
     """
 
     CWP_client_Param_set(local_code_name,
@@ -1039,8 +1039,8 @@ def param_del(char        *local_code_name,
     Delete a parameter.
 
     Parameters:
-      local_code_name  (char*)      : Local code name
-      param_name       (char*)      : Parameter name
+      local_code_name  (str)        : Local code name
+      param_name       (str)        : Parameter name
       data_type        (CWP_Type_t) : Parameter type
     """
 
@@ -1806,7 +1806,7 @@ cdef class Coupling (object):
 
 
         Parameters:
-          field_id        (char*)               : Field id
+          field_id        (str)                 : Field id
           data_type       (CWP_Type_t)          : Data type
           storage         (CWP_Field_storage_t) : Storage type
           n_component     (int)                 : Number of component
@@ -1840,7 +1840,7 @@ cdef class Coupling (object):
         Delete Field object and field form self.fiels dictionary
 
         Parameters:
-          field_id        (char*)               : Field id
+          field_id        (str)               : Field id
         """
         cdef int idx = self.fields_name[field_id]
 
@@ -1884,7 +1884,7 @@ cdef class Coupling (object):
         Delete PartData object and partitioned data form self.partData dictionary
 
         Parameters:
-          part_data_id       (char*)  : Partitioned data id
+          part_data_id       (str)  : Partitioned data id
         """
 
         cdef int idx = self.partData_name[part_data_id]

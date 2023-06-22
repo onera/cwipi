@@ -60,3 +60,15 @@ Doxygen documentation
 
 .. doxygenfile:: client.h
    :project: cwipi
+
+
+Python API documentation : pycwpclt
+===================================
+
+.. currentmodule:: pycwpclt
+
+.. automodule:: pycwpclt
+   :imported-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
