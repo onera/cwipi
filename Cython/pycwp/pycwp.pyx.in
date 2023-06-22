@@ -1985,7 +1985,7 @@ cdef class PartData (object):
 
     def __del__(self):
         """
-        Delete a field object.
+        Delete a PartData object.
         """
 
         CWP_Part_data_del(self.local_code_name,
@@ -2577,6 +2577,13 @@ cdef class Coupling (object):
                        displacement,
                        recv_freq_type)
 
+    def __del__(self):
+      """
+      Delete a coupling object.
+      """
+
+      CWP_Cpl_del(self.local_code_name,
+                  self.cpl_id)
 
     def barrier(self):
       """
@@ -2584,14 +2591,6 @@ cdef class Coupling (object):
       """
       CWP_Cpl_barrier(self.local_code_name,
                       self.cpl_id)
-
-    def __del__(self):
-        """
-        Delete a coupling object.
-        """
-
-        CWP_Cpl_del(self.local_code_name,
-                    self.cpl_id)
 
     # --> FIELD
     def field_create(self,
@@ -2727,19 +2726,19 @@ cdef class Coupling (object):
 
     # --> Global Data
     def global_data_issend(self,
-                           char *      global_data_id,
-                           int         send_stride,
-                           int         n_send_entity,
+                           char      *global_data_id,
+                           int        send_stride,
+                           int        n_send_entity,
                            np.ndarray send_data):
       """
       global_data_issend(global_data_id, send_stride, n_send_entity, send_data)
       Initiate the sending of a data array.
 
       Parameters:
-        global_data_id  (str)   : Global data identifier
-        send_stride     (int)   : Constant number of components
-        n_send_entity   (int)   : Number of sent entities
-        send_data       (list)  : List of global data arrays with same datatype
+        global_data_id  (str)        : Global data identifier
+        send_stride     (int)        : Constant number of components
+        n_send_entity   (int)        : Number of sent entities
+        send_data       (np.ndarray) : List of global data arrays with same datatype
       """
 
       cdef int s_data = send_data.dtype.itemsize
@@ -2762,10 +2761,10 @@ cdef class Coupling (object):
       Initiate the reception of a data array.
 
       Parameters:
-        global_data_id  (str)   : Global data identifier
-        recv_stride     (int)   : Constant number of components
-        n_recv_entity   (int)   : Number of sent entities
-        recv_data       (list)  : List of global data arrays with same datatype
+        global_data_id  (str)        : Global data identifier
+        recv_stride     (int)        : Constant number of components
+        n_recv_entity   (int)        : Number of sent entities
+        recv_data       (np.ndarray) : List of global data arrays with same datatype
       """
 
       cdef int s_data = recv_data.dtype.itemsize
@@ -2959,8 +2958,8 @@ cdef class Coupling (object):
                }
 
     def mesh_interf_f_poly_block_set(self,
-                                     int                      i_part,
-                                     int                      block_id,
+                                     int                    i_part,
+                                     int                    block_id,
                                      np.ndarray[np.int32_t] connec_idx not None,
                                      np.ndarray[np.int32_t] connec not None,
                                      np.ndarray[np.int64_t] global_num):
@@ -3140,9 +3139,9 @@ cdef class Coupling (object):
 
 
     def mesh_interf_block_ho_set(self,
-                                 int                      i_part,
-                                 int                      block_id,
-                                 int                      order,
+                                 int                    i_part,
+                                 int                    block_id,
+                                 int                    order,
                                  np.ndarray[np.int32_t] connec not None,
                                  np.ndarray[np.int64_t] global_num):
       """
@@ -3235,8 +3234,8 @@ cdef class Coupling (object):
 
 
     def mesh_interf_ho_ordering_from_IJK_set(self,
-                                             CWP_Block_t              block_type,
-                                             int                      order,
+                                             CWP_Block_t            block_type,
+                                             int                    order,
                                              np.ndarray[np.int32_t] ijk_grid not None):
       """
         mesh_interf_ho_ordering_from_IJK_set(block_type, order, ijk_grid)

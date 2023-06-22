@@ -162,19 +162,19 @@ def runTest():
 
     print("pycwpclt.param_list_get:\n", flush=True)
     str_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.CHAR)
-    for i in range(str_param['n_param']):
-        print("    --> str_param: {param}\n".format(param=str_param['param_names'][i]), flush=True)
+    for name in str_param:
+        print(f"    --> str_param: {name}\n", flush=True)
 
     print("pycwpclt.param_is:\n")
-    bool_int = pycwpclt.param_is(code_names[i_rank], "entier", pycwpclt.INT)
-    print("  - bool_int 'entier': {param}\n".format(param=bool_int))
-    bool_int = pycwpclt.param_is(code_names[i_rank], "chapeau", pycwpclt.INT)
-    print("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
+    exists = pycwpclt.param_is(code_names[i_rank], "entier", pycwpclt.INT)
+    print(f"  - exists 'entier': {exists}\n")
+    exists = pycwpclt.param_is(code_names[i_rank], "chapeau", pycwpclt.INT)
+    print(f"  - exists 'chapeau': {exists}\n")
 
     print("pycwpclt.param_list_get:\n")
     int_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.INT)
-    for i in range(int_param['n_param']):
-        print("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
+    for name in int_param:
+        print(f"    --> int_param: {name}\n", flush=True)
 
     print("pycwpclt.param_get ({param}):\n".format(param=i_rank))
     value = pycwpclt.param_get(code_names[i_rank], "entier", pycwpclt.INT)
@@ -237,42 +237,38 @@ def runTest():
     gnum_elt = [np.array([1, 2, 3], dtype=np.int64)] # implicit that n_part = 1
 
     if (i_rank == 0):
-        cpl.part_data_create(part_data_name,
-                             pycwpclt.PARTDATA_SEND,
-                             gnum_elt)
+        part_data = cpl.part_data_create(part_data_name,
+                                         pycwpclt.PARTDATA_SEND,
+                                         gnum_elt)
 
     if (i_rank == 1):
-        cpl.part_data_create(part_data_name,
-                             pycwpclt.PARTDATA_RECV,
-                             gnum_elt)
+        part_data = cpl.part_data_create(part_data_name,
+                                         pycwpclt.PARTDATA_RECV,
+                                         gnum_elt)
 
     comm.Barrier()
 
     send_data = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
     send_request = np.zeros(1, dtype=np.int32)
     if (i_rank == 0):
-        cpl.part_data_issend(part_data_name,
-                             2,
-                             send_data,
-                             send_request)
+        part_data.issend(2,
+                         send_data,
+                         send_request)
 
     recv_data = [np.zeros(6, dtype=np.int32)]
     recv_request = np.zeros(1, dtype=np.int32)
     if (i_rank == 1):
-        cpl.part_data_irecv(part_data_name,
-                            2,
-                            recv_data,
-                            recv_request)
+        part_data.irecv(2,
+                        recv_data,
+                        recv_request)
 
     comm.Barrier()
 
     if (i_rank == 0):
-        cpl.part_data_wait_issend(part_data_name,
-                                  send_request[0])
+        part_data.wait_issend(send_request[0])
 
     if (i_rank == 1):
-        cpl.part_data_wait_irecv(part_data_name,
-                                 recv_request[0])
+        part_data.wait_irecv(recv_request[0])
 
     if (i_rank == 0):
         print("send_part_data : {param}\n".format(param=send_data))
@@ -374,30 +370,28 @@ def runTest():
         recvField = np.arange(4, dtype=np.double)
 
         if (i_rank == 0):
-            cpl.field_create("champs",
-                             pycwpclt.DOUBLE,
-                             pycwpclt.FIELD_STORAGE_INTERLACED,
-                             1,
-                             pycwpclt.DOF_LOCATION_NODE,
-                             pycwpclt.FIELD_EXCH_SEND,
-                             pycwpclt.STATUS_OFF)
-            cpl.field_set("champs",
-                          0,
-                          pycwpclt.FIELD_MAP_SOURCE,
-                          sendField)
+            field = cpl.field_create("champs",
+                                     pycwpclt.DOUBLE,
+                                     pycwpclt.FIELD_STORAGE_INTERLACED,
+                                     1,
+                                     pycwpclt.DOF_LOCATION_NODE,
+                                     pycwpclt.FIELD_EXCH_SEND,
+                                     pycwpclt.STATUS_OFF)
+            field.data_set(0,
+                           pycwpclt.FIELD_MAP_SOURCE,
+                           sendField)
 
         if (i_rank == 1):
-            cpl.field_create("champs",
-                             pycwpclt.DOUBLE,
-                             pycwpclt.FIELD_STORAGE_INTERLACED,
-                             1,
-                             pycwpclt.DOF_LOCATION_NODE,
-                             pycwpclt.FIELD_EXCH_RECV,
-                             pycwpclt.STATUS_OFF)
-            cpl.field_set("champs",
-                          0,
-                          pycwpclt.FIELD_MAP_TARGET,
-                          recvField)
+            field = cpl.field_create("champs",
+                                     pycwpclt.DOUBLE,
+                                     pycwpclt.FIELD_STORAGE_INTERLACED,
+                                     1,
+                                     pycwpclt.DOF_LOCATION_NODE,
+                                     pycwpclt.FIELD_EXCH_RECV,
+                                     pycwpclt.STATUS_OFF)
+            field.data_set(0,
+                           pycwpclt.FIELD_MAP_TARGET,
+                           recvField)
 
         comm.Barrier()
 
@@ -415,24 +409,24 @@ def runTest():
         cpl.spatial_interp_weights_compute()
 
         if (i_rank == 0):
-            print("pycwpclt.field_issend (0):\n")
+            print("field issend (0):\n")
 
-            cpl.field_issend("champs")
+            field.issend()
 
         if (i_rank == 1):
-            print("cpl.field_irecv (1):\n")
+            print("field irecv (1):\n")
 
-            cpl.field_irecv("champs")
+            field.irecv()
 
         if (i_rank == 0):
-            print("cpl.field_wait_issend (0):\n")
+            print("field wait_issend (0):\n")
 
-            cpl.field_wait_issend("champs")
+            field.wait_issend()
 
         if (i_rank == 1):
-            print("cpl.field_wait_irecv (1):\n")
+            print("field wait_irecv (1):\n")
 
-            cpl.field_wait_irecv("champs")
+            field.wait_irecv()
 
         comm.Barrier()
 
