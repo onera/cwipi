@@ -37,14 +37,16 @@ Field::Field (std::string            field_id    ,
    _id_writer_var_recv(nullptr),
    _id_writer_var_send_status(-1),
    _id_writer_var_recv_status(-1),
-   _interpolationFunction   (NULL),
+   _interpolationFunction  (NULL),
+   _interpolationFunction_f(NULL),
+   _interpolationFunction_p(NULL),
    _computed_tgt_bcast_enabled(0),
    _involved_src_bcast_enabled(0),
    _is_send_yet(0),
    _is_send_end_step(0),
    _is_recv_yet(0),
-   _is_recv_end_step(0)
-
+   _is_recv_end_step(0),
+   _python_object(nullptr)
 {
   _mesh = cpl->meshGet();
   _n_part = _mesh->getNPart();

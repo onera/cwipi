@@ -22,9 +22,7 @@ import mpi4py.MPI as MPI
 import numpy as np
 import sys
 
-def first_interpolation(local_code_name,
-                        cpl_id,
-                        field_id,
+def first_interpolation(field,
                         i_part,
                         buffer_in,
                         buffer_out):
@@ -37,26 +35,17 @@ def first_interpolation(local_code_name,
       print(f"cwp : {pycwp.__file__}")
       sys.exit(1)
 
-  n_comp = pycwp.interp_field_n_components_get(local_code_name,
-                                               cpl_id,
-                                               field_id)
+  n_comp = field.n_components
 
-  spatial_interp_algorithm = pycwp.cpl_spatial_interp_algo_get(local_code_name,
-                                                               cpl_id)
+  spatial_interp_algorithm = field.spatial_interp_algo
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
-    tgt_data = pycwp.interp_tgt_data_get(local_code_name,
-                                         cpl_id,
-                                         field_id,
-                                         i_part)
+    tgt_data = field.interp_tgt_data_get(i_part)
     n_tgt          = tgt_data["n_tgt"]
     ref_tgt        = tgt_data["computed_tgt"]
     tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
-    distance2 = pycwp.interp_nearest_neighbors_distances_get(local_code_name,
-                                                             cpl_id,
-                                                             field_id,
-                                                             i_part)
+    distance2 = field.interp_nearest_neighbors_distances_get(i_part)
 
     for i, jtgt in enumerate(ref_tgt):
       itgt = jtgt-1
@@ -73,22 +62,13 @@ def first_interpolation(local_code_name,
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] / sum_w
 
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-    src_data = pycwp.interp_src_data_get(local_code_name,
-                                         cpl_id,
-                                         field_id,
-                                         i_part)
+    src_data = field.interp_src_data_get(i_part)
     n_src = src_data["n_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
-    weight = pycwp.interp_location_weights_get(local_code_name,
-                                               cpl_id,
-                                               field_id,
-                                               i_part)
+    weight = field.interp_location_weights_get(i_part)
 
-    cell_data = pycwp.interp_location_internal_cell_vtx_get(local_code_name,
-                                                            cpl_id,
-                                                            field_id,
-                                                            i_part)
+    cell_data = field.interp_location_internal_cell_vtx_get(i_part)
     cell_vtx_idx = cell_data["cell_vtx_idx"]
     cell_vtx     = cell_data["cell_vtx"]
 
@@ -107,13 +87,10 @@ def first_interpolation(local_code_name,
     sys.exit(1)
 
 
-def second_interpolation(local_code_name,
-                         cpl_id,
-                         field_id,
+def second_interpolation(field,
                          i_part,
                          buffer_in,
                          buffer_out):
-
   try:
     from pycwp import pycwp
   except:
@@ -122,26 +99,17 @@ def second_interpolation(local_code_name,
       print(f"cwp : {pycwp.__file__}")
       sys.exit(1)
 
-  n_comp = pycwp.interp_field_n_components_get(local_code_name,
-                                               cpl_id,
-                                               field_id)
+  n_comp = field.n_components
 
-  spatial_interp_algorithm = pycwp.cpl_spatial_interp_algo_get(local_code_name,
-                                                               cpl_id)
+  spatial_interp_algorithm = field.spatial_interp_algo
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
-    tgt_data = pycwp.interp_tgt_data_get(local_code_name,
-                                         cpl_id,
-                                         field_id,
-                                         i_part)
+    tgt_data = field.interp_tgt_data_get(i_part)
     n_tgt          = tgt_data["n_tgt"]
     ref_tgt        = tgt_data["computed_tgt"]
     tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
-    distance2 = pycwp.interp_nearest_neighbors_distances_get(local_code_name,
-                                                             cpl_id,
-                                                             field_id,
-                                                             i_part)
+    distance2 = field.interp_nearest_neighbors_distances_get(i_part)
 
     for i, jtgt in enumerate(ref_tgt):
       itgt = jtgt-1
@@ -158,22 +126,13 @@ def second_interpolation(local_code_name,
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] / sum_w
 
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-    src_data = pycwp.interp_src_data_get(local_code_name,
-                                         cpl_id,
-                                         field_id,
-                                         i_part)
+    src_data = field.interp_src_data_get(i_part)
     n_src = src_data["n_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
-    weight = pycwp.interp_location_weights_get(local_code_name,
-                                               cpl_id,
-                                               field_id,
-                                               i_part)
+    weight = field.interp_location_weights_get(i_part)
 
-    cell_data = pycwp.interp_location_internal_cell_vtx_get(local_code_name,
-                                                            cpl_id,
-                                                            field_id,
-                                                            i_part)
+    cell_data = field.interp_location_internal_cell_vtx_get(i_part)
     cell_vtx_idx = cell_data["cell_vtx_idx"]
     cell_vtx     = cell_data["cell_vtx"]
 
@@ -257,6 +216,10 @@ def runTest():
                          pycwp.DYNAMIC_MESH_STATIC,
                          pycwp.TIME_EXCH_USER_CONTROLLED)
 
+    cpl.visu_set(1,
+                 pycwp.VISU_FORMAT_ENSIGHT,
+                 "text")
+
     # MESH
     mesh = Pypdm.generate_mesh_rectangle_simplified(intra_comm[0],
                                                     5)
@@ -294,7 +257,7 @@ def runTest():
                               1,
                               pycwp.DOF_LOCATION_NODE,
                               exchange_type,
-                              pycwp.STATUS_OFF)
+                              pycwp.STATUS_ON)
 
     # FIELD 2 - y
     field2_name = "Field 2"
@@ -315,7 +278,7 @@ def runTest():
                               1,
                               pycwp.DOF_LOCATION_NODE,
                               exchange_type,
-                              pycwp.STATUS_OFF)
+                              pycwp.STATUS_ON)
 
 
     pycwp.time_step_beg(code_name, 0.)
@@ -329,9 +292,8 @@ def runTest():
                       pycwp.FIELD_MAP_TARGET,
                       recv_field1_data)
 
-      # USER FUNCTION
-      cpl.field_interp_function_set(field1_name,
-                                    first_interpolation)
+    # USER FUNCTION
+    field1.interp_function_set(first_interpolation)
 
     if (proc0) :
       field2.data_set(0,
@@ -342,9 +304,8 @@ def runTest():
                       pycwp.FIELD_MAP_TARGET,
                       recv_field2_data)
 
-      # USER FUNCTION
-      cpl.field_interp_function_set(field2_name,
-                                    second_interpolation)
+    # USER FUNCTION
+    field2.interp_function_set(second_interpolation)
 
     # INTERPOLATION
     cpl.spatial_interp_property_set("n_neighbors",
@@ -374,11 +335,13 @@ def runTest():
     for i in range(mesh["n_vtx"]):
       if (proc1) :
         egal1 = abs(recv_field1_data[i] - mesh["coords"][3*i]) < 1e-9
-        if (egal1 == 0) :
+        if not egal1:
+          print(f"error = {recv_field1_data[i]} / {mesh['coords'][3*i]}")
           sys.exit(1)
 
         egal2 = abs(recv_field2_data[i] - mesh["coords"][3*i+1]) < 1e-9
-        if (egal2 == 0) :
+        if not egal2:
+          print(f"error = {recv_field2_data[i]} / {mesh['coords'][3*i+1]}")
           sys.exit(1)
 
     # FINALIZE

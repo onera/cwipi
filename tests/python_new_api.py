@@ -24,12 +24,31 @@ import sys
 
 f=None
 
+def my_interpolation(field,
+                     i_part,
+                     buffer_in,
+                     buffer_out):
+
+    src_data = field.interp_src_data_get(i_part)
+    weights  = field.interp_location_weights_get(i_part)
+    connec   = field.interp_location_internal_cell_vtx_get(i_part)
+
+    buffer_out[:] = 0
+
+    idx = 0
+    for i in range(src_data["n_src"]):
+        for j in range(src_data["src_to_tgt_idx"][i],src_data["src_to_tgt_idx"][i+1]):
+            for k in range(connec["cell_vtx_idx"][i],connec["cell_vtx_idx"][i+1]):
+                ivtx = connec["cell_vtx"][k]-1
+                buffer_out[field.n_components*j:field.n_components*(j+1)] = \
+                buffer_out[field.n_components*j:field.n_components*(j+1)] + \
+                buffer_in[field.n_components*ivtx:field.n_components*(ivtx+1)] * weights[idx]
+                idx += 1
+
 def userInterp(local_code_name,
                cpl_id,
                field_id,
                i_part,
-               spatial_interp_algorithm,
-               storage,
                buffer_in,
                buffer_out):
     """
@@ -59,11 +78,12 @@ def runTest():
 
     code_names = ["proc0","proc1"]
 
-    if (i_rank == 0):
-        code_name = ["proc0"]
+    # if (i_rank == 0):
+    #     code_name = ["proc0"]
 
-    if (i_rank == 1):
-        code_name = ["proc1"]
+    # if (i_rank == 1):
+    #     code_name = ["proc1"]
+    code_name = code_names[i_rank]
 
     try:
         from pycwp import pycwp
@@ -80,19 +100,18 @@ def runTest():
     # INIT
     f.write("pycwp.init:\n")
     n_code = 1
-    code_name = code_name
     is_active_rank = True
     out = pycwp.init(comm,
-                     code_name,
+                     [code_name],
                      is_active_rank)
     f.write("  - intra_comms : {param}\n".format(param=out[0]))
 
     # STATE UPDATE
-    pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)
+    pycwp.state_update(code_name, pycwp.STATE_IN_PROGRESS)
     f.write("pycwp.state_get:\n")
-    state = pycwp.state_get(code_names[i_rank])
+    state = pycwp.state_get(code_name)
     f.write("  - state : {param}\n".format(param=state))
-    pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
+    pycwp.state_update(code_name, pycwp.STATE_END)
     f.flush()
 
     # PROPERTIES DUMP
@@ -115,82 +134,82 @@ def runTest():
 
     # PARAM
     f.write("param_add_dbl:\n")
-    pycwp.param_lock(code_names[i_rank])
-    pycwp.param_add_dbl(code_names[i_rank], "double", 0.5)
-    pycwp.param_unlock(code_names[i_rank])
+    pycwp.param_lock(code_name)
+    pycwp.param_add_dbl(code_name, "double", 0.5)
+    pycwp.param_unlock(code_name)
     f.flush()
 
-    pycwp.param_lock(code_names[i_rank])
-    pycwp.param_add_str(code_names[i_rank], "str", "chat")
-    pycwp.param_unlock(code_names[i_rank])
+    pycwp.param_lock(code_name)
+    pycwp.param_add_str(code_name, "str", "chat")
+    pycwp.param_unlock(code_name)
 
     if (i_rank == 0):
-        pycwp.param_lock(code_names[i_rank])
-        pycwp.param_add_int(code_names[i_rank], "entier", 1)
-        pycwp.param_unlock(code_names[i_rank])
+        pycwp.param_lock(code_name)
+        pycwp.param_add_int(code_name, "entier", 1)
+        pycwp.param_unlock(code_name)
 
     if (i_rank == 1):
-        pycwp.param_lock(code_names[i_rank])
-        pycwp.param_add_int(code_names[i_rank], "entier", -1)
-        pycwp.param_unlock(code_names[i_rank])
+        pycwp.param_lock(code_name)
+        pycwp.param_add_int(code_name, "entier", -1)
+        pycwp.param_unlock(code_name)
 
     comm.Barrier()
 
     f.write("cwp.param_get ({param}):\n".format(param=i_rank))
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
+    value = pycwp.param_get(code_name, "double", pycwp.DOUBLE)
     f.write("  - value (0): {param}\n".format(param=value))
 
-    pycwp.param_lock(code_names[i_rank])
-    pycwp.param_set_dbl(code_names[i_rank], "double", 0.25)
-    pycwp.param_unlock(code_names[i_rank])
+    pycwp.param_lock(code_name)
+    pycwp.param_set_dbl(code_name, "double", 0.25)
+    pycwp.param_unlock(code_name)
 
-    pycwp.param_lock(code_names[i_rank])
-    pycwp.param_set_str(code_names[i_rank], "str", "chien")
-    pycwp.param_unlock(code_names[i_rank])
+    pycwp.param_lock(code_name)
+    pycwp.param_set_str(code_name, "str", "chien")
+    pycwp.param_unlock(code_name)
 
     if (i_rank == 0):
-        pycwp.param_lock(code_names[i_rank])
-        pycwp.param_set_int(code_names[i_rank], "entier", 2)
-        pycwp.param_unlock(code_names[i_rank])
+        pycwp.param_lock(code_name)
+        pycwp.param_set_int(code_name, "entier", 2)
+        pycwp.param_unlock(code_name)
 
     comm.Barrier()
 
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
+    value = pycwp.param_get(code_name, "double", pycwp.DOUBLE)
     f.write("  - value (1): {param}\n".format(param=value))
 
-    pycwp.param_lock(code_names[i_rank])
-    pycwp.param_del(code_names[i_rank], "str", pycwp.CHAR)
-    pycwp.param_unlock(code_names[i_rank])
+    pycwp.param_lock(code_name)
+    pycwp.param_del(code_name, "str", pycwp.CHAR)
+    pycwp.param_unlock(code_name)
 
     comm.Barrier()
 
     f.write("pycwp.param_n_get:\n")
-    n_param_str = pycwp.param_n_get(code_names[i_rank], pycwp.CHAR)
-    n_param_int = pycwp.param_n_get(code_names[i_rank], pycwp.INT)
+    n_param_str = pycwp.param_n_get(code_name, pycwp.CHAR)
+    n_param_int = pycwp.param_n_get(code_name, pycwp.INT)
     f.write("  - n_param_str: {param}\n".format(param=n_param_str))
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
     f.write("pycwp.param_list_get:\n")
-    str_param = pycwp.param_list_get(code_names[i_rank], pycwp.CHAR)
+    str_param = pycwp.param_list_get(code_name, pycwp.CHAR)
     for name in str_param:
         f.write(f"    --> str_param: {name}\n")
 
     f.write("pycwp.param_is:\n")
-    exists = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
+    exists = pycwp.param_is(code_name, "entier", pycwp.INT)
     f.write(f"  - exists 'entier': {exists}\n")
-    exists = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
+    exists = pycwp.param_is(code_name, "chapeau", pycwp.INT)
     f.write(f"  - exists 'chapeau': {exists}\n")
 
     comm.Barrier()
 
     f.write("pycwp.param_list_get:\n")
-    int_param = pycwp.param_list_get(code_names[i_rank], pycwp.INT)
+    int_param = pycwp.param_list_get(code_name, pycwp.INT)
     for name in int_param:
         f.write(f"    --> int_param: {name}\n")
 
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
-    value = pycwp.param_get(code_names[i_rank], "entier", pycwp.INT)
+    value = pycwp.param_get(code_name, "entier", pycwp.INT)
     f.write("  - value int: {param}\n".format(param=value))
 
     comm.Barrier()
@@ -203,7 +222,7 @@ def runTest():
     # Cpl
     f.write("pycwp.Coupling:\n")
     f.flush()
-    cpl = pycwp.Coupling(code_names[i_rank],
+    cpl = pycwp.Coupling(code_name,
                          "test",
                          code_names[(i_rank+1)%2],
                          pycwp.INTERFACE_SURFACE, #INTERFACE_LINEAR,
@@ -213,8 +232,12 @@ def runTest():
                          pycwp.DYNAMIC_MESH_VARIABLE,
                          pycwp.TIME_EXCH_USER_CONTROLLED)
 
+    cpl.visu_set(1,
+                 pycwp.VISU_FORMAT_ENSIGHT,
+                 "text")
+
     # std or polygon
-    polygon = 1
+    polygon = True
 
     # MESH
     if (polygon):
@@ -224,9 +247,9 @@ def runTest():
             connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
 
         if (i_rank == 1):
-            coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
+            coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
             connec_idx = np.array([0, 3, 6], dtype=np.int32)
-            connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+            connec = np.array([1, 2, 4, 1, 4, 3], dtype=np.int32)
 
         f.write("cpl.mesh_interf_vtx_set:\n")
         f.flush()
@@ -270,7 +293,7 @@ def runTest():
                                      1,
                                      pycwp.DOF_LOCATION_NODE,
                                      pycwp.FIELD_EXCH_SEND,
-                                     pycwp.STATUS_OFF)
+                                     pycwp.STATUS_ON)
 
         if (i_rank == 1):
             field = cpl.field_create("champs",
@@ -279,10 +302,15 @@ def runTest():
                                      1,
                                      pycwp.DOF_LOCATION_NODE,
                                      pycwp.FIELD_EXCH_RECV,
-                                     pycwp.STATUS_OFF)
+                                     pycwp.STATUS_ON)
 
-        sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
-        recvField = np.arange(4, dtype=np.double)
+        pycwp.time_step_beg(code_name, 0.)
+
+        # sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
+        sendField = np.zeros(4, dtype=np.double)
+        recvField = np.zeros(4, dtype=np.double)
+        for i in range(4):
+            sendField[i] = coord[3*i]
 
         if (i_rank == 0):
             field.data_set(0,
@@ -296,10 +324,10 @@ def runTest():
         f.write("after creating field\n")
         f.flush()
 
-        # USER INTERPOLATION to do has to be done
+        # USER INTERPOLATION
         f.write("cpl.interp_from_location_set:\n")
         f.flush()
-        cpl.field_interp_function_set("champs", userInterp)
+        field.interp_function_set(my_interpolation)
 
         comm.Barrier()
 
@@ -335,6 +363,8 @@ def runTest():
 
         comm.Barrier()
 
+        pycwp.time_step_end(code_name)
+
         f.write("cpl.field_del:\n")
         f.flush()
         cpl.field_del("champs")
@@ -360,11 +390,11 @@ def runTest():
 
         f.write("pycwp.user_structure_set:\n")
         f.flush()
-        pycwp.user_structure_set(code_names[i_rank],
+        pycwp.user_structure_set(code_name,
                                  userObj)
         f.write("pycwp.user_structure_get:\n")
         f.flush()
-        user_structure = pycwp.user_structure_get(code_names[i_rank])
+        user_structure = pycwp.user_structure_get(code_name)
 
         print(user_structure.animal)
         print(user_structure.aliment)
@@ -419,7 +449,7 @@ def runTest():
     # Volumic Cpl
     f.write("pycwp.Coupling:\n")
     f.flush()
-    cpl2 = pycwp.Coupling(code_names[i_rank],
+    cpl2 = pycwp.Coupling(code_name,
                          "test_vol",
                          code_names[(i_rank+1)%2],
                          pycwp.INTERFACE_VOLUME,
@@ -482,7 +512,7 @@ def runTest():
     # High-order
     f.write("pycwp.Coupling:\n")
     f.flush()
-    cpl3 = pycwp.Coupling(code_names[i_rank],
+    cpl3 = pycwp.Coupling(code_name,
                           "test_ho",
                           code_names[(i_rank+1)%2],
                           pycwp.INTERFACE_SURFACE,

@@ -976,92 +976,112 @@ namespace cwipi {
       const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
       if (interpolationType == CWP_INTERPOLATION_USER) {
-        CWP_Interp_function_t interpolationFunction = referenceField->interpolationFunctionGet();
+        CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet();
+        CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();
+        CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();
 
+        CWP_Interp_function_t _interpolationFunction = NULL;
         if (interpolationFunction != NULL) {
+          _interpolationFunction = interpolationFunction;
+        }
+        else if (interpolationFunctionF != NULL) {
+          _interpolationFunction = interpolationFunctionF;
+        }
 
-          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+        if (_interpolationFunction == NULL &&
+            interpolationFunctionP == NULL) {
+          PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+        }
 
-            if (0) {
-              int  *n_ref = NULL;
-              int **ref   = NULL;
-              PDM_part_to_part_ref_lnum2_get(_ptsp,
-                                             &n_ref,
-                                             &ref);
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
 
-              int  *n_unref = NULL;
-              int **unref   = NULL;
-              PDM_part_to_part_unref_lnum2_get(_ptsp,
-                                               &n_unref,
-                                               &unref);
+          if (0) {
+            int  *n_ref = NULL;
+            int **ref   = NULL;
+            PDM_part_to_part_ref_lnum2_get(_ptsp,
+                                           &n_ref,
+                                           &ref);
 
-              int         **come_from_idx = NULL;
-              PDM_g_num_t **come_from     = NULL;
-              PDM_part_to_part_gnum1_come_from_get(_ptsp,
-                                                   &come_from_idx,
-                                                   &come_from);
+            int  *n_unref = NULL;
+            int **unref   = NULL;
+            PDM_part_to_part_unref_lnum2_get(_ptsp,
+                                             &n_unref,
+                                             &unref);
 
-              int n_tgt = n_ref[i_part] + n_unref[i_part];
+            int         **come_from_idx = NULL;
+            PDM_g_num_t **come_from     = NULL;
+            PDM_part_to_part_gnum1_come_from_get(_ptsp,
+                                                 &come_from_idx,
+                                                 &come_from);
 
-              double *src_coord = _recv_coord[i_part];
-              const double *tgt_coord = NULL;
-              if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-                tgt_coord = _mesh->eltCentersGet(i_part);
-              }
-              else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-                tgt_coord = _mesh->getVertexCoords(i_part);
-              }
-              else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-                tgt_coord = _cpl->userTargetCoordsGet(i_part);
-              }
+            int n_tgt = n_ref[i_part] + n_unref[i_part];
 
-              int i_rank;
-              MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
-              char filename[999];
-              sprintf(filename, "mapping_%d.vtk", i_rank);
-
-              int n_pts = n_tgt + come_from_idx[i_part][n_ref[i_part]];
-              double *coord = (double *) malloc(sizeof(double) * n_pts * 3);
-              PDM_g_num_t *gnum = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_pts);
-
-              memcpy(coord, tgt_coord, sizeof(double) * n_tgt * 3);
-              memcpy(coord + n_tgt*3, src_coord, sizeof(double) * come_from_idx[i_part][n_ref[i_part]] * 3);
-
-              memcpy(gnum, _tgt_gnum[i_part], sizeof(PDM_g_num_t) * n_tgt);
-              for (int i = 0; i < come_from_idx[i_part][n_ref[i_part]]; i++) {
-                gnum[n_tgt+i] = -_closest_src_gnum[i_part][i];
-              }
-
-              int *connec = (int *) malloc(sizeof(int) * come_from_idx[i_part][n_ref[i_part]] * 2);
-              for (int i = 0; i < n_ref[i_part]; i++) {
-                for (int j = come_from_idx[i_part][i]; j < come_from_idx[i_part][i+1]; j++) {
-                  connec[2*j  ] = ref[i_part][i];
-                  connec[2*j+1] = n_tgt + j + 1;
-                }
-              }
-
-              PDM_vtk_write_std_elements(filename,
-                                         n_pts,
-                                         coord,
-                                         gnum,
-                                         PDM_MESH_NODAL_BAR2,
-                                         come_from_idx[i_part][n_ref[i_part]],
-                                         connec,
-                                         NULL,
-                                         0,
-                                         NULL,
-                                         NULL);
-              free(coord);
-              free(gnum);
-              free(connec);
+            double *src_coord = _recv_coord[i_part];
+            const double *tgt_coord = NULL;
+            if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+              tgt_coord = _mesh->eltCentersGet(i_part);
+            }
+            else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+              tgt_coord = _mesh->getVertexCoords(i_part);
+            }
+            else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+              tgt_coord = _cpl->userTargetCoordsGet(i_part);
             }
 
-            (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+            int i_rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
+            char filename[999];
+            sprintf(filename, "mapping_%d.vtk", i_rank);
+
+            int n_pts = n_tgt + come_from_idx[i_part][n_ref[i_part]];
+            double *coord = (double *) malloc(sizeof(double) * n_pts * 3);
+            PDM_g_num_t *gnum = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_pts);
+
+            memcpy(coord, tgt_coord, sizeof(double) * n_tgt * 3);
+            memcpy(coord + n_tgt*3, src_coord, sizeof(double) * come_from_idx[i_part][n_ref[i_part]] * 3);
+
+            memcpy(gnum, _tgt_gnum[i_part], sizeof(PDM_g_num_t) * n_tgt);
+            for (int i = 0; i < come_from_idx[i_part][n_ref[i_part]]; i++) {
+              gnum[n_tgt+i] = -_closest_src_gnum[i_part][i];
+            }
+
+            int *connec = (int *) malloc(sizeof(int) * come_from_idx[i_part][n_ref[i_part]] * 2);
+            for (int i = 0; i < n_ref[i_part]; i++) {
+              for (int j = come_from_idx[i_part][i]; j < come_from_idx[i_part][i+1]; j++) {
+                connec[2*j  ] = ref[i_part][i];
+                connec[2*j+1] = n_tgt + j + 1;
+              }
+            }
+
+            PDM_vtk_write_std_elements(filename,
+                                       n_pts,
+                                       coord,
+                                       gnum,
+                                       PDM_MESH_NODAL_BAR2,
+                                       come_from_idx[i_part][n_ref[i_part]],
+                                       connec,
+                                       NULL,
+                                       0,
+                                       NULL,
+                                       NULL);
+            free(coord);
+            free(gnum);
+            free(connec);
+          }
+
+          if (interpolationFunctionP != NULL) {
+            (*interpolationFunctionP)(referenceField->pythonObjectGet(),
+                                      i_part,
+                                      (double *) buffer[i_part],
+                                      (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
+          }
+          else {
+            (*_interpolationFunction)(_localCodeProperties->nameGet().c_str(),
                                       _cpl->IdGet().c_str(),
                                       referenceField->fieldIDGet().c_str(),
                                       i_part,
-                           (double *) buffer[i_part],
-                           (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
+                                      (double *) buffer[i_part],
+                                      (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
           }
 
         }

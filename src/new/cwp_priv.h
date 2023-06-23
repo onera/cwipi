@@ -109,6 +109,13 @@ typedef enum {
  * User interpolation type
  *============================================================================*/
 
+typedef void (*CWP_Interp_function_p_t)
+(
+ void   *python_field,
+ int     i_part,
+ double *buffer_in,
+ double *buffer_out
+);
 
 /*=============================================================================
  * Static global variables
@@ -300,6 +307,38 @@ CWP_Interp_function_f_set
  const char                 *cpl_id,
  const char                 *src_field_id,
  CWP_Interp_function_t       fct
+);
+
+
+
+/* Pass Python Field object to C++ Field object */
+void
+CWP_Field_python_object_set
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+       void *python_object
+ );
+
+
+
+void
+CWP_Interp_function_p_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id,
+ CWP_Interp_function_p_t     fct
+);
+
+
+void
+CWP_Interp_function_p_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id
 );
 
 #ifdef __cplusplus

@@ -1209,6 +1209,37 @@ namespace cwipi {
     }
   }
 
+  void
+  Coupling::interpFunctionPSet (
+    const string                     field_id,
+          CWP_Interp_function_p_t    fct
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFunctionPSet(fct);
+    }
+  }
+
+  void
+  Coupling::interpFunctionPUnset (
+    const string                     field_id
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFunctionPUnset();
+    }
+  }
+
 
   /**
    *

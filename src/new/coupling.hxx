@@ -1077,6 +1077,13 @@ namespace cwipi {
      const CWP_Status_t         visu_status
     );
 
+    void
+    fieldPythonObjectSet
+    (
+     const string &field_id,
+           void   *p
+     );
+
 
     /**
      * \brief Return if a field identifier exists
@@ -1393,6 +1400,18 @@ namespace cwipi {
       const string field_id,
       CWP_Interp_function_t fct
     );
+
+    inline void
+    interpFunctionPSet (
+      const string field_id,
+      CWP_Interp_function_p_t fct
+    );
+
+    inline void
+    interpFunctionPUnset (
+      const string field_id
+    );
+
 
     /**
      *

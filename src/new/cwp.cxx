@@ -2025,6 +2025,21 @@ CWP_Field_create
 }
 
 
+void
+CWP_Field_python_object_set
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+       void *python_object
+ )
+ {
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.fieldPythonObjectSet(field_id,
+                           python_object);
+ }
+
+
 /**
  *
  * \brief Unsetting of an user interpolation.
@@ -2100,6 +2115,32 @@ CWP_Interp_function_f_set
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.interpFunctionFSet(field_id,fct);
+}
+
+void
+CWP_Interp_function_p_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id,
+ CWP_Interp_function_p_t     fct
+ )
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.interpFunctionPSet(field_id,fct);
+}
+
+
+void
+CWP_Interp_function_p_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id
+ )
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.interpFunctionPUnset(field_id);
 }
 
 /**

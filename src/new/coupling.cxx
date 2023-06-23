@@ -2956,6 +2956,21 @@ namespace cwipi {
   }
 
 
+  void
+  Coupling::fieldPythonObjectSet
+  (
+   const string &field_id,
+   void   *p
+   )
+  {
+    map<string,Field*>::iterator it = _fields.find(field_id.c_str());
+
+    assert(it != _fields.end());
+
+    it->second->pythonObjectSet(p);
+  }
+
+
   /**
    * \brief Return if a field identifier exists
    *

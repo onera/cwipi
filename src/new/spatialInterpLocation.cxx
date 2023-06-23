@@ -471,8 +471,9 @@ namespace cwipi {
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
 
-      CWP_Interp_function_t interpolationFunction  = referenceField->interpolationFunctionGet();
-      CWP_Interp_function_t interpolationFunctionF = referenceField->interpFunctionFGet();
+      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();
+      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();
 
       CWP_Interp_function_t _interpolationFunction = NULL;
       if (interpolationFunction != NULL) {
@@ -482,13 +483,26 @@ namespace cwipi {
         _interpolationFunction = interpolationFunctionF;
       }
 
+      if (_interpolationFunction == NULL &&
+          interpolationFunctionP == NULL) {
+        PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+      }
+
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-        (*_interpolationFunction) (_localCodeProperties->nameGet().c_str(),
-                                   _cpl->IdGet().c_str(),
-                                   referenceField->fieldIDGet().c_str(),
-                                   i_part,
-                                   (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                                   (double *) buffer[i_part]);
+        if (interpolationFunctionP != NULL) {
+          (*interpolationFunctionP) (referenceField->pythonObjectGet(),
+                                     i_part,
+                                     (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                     (double *) buffer[i_part]);
+        }
+        else {
+          (*_interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+                                     _cpl->IdGet().c_str(),
+                                     referenceField->fieldIDGet().c_str(),
+                                     i_part,
+                                     (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                     (double *) buffer[i_part]);
+        }
       }
 
 

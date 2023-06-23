@@ -249,9 +249,20 @@ namespace cwipi {
       _interpolationFunction_f = fct;
     }
 
+    void interpFunctionPSet(CWP_Interp_function_p_t fct)
+    {
+      _interpolationType       = CWP_INTERPOLATION_USER ;
+      _interpolationFunction_p = fct;
+    }
+
     CWP_Interp_function_t interpFunctionFGet()
     {
       return _interpolationFunction_f;
+    }
+
+    CWP_Interp_function_p_t interpFunctionPGet()
+    {
+      return _interpolationFunction_p;
     }
 
     void interpFunctionUnSet()
@@ -264,6 +275,12 @@ namespace cwipi {
     {
       _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
       _interpolationFunction_f = NULL;
+    }
+
+    void interpFunctionPUnset()
+    {
+      _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
+      _interpolationFunction_p = NULL;
     }
 
     CWP_Interp_function_t interpolationFunctionGet() {
@@ -391,6 +408,14 @@ namespace cwipi {
     return _mesh;
   }
 
+  void pythonObjectSet(void *p) {
+    _python_object = p;
+  }
+
+  void *pythonObjectGet() {
+    return _python_object;
+  }
+
   private:
 
     CWP_Field_storage_t                      _storage;        /*!< Storage type */
@@ -426,6 +451,7 @@ namespace cwipi {
     CWP_Interp_function_t                    _interpolationFunction;
     CWP_Interpolation_t                      _interpolationType;
     CWP_Interp_function_t                    _interpolationFunction_f;
+    CWP_Interp_function_p_t                  _interpolationFunction_p;
 
     Field &operator=(const Field &other);       /*!< Assignment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
@@ -438,6 +464,8 @@ namespace cwipi {
     int _is_send_end_step; /*!< Tells if a field has been sent at the end of a step */
     int _is_recv_yet;      /*!< Tells if a field has been received at a given moment */
     int _is_recv_end_step; /*!< Tells if a field has been received at the end of a step */
+
+    void *_python_object;
   };
 
 }

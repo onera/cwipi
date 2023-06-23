@@ -715,21 +715,40 @@ namespace cwipi {
     const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
-      CWP_Interp_function_t interpolationFunction = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();
+      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();
 
+      CWP_Interp_function_t _interpolationFunction = NULL;
       if (interpolationFunction != NULL) {
+        _interpolationFunction = interpolationFunction;
+      }
+      else if (interpolationFunctionF != NULL) {
+        _interpolationFunction = interpolationFunctionF;
+      }
 
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+      if (_interpolationFunction == NULL &&
+          interpolationFunctionP == NULL) {
+        PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+      }
 
-          (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+        if (interpolationFunctionP != NULL) {
+          (*interpolationFunctionP)(referenceField->pythonObjectGet(),
+                                    i_part,
+                         (double *) buffer[i_part],
+                         (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
+        }
+        else {
+          (*_interpolationFunction)(_localCodeProperties->nameGet().c_str(),
                                     _cpl->IdGet().c_str(),
                                     referenceField->fieldIDGet().c_str(),
                                     i_part,
                          (double *) buffer[i_part],
                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET));
         }
-
       }
+
     }
 
     else {

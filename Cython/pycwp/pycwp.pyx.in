@@ -161,6 +161,11 @@ cdef extern from "cwp.h":
                                           double               *buffer_in,
                                           double               *buffer_out)
 
+  ctypedef void (*CWP_Interp_function_p_t) (void   *python_object,
+                                            int     i_part,
+                                            double *buffer_in,
+                                            double *buffer_out)
+
   #-----------------------------------------------------------------------------
   # CWIPI
   # --> general functions
@@ -378,6 +383,14 @@ cdef extern from "cwp.h":
                         CWP_Dof_location_t     target_location,
                         CWP_Field_exch_t       exch_type,
                         CWP_Status_t           visu_status)
+  void CWP_Field_python_object_set(const char *local_code_name,
+                                   const char *cpl_id,
+                                   const char *field_id,
+                                   void *python_object)
+  void CWP_Interp_function_p_set(const char                 *local_code_name,
+                                 const char                 *cpl_id,
+                                 const char                 *field_id,
+                                 CWP_Interp_function_p_t     fct)
   void CWP_Field_data_set(char              *local_code_name,
                           char              *cpl_id,
                           char              *field_id,
@@ -409,12 +422,15 @@ cdef extern from "cwp.h":
                             char  *tgt_field_id)
 
   # --> functions about user interpolation
-  void CWP_Interp_function_unset(char                 *local_code_name,
-                                 char                 *cpl_id,
-                                 char                 *field_id)
-  void CWP_Interp_function_set(char                       *local_code_name,
-                               char                       *cpl_id,
-                               char                       *field_id,
+  CWP_Field_storage_t CWP_Field_storage_get(const char      *local_code_name,
+                                            const char      *cpl_id         ,
+                                            const char      *field_id)
+  void CWP_Interp_function_p_unset(char                 *local_code_name,
+                                   char                 *cpl_id,
+                                   char                 *field_id)
+  void CWP_Interp_function_set(char                  *local_code_name,
+                               char                  *cpl_id,
+                               char                  *field_id,
                                CWP_interp_function_t  fct)
   int CWP_Interp_field_n_components_get(char    *local_code_name,
                                         char    *cpl_id,
@@ -1451,488 +1467,6 @@ def param_unlock(char * code_name):
 
     CWP_Param_unlock(code_name)
 
-# --> functions to use inside user interpolation functions
-
-def cpl_spatial_interp_algo_get(char * local_code_name,
-                                char * cpl_id):
-  """
-  cpl_spatial_interp_algo_get(local_code_name, cpl_id)
-  Get the coupling spatial interpolation algorithm.
-
-  Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-
-  Returns:
-    Spatial interpolation algorithm (CWP_Spatial_interp_t)
-  """
-  return CWP_Cpl_spatial_interp_algo_get(local_code_name,
-                                         cpl_id)
-
-def interp_field_n_components_get(char * local_code_name,
-                                  char * cpl_id,
-                                  char * field_id):
-    """
-    interp_field_n_components_get(local_code_name, cpl_id, field_id)
-    Get number of field components.
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-
-    Returns:
-      Number of components (int)
-    """
-
-    cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
-                                                              cpl_id,
-                                                              field_id)
-
-    return n_components
-
-def interp_field_dof_location_get(char * local_code_name,
-                                  char * cpl_id,
-                                  char * field_id):
-    """
-    interp_field_dof_location_get(local_code_name, cpl_id, field_id)
-    Get the field's degrees of freedom location.
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-
-    Returns:
-      Location of degrees of freedom (CWP_Dof_location_t)
-    """
-
-    cdef CWP_Dof_location_t dof_loc = CWP_Field_dof_location_get(local_code_name,
-                                                                 cpl_id,
-                                                                 field_id)
-
-    return dof_loc
-
-def interp_field_storage_get(char * local_code_name,
-                             char * cpl_id,
-                             char * field_id):
-    """
-    interp_field_storage_get(local_code_name, cpl_id, field_id)
-    Get field storage type.
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-
-    Returns:
-      Field storage type (CWP_Field_storage_t)
-    """
-
-    cdef CWP_Field_storage_t storage = CWP_Field_storage_get(local_code_name,
-                                                             cpl_id,
-                                                             field_id)
-
-    return storage
-
-
-def interp_src_data_get(char * local_code_name,
-                        char * cpl_id,
-                        char * field_id,
-                        int    i_part):
-    """
-    interp_src_data_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation source data.
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Dictionary
-        - ``"n_src"``          : Number of sources (int)
-        - ``"src_to_tgt_idx"`` : Index of source->target connectivity (np.ndarray[np.int32_t])
-    """
-
-    cdef int   n_src = -1
-    cdef int  *src_to_tgt_idx
-
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_src),
-                            &(src_to_tgt_idx))
-
-    return {
-            'n_src'          : n_src,
-            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_src+1, False)
-           }
-
-def interp_tgt_data_get(char * local_code_name,
-                        char * cpl_id,
-                        char * field_id,
-                        int    i_part):
-    """
-    interp_tgt_data_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation target data.
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Dictionary
-        - ``"n_tgt"``          : Number of targets (int)
-        - ``"computed_tgt"``   : Computed targets (np.ndarray[np.int32_t])
-        - ``"tgt_to_src_idx"`` : Index of target->source connectivity (np.ndarray[np.int32_t])
-    """
-
-    cdef int   n_tgt          = -1
-    cdef int   n_computed_tgt = -1
-    cdef int  *computed_tgt
-    cdef int  *tgt_to_src_idx
-
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_tgt),
-                            &(n_computed_tgt),
-                            &(computed_tgt),
-                            &(tgt_to_src_idx))
-
-    return {
-            'n_tgt'          : n_tgt,
-            'computed_tgt'   : create_numpy_i(computed_tgt,   n_computed_tgt,   flag_owndata=False),
-            'tgt_to_src_idx' : create_numpy_i(tgt_to_src_idx, n_computed_tgt+1, flag_owndata=False)
-           }
-
-def interp_location_weights_get(char * local_code_name,
-                                char * cpl_id,
-                                char * field_id,
-                                int    i_part):
-    """
-    interp_location_weights_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation weights (location algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Interpolation weights (np.ndarray[np.double_t])
-    """
-
-    cdef double *weights
-
-    CWP_Interp_location_weights_get(local_code_name,
-                                    cpl_id,
-                                    field_id,
-                                    i_part,
-                                    &(weights))
-
-    # get size
-    cdef int  n_cell
-    cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_cell),
-                            &(c_src_to_tgt_idx))
-
-    cdef int *c_cell_vtx_idx;
-    cdef int *c_cell_vtx;
-    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
-                                              cpl_id,
-                                              field_id,
-                                              i_part,
-                                              &(c_cell_vtx_idx),
-                                              &(c_cell_vtx))
-
-    cdef int size  = 0
-    cdef int n_vtx = 0
-    cdef int n_pts = 0
-    for i in range(n_cell):
-      n_vtx = c_cell_vtx_idx  [i+1] - c_cell_vtx_idx  [i];
-      n_pts = c_src_to_tgt_idx[i+1] - c_src_to_tgt_idx[i];
-      size += n_vtx * n_pts;
-
-    return create_numpy_d(weights, size, False)
-
-def interp_location_point_data_get(char * local_code_name,
-                                   char * cpl_id,
-                                   char * field_id,
-                                   int    i_part):
-    """
-    interp_location_point_data_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation point data (location algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Dictionary
-        - ``"points_coords"``           : Cartesian coordinates (np.ndarray[np.double_t])
-        - ``"points_uvw"``              : Parametric coordinates (np.ndarray[np.double_t])
-        - ``"points_dist2"``            : Squared distance (np.ndarray[np.double_t])
-        - ``"points_projected_coords"`` : Coordinates of projected points (np.ndarray[np.double_t])
-    """
-
-    cdef double *points_coords
-    cdef double *points_uvw
-    cdef double *points_dist2
-    cdef double *points_projected_coords
-
-    CWP_Interp_location_point_data_get(local_code_name,
-                                       cpl_id,
-                                       field_id,
-                                       i_part,
-                                       &(points_coords),
-                                       &(points_uvw),
-                                       &(points_dist2),
-                                       &(points_projected_coords))
-
-    # get size
-    cdef int  n_elt_src
-    cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_src),
-                            &(c_src_to_tgt_idx))
-
-    return {
-            'points_coords'           : create_numpy_d(points_coords,           c_src_to_tgt_idx[n_elt_src], False),
-            'points_uvw'              : create_numpy_d(points_uvw,              c_src_to_tgt_idx[n_elt_src], False),
-            'points_dist2'            : create_numpy_d(points_dist2,            c_src_to_tgt_idx[n_elt_src], False),
-            'points_projected_coords' : create_numpy_d(points_projected_coords, c_src_to_tgt_idx[n_elt_src], False)
-           }
-
-def interp_location_internal_cell_vtx_get(char * local_code_name,
-                                          char * cpl_id,
-                                          char * field_id,
-                                          int    i_part):
-    """
-    interp_location_internal_cell_vtx_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation internal cell->vertex connectivity (location algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Dictionary
-        - ``"cell_vtx_idx"`` : Index of internal cell->vtx connectivity (np.ndarray[np.int32_t])
-        - ``"cell_vtx"``     : Internal cell->vtx connectivity (np.ndarray[np.int32_t])
-    """
-
-    cdef int *cell_vtx_idx
-    cdef int *cell_vtx
-
-    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
-                                              cpl_id,
-                                              field_id,
-                                              i_part,
-                                              &(cell_vtx_idx),
-                                              &(cell_vtx))
-
-    # get size
-    cdef int  n_cell
-    cdef int *c_src_to_tgt_idx
-    CWP_Interp_src_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_cell),
-                            &(c_src_to_tgt_idx))
-
-    return {
-            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell+1,             False),
-            'cell_vtx'     : create_numpy_i(cell_vtx,     cell_vtx_idx[n_cell], False)
-           }
-
-def interp_intersection_volumes_get(char * local_code_name,
-                                    char * cpl_id,
-                                    char * field_id,
-                                    int    i_part):
-    """
-    interp_intersection_volumes_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation volumes (intersection algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Intersection volumes (np.ndarray[np.double_t])
-    """
-
-    cdef double *volumes
-
-    CWP_Interp_intersection_volumes_get(local_code_name,
-                                        cpl_id,
-                                        field_id,
-                                        i_part,
-                                        &(volumes))
-
-    # get size
-    cdef int  n_elt_tgt;
-    cdef int  n_referenced_tgt;
-    cdef int *c_referenced_tgt;
-    cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(c_referenced_tgt),
-                            &(c_tgt_come_from_src_idx))
-
-    return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
-
-def intersection_tgt_elt_volumes_get(char * local_code_name,
-                                     char * cpl_id,
-                                     char * field_id,
-                                     int    i_part):
-    """
-    intersection_tgt_elt_volumes_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial local target elements volumes (intersection algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Volume of target elements (np.ndarray[np.double_t])
-    """
-
-    cdef double *tgt_elt_volumes
-
-    CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name,
-                                                cpl_id,
-                                                field_id,
-                                                i_part,
-                                                &(tgt_elt_volumes))
-
-    # get size
-    cdef int  n_elt_tgt;
-    cdef int  n_referenced_tgt;
-    cdef int *c_referenced_tgt;
-    cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(c_referenced_tgt),
-                            &(c_tgt_come_from_src_idx))
-
-    return create_numpy_d(tgt_elt_volumes, n_elt_tgt, False)
-
-def interp_nearest_neighbors_distances_get(char * local_code_name,
-                                           char * cpl_id,
-                                           char * field_id,
-                                           int    i_part):
-    """
-    interp_nearest_neighbors_distances_get(local_code_name, cpl_id, field_id, i_part)
-    Get spatial interpolation distances (nearest neighbors algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Squared distances (np.ndarray[np.double_t])
-    """
-
-    cdef double *distances2
-
-    CWP_Interp_nearest_neighbors_distances_get(local_code_name,
-                                               cpl_id,
-                                               field_id,
-                                               i_part,
-                                               &(distances2))
-
-    # get size
-    cdef int  n_elt_tgt;
-    cdef int  n_referenced_tgt;
-    cdef int *c_referenced_tgt;
-    cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(c_referenced_tgt),
-                            &(c_tgt_come_from_src_idx))
-
-    return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
-
-def interp_nearest_neighbors_coord_get(char * local_code_name,
-                                       char * cpl_id,
-                                       char * field_id,
-                                       int    i_part):
-    """
-    interp_nearest_neighbors_coord_get(local_code_name, cpl_id, field_id, i_part)
-    Get coordinates of nearest source points (nearest neighbors algorithm).
-
-    Parameters:
-      local_code_name (str) : Local code name
-      cpl_id          (str) : Coupling identifier
-      field_id        (str) : Field identifier
-      i_part          (int) : Partition identifier
-
-    Returns:
-      Coordinates of nearest source points (np.ndarray[np.double_t])  (x0, y0, z0, x1, y1, z1, ...)
-    """
-
-    cdef double *nearest_src_coord
-
-    CWP_Interp_nearest_neighbors_coord_get(local_code_name,
-                                           cpl_id,
-                                           field_id,
-                                           i_part,
-                                           &(nearest_src_coord))
-
-    # get size
-    cdef int  n_elt_tgt;
-    cdef int  n_referenced_tgt;
-    cdef int *c_referenced_tgt;
-    cdef int *c_tgt_come_from_src_idx;
-    CWP_Interp_tgt_data_get(local_code_name,
-                            cpl_id,
-                            field_id,
-                            i_part,
-                            &(n_elt_tgt),
-                            &(n_referenced_tgt),
-                            &(c_referenced_tgt),
-                            &(c_tgt_come_from_src_idx))
-
-    return create_numpy_d(nearest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
-
 #-----------------------------------------------------------------------------
 # PARTDATA CLASS
 cdef class PartData (object):
@@ -2089,137 +1623,56 @@ cdef class PartData (object):
 
 #-----------------------------------------------------------------------------
 # CALLBACK
-interpolation_function_dict = {}
+cdef void callback(void    *_field,
+                   int      i_part,
+                   double  *buffer_in,
+                   double  *buffer_out):
 
-cdef void callback(const char           *c_local_code_name,
-                   const char           *c_cpl_id,
-                   const char           *c_field_id,
-                   int                   i_part,
-                   double               *buffer_in,
-                   double               *buffer_out):
-        """
-        User interpolation function interface from location into a mesh.
+  cdef Field field = <Field> _field
 
-        Parameters:
-          c_local_code_name           Local code name
-          c_cpl_id                    Coupling name
-          c_field_id                  Field name
-          i_part                      Partition identifier
-          buffer_in                   Input field array
+  # convert C buffers to numpy arrays
+  cdef int n_components             = field.n_components
+  cdef int spatial_interp_algorithm = field.spatial_interp_algo
 
-        Returns:
-          buffer_out                  Output field array
-        """
-        global interpolation_function_dict
+  cdef int size_in  = 0
+  cdef int size_out = 0
 
-        cdef CWP_Spatial_interp_t spatial_interp_algorithm = CWP_Cpl_spatial_interp_algo_get(c_local_code_name,
-                                                                                             c_cpl_id)
 
-        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(c_local_code_name,
-                                                                 c_cpl_id,
-                                                                 c_field_id)
+  if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES or
+      spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES or
+      spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
+      spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
 
-        cdef np.npy_intp dims = 0
+    tgt_data = field.interp_tgt_data_get(i_part)
 
-        if (buffer_in == NULL):
-          print("Error: User interpolation input field array is NULL")
+    n_computed_tgt = len(tgt_data["computed_tgt"])
+    tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
-        # set buffers
-        cdef int n_components = CWP_Interp_field_n_components_get(c_local_code_name,
-                                                                  c_cpl_id,
-                                                                  c_field_id)
-        cdef int  n_elt_src
-        cdef int *c_src_to_tgt_idx
+    size_in  = n_components * tgt_to_src_idx[n_computed_tgt]
+    size_out = n_components * n_computed_tgt
 
-        cdef int  n_elt_tgt;
-        cdef int  n_referenced_tgt;
-        cdef int *c_referenced_tgt;
-        cdef int *c_tgt_come_from_src_idx;
+  elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
+        spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
+        spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+    src_data = field.interp_src_data_get(i_part)
+    connec   = field.interp_location_internal_cell_vtx_get(i_part)
 
-        cdef int size_in;
-        cdef int size_out;
+    if field.dof_location == DOF_LOCATION_NODE:
+      size_in = n_components * np.amax(connec["cell_vtx"])
+    elif field.dof_location == DOF_LOCATION_CELL_CENTER:
+      size_in = n_components * src_data["n_src"]
+    else:
+      print(f"Error: field {field.name}: invalid dof_location {field.dof_location}", flush=True)
+      sys.exit(1)
+    size_out = n_components * src_data["src_to_tgt_idx"][src_data["n_src"]]
 
-        if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES or
-            spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES or
-            spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
-            spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
-          CWP_Interp_tgt_data_get(c_local_code_name,
-                                  c_cpl_id,
-                                  c_field_id,
-                                  i_part,
-                                  &(n_elt_tgt),
-                                  &(n_referenced_tgt),
-                                  &(c_referenced_tgt),
-                                  &(c_tgt_come_from_src_idx))
+  buffer_in_a  = create_numpy_d(buffer_in,  size_in,  False)
+  buffer_out_a = create_numpy_d(buffer_out, size_out, False)
 
-          size_in  = n_components * c_tgt_come_from_src_idx[n_referenced_tgt]
-          size_out = n_components * n_elt_tgt
-
-        elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
-              spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
-              spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
-          CWP_Interp_src_data_get(c_local_code_name,
-                                  c_cpl_id,
-                                  c_field_id,
-                                  i_part,
-                                  &(n_elt_src),
-                                  &(c_src_to_tgt_idx))
-
-          size_in  = n_components * n_elt_src
-          size_out = n_components * c_src_to_tgt_idx[n_elt_src]
-
-        buffer_in_a = create_numpy_d(buffer_in, size_in, False)
-
-        buffer_out_a = create_numpy_d(buffer_out, size_out, False)
-
-        # 'str' is a special type that is bytes in Py2 and unicode in Py3
-        if PY_MAJOR_VERSION < 3:
-          if isinstance(c_local_code_name, unicode):
-            py_unicode_local_code_name = (<unicode>c_local_code_name).encode('ascii') + b'\x00'
-          else :
-            py_unicode_local_code_name = c_local_code_name
-        else :
-          if isinstance(c_local_code_name, bytes):
-            py_unicode_local_code_name = (<bytes>c_local_code_name).decode('ascii')
-          else :
-            py_unicode_local_code_name = c_local_code_name
-
-        cdef str local_code_name = py_unicode_local_code_name
-
-        if PY_MAJOR_VERSION < 3:
-          if isinstance(c_cpl_id, unicode):
-            py_unicode_cpl_id = (<unicode>c_cpl_id).encode('ascii') + b'\x00'
-          else :
-            py_unicode_cpl_id = c_cpl_id
-        else :
-          if isinstance(c_cpl_id, bytes):
-            py_unicode_cpl_id = (<bytes>c_cpl_id).decode('ascii')
-          else :
-            py_unicode_cpl_id = c_cpl_id
-
-        cdef str cpl_id = py_unicode_cpl_id
-
-        if PY_MAJOR_VERSION < 3:
-          if isinstance(c_field_id, unicode):
-            py_unicode_field_id = (<unicode>c_field_id).encode('ascii') + b'\x00'
-          else :
-            py_unicode_field_id = c_field_id
-        else :
-          if isinstance(c_field_id, bytes):
-            py_unicode_field_id = (<bytes>c_field_id).decode('ascii')
-          else :
-            py_unicode_field_id = c_field_id
-
-        cdef str field_id = py_unicode_field_id
-
-        cdef str fct_id = field_id + cpl_id # concatenate str
-
-        (<object> interpolation_function_dict[fct_id]) (local_code_name,
-                                                        cpl_id,
-                                                        field_id,
-                                                        i_part,
-                                                        buffer_in_a,
-                                                        buffer_out_a)
+  (<object> field.user_interp) (field,
+                                i_part,
+                                buffer_in_a,
+                                buffer_out_a)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
@@ -2229,9 +1682,10 @@ cdef class Field (object):
     Create a CWIPI field object.
     """
 
-    cdef str local_code_name
-    cdef str cpl_id
-    cdef str field_id
+    cdef str    local_code_name
+    cdef str    cpl_id
+    cdef str    field_id
+    cdef object user_interp
 
     def __init__(self,
                  char *                 local_code_name,
@@ -2266,6 +1720,8 @@ cdef class Field (object):
         self.cpl_id          = cpl_id
         self.field_id        = field_id
 
+        user_interp = None
+
         CWP_Field_create(self.local_code_name,
                          self.cpl_id,
                          self.field_id,
@@ -2275,6 +1731,11 @@ cdef class Field (object):
                          target_location,
                          exch_type,
                          visu_status)
+
+        CWP_Field_python_object_set(self.local_code_name,
+                                    self.cpl_id,
+                                    self.field_id,
+                           <void *> self)
 
     def __del__(self):
         """
@@ -2315,6 +1776,33 @@ cdef class Field (object):
 
       return n_components
 
+    @property
+    def storage(self):
+      """
+      Get field storage type.
+
+      Returns:
+        Field storage type (CWP_Field_storage_t)
+      """
+
+      cdef int storage = CWP_Field_storage_get(self.local_code_name,
+                                               self.cpl_id,
+                                               self.field_id)
+
+      return storage
+
+
+    @property
+    def spatial_interp_algo(self):
+      """
+      Get the coupling spatial interpolation algorithm.
+
+      Returns:
+        Spatial interpolation algorithm (CWP_Spatial_interp_t)
+      """
+      return CWP_Cpl_spatial_interp_algo_get(self.local_code_name,
+                                             self.cpl_id)
+
     # --> DATA
     def data_set(self,
                  int                                       i_part,
@@ -2338,11 +1826,11 @@ cdef class Field (object):
         elif self.dof_location == CWP_DOF_LOCATION_USER:
           n_dof = 0 # TODO get from cpl
         else:
-          print(f"Error: field {self.field_id}: invalid dof_location {self.dof_location}")
+          print(f"Error: field {self.field_id}: invalid dof_location {self.dof_location}", flush=True)
           sys.exit(1)
 
         if len(data) < self.n_components * n_dof:
-          print(f"Error: field {self.field_id}: data array too short (len = {len(data)} but should be at least {self.n_components * n_dof})")
+          print(f"Error: field {self.field_id}: data array too short (len = {len(data)} but should be at least {self.n_components * n_dof})", flush=True)
           sys.exit(1)
 
 
@@ -2529,33 +2017,392 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(i_src, n_i_src, False)
 
+
+    def interp_src_data_get(self,
+                            int    i_part):
+      """
+      interp_src_data_get(i_part)
+      Get spatial interpolation source data.
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Dictionary
+          - ``"n_src"``          : Number of sources (int)
+          - ``"src_to_tgt_idx"`` : Index of source->target mapping (np.ndarray[np.int32_t])
+      """
+
+      cdef int   n_src = -1
+      cdef int  *src_to_tgt_idx
+
+      CWP_Interp_src_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_src),
+                              &(src_to_tgt_idx))
+
+      return {
+              'n_src'          : n_src,
+              'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_src+1, False)
+             }
+
+    def interp_tgt_data_get(self,
+                            int i_part):
+      """
+      interp_tgt_data_get(i_part)
+      Get spatial interpolation target data.
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Dictionary
+          - ``"n_tgt"``          : Number of targets (int)
+          - ``"computed_tgt"``   : Computed targets (np.ndarray[np.int32_t])
+          - ``"tgt_to_src_idx"`` : Index of target->source mapping (np.ndarray[np.int32_t])
+      """
+
+      cdef int   n_tgt          = -1
+      cdef int   n_computed_tgt = -1
+      cdef int  *computed_tgt
+      cdef int  *tgt_to_src_idx
+
+      CWP_Interp_tgt_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_tgt),
+                              &(n_computed_tgt),
+                              &(computed_tgt),
+                              &(tgt_to_src_idx))
+
+      return {
+              'n_tgt'          : n_tgt,
+              'computed_tgt'   : create_numpy_i(computed_tgt,   n_computed_tgt,   flag_owndata=False),
+              'tgt_to_src_idx' : create_numpy_i(tgt_to_src_idx, n_computed_tgt+1, flag_owndata=False)
+             }
+
+
+    def interp_location_weights_get(self,
+                                    int    i_part):
+      """
+      interp_location_weights_get(i_part)
+      Get spatial interpolation weights (location algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Interpolation weights (np.ndarray[np.double_t])
+      """
+
+      cdef double *weights
+
+      CWP_Interp_location_weights_get(self.local_code_name,
+                                      self.cpl_id,
+                                      self.field_id,
+                                      i_part,
+                                      &(weights))
+
+      # get size
+      cdef int  n_cell
+      cdef int *c_src_to_tgt_idx
+      CWP_Interp_src_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_cell),
+                              &(c_src_to_tgt_idx))
+
+      cdef int *c_cell_vtx_idx;
+      cdef int *c_cell_vtx;
+      CWP_Interp_location_internal_cell_vtx_get(self.local_code_name,
+                                                self.cpl_id,
+                                                self.field_id,
+                                                i_part,
+                                                &(c_cell_vtx_idx),
+                                                &(c_cell_vtx))
+
+      cdef int size  = 0
+      cdef int n_vtx = 0
+      cdef int n_pts = 0
+      for i in range(n_cell):
+        n_vtx = c_cell_vtx_idx  [i+1] - c_cell_vtx_idx  [i];
+        n_pts = c_src_to_tgt_idx[i+1] - c_src_to_tgt_idx[i];
+        size += n_vtx * n_pts;
+
+      return create_numpy_d(weights, size, False)
+
+
+    def interp_location_point_data_get(self,
+                                       int    i_part):
+      """
+      interp_location_point_data_get(i_part)
+      Get spatial interpolation point data (location algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Dictionary
+          - ``"points_coords"``           : Cartesian coordinates (np.ndarray[np.double_t])
+          - ``"points_uvw"``              : Parametric coordinates (np.ndarray[np.double_t])
+          - ``"points_dist2"``            : Squared distance (np.ndarray[np.double_t])
+          - ``"points_projected_coords"`` : Coordinates of projected points (np.ndarray[np.double_t])
+      """
+
+      cdef double *points_coords
+      cdef double *points_uvw
+      cdef double *points_dist2
+      cdef double *points_projected_coords
+
+      CWP_Interp_location_point_data_get(self.local_code_name,
+                                         self.cpl_id,
+                                         self.field_id,
+                                         i_part,
+                                         &(points_coords),
+                                         &(points_uvw),
+                                         &(points_dist2),
+                                         &(points_projected_coords))
+
+      # get size
+      cdef int  n_elt_src
+      cdef int *c_src_to_tgt_idx
+      CWP_Interp_src_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_elt_src),
+                              &(c_src_to_tgt_idx))
+
+      return {
+              'points_coords'           : create_numpy_d(points_coords,           c_src_to_tgt_idx[n_elt_src], False),
+              'points_uvw'              : create_numpy_d(points_uvw,              c_src_to_tgt_idx[n_elt_src], False),
+              'points_dist2'            : create_numpy_d(points_dist2,            c_src_to_tgt_idx[n_elt_src], False),
+              'points_projected_coords' : create_numpy_d(points_projected_coords, c_src_to_tgt_idx[n_elt_src], False)
+             }
+
+
+    def interp_location_internal_cell_vtx_get(self,
+                                              int    i_part):
+      """
+      interp_location_internal_cell_vtx_get(i_part)
+      Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Dictionary
+          - ``"cell_vtx_idx"`` : Index of internal cell->vtx connectivity (np.ndarray[np.int32_t])
+          - ``"cell_vtx"``     : Internal cell->vtx connectivity (np.ndarray[np.int32_t])
+      """
+
+      cdef int *cell_vtx_idx
+      cdef int *cell_vtx
+
+      CWP_Interp_location_internal_cell_vtx_get(self.local_code_name,
+                                                self.cpl_id,
+                                                self.field_id,
+                                                i_part,
+                                                &(cell_vtx_idx),
+                                                &(cell_vtx))
+
+      # get size
+      cdef int  n_cell
+      cdef int *c_src_to_tgt_idx
+      CWP_Interp_src_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_cell),
+                              &(c_src_to_tgt_idx))
+
+      return {
+              'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell+1,             False),
+              'cell_vtx'     : create_numpy_i(cell_vtx,     cell_vtx_idx[n_cell], False)
+             }
+
+
+    def interp_intersection_volumes_get(self,
+                                        int    i_part):
+      """
+      interp_intersection_volumes_get(i_part)
+      Get spatial interpolation volumes (intersection algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Intersection volumes (np.ndarray[np.double_t])
+      """
+
+      cdef double *volumes
+
+      CWP_Interp_intersection_volumes_get(self.local_code_name,
+                                          self.cpl_id,
+                                          self.field_id,
+                                          i_part,
+                                          &(volumes))
+
+      # get size
+      cdef int  n_elt_tgt;
+      cdef int  n_referenced_tgt;
+      cdef int *c_referenced_tgt;
+      cdef int *c_tgt_come_from_src_idx;
+      CWP_Interp_tgt_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_elt_tgt),
+                              &(n_referenced_tgt),
+                              &(c_referenced_tgt),
+                              &(c_tgt_come_from_src_idx))
+
+      return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
+
+
+    def intersection_tgt_elt_volumes_get(self,
+                                         int    i_part):
+      """
+      intersection_tgt_elt_volumes_get(i_part)
+      Get spatial local target elements volumes (intersection algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Volume of target elements (np.ndarray[np.double_t])
+      """
+
+      cdef double *tgt_elt_volumes
+
+      CWP_Interp_intersection_tgt_elt_volumes_get(self.local_code_name,
+                                                  self.cpl_id,
+                                                  self.field_id,
+                                                  i_part,
+                                                  &(tgt_elt_volumes))
+
+      # get size
+      cdef int  n_elt_tgt;
+      cdef int  n_referenced_tgt;
+      cdef int *c_referenced_tgt;
+      cdef int *c_tgt_come_from_src_idx;
+      CWP_Interp_tgt_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_elt_tgt),
+                              &(n_referenced_tgt),
+                              &(c_referenced_tgt),
+                              &(c_tgt_come_from_src_idx))
+
+      return create_numpy_d(tgt_elt_volumes, n_elt_tgt, False)
+
+
+    def interp_nearest_neighbors_distances_get(self,
+                                               int    i_part):
+      """
+      interp_nearest_neighbors_distances_get(i_part)
+      Get spatial interpolation distances (nearest neighbors algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Squared distances (np.ndarray[np.double_t])
+      """
+
+      cdef double *distances2
+
+      CWP_Interp_nearest_neighbors_distances_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
+                                                 i_part,
+                                                 &(distances2))
+
+      # get size
+      cdef int  n_elt_tgt;
+      cdef int  n_referenced_tgt;
+      cdef int *c_referenced_tgt;
+      cdef int *c_tgt_come_from_src_idx;
+      CWP_Interp_tgt_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_elt_tgt),
+                              &(n_referenced_tgt),
+                              &(c_referenced_tgt),
+                              &(c_tgt_come_from_src_idx))
+
+      return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
+
+
+    def interp_nearest_neighbors_coord_get(self,
+                                           int    i_part):
+      """
+      interp_nearest_neighbors_coord_get(i_part)
+      Get coordinates of nearest source points (nearest neighbors algorithm).
+
+      Parameters:
+        i_part          (int) : Partition identifier
+
+      Returns:
+        Coordinates of nearest source points (np.ndarray[np.double_t])  (x0, y0, z0, x1, y1, z1, ...)
+      """
+
+      cdef double *nearest_src_coord
+
+      CWP_Interp_nearest_neighbors_coord_get(self.local_code_name,
+                                             self.cpl_id,
+                                             self.field_id,
+                                             i_part,
+                                             &(nearest_src_coord))
+
+      # get size
+      cdef int  n_elt_tgt;
+      cdef int  n_referenced_tgt;
+      cdef int *c_referenced_tgt;
+      cdef int *c_tgt_come_from_src_idx;
+      CWP_Interp_tgt_data_get(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id,
+                              i_part,
+                              &(n_elt_tgt),
+                              &(n_referenced_tgt),
+                              &(c_referenced_tgt),
+                              &(c_tgt_come_from_src_idx))
+
+      return create_numpy_d(nearest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
+
+
     # USER INTERPOLATION FUNCTION
     def interp_function_unset(self):
         """
-        Unsetting of a user interpolation function.
+        Unset a user interpolation function.
         """
 
-        CWP_Interp_function_unset(self.local_code_name,
-                                  self.cpl_id,
-                                  self.field_id)
+        CWP_Interp_function_p_unset(self.local_code_name,
+                                    self.cpl_id,
+                                    self.field_id)
 
     def interp_function_set(self,
                             fct):
-        """
-        interp_function_set(fct)
-        Setting of an user interpolation from location.
-        This function takes into account an user interpolation function written with
-        void (`CWP_Interp_function_t`) interface.
+      """
+      interp_function_set(fct)
+      Setting of an user interpolation from location.
+      This function takes into account an user interpolation function written with
+      void (`CWP_Interp_function_t`) interface.
 
-        Parameters:
-          fct : Function
-        """
+      Parameters:
+        fct : Function
+      """
 
-        cdef str fct_id = self.field_id + self.cpl_id # concatenate the str
+      self.user_interp = fct
 
-        interpolation_function_dict[fct_id] = fct
-
-        CWP_Interp_function_set(self.local_code_name,
+      CWP_Interp_function_p_set(self.local_code_name,
                                 self.cpl_id,
                                 self.field_id,
                                 callback)
@@ -2682,35 +2529,17 @@ cdef class Coupling (object):
 
         return field
 
-    def field_interp_function_unset(self,
-                                    char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Unsetting of a user interpolation function.
+    # maybe Field should have access to parent Coupling object?
+    @property
+    def spatial_interp_algo(self):
+      """
+      Get the coupling spatial interpolation algorithm.
 
-        Parameters:
-          field_id (str) : Field identifier
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].interp_function_unset()
-
-    def field_interp_function_set(self,
-                                  char * field_id,
-                                  fct):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Setting of an user interpolation from location.
-        This function takes into account an user interpolation function written with
-        void (`CWP_Interp_function_t`) interface.
-
-        Parameters:
-          field_id (str)                        : Source field id
-          fct                                   : Function
-        """
-
-        cdef int idx = self.fields_name[field_id]
-        self.fields[idx].interp_function_set(fct)
+      Returns:
+        Spatial interpolation algorithm (CWP_Spatial_interp_t)
+      """
+      return CWP_Cpl_spatial_interp_algo_get(self.local_code_name,
+                                             self.cpl_id)
 
     def field_del(self,
                   char * field_id):
@@ -2879,7 +2708,7 @@ cdef class Coupling (object):
         """
 
         if len(coord)%3 != 0:
-          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
+          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions", flush=True)
           sys.exit(1)
 
         cdef int n_pts = len(coord)//3
@@ -2941,7 +2770,7 @@ cdef class Coupling (object):
         cdef int stride = std_block_n_pts_get(block_type)
 
         if len(connec)%stride != 0:
-          print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+          print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})", flush=True)
           sys.exit(1)
 
         cdef int n_elts = len(connec)//stride
@@ -3209,7 +3038,7 @@ cdef class Coupling (object):
       cdef int stride = ho_n_vtx_get(block_type, order)
 
       if len(connec)%stride != 0:
-        print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
+        print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})", flush=True)
         sys.exit(1)
 
       cdef int n_elts = len(connec)//stride
@@ -3470,7 +3299,7 @@ cdef class Coupling (object):
         """
 
         if len(coord)%3 != 0:
-          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
+          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions", flush=True)
           sys.exit(1)
 
         if (global_num is None):
