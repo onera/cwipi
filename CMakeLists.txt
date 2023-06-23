@@ -754,50 +754,33 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
 
   # remove previous coverage directory
-  file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/coverage")
+  # file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/coverage")
 
   # run tests
   add_custom_target(cwp_test
-                    COMMAND ctest -R new --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ./cwp_run --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
                     DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
 
   # create folder for coverage
-  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/coverage")
+  # file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/coverage")
+
+  # rm -rf coverage; mkdir coverage
+  # gcovr --filter "" -r /home/khoogvel/workspace/cwipi/cwipi . --html --html-details -o coverage/index.html
 
   # command to generate html coverage summary
   add_custom_target(coverage
-                    COMMAND ctest -R c_new_api_c_poly --timeout 120 && # || echo "" to ensure zero error code, non-zero if tests fail #find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + &&
-                            # ${GCOVR_PATH}
-                            # --html
-                            # --html-details
-                            # # --html-self-contained # not default when --html-details
-                            # --root ${CMAKE_SOURCE_DIR} # /src/new
-                            # --object-directory ${CMAKE_BINARY_DIR}
-                            # # --exclude-directories='(.+/)?paradigm'
-                            # --output index.html
-                            # find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} + &&
-                            ${GCOVR_PATH}
+                    COMMAND ${GCOVR_PATH}
                             --html
                             --html-details
-                            # --html-self-contained # not default when --html-details
                             --root ${CMAKE_SOURCE_DIR}/src/new
                             --object-directory ${CMAKE_BINARY_DIR}
-                            # --exclude-directories='(.+/)?paradigm'
                             --output index.html
+                            # --delete # delete .gcda files after processing
                     BYPRODUCTS index.html
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+                    # WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
                     DEPENDS cwp_test
-                    COMMENT "Running gcovr to produce Cobertura code coverage report")
-
-  # execute command
-  # if(EXISTS ${CMAKE_BINARY_DIR}/cwp_coverage.xml)
-  #   message(FATAL_ERROR "cwp_coverage.xml already exists, make distclean and make clean before make again for a new coverage report")
-  # else()
-  #   add_custom_command(TARGET cwp_coverage POST_BUILD
-  #                      COMMAND ;
-  #                      COMMENT "Cobertura code coverage report saved in cwp_coverage.xml")
-  # endif()
+                    COMMENT "Running gcovr to produce Cobertura code coverage report on source ${CMAKE_SOURCE_DIR} and build ${CMAKE_BINARY_DIR}")
 
 endif()
