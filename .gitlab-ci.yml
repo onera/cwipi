@@ -11,7 +11,7 @@ variables:
   CUSTOM_CI_BUILDS_DIR: $WORKDIR/test # inactif car option non activee dans la configuration du runner
   GIT_STRATEGY: none # don't do anything by default
   # SCHEDULER_PARAMETERS:  "--qos=co_inter_std  --cpus-per-task=24  --ntasks=24 --time=00:01:00 "
-  SCHEDULER_PARAMETERS:  "--qos=co_inter_bigmem  --ntasks=40 --time=01:00:00 --exclusive"
+  SCHEDULER_PARAMETERS:  "--qos=co_inter_bigmem  --ntasks=24 --time=01:00:00 --exclusive"
   #SCHEDULER_PARAMETERS:  "-M rhel8 --qos=el8_gbe --ntasks=24 --time=10:00:00"
   # CI_DEBUG_TRACE: "true" #Uncomment to debug CI
 default:
@@ -104,7 +104,8 @@ unit_test:
     - export SLURM_EXACT=1
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
-    - ./cwp_run -srun
+#    - ./cwp_run -srun
+    - ./cwp_run
 #    - ctest -R new --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml || echo " "
     # - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
     # - ctest --output-junit $CI_PROJECT_DIR/paradigm_ctest$MATRIX_KEY.xml
