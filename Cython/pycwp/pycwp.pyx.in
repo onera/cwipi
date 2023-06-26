@@ -35,7 +35,6 @@ import sys
 cimport cython
 from libc.stdlib       cimport malloc, free
 from libc.stdint       cimport uintptr_t
-from cpython.version   cimport PY_MAJOR_VERSION
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 from libc.stdio cimport FILE, fdopen, fopen
@@ -954,6 +953,7 @@ def time_step_end(char * local_code_name):
 
 def output_file_set(output_file):
     """
+    output_file_set(output_file)
     Define output file.
 
     Parameters:
@@ -1062,19 +1062,10 @@ def codes_list_get():
     cdef int n_code = CWP_Codes_nb_get()
     code_list = []
 
-    # 'str' is a special type that is bytes in Py2 and unicode in Py3
+    # 'str' is a special type that is unicode in Py3
     for i in range(n_code):
-      if PY_MAJOR_VERSION < 3:
-        if isinstance(c_code_list[i], unicode):
-          py_unicode_code_list = (<unicode>c_code_list[i]).encode('ascii') + b'\x00'
-        else :
-          py_unicode_code_list = c_code_list[i]
-      else :
-        if isinstance(c_code_list[i], bytes):
-          py_unicode_code_list = (<bytes>c_code_list[i]).decode('ascii')
-        else :
-          py_unicode_code_list = c_code_list[i]
-      code_list.append(py_unicode_code_list)
+      py_code_list = c_code_list[i]
+      code_list.append(py_code_list)
 
     return code_list
 
@@ -1103,19 +1094,10 @@ def loc_codes_list_get():
     cdef int n_loc_code = CWP_Loc_codes_nb_get()
     loc_code_list = []
 
-    # 'str' is a special type that is bytes in Py2 and unicode in Py3
+    # 'str' is a special type that is unicode in Py3
     for i in range(n_loc_code):
-      if PY_MAJOR_VERSION < 3:
-        if isinstance(c_loc_code_list[i], unicode):
-          py_unicode_loc_code_list = (<unicode>c_loc_code_list[i]).encode('ascii') + b'\x00'
-        else :
-          py_unicode_loc_code_list = c_loc_code_list[i]
-      else :
-        if isinstance(c_loc_code_list[i], bytes):
-          py_unicode_loc_code_list = (<bytes>c_loc_code_list[i]).decode('ascii')
-        else :
-          py_unicode_loc_code_list = c_loc_code_list[i]
-      loc_code_list.append(py_unicode_loc_code_list)
+      py_loc_code_list = c_loc_code_list[i]
+      loc_code_list.append(py_loc_code_list)
 
     return loc_code_list
 
@@ -1373,12 +1355,9 @@ def param_get(char *       code_name,
                     data_type,
                     &(str_value))
 
-      if isinstance(str_value, bytes):
-        py_unicode_str_value = str_value.decode('ascii')
-      else :
-        py_unicode_str_value = str_value
+      py_str_value = str_value
 
-      return py_unicode_str_value
+      return py_str_value
 
 def param_reduce(CWP_Op_t    op,
                  char *      param_name,
@@ -2587,6 +2566,7 @@ cdef class Coupling (object):
     def part_data_del(self,
                       char * part_data_id):
         """
+        part_data_del(part_data_id)
         #TODO: remove access to PartData Class from Coupling object?
         Delete PartData object and partitioned data form self.partData dictionary
 
