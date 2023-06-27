@@ -386,10 +386,10 @@ cdef extern from "cwp.h":
                                    const char *cpl_id,
                                    const char *field_id,
                                    void *python_object)
-  void CWP_Interp_function_p_set(const char                 *local_code_name,
-                                 const char                 *cpl_id,
-                                 const char                 *field_id,
-                                 CWP_Interp_function_p_t     fct)
+  void CWP_Field_interp_function_p_set(const char                 *local_code_name,
+                                       const char                 *cpl_id,
+                                       const char                 *field_id,
+                                       CWP_Interp_function_p_t     fct)
   void CWP_Field_data_set(char              *local_code_name,
                           char              *cpl_id,
                           char              *field_id,
@@ -427,66 +427,62 @@ cdef extern from "cwp.h":
   void CWP_Field_interp_function_p_unset(char   *local_code_name,
                                          char   *cpl_id,
                                          char   *field_id)
-  void CWP_Field_interp_function_p_set(char                     *local_code_name,
-                                       char                     *cpl_id,
-                                       char                     *field_id,
-                                       CWP_Interp_function_p_t   fct)
-  int CWP_Interp_field_n_components_get(char    *local_code_name,
+  int CWP_Field_n_components_get(char    *local_code_name,
+                                 char    *cpl_id,
+                                 char    *field_id)
+  void CWP_Field_src_data_properties_get(char    *local_code_name,
                                         char    *cpl_id,
-                                        char    *field_id)
-  void CWP_Interp_src_data_get(char    *local_code_name,
-                               char    *cpl_id,
-                               char    *field_id,
-                               int           i_part,
-                               int          *n_elt_src,
-                               int         **src_to_tgt_idx)
-  void CWP_Interp_tgt_data_get(char         *local_code_name,
-                               char         *cpl_id,
-                               char         *field_id,
-                               int           i_part,
-                               int          *n_elt_tgt,
-                               int          *n_referenced_tgt,
-                               int         **referenced_tgt,
-                               int         **tgt_come_from_src_idx)
-  void CWP_Interp_location_weights_get(char                  *local_code_name,
-                                       char                  *cpl_id,
-                                       char                  *field_id,
-                                       int                    i_part,
-                                       double               **weights)
-  void CWP_Interp_location_point_data_get(char                  *local_code_name,
+                                        char    *field_id,
+                                        int           i_part,
+                                        int          *n_elt_src,
+                                        int         **src_to_tgt_idx)
+  void CWP_Field_tgt_data_properties_get(char         *local_code_name,
+                                         char         *cpl_id,
+                                         char         *field_id,
+                                         int           i_part,
+                                         int          *n_elt_tgt,
+                                         int          *n_referenced_tgt,
+                                         int         **referenced_tgt,
+                                         int         **tgt_come_from_src_idx)
+  void CWP_Field_location_weights_get(char                  *local_code_name,
+                                      char                  *cpl_id,
+                                      char                  *field_id,
+                                      int                    i_part,
+                                      double               **weights)
+  void CWP_Field_location_point_data_get(char                  *local_code_name,
+                                         char                  *cpl_id,
+                                         char                  *field_id,
+                                         int                    i_part,
+                                         double               **points_coords,
+                                         double               **points_uvw,
+                                         double               **points_dist2,
+                                         double               **points_projected_coords)
+  void CWP_Field_location_internal_cell_vtx_get(char                  *local_code_name,
+                                                char                  *cpl_id,
+                                                char                  *field_id,
+                                                int                    i_part,
+                                                int                  **cell_vtx_idx,
+                                                int                  **cell_vtx)
+  void CWP_Field_intersection_volumes_get(char                  *local_code_name,
                                           char                  *cpl_id,
                                           char                  *field_id,
                                           int                    i_part,
-                                          double               **points_coords,
-                                          double               **points_uvw,
-                                          double               **points_dist2,
-                                          double               **points_projected_coords)
-  void CWP_Interp_location_internal_cell_vtx_get(char                  *local_code_name,
-                                                 char                  *cpl_id,
-                                                 char                  *field_id,
-                                                 int                    i_part,
-                                                 int                  **cell_vtx_idx,
-                                                 int                  **cell_vtx)
-  void CWP_Interp_intersection_volumes_get(char                  *local_code_name,
-                                           char                  *cpl_id,
-                                           char                  *field_id,
-                                           int                    i_part,
-                                           double               **volumes)
-  void CWP_Interp_intersection_tgt_elt_volumes_get(char                  *local_code_name,
-                                                   char                  *cpl_id,
-                                                   char                  *field_id,
-                                                   int                    i_part,
-                                                   double               **tgt_elt_volumes)
-  void CWP_Interp_nearest_neighbors_distances_get(char                  *local_code_name,
+                                          double               **volumes)
+  void CWP_Field_intersection_tgt_elt_volumes_get(char                  *local_code_name,
                                                   char                  *cpl_id,
                                                   char                  *field_id,
                                                   int                    i_part,
-                                                  double               **distances2)
-  void CWP_Interp_nearest_neighbors_coord_get(char                  *local_code_name,
-                                              char                  *cpl_id,
-                                              char                  *field_id,
-                                              int                    i_part,
-                                              double               **nearest_src_coord)
+                                                  double               **tgt_elt_volumes)
+  void CWP_Field_nearest_neighbors_distances_get(char                  *local_code_name,
+                                                 char                  *cpl_id,
+                                                 char                  *field_id,
+                                                 int                    i_part,
+                                                 double               **distances2)
+  void CWP_Field_nearest_neighbors_coord_get(char                  *local_code_name,
+                                             char                  *cpl_id,
+                                             char                  *field_id,
+                                             int                    i_part,
+                                             double               **nearest_src_coord)
 
   # --> functions about control parameters
   void CWP_Param_add(char        *local_code_name,
@@ -1625,7 +1621,7 @@ cdef void callback(void    *_field,
       spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
       spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
 
-    tgt_data = field.interp_tgt_data_get(i_part)
+    tgt_data = field.tgt_data_properties_get(i_part)
 
     n_computed_tgt = len(tgt_data["computed_tgt"])
     tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
@@ -1636,8 +1632,8 @@ cdef void callback(void    *_field,
   elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
         spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
         spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
-    src_data = field.interp_src_data_get(i_part)
-    connec   = field.interp_location_internal_cell_vtx_get(i_part)
+    src_data = field.src_data_properties_get(i_part)
+    connec   = field.location_internal_cell_vtx_get(i_part)
 
     if field.dof_location == DOF_LOCATION_NODE:
       size_in = n_components * np.amax(connec["cell_vtx"])
@@ -1752,9 +1748,9 @@ cdef class Field (object):
         Number of components (int)
       """
 
-      cdef int n_components = CWP_Interp_field_n_components_get(self.local_code_name,
-                                                                self.cpl_id,
-                                                                self.field_id)
+      cdef int n_components = CWP_Field_n_components_get(self.local_code_name,
+                                                         self.cpl_id,
+                                                         self.field_id)
 
       return n_components
 
@@ -1986,10 +1982,10 @@ cdef class Field (object):
       return create_numpy_or_none_i(i_src, n_i_src, False)
 
 
-    def interp_src_data_get(self,
+    def src_data_properties_get(self,
                             int    i_part):
       """
-      interp_src_data_get(i_part)
+      src_data_properties_get(i_part)
       Get spatial interpolation source data.
 
       Parameters:
@@ -2004,22 +2000,22 @@ cdef class Field (object):
       cdef int   n_src = -1
       cdef int  *src_to_tgt_idx
 
-      CWP_Interp_src_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_src),
-                              &(src_to_tgt_idx))
+      CWP_Field_src_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_src),
+                                        &(src_to_tgt_idx))
 
       return {
               'n_src'          : n_src,
               'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_src+1, False)
              }
 
-    def interp_tgt_data_get(self,
-                            int i_part):
+    def tgt_data_properties_get(self,
+                                int i_part):
       """
-      interp_tgt_data_get(i_part)
+      tgt_data_properties_get(i_part)
       Get spatial interpolation target data.
 
       Parameters:
@@ -2037,14 +2033,14 @@ cdef class Field (object):
       cdef int  *computed_tgt
       cdef int  *tgt_to_src_idx
 
-      CWP_Interp_tgt_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_tgt),
-                              &(n_computed_tgt),
-                              &(computed_tgt),
-                              &(tgt_to_src_idx))
+      CWP_Field_tgt_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_tgt),
+                                        &(n_computed_tgt),
+                                        &(computed_tgt),
+                                        &(tgt_to_src_idx))
 
       return {
               'n_tgt'          : n_tgt,
@@ -2053,10 +2049,10 @@ cdef class Field (object):
              }
 
 
-    def interp_location_weights_get(self,
+    def location_weights_get(self,
                                     int    i_part):
       """
-      interp_location_weights_get(i_part)
+      location_weights_get(i_part)
       Get spatial interpolation weights (location algorithm).
 
       Parameters:
@@ -2068,30 +2064,30 @@ cdef class Field (object):
 
       cdef double *weights
 
-      CWP_Interp_location_weights_get(self.local_code_name,
-                                      self.cpl_id,
-                                      self.field_id,
-                                      i_part,
-                                      &(weights))
+      CWP_Field_location_weights_get(self.local_code_name,
+                                     self.cpl_id,
+                                     self.field_id,
+                                     i_part,
+                                     &(weights))
 
       # get size
       cdef int  n_cell
       cdef int *c_src_to_tgt_idx
-      CWP_Interp_src_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_cell),
-                              &(c_src_to_tgt_idx))
+      CWP_Field_src_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_cell),
+                                        &(c_src_to_tgt_idx))
 
       cdef int *c_cell_vtx_idx;
       cdef int *c_cell_vtx;
-      CWP_Interp_location_internal_cell_vtx_get(self.local_code_name,
-                                                self.cpl_id,
-                                                self.field_id,
-                                                i_part,
-                                                &(c_cell_vtx_idx),
-                                                &(c_cell_vtx))
+      CWP_Field_location_internal_cell_vtx_get(self.local_code_name,
+                                               self.cpl_id,
+                                               self.field_id,
+                                               i_part,
+                                               &(c_cell_vtx_idx),
+                                               &(c_cell_vtx))
 
       cdef int size  = 0
       cdef int n_vtx = 0
@@ -2104,10 +2100,10 @@ cdef class Field (object):
       return create_numpy_d(weights, size, False)
 
 
-    def interp_location_point_data_get(self,
+    def location_point_data_get(self,
                                        int    i_part):
       """
-      interp_location_point_data_get(i_part)
+      location_point_data_get(i_part)
       Get spatial interpolation point data (location algorithm).
 
       Parameters:
@@ -2126,24 +2122,24 @@ cdef class Field (object):
       cdef double *points_dist2
       cdef double *points_projected_coords
 
-      CWP_Interp_location_point_data_get(self.local_code_name,
-                                         self.cpl_id,
-                                         self.field_id,
-                                         i_part,
-                                         &(points_coords),
-                                         &(points_uvw),
-                                         &(points_dist2),
-                                         &(points_projected_coords))
+      CWP_Field_location_point_data_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(points_coords),
+                                        &(points_uvw),
+                                        &(points_dist2),
+                                        &(points_projected_coords))
 
       # get size
       cdef int  n_elt_src
       cdef int *c_src_to_tgt_idx
-      CWP_Interp_src_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_elt_src),
-                              &(c_src_to_tgt_idx))
+      CWP_Field_src_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_elt_src),
+                                        &(c_src_to_tgt_idx))
 
       return {
               'points_coords'           : create_numpy_d(points_coords,           c_src_to_tgt_idx[n_elt_src], False),
@@ -2153,10 +2149,10 @@ cdef class Field (object):
              }
 
 
-    def interp_location_internal_cell_vtx_get(self,
-                                              int    i_part):
+    def location_internal_cell_vtx_get(self,
+                                       int    i_part):
       """
-      interp_location_internal_cell_vtx_get(i_part)
+      location_internal_cell_vtx_get(i_part)
       Get spatial interpolation internal cell->vertex connectivity (location algorithm).
 
       Parameters:
@@ -2171,22 +2167,22 @@ cdef class Field (object):
       cdef int *cell_vtx_idx
       cdef int *cell_vtx
 
-      CWP_Interp_location_internal_cell_vtx_get(self.local_code_name,
-                                                self.cpl_id,
-                                                self.field_id,
-                                                i_part,
-                                                &(cell_vtx_idx),
-                                                &(cell_vtx))
+      CWP_Field_location_internal_cell_vtx_get(self.local_code_name,
+                                               self.cpl_id,
+                                               self.field_id,
+                                               i_part,
+                                               &(cell_vtx_idx),
+                                               &(cell_vtx))
 
       # get size
       cdef int  n_cell
       cdef int *c_src_to_tgt_idx
-      CWP_Interp_src_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_cell),
-                              &(c_src_to_tgt_idx))
+      CWP_Field_src_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_cell),
+                                        &(c_src_to_tgt_idx))
 
       return {
               'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell+1,             False),
@@ -2194,10 +2190,10 @@ cdef class Field (object):
              }
 
 
-    def interp_intersection_volumes_get(self,
+    def intersection_volumes_get(self,
                                         int    i_part):
       """
-      interp_intersection_volumes_get(i_part)
+      intersection_volumes_get(i_part)
       Get spatial interpolation volumes (intersection algorithm).
 
       Parameters:
@@ -2209,25 +2205,25 @@ cdef class Field (object):
 
       cdef double *volumes
 
-      CWP_Interp_intersection_volumes_get(self.local_code_name,
-                                          self.cpl_id,
-                                          self.field_id,
-                                          i_part,
-                                          &(volumes))
+      CWP_Field_intersection_volumes_get(self.local_code_name,
+                                         self.cpl_id,
+                                         self.field_id,
+                                         i_part,
+                                         &(volumes))
 
       # get size
       cdef int  n_elt_tgt;
       cdef int  n_referenced_tgt;
       cdef int *c_referenced_tgt;
       cdef int *c_tgt_come_from_src_idx;
-      CWP_Interp_tgt_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_elt_tgt),
-                              &(n_referenced_tgt),
-                              &(c_referenced_tgt),
-                              &(c_tgt_come_from_src_idx))
+      CWP_Field_tgt_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_elt_tgt),
+                                        &(n_referenced_tgt),
+                                        &(c_referenced_tgt),
+                                        &(c_tgt_come_from_src_idx))
 
       return create_numpy_d(volumes, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
@@ -2247,33 +2243,33 @@ cdef class Field (object):
 
       cdef double *tgt_elt_volumes
 
-      CWP_Interp_intersection_tgt_elt_volumes_get(self.local_code_name,
-                                                  self.cpl_id,
-                                                  self.field_id,
-                                                  i_part,
-                                                  &(tgt_elt_volumes))
+      CWP_Field_intersection_tgt_elt_volumes_get(self.local_code_name,
+                                                 self.cpl_id,
+                                                 self.field_id,
+                                                 i_part,
+                                                 &(tgt_elt_volumes))
 
       # get size
       cdef int  n_elt_tgt;
       cdef int  n_referenced_tgt;
       cdef int *c_referenced_tgt;
       cdef int *c_tgt_come_from_src_idx;
-      CWP_Interp_tgt_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_elt_tgt),
-                              &(n_referenced_tgt),
-                              &(c_referenced_tgt),
-                              &(c_tgt_come_from_src_idx))
+      CWP_Field_tgt_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_elt_tgt),
+                                        &(n_referenced_tgt),
+                                        &(c_referenced_tgt),
+                                        &(c_tgt_come_from_src_idx))
 
       return create_numpy_d(tgt_elt_volumes, n_elt_tgt, False)
 
 
-    def interp_nearest_neighbors_distances_get(self,
-                                               int    i_part):
+    def nearest_neighbors_distances_get(self,
+                                        int    i_part):
       """
-      interp_nearest_neighbors_distances_get(i_part)
+      nearest_neighbors_distances_get(i_part)
       Get spatial interpolation distances (nearest neighbors algorithm).
 
       Parameters:
@@ -2285,33 +2281,33 @@ cdef class Field (object):
 
       cdef double *distances2
 
-      CWP_Interp_nearest_neighbors_distances_get(self.local_code_name,
-                                                 self.cpl_id,
-                                                 self.field_id,
-                                                 i_part,
-                                                 &(distances2))
+      CWP_Field_nearest_neighbors_distances_get(self.local_code_name,
+                                                self.cpl_id,
+                                                self.field_id,
+                                                i_part,
+                                                &(distances2))
 
       # get size
       cdef int  n_elt_tgt;
       cdef int  n_referenced_tgt;
       cdef int *c_referenced_tgt;
       cdef int *c_tgt_come_from_src_idx;
-      CWP_Interp_tgt_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_elt_tgt),
-                              &(n_referenced_tgt),
-                              &(c_referenced_tgt),
-                              &(c_tgt_come_from_src_idx))
+      CWP_Field_tgt_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_elt_tgt),
+                                        &(n_referenced_tgt),
+                                        &(c_referenced_tgt),
+                                        &(c_tgt_come_from_src_idx))
 
       return create_numpy_d(distances2, c_tgt_come_from_src_idx[n_referenced_tgt], False)
 
 
-    def interp_nearest_neighbors_coord_get(self,
-                                           int    i_part):
+    def nearest_neighbors_coord_get(self,
+                                    int    i_part):
       """
-      interp_nearest_neighbors_coord_get(i_part)
+      nearest_neighbors_coord_get(i_part)
       Get coordinates of nearest source points (nearest neighbors algorithm).
 
       Parameters:
@@ -2323,25 +2319,25 @@ cdef class Field (object):
 
       cdef double *nearest_src_coord
 
-      CWP_Interp_nearest_neighbors_coord_get(self.local_code_name,
-                                             self.cpl_id,
-                                             self.field_id,
-                                             i_part,
-                                             &(nearest_src_coord))
+      CWP_Field_nearest_neighbors_coord_get(self.local_code_name,
+                                            self.cpl_id,
+                                            self.field_id,
+                                            i_part,
+                                            &(nearest_src_coord))
 
       # get size
       cdef int  n_elt_tgt;
       cdef int  n_referenced_tgt;
       cdef int *c_referenced_tgt;
       cdef int *c_tgt_come_from_src_idx;
-      CWP_Interp_tgt_data_get(self.local_code_name,
-                              self.cpl_id,
-                              self.field_id,
-                              i_part,
-                              &(n_elt_tgt),
-                              &(n_referenced_tgt),
-                              &(c_referenced_tgt),
-                              &(c_tgt_come_from_src_idx))
+      CWP_Field_tgt_data_properties_get(self.local_code_name,
+                                        self.cpl_id,
+                                        self.field_id,
+                                        i_part,
+                                        &(n_elt_tgt),
+                                        &(n_referenced_tgt),
+                                        &(c_referenced_tgt),
+                                        &(c_tgt_come_from_src_idx))
 
       return create_numpy_d(nearest_src_coord, 3 * c_tgt_come_from_src_idx[n_referenced_tgt], False)
 

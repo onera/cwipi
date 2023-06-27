@@ -40,12 +40,12 @@ def my_interpolation(field,
   spatial_interp_algorithm = field.spatial_interp_algo
 
   if spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
-    tgt_data       = field.interp_tgt_data_get(i_part)
+    tgt_data       = field.tgt_data_properties_get(i_part)
     n_tgt          = tgt_data["n_tgt"]
     ref_tgt        = tgt_data["computed_tgt"]
     tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
-    distance2 = field.interp_nearest_neighbors_distances_get(i_part)
+    distance2 = field.nearest_neighbors_distances_get(i_part)
 
     for i, jtgt in enumerate(ref_tgt):
       itgt = jtgt-1
@@ -62,13 +62,13 @@ def my_interpolation(field,
       buffer_out[n_comp*itgt:n_comp*(itgt+1)] / sum_w
 
   elif spatial_interp_algorithm == pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-    src_data       = field.interp_src_data_get(i_part)
+    src_data       = field.src_data_properties_get(i_part)
     n_src          = src_data["n_src"]
     src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
-    weight = field.interp_location_weights_get(i_part)
+    weight = field.location_weights_get(i_part)
 
-    cell_data    = field.interp_location_internal_cell_vtx_get(i_part)
+    cell_data    = field.location_internal_cell_vtx_get(i_part)
     cell_vtx_idx = cell_data["cell_vtx_idx"]
     cell_vtx     = cell_data["cell_vtx"]
 

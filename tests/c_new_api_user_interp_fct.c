@@ -39,16 +39,16 @@ _locationUserInterpolation
 {
   int           n_elt_src       = 0;
   int          *src_to_tgt_idx  = NULL;
-  CWP_Interp_src_data_get(local_code_name,
-                          cpl_id,
-                          field_id,
-                          i_part,
-                          &n_elt_src,
-                          &src_to_tgt_idx);
+  CWP_Field_src_data_properties_get(local_code_name,
+                                    cpl_id,
+                                    field_id,
+                                    i_part,
+                                    &n_elt_src,
+                                    &src_to_tgt_idx);
 
-  int n_components = CWP_Interp_field_n_components_get(local_code_name,
-                                                       cpl_id,
-                                                       field_id);
+  int n_components = CWP_Field_n_components_get(local_code_name,
+                                                cpl_id,
+                                                field_id);
 
   int ival = 0;
   for (int i = 0; i < n_elt_src; i++) {

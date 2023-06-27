@@ -2024,6 +2024,9 @@ CWP_Field_create
                   visu_status);
 }
 
+/*----------------------------------------------------------------------------*
+ * Functions about user interpolation                                         *
+ *----------------------------------------------------------------------------*/
 
 void
 CWP_Field_python_object_set
@@ -2038,7 +2041,6 @@ CWP_Field_python_object_set
   cpl.fieldPythonObjectSet(field_id,
                            python_object);
  }
-
 
 /**
  *
@@ -2145,413 +2147,6 @@ CWP_Field_interp_function_p_set
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.interpFunctionPSet(field_id,fct);
-}
-
-/**
- *
- * \brief Get spatial interpolation number of algorithms.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- *
- */
-
-int
-CWP_Interp_field_n_components_get
-(
- const char             *local_code_name,
- const char             *cpl_id,
- const char             *field_id
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  return cpl.fieldNComponentGet(field_id);
-}
-
-/**
- *
- * \brief Get spatial interpolation source data.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] n_elt_src                 Number of source elements
- * \param [out] src_to_tgt_idx            Source elements to target elements index
- *
- */
-
-void
-CWP_Interp_src_data_get
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *field_id,
- int           i_part,
- int          *n_elt_src,
- int         **src_to_tgt_idx
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  int           n_part_src = 0;
-  int          *tmp_n_elt_src       = NULL;
-  int         **tmp_src_to_tgt_idx  = NULL;
-  CWP_g_num_t **tmp_src_to_tgt_gnum = NULL;  // UNUSED
-  cpl.src_data_get(field_id,
-                   &n_part_src,
-                   &tmp_n_elt_src,
-                   &tmp_src_to_tgt_idx,
-                   &tmp_src_to_tgt_gnum);
-
-  *n_elt_src       = tmp_n_elt_src[i_part];
-  *src_to_tgt_idx  = tmp_src_to_tgt_idx[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation target data.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] n_elt_tgt                 Number of target elements
- * \param [out] n_referenced_tgt          Number of referenced target elements
- * \param [out] referenced_tgt            Referenced target elements
- * \param [out] tgt_come_from_src_idx     Target to origin source elements index
- *
- */
-
-void
-CWP_Interp_tgt_data_get
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *field_id,
- int           i_part,
- int          *n_elt_tgt,
- int          *n_referenced_tgt,
- int         **referenced_tgt,
- int         **tgt_come_from_src_idx
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  int           n_part_tgt = 0;
-  int          *tmp_n_elt_tgt             = NULL;
-  int          *tmp_n_referenced_tgt      = NULL;
-  int         **tmp_referenced_tgt        = NULL;
-  int         **tmp_tgt_come_from_src_idx = NULL;
-  CWP_g_num_t **tmp_tgt_come_from_src     = NULL; // UNUSED
-  cpl.tgt_data_get(field_id,
-                   &n_part_tgt,
-                   &tmp_n_elt_tgt,
-                   &tmp_n_referenced_tgt,
-                   &tmp_referenced_tgt,
-                   &tmp_tgt_come_from_src_idx,
-                   &tmp_tgt_come_from_src);
-
-  *n_elt_tgt             = tmp_n_elt_tgt[i_part];
-  *n_referenced_tgt      = tmp_n_referenced_tgt[i_part];
-  *referenced_tgt        = tmp_referenced_tgt[i_part];
-  *tgt_come_from_src_idx = tmp_tgt_come_from_src_idx[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation weights (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] weights                   Spatial interpolation weights
- *
- */
-
-void
-CWP_Interp_location_weights_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **weights
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  int    **tmp_weights_idx = NULL; // UNUSED
-  double **tmp_weights     = NULL;
-  cpl.weight_get(field_id,
-                 &tmp_weights_idx,
-                 &tmp_weights);
-
-  *weights     = tmp_weights[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation point data (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] points_coords             Cartesian coordinates of points inside local elements
- * \param [out] points_uvw                Parametric coordinates of points inside local elements
- * \param [out] points_dist2              Squared distance from points to elements
- * \param [out] points_projected_coords   Cartesian coordinates of projection on points on local elements
- *
- */
-
-void
-CWP_Interp_location_point_data_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **points_coords,
- double               **points_uvw,
- double               **points_dist2,
- double               **points_projected_coords
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  double **tmp_points_coords           = NULL;
-  double **tmp_points_uvw              = NULL;
-  double **tmp_points_dist2            = NULL;
-  double **tmp_points_projected_coords = NULL;
-  cpl.location_point_data_get(field_id,
-                              &tmp_points_coords,
-                              &tmp_points_uvw,
-                              &tmp_points_dist2,
-                              &tmp_points_projected_coords);
-
-  *points_coords           = tmp_points_coords[i_part];
-  *points_uvw              = tmp_points_uvw[i_part];
-  *points_dist2            = tmp_points_dist2[i_part];
-  *points_projected_coords = tmp_points_projected_coords[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
- * \param [out] cell_vtx                  Local cell->vertex connectivity
- *
- */
-
-void
-CWP_Interp_location_internal_cell_vtx_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- int                  **cell_vtx_idx,
- int                  **cell_vtx
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  int **tmp_cell_vtx_idx = NULL;
-  int **tmp_cell_vtx     = NULL;
-  cpl.location_internal_cell_vtx_get(field_id,
-                                     &tmp_cell_vtx_idx,
-                                     &tmp_cell_vtx);
-
-  *cell_vtx_idx = tmp_cell_vtx_idx[i_part];
-  *cell_vtx     = tmp_cell_vtx[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation volumes (intersection algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] volumes                   Volumes of intersection polyhedra
- *
- */
-
-void
-CWP_Interp_intersection_volumes_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **volumes
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  int     **tmp_volumes_idx = NULL; // UNUSED
-  double  **tmp_volumes     = NULL;
-  cpl.weight_get(field_id,
-                 &tmp_volumes_idx,
-                 &tmp_volumes);
-
-  *volumes     = tmp_volumes[i_part];
-}
-
-
-/**
- *
- * \brief Get spatial local target elements volumes (intersection algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] tgt_elt_volumes           Volumes of local target elements
- *
- */
-
-void
-CWP_Interp_intersection_tgt_elt_volumes_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **tgt_elt_volumes
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  double **_tgt_elt_volumes = NULL;
-  cpl.intersection_tgt_elt_volumes_get(field_id,
-                                       &_tgt_elt_volumes);
-
-  *tgt_elt_volumes = _tgt_elt_volumes[i_part];
-}
-
-/**
- *
- * \brief Get spatial interpolation distances (nearest neighbors algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] distances2                Squared distances from nearest source points
- *
- */
-
-void
-CWP_Interp_nearest_neighbors_distances_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **distances2
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
-      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  int    **tmp_distances2_idx = NULL; // UNUSED
-  double **tmp_distances2     = NULL;
-  cpl.weight_get(field_id,
-                 &tmp_distances2_idx,
-                 &tmp_distances2);
-
-  *distances2     = tmp_distances2[i_part];
-}
-
-
-/**
- *
- * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] nearest_src_coord         Coordinates of nearest source points
- *
- */
-
-void
-CWP_Interp_nearest_neighbors_coord_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **nearest_src_coord
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
-
-  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
-      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-  }
-
-  double **_nearest_src_coord = NULL;
-  cpl.closest_point_src_coord_get(field_id,
-                                  &_nearest_src_coord);
-
-  *nearest_src_coord = nearest_src_coord[i_part];
 }
 
 /**
@@ -2674,6 +2269,413 @@ CWP_Field_storage_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   return cpl.fieldStorageGet(field_id);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation number of algorithms.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ *
+ */
+
+int
+CWP_Field_n_components_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  return cpl.fieldNComponentGet(field_id);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation source data.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_src                 Number of source elements
+ * \param [out] src_to_tgt_idx            Source elements to target elements index
+ *
+ */
+
+void
+CWP_Field_src_data_properties_get
+(
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const char   *field_id,
+ int           i_part,
+ int          *n_elt_src,
+ int         **src_to_tgt_idx
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  int           n_part_src = 0;
+  int          *tmp_n_elt_src       = NULL;
+  int         **tmp_src_to_tgt_idx  = NULL;
+  CWP_g_num_t **tmp_src_to_tgt_gnum = NULL;  // UNUSED
+  cpl.src_data_get(field_id,
+                   &n_part_src,
+                   &tmp_n_elt_src,
+                   &tmp_src_to_tgt_idx,
+                   &tmp_src_to_tgt_gnum);
+
+  *n_elt_src       = tmp_n_elt_src[i_part];
+  *src_to_tgt_idx  = tmp_src_to_tgt_idx[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation target data.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_tgt                 Number of target elements
+ * \param [out] n_referenced_tgt          Number of referenced target elements
+ * \param [out] referenced_tgt            Referenced target elements
+ * \param [out] tgt_come_from_src_idx     Target to origin source elements index
+ *
+ */
+
+void
+CWP_Field_tgt_data_properties_get
+(
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const char   *field_id,
+ int           i_part,
+ int          *n_elt_tgt,
+ int          *n_referenced_tgt,
+ int         **referenced_tgt,
+ int         **tgt_come_from_src_idx
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  int           n_part_tgt = 0;
+  int          *tmp_n_elt_tgt             = NULL;
+  int          *tmp_n_referenced_tgt      = NULL;
+  int         **tmp_referenced_tgt        = NULL;
+  int         **tmp_tgt_come_from_src_idx = NULL;
+  CWP_g_num_t **tmp_tgt_come_from_src     = NULL; // UNUSED
+  cpl.tgt_data_get(field_id,
+                   &n_part_tgt,
+                   &tmp_n_elt_tgt,
+                   &tmp_n_referenced_tgt,
+                   &tmp_referenced_tgt,
+                   &tmp_tgt_come_from_src_idx,
+                   &tmp_tgt_come_from_src);
+
+  *n_elt_tgt             = tmp_n_elt_tgt[i_part];
+  *n_referenced_tgt      = tmp_n_referenced_tgt[i_part];
+  *referenced_tgt        = tmp_referenced_tgt[i_part];
+  *tgt_come_from_src_idx = tmp_tgt_come_from_src_idx[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation weights (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] weights                   Spatial interpolation weights
+ *
+ */
+
+void
+CWP_Field_location_weights_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **weights
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  int    **tmp_weights_idx = NULL; // UNUSED
+  double **tmp_weights     = NULL;
+  cpl.weight_get(field_id,
+                 &tmp_weights_idx,
+                 &tmp_weights);
+
+  *weights     = tmp_weights[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation point data (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] points_coords             Cartesian coordinates of points inside local elements
+ * \param [out] points_uvw                Parametric coordinates of points inside local elements
+ * \param [out] points_dist2              Squared distance from points to elements
+ * \param [out] points_projected_coords   Cartesian coordinates of projection on points on local elements
+ *
+ */
+
+void
+CWP_Field_location_point_data_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **points_coords,
+ double               **points_uvw,
+ double               **points_dist2,
+ double               **points_projected_coords
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  double **tmp_points_coords           = NULL;
+  double **tmp_points_uvw              = NULL;
+  double **tmp_points_dist2            = NULL;
+  double **tmp_points_projected_coords = NULL;
+  cpl.location_point_data_get(field_id,
+                              &tmp_points_coords,
+                              &tmp_points_uvw,
+                              &tmp_points_dist2,
+                              &tmp_points_projected_coords);
+
+  *points_coords           = tmp_points_coords[i_part];
+  *points_uvw              = tmp_points_uvw[i_part];
+  *points_dist2            = tmp_points_dist2[i_part];
+  *points_projected_coords = tmp_points_projected_coords[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
+ * \param [out] cell_vtx                  Local cell->vertex connectivity
+ *
+ */
+
+void
+CWP_Field_location_internal_cell_vtx_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ int                  **cell_vtx_idx,
+ int                  **cell_vtx
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  int **tmp_cell_vtx_idx = NULL;
+  int **tmp_cell_vtx     = NULL;
+  cpl.location_internal_cell_vtx_get(field_id,
+                                     &tmp_cell_vtx_idx,
+                                     &tmp_cell_vtx);
+
+  *cell_vtx_idx = tmp_cell_vtx_idx[i_part];
+  *cell_vtx     = tmp_cell_vtx[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] volumes                   Volumes of intersection polyhedra
+ *
+ */
+
+void
+CWP_Field_intersection_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **volumes
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  int     **tmp_volumes_idx = NULL; // UNUSED
+  double  **tmp_volumes     = NULL;
+  cpl.weight_get(field_id,
+                 &tmp_volumes_idx,
+                 &tmp_volumes);
+
+  *volumes     = tmp_volumes[i_part];
+}
+
+
+/**
+ *
+ * \brief Get spatial local target elements volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] tgt_elt_volumes           Volumes of local target elements
+ *
+ */
+
+void
+CWP_Field_intersection_tgt_elt_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **tgt_elt_volumes
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  double **_tgt_elt_volumes = NULL;
+  cpl.intersection_tgt_elt_volumes_get(field_id,
+                                       &_tgt_elt_volumes);
+
+  *tgt_elt_volumes = _tgt_elt_volumes[i_part];
+}
+
+/**
+ *
+ * \brief Get spatial interpolation distances (nearest neighbors algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] distances2                Squared distances from nearest source points
+ *
+ */
+
+void
+CWP_Field_nearest_neighbors_distances_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **distances2
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  int    **tmp_distances2_idx = NULL; // UNUSED
+  double **tmp_distances2     = NULL;
+  cpl.weight_get(field_id,
+                 &tmp_distances2_idx,
+                 &tmp_distances2);
+
+  *distances2     = tmp_distances2[i_part];
+}
+
+
+/**
+ *
+ * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] nearest_src_coord         Coordinates of nearest source points
+ *
+ */
+
+void
+CWP_Field_nearest_neighbors_coord_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **nearest_src_coord
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
+      spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  double **_nearest_src_coord = NULL;
+  cpl.closest_point_src_coord_get(field_id,
+                                  &_nearest_src_coord);
+
+  *nearest_src_coord = nearest_src_coord[i_part];
 }
 
 
@@ -2809,83 +2811,6 @@ CWP_Field_wait_irecv
   std::string distantFieldID_str = const_cast<char*>(tgt_field_id);
   cpl.waitIrecv(distantFieldID_str);
 }
-
-
-/*----------------------------------------------------------------------------*
- * Functions about user interpolation                                         *
- *----------------------------------------------------------------------------*/
-
-
-// void
-// CWP_Interp_from_loc_set
-// (
-//  const char                  *cpl_id,
-//  CWP_Interp_from_location fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromLocSet(fct);
-// }
-
-
-// void
-// CWP_Interp_from_loc_set_f
-// (
-//  const char *cpl_id,
-//  void       *fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromLocSetF(fct);
-// }
-
-
-// void
-// CWP_Interp_from_inter_set
-// (
-//  const char                  *cpl_id,
-//  CWP_Interp_from_intersec_t fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromInterSet(fct);
-// }
-
-
-// void
-// CWP_Interp_from_inter_set_f
-// (
-//  const char *cpl_id,
-//  void       *fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromInterSetF(fct);
-// }
-
-
-// void
-// CWP_Interp_from_closest_set
-// (
-//  const char                     *cpl_id,
-//  CWP_Interp_from_closest_pts_t fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromClosestSet(fct);
-// }
-
-
-// void
-// CWP_Interp_from_closest_set_f
-// (
-//  const char *cpl_id,
-//  void       *fct
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.interpFromClosestSetF(fct);
-// }
 
 /*----------------------------------------------------------------------------*
  * Functions about current application control parameters                     *

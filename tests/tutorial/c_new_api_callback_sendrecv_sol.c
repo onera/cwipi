@@ -62,23 +62,23 @@ my_interpolation
       int  n_referenced_tgt = -1;
       int *referenced_tgt        = NULL;
       int *tgt_come_from_src_ids = NULL;
-      CWP_Interp_tgt_data_get(local_code_name,
-                              cpl_id,
-                              field_id,
-                              i_part,
-                              &n_elt_tgt,
-                              &n_referenced_tgt,
-                              &referenced_tgt,
-                              &tgt_come_from_src_ids);
+      CWP_Field_tgt_data_properties_get(local_code_name,
+                                        cpl_id,
+                                        field_id,
+                                        i_part,
+                                        &n_elt_tgt,
+                                        &n_referenced_tgt,
+                                        &referenced_tgt,
+                                        &tgt_come_from_src_ids);
 
       // Get point location information :
       // For each target, this array gives the squared distance to its nearest sources
       double *d2 = NULL;
-      CWP_Interp_nearest_neighbors_distances_get(local_code_name,
-                                              cpl_id,
-                                              field_id,
-                                              i_part,
-                                              &d2);
+      CWP_Field_nearest_neighbors_distances_get(local_code_name,
+                                                cpl_id,
+                                                field_id,
+                                                i_part,
+                                                &d2);
 
       for (int i = 0; i < n_referenced_tgt; i++) {
 

@@ -2044,7 +2044,7 @@ CWP_Field_interp_function_unset_cf (
  */
 
 int
-CWP_Interp_field_n_components_get_cf (
+CWP_Field_n_components_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2061,7 +2061,7 @@ CWP_Interp_field_n_components_get_cf (
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
   // launch
-  int n_components = CWP_Interp_field_n_components_get(c_local_code_name, c_cpl_id, c_src_field_id);
+  int n_components = CWP_Field_n_components_get(c_local_code_name, c_cpl_id, c_src_field_id);
 
   // free
   free ( c_local_code_name);
@@ -2085,7 +2085,7 @@ CWP_Interp_field_n_components_get_cf (
  */
 
 void
-CWP_Interp_src_data_get_cf (
+CWP_Field_src_data_properties_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2103,7 +2103,7 @@ CWP_Interp_src_data_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_src_data_get(c_local_code_name,
+  CWP_Field_src_data_properties_get(c_local_code_name,
                           c_cpl_id,
                           c_src_field_id,
                           i_part,
@@ -2130,7 +2130,7 @@ CWP_Interp_src_data_get_cf (
  */
 
 void
-CWP_Interp_tgt_data_get_cf (
+CWP_Field_tgt_data_properties_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2150,14 +2150,14 @@ CWP_Interp_tgt_data_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_tgt_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          n_elt_tgt,
-                          n_referenced_tgt,
-                          referenced_tgt, // TO DO : if size depends on n_components add s_reference_tgt
-                          tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    n_elt_tgt,
+                                    n_referenced_tgt,
+                                    referenced_tgt, // TO DO : if size depends on n_components add s_reference_tgt
+                                    tgt_come_from_src_idx);
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -2177,7 +2177,7 @@ CWP_Interp_tgt_data_get_cf (
  */
 
 void
-CWP_Interp_location_weights_get_cf (
+CWP_Field_location_weights_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2195,32 +2195,32 @@ CWP_Interp_location_weights_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_location_weights_get(c_local_code_name,
-                                  c_cpl_id,
-                                  c_src_field_id,
-                                  i_part,
-                                  c_weights);
+  CWP_Field_location_weights_get(c_local_code_name,
+                                 c_cpl_id,
+                                 c_src_field_id,
+                                 i_part,
+                                 c_weights);
 
   *s_weights = 0;
 
   // Maybe get _weights_idx directly from SpatialInterp object...
   int  n_cell;
   int *src_to_tgt_idx;
-  CWP_Interp_src_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          &n_cell,
-                          &src_to_tgt_idx);
+  CWP_Field_src_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    &n_cell,
+                                    &src_to_tgt_idx);
 
   int *cell_vtx_idx;
   int *cell_vtx;
-  CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
-                                            c_cpl_id,
-                                            c_src_field_id,
-                                            i_part,
-                                            &cell_vtx_idx,
-                                            &cell_vtx);
+  CWP_Field_location_internal_cell_vtx_get(c_local_code_name,
+                                           c_cpl_id,
+                                           c_src_field_id,
+                                           i_part,
+                                           &cell_vtx_idx,
+                                           &cell_vtx);
 
   for (int i = 0; i < n_cell; i++) {
     int n_vtx = cell_vtx_idx  [i+1] - cell_vtx_idx  [i];
@@ -2249,7 +2249,7 @@ CWP_Interp_location_weights_get_cf (
  */
 
 void
-CWP_Interp_location_point_data_get_cf (
+CWP_Field_location_point_data_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2270,23 +2270,23 @@ CWP_Interp_location_point_data_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_location_point_data_get(c_local_code_name,
-                                     c_cpl_id,
-                                     c_src_field_id,
-                                     i_part,
-                                     c_points_coords,
-                                     c_points_uvw,
-                                     c_points_dist2,
-                                     c_points_projected_coords);
+  CWP_Field_location_point_data_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    c_points_coords,
+                                    c_points_uvw,
+                                    c_points_dist2,
+                                    c_points_projected_coords);
 
   int  n_elt_src;
   int *src_to_tgt_idx;
-  CWP_Interp_src_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          &n_elt_src,
-                          &src_to_tgt_idx);
+  CWP_Field_src_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    &n_elt_src,
+                                    &src_to_tgt_idx);
 
   *s_size = src_to_tgt_idx[n_elt_src];
 
@@ -2308,7 +2308,7 @@ CWP_Interp_location_point_data_get_cf (
  */
 
 void
-CWP_Interp_intersection_volumes_get_cf (
+CWP_Field_intersection_volumes_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2326,24 +2326,24 @@ CWP_Interp_intersection_volumes_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_intersection_volumes_get(c_local_code_name,
-                                      c_cpl_id,
-                                      c_src_field_id,
-                                      i_part,
-                                      c_volumes);
+  CWP_Field_intersection_volumes_get(c_local_code_name,
+                                     c_cpl_id,
+                                     c_src_field_id,
+                                     i_part,
+                                     c_volumes);
 
   int  n_elt_tgt;
   int  n_referenced_tgt;
   int *referenced_tgt;
   int *tgt_come_from_src_idx;
-  CWP_Interp_tgt_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          &n_elt_tgt,
-                          &n_referenced_tgt,
-                          &referenced_tgt,
-                          &tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    &n_elt_tgt,
+                                    &n_referenced_tgt,
+                                    &referenced_tgt,
+                                    &tgt_come_from_src_idx);
 
   *s_volumes = tgt_come_from_src_idx[n_referenced_tgt];
 
@@ -2360,7 +2360,7 @@ CWP_Interp_intersection_volumes_get_cf (
  */
 
 void
-CWP_Interp_intersection_tgt_elt_volumes_get_cf
+CWP_Field_intersection_tgt_elt_volumes_get_cf
 (
   const char    *f_local_code_name,
         int      l_local_code_name,
@@ -2379,23 +2379,23 @@ CWP_Interp_intersection_tgt_elt_volumes_get_cf
   c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id    = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_intersection_tgt_elt_volumes_get(c_local_code_name,
-                                              c_cpl_id,
-                                              c_src_field_id,
-                                              i_part,
-                                              c_tgt_elt_volumes);
+  CWP_Field_intersection_tgt_elt_volumes_get(c_local_code_name,
+                                             c_cpl_id,
+                                             c_src_field_id,
+                                             i_part,
+                                             c_tgt_elt_volumes);
 
   int  n_referenced_tgt;
   int *referenced_tgt;
   int *tgt_come_from_src_idx;
-  CWP_Interp_tgt_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          n_elt,
-                          &n_referenced_tgt,
-                          &referenced_tgt,
-                          &tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    n_elt,
+                                    &n_referenced_tgt,
+                                    &referenced_tgt,
+                                    &tgt_come_from_src_idx);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -2405,7 +2405,7 @@ CWP_Interp_intersection_tgt_elt_volumes_get_cf
 
 
 void
-CWP_Interp_nearest_neighbors_distances_get_cf (
+CWP_Field_nearest_neighbors_distances_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2423,7 +2423,7 @@ CWP_Interp_nearest_neighbors_distances_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_nearest_neighbors_distances_get(c_local_code_name,
+  CWP_Field_nearest_neighbors_distances_get(c_local_code_name,
                                              c_cpl_id,
                                              c_src_field_id,
                                              i_part,
@@ -2433,14 +2433,14 @@ CWP_Interp_nearest_neighbors_distances_get_cf (
   int  n_referenced_tgt;
   int *referenced_tgt;
   int *tgt_come_from_src_idx;
-  CWP_Interp_tgt_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          &n_elt_tgt,
-                          &n_referenced_tgt,
-                          &referenced_tgt,
-                          &tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    &n_elt_tgt,
+                                    &n_referenced_tgt,
+                                    &referenced_tgt,
+                                    &tgt_come_from_src_idx);
   assert(n_elt_tgt == n_referenced_tgt);
 
   *s_distances2 = tgt_come_from_src_idx[n_elt_tgt];
@@ -2458,7 +2458,7 @@ CWP_Interp_nearest_neighbors_distances_get_cf (
  */
 
 void
-CWP_Interp_nearest_neighbors_coord_get_cf
+CWP_Field_nearest_neighbors_coord_get_cf
 (
   const char    *f_local_code_name,
         int      l_local_code_name,
@@ -2477,24 +2477,24 @@ CWP_Interp_nearest_neighbors_coord_get_cf
   c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id    = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_nearest_neighbors_coord_get(c_local_code_name,
-                                         c_cpl_id,
-                                         c_src_field_id,
-                                         i_part,
-                                         c_closest_src_coord);
+  CWP_Field_nearest_neighbors_coord_get(c_local_code_name,
+                                        c_cpl_id,
+                                        c_src_field_id,
+                                        i_part,
+                                        c_closest_src_coord);
 
   int  n_elt_tgt;
   int  n_referenced_tgt;
   int *referenced_tgt;
   int *tgt_come_from_src_idx;
-  CWP_Interp_tgt_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          &n_elt_tgt,
-                          &n_referenced_tgt,
-                          &referenced_tgt,
-                          &tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    &n_elt_tgt,
+                                    &n_referenced_tgt,
+                                    &referenced_tgt,
+                                    &tgt_come_from_src_idx);
   assert(n_elt_tgt == n_referenced_tgt);
 
   *n_closest_src_pts = tgt_come_from_src_idx[n_elt_tgt];
@@ -2518,7 +2518,7 @@ CWP_Interp_nearest_neighbors_coord_get_cf
  */
 
 void
-CWP_Interp_location_internal_cell_vtx_get_cf (
+CWP_Field_location_internal_cell_vtx_get_cf (
   const char *f_local_code_name,
   int l_local_code_name,
   const char *f_cpl_id,
@@ -2537,20 +2537,20 @@ CWP_Interp_location_internal_cell_vtx_get_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
-                                            c_cpl_id,
-                                            c_src_field_id,
-                                            i_part,
-                                            c_cell_vtx_idx,
-                                            c_cell_vtx);
+  CWP_Field_location_internal_cell_vtx_get(c_local_code_name,
+                                           c_cpl_id,
+                                           c_src_field_id,
+                                           i_part,
+                                           c_cell_vtx_idx,
+                                           c_cell_vtx);
 
   int *src_to_tgt_idx = NULL;
-  CWP_Interp_src_data_get(c_local_code_name,
-                          c_cpl_id,
-                          c_src_field_id,
-                          i_part,
-                          n_cell,
-                          &src_to_tgt_idx);
+  CWP_Field_src_data_properties_get(c_local_code_name,
+                                    c_cpl_id,
+                                    c_src_field_id,
+                                    i_part,
+                                    n_cell,
+                                    &src_to_tgt_idx);
 
   free ( c_local_code_name);
   free ( c_cpl_id);

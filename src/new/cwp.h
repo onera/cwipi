@@ -1532,7 +1532,7 @@ CWP_Field_dof_location_get
  */
 
 CWP_Dof_location_t
-CWP_Field_source_dof_location_get
+CWP_Field_dof_location_get
 (
  const char      *local_code_name,
  const char      *cpl_id,
@@ -1556,6 +1556,238 @@ CWP_Field_storage_get
  const char      *local_code_name,
  const char      *cpl_id         ,
  const char      *field_id
+);
+
+/**
+ *
+ * \brief Get spatial interpolation number of algorithms.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ *
+ */
+
+int
+CWP_Field_n_components_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id
+);
+
+/**
+ *
+ * \brief Get spatial interpolation source data.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_src                 Number of source elements
+ * \param [out] src_to_tgt_idx            Source elements to target elements index
+ *
+ */
+
+void
+CWP_Field_src_data_properties_get
+(
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const char   *field_id,
+ int           i_part,
+ int          *n_elt_src,
+ int         **src_to_tgt_idx
+);
+
+/**
+ *
+ * \brief Get spatial interpolation target data.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] n_elt_tgt                 Number of target elements
+ * \param [out] n_referenced_tgt          Number of referenced target elements
+ * \param [out] referenced_tgt            Referenced target elements
+ * \param [out] tgt_come_from_src_idx     Target to origin source elements index
+ *
+ */
+
+void
+CWP_Field_tgt_data_properties_get
+(
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const char   *field_id,
+ int           i_part,
+ int          *n_elt_tgt,
+ int          *n_referenced_tgt,
+ int         **referenced_tgt,
+ int         **tgt_come_from_src_idx
+);
+
+/**
+ *
+ * \brief Get spatial interpolation weights (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] weights                   Spatial interpolation weights
+ *
+ */
+
+void
+CWP_Field_location_weights_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **weights
+);
+
+/**
+ *
+ * \brief Get spatial interpolation point data (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] points_coords             Cartesian coordinates of points inside local elements
+ * \param [out] points_uvw                Parametric coordinates of points inside local elements
+ * \param [out] points_dist2              Squared distance from points to elements
+ * \param [out] points_projected_coords   Cartesian coordinates of projection on points on local elements
+ *
+ */
+
+void
+CWP_Field_location_point_data_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **points_coords,
+ double               **points_uvw,
+ double               **points_dist2,
+ double               **points_projected_coords
+);
+
+/**
+ *
+ * \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
+ * \param [out] cell_vtx                  Local cell->vertex connectivity
+ *
+ */
+
+void
+CWP_Field_location_internal_cell_vtx_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ int                  **cell_vtx_idx,
+ int                  **cell_vtx
+);
+
+/**
+ *
+ * \brief Get spatial interpolation volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] volumes                   Volumes of intersection polyhedra
+ *
+ */
+
+void
+CWP_Field_intersection_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **volumes
+);
+
+/**
+ *
+ * \brief Get spatial local target elements volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] tgt_elt_volumes           Volumes of local target elements
+ *
+ */
+
+void
+CWP_Field_intersection_tgt_elt_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **tgt_elt_volumes
+);
+
+/**
+ *
+ * \brief Get spatial interpolation distances (nearest neighbors algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] distances2                Squared distances from nearest source points
+ *
+ */
+
+void
+CWP_Field_nearest_neighbors_distances_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **distances2
+);
+
+/**
+ *
+ * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] nearest_src_coord         Coordinates of nearest source points
+ *
+ */
+
+void
+CWP_Field_nearest_neighbors_coord_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **nearest_src_coord
 );
 
 /**
@@ -1710,238 +1942,6 @@ CWP_Field_interp_function_set
  const char                 *cpl_id,
  const char                 *field_id,
  CWP_Interp_function_t       fct
-);
-
-/**
- *
- * \brief Get spatial interpolation number of algorithms.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- *
- */
-
-int
-CWP_Interp_field_n_components_get
-(
- const char             *local_code_name,
- const char             *cpl_id,
- const char             *field_id
-);
-
-/**
- *
- * \brief Get spatial interpolation source data.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] n_elt_src                 Number of source elements
- * \param [out] src_to_tgt_idx            Source elements to target elements index
- *
- */
-
-void
-CWP_Interp_src_data_get
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *field_id,
- int           i_part,
- int          *n_elt_src,
- int         **src_to_tgt_idx
-);
-
-/**
- *
- * \brief Get spatial interpolation target data.
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] n_elt_tgt                 Number of target elements
- * \param [out] n_referenced_tgt          Number of referenced target elements
- * \param [out] referenced_tgt            Referenced target elements
- * \param [out] tgt_come_from_src_idx     Target to origin source elements index
- *
- */
-
-void
-CWP_Interp_tgt_data_get
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *field_id,
- int           i_part,
- int          *n_elt_tgt,
- int          *n_referenced_tgt,
- int         **referenced_tgt,
- int         **tgt_come_from_src_idx
-);
-
-/**
- *
- * \brief Get spatial interpolation weights (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] weights                   Spatial interpolation weights
- *
- */
-
-void
-CWP_Interp_location_weights_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **weights
-);
-
-/**
- *
- * \brief Get spatial interpolation point data (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] points_coords             Cartesian coordinates of points inside local elements
- * \param [out] points_uvw                Parametric coordinates of points inside local elements
- * \param [out] points_dist2              Squared distance from points to elements
- * \param [out] points_projected_coords   Cartesian coordinates of projection on points on local elements
- *
- */
-
-void
-CWP_Interp_location_point_data_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **points_coords,
- double               **points_uvw,
- double               **points_dist2,
- double               **points_projected_coords
-);
-
-/**
- *
- * \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
- * \param [out] cell_vtx                  Local cell->vertex connectivity
- *
- */
-
-void
-CWP_Interp_location_internal_cell_vtx_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- int                  **cell_vtx_idx,
- int                  **cell_vtx
-);
-
-/**
- *
- * \brief Get spatial interpolation volumes (intersection algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] volumes                   Volumes of intersection polyhedra
- *
- */
-
-void
-CWP_Interp_intersection_volumes_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **volumes
-);
-
-/**
- *
- * \brief Get spatial local target elements volumes (intersection algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] tgt_elt_volumes           Volumes of local target elements
- *
- */
-
-void
-CWP_Interp_intersection_tgt_elt_volumes_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **tgt_elt_volumes
-);
-
-/**
- *
- * \brief Get spatial interpolation distances (nearest neighbors algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] distances2                Squared distances from nearest source points
- *
- */
-
-void
-CWP_Interp_nearest_neighbors_distances_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **distances2
-);
-
-/**
- *
- * \brief Get coordinates of nearest source points (nearest neighbors algorithm).
- *
- * \param [in]  local_code_name           Local code name
- * \param [in]  cpl_id                    Coupling identifier
- * \param [in]  field_id                  Field identifier
- * \param [in]  i_part                    Partition identifier
- * \param [out] nearest_src_coord         Coordinates of nearest source points
- *
- */
-
-void
-CWP_Interp_nearest_neighbors_coord_get
-(
- const char            *local_code_name,
- const char            *cpl_id,
- const char            *field_id,
- int                    i_part,
- double               **nearest_src_coord
 );
 
 /*----------------------------------------------------------------------------*

@@ -68,16 +68,16 @@
     cpl_id          => CWP_C_to_f_string (c_cpl_id)
     field_id        => CWP_C_to_f_string (c_field_id)
 
-    n_components = CWP_Interp_field_n_components_get(local_code_name, &
-                                                     cpl_id,          &
-                                                     field_id)
+    n_components = CWP_Field_n_components_get(local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
 
-    call CWP_Interp_src_data_get(local_code_name, &
-                                 cpl_id,          &
-                                 field_id,        &
-                                 i_part,          &
-                                 n_elt_src,       &
-                                 src_to_tgt_idx)
+    call CWP_Field_src_data_properties_get(local_code_name, &
+                                           cpl_id,          &
+                                           field_id,        &
+                                           i_part,          &
+                                           n_elt_src,       &
+                                           src_to_tgt_idx)
 
     dof_location = CWP_Field_dof_location_get(local_code_name, &
                                               cpl_id,          &
@@ -97,20 +97,20 @@
 
     if (dof_location == CWP_DOF_LOCATION_NODE) then
 
-      call CWP_Interp_location_internal_cell_vtx_get(local_code_name, &
-                                                     cpl_id,          &
-                                                     field_id,        &
-                                                     i_part,          &
-                                                     cell_vtx_idx,    &
-                                                     cell_vtx)
+      call CWP_Field_location_internal_cell_vtx_get(local_code_name, &
+                                                    cpl_id,          &
+                                                    field_id,        &
+                                                    i_part,          &
+                                                    cell_vtx_idx,    &
+                                                    cell_vtx)
 
       call c_f_pointer(c_buffer_in, buffer_in, [cell_vtx_idx(n_elt_src+1) * n_components]) ! oversized but should be ok
 
-      call CWP_Interp_location_weights_get(local_code_name, &
-                                           cpl_id,          &
-                                           field_id,        &
-                                           i_part,          &
-                                           weights)
+      call CWP_Field_location_weights_get(local_code_name, &
+                                          cpl_id,          &
+                                          field_id,        &
+                                          i_part,          &
+                                          weights)
 
 
       idx = 0
@@ -625,19 +625,19 @@ program testf
                                field_name)
 
 
-    call CWP_Interp_src_data_get(code_names(1), &
-                                 coupling_name, &
-                                 field_name,    &
-                                 0,             &
-                                 n_elt_src,     &
-                                 src_to_tgt_idx)
-    call CWP_Interp_location_weights_get(code_names(1), &
-                                         coupling_name, &
-                                         field_name,    &
-                                         0,             &
-                                         interp_weights)
+    call CWP_Field_src_data_properties_get(code_names(1), &
+                                           coupling_name, &
+                                           field_name,    &
+                                           0,             &
+                                           n_elt_src,     &
+                                           src_to_tgt_idx)
+    call CWP_Field_location_weights_get(code_names(1), &
+                                        coupling_name, &
+                                        field_name,    &
+                                        0,             &
+                                        interp_weights)
     if (debug) then
-      write(iiunit,*) "-- CWP_Interp_src_data_get & CWP_Interp_location_weights_get --"
+      write(iiunit,*) "-- CWP_Field_src_data_properties_get & CWP_Field_location_weights_get --"
       write(iiunit,*) "n_elt_src      : ", n_elt_src
       write(iiunit,*) "src_to_tgt_idx : ", src_to_tgt_idx
       write(iiunit,*) "interp_weights : ", interp_weights
@@ -648,16 +648,16 @@ program testf
                               coupling_name, &
                               field_name)
 
-    call CWP_Interp_tgt_data_get(code_names(1), &
-                                 coupling_name, &
-                                 field_name,    &
-                                 0,             &
-                                 n_elt_tgt,     &
-                                 n_ref_tgt,     &
-                                 ref_tgt,       &
-                                 tgt_to_src_idx)
+    call CWP_Field_tgt_data_properties_get(code_names(1), &
+                                           coupling_name, &
+                                           field_name,    &
+                                           0,             &
+                                           n_elt_tgt,     &
+                                           n_ref_tgt,     &
+                                           ref_tgt,       &
+                                           tgt_to_src_idx)
     if (debug) then
-      write(iiunit,*) "-- CWP_Interp_tgt_data_get --"
+      write(iiunit,*) "-- CWP_Field_tgt_data_properties_get --"
       write(iiunit,*) "n_elt_tgt      : ", n_elt_tgt
       write(iiunit,*) "n_ref_tgt      : ", n_ref_tgt
       write(iiunit,*) "ref_tgt        : ", ref_tgt

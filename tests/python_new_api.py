@@ -29,9 +29,9 @@ def my_interpolation(field,
                      buffer_in,
                      buffer_out):
 
-    src_data = field.interp_src_data_get(i_part)
-    weights  = field.interp_location_weights_get(i_part)
-    connec   = field.interp_location_internal_cell_vtx_get(i_part)
+    src_data = field.src_data_properties_get(i_part)
+    weights  = field.location_weights_get(i_part)
+    connec   = field.location_internal_cell_vtx_get(i_part)
 
     buffer_out[:] = 0
 
@@ -325,7 +325,7 @@ def runTest():
         f.flush()
 
         # USER INTERPOLATION
-        f.write("cpl.interp_from_location_set:\n")
+        f.write("field.interp_function_set:\n")
         f.flush()
         field.interp_function_set(my_interpolation)
 

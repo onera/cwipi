@@ -157,18 +157,18 @@ _my_interpolation
   int  n_referenced_tgt      = 0;
   int *referenced_tgt        = NULL;
   int *tgt_come_from_src_idx = NULL;
-  CWP_Interp_tgt_data_get(local_code_name,
-                          cpl_id,
-                          field_id,
-                          i_part,
-                          &n_elt_tgt,
-                          &n_referenced_tgt,
-                          &referenced_tgt,
-                          &tgt_come_from_src_idx);
+  CWP_Field_tgt_data_properties_get(local_code_name,
+                                    cpl_id,
+                                    field_id,
+                                    i_part,
+                                    &n_elt_tgt,
+                                    &n_referenced_tgt,
+                                    &referenced_tgt,
+                                    &tgt_come_from_src_idx);
 
-  int n_components = CWP_Interp_field_n_components_get(local_code_name,
-                                                       cpl_id,
-                                                       field_id);
+  int n_components = CWP_Field_n_components_get(local_code_name,
+                                                cpl_id,
+                                                field_id);
 
   for (int i = 0; i < n_elt_tgt * n_components; i++) {
     buffer_out[i] = 0.;

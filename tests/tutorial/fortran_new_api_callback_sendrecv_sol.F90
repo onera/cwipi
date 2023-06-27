@@ -38,16 +38,16 @@
     field_id        => CWP_C_to_f_string(c_field_id)
 
 
-    n_components = CWP_Interp_field_n_components_get(local_code_name, &
-                                                     cpl_id,          &
-                                                     field_id)
+    n_components = CWP_Field_n_components_get(local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
 
-    call CWP_Interp_src_data_get(local_code_name, &
-                                 cpl_id,          &
-                                 field_id,        &
-                                 i_part,          &
-                                 n_elt_src,       &
-                                 src_to_tgt_idx)
+    call CWP_Field_src_data_properties_get(local_code_name, &
+                                           cpl_id,          &
+                                           field_id,        &
+                                           i_part,          &
+                                           n_elt_src,       &
+                                           src_to_tgt_idx)
 
     call c_f_pointer(c_buffer_in,  buffer_in,  [n_elt_src])
     call c_f_pointer(c_buffer_out, buffer_out, [src_to_tgt_idx(n_elt_src+1)])
