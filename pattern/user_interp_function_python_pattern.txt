@@ -3,87 +3,91 @@
 # function (ie. callback) to retrieve local geometric data.
 #=============================================================================
 
-# IMPORT
-
 import sys
 
-try:
-  from pycwp import pycwp
-except:
-  if i_rank == 0:
-    print("      Error : CWIPI module not found (update PYTHONPATH variable)")
-    sys.exit(1)
+def user_interp_function_python(field,
+                                i_part,
+                                buffer_in,
+                                buffer_out):
 
-# GENERAL GEOMETRIC DATA
+  # IMPORT
 
-# Get the number of components of the field
+  try:
+    from pycwp import pycwp
+  except:
+    if i_rank == 0:
+      print("      Error : CWIPI module not found (update PYTHONPATH variable)")
+      sys.exit(1)
 
-n_components = field.n_components
+  # GENERAL GEOMETRIC DATA
 
-# Get the field data storage type
+  # Get the number of components of the field
 
-storage = field.storage
+  n_components = field.n_components
 
-# Get the location of the degrees of freedom
+  # Get the field data storage type
 
-dof_location = field.dof_location
+  storage = field.storage
 
-# Get data from the source of the exchange
+  # Get the location of the degrees of freedom
 
-src_data = field.interp_src_data_get(i_part)
+  dof_location = field.dof_location
 
-n_elt_src      = src_data["n_src"]
-src_to_tgt_idx = src_data["src_to_tgt_idx"]
+  # Get data from the source of the exchange
 
-# Get data from the target of the exchange
+  src_data = field.src_data_properties_get(i_part)
 
-tgt_data = field.interp_tgt_data_get(i_part)
+  n_elt_src      = src_data["n_src"]
+  src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
-n_tgt          = tgt_data["n_tgt"]
-ref_tgt        = tgt_data["computed_tgt"]
-tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
+  # Get data from the target of the exchange
 
+  tgt_data = field.tgt_data_properties_get(i_part)
 
-spatial_interp_algorithm = field.spatial_interp_algo
+  n_tgt          = tgt_data["n_tgt"]
+  ref_tgt        = tgt_data["computed_tgt"]
+  tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
-# LOCATION SPATIAL INTERPOLATION ALGORITHM
+  spatial_interp_algorithm = field.spatial_interp_algo
 
-# Get the weights computed by the location spatial interpolation algorithm
+  # LOCATION SPATIAL INTERPOLATION ALGORITHM
 
-weights = field.interp_location_weights_get(i_part)
+  # Get the weights computed by the location spatial interpolation algorithm
 
-# Get the point data
+  weights = field.location_weights_get(i_part)
 
-point_data = interp_location_point_data_get(i_part)
+  # Get the point data
 
-points_coords           = point_data["points_coords"]
-points_uvw              = point_data["points_uvw"]
-points_dist2            = point_data["points_dist2"]
-points_projected_coords = point_data["points_projected_coords"]
+  point_data = location_point_data_get(i_part)
 
-# Get the spatial interpolation internal cell->vertex connectivity
+  points_coords           = point_data["points_coords"]
+  points_uvw              = point_data["points_uvw"]
+  points_dist2            = point_data["points_dist2"]
+  points_projected_coords = point_data["points_projected_coords"]
 
-connectivity_data = field.interp_location_internal_cell_vtx_get(i_part)
+  # Get the spatial interpolation internal cell->vertex connectivity
 
-cell_vtx_idx = connectivity_data["cell_vtx_idx"]
-cell_vtx     = connectivity_data["cell_vtx"]
+  connectivity_data = field.location_internal_cell_vtx_get(i_part)
 
-# INTERSECTION SPATIAL INTERPOLATION ALGORITHM
+  cell_vtx_idx = connectivity_data["cell_vtx_idx"]
+  cell_vtx     = connectivity_data["cell_vtx"]
 
-# Get the intersection volumes
+  # INTERSECTION SPATIAL INTERPOLATION ALGORITHM
 
-volumes = field.interp_intersection_volumes_get(i_part)
+  # Get the intersection volumes
 
-# Get local target elements volumes
+  volumes = field.intersection_volumes_get(i_part)
 
-elt_tgt_volume = field.intersection_tgt_elt_volumes_get(i_part)
+  # Get local target elements volumes
 
-# NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
+  elt_tgt_volume = field.intersection_tgt_elt_volumes_get(i_part)
 
-# Get squared distances to nearest source points
+  # NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-distances2 = field.interp_nearest_neighbors_distances_get(i_part)
+  # Get squared distances to nearest source points
 
-# Get coordinates of nearest source points
+  distances2 = field.nearest_neighbors_distances_get(i_part)
 
-clst_src_point_coords = field.interp_nearest_neighbors_coord_get(i_part)
+  # Get coordinates of nearest source points
+
+  clst_src_point_coords = field.nearest_neighbors_coord_get(i_part)

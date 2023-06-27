@@ -3,179 +3,194 @@
 ! function (ie. callback) to retrieve local geometric data.
 !=============================================================================
 
-! VARIABLES
+subroutine user_interp_function_fortran(c_local_code_name,        &
+                                        c_cpl_id,                 &
+                                        c_field_id,               &
+                                        i_part,                   &
+                                        c_buffer_in,              &
+                                        c_buffer_out)             &
+    bind(c)
+    use, intrinsic :: iso_c_binding
 
-! --> of the user interpolation function
+    use cwp
 
-character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-integer(kind = c_int)             :: i_part
-integer(kind = c_int)             :: spatial_interp_algorithm
-integer(kind = c_int)             :: storage
-type(c_ptr), value                :: c_buffer_in
-type(c_ptr), value                :: c_buffer_out
+    implicit none
 
-! --> Fortran specific
+    ! VARIABLES
 
-real(kind = c_double), pointer    :: buffer_in(:)  => null()
-real(kind = c_double), pointer    :: buffer_out(:) => null()
+    ! --> of the user interpolation function
 
-! --> for general geometric data
+    character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int)             :: i_part
+    integer(kind = c_int)             :: spatial_interp_algorithm
+    integer(kind = c_int)             :: storage
+    type(c_ptr), value                :: c_buffer_in
+    type(c_ptr), value                :: c_buffer_out
 
-integer(kind = c_int)           :: n_components
-integer(kind = c_int)           :: storage
-integer(kind = c_int)           :: dof_location
+    ! --> Fortran specific
 
-integer(kind = c_int)           :: n_elt_src
-integer(kind = c_int), pointer  :: src_to_tgt_idx(:) => null()
+    real(kind = c_double), pointer    :: buffer_in(:)  => null()
+    real(kind = c_double), pointer    :: buffer_out(:) => null()
 
-integer(kind = c_int)           :: n_elt_tgt
-integer(kind = c_int)           :: n_referenced_tgt
-integer(kind = c_int), pointer  :: referenced_tgt(:)        => null()
-integer(kind = c_int), pointer  :: tgt_come_from_src_idx(:) => null()
+    ! --> for general geometric data
 
-! --> for location spatial interpolation algorithm
+    integer(kind = c_int)           :: n_components
+    integer(kind = c_int)           :: storage
+    integer(kind = c_int)           :: dof_location
 
-double precision, dimension(:), pointer :: weights(:) => null()
+    integer(kind = c_int)           :: n_elt_src
+    integer(kind = c_int), pointer  :: src_to_tgt_idx(:) => null()
 
-double precision, dimension(:), pointer :: points_coords(:)           => null()
-double precision, dimension(:), pointer :: points_uvw(:)              => null()
-double precision, dimension(:), pointer :: points_dist2(:)            => null()
-double precision, dimension(:), pointer :: points_projected_coords(:) => null()
+    integer(kind = c_int)           :: n_elt_tgt
+    integer(kind = c_int)           :: n_referenced_tgt
+    integer(kind = c_int), pointer  :: referenced_tgt(:)        => null()
+    integer(kind = c_int), pointer  :: tgt_come_from_src_idx(:) => null()
 
-integer(kind = c_int),          pointer :: cell_vtx_idx(:) => null()
-integer(kind = c_int),          pointer :: cell_vtx(:)     => null()
+    ! --> for location spatial interpolation algorithm
 
-! --> for intersection spatial interpolation algorithm
+    double precision, dimension(:), pointer :: weights(:) => null()
 
-double precision, dimension(:), pointer :: volumes(:)         => null()
-double precision, dimension(:), pointer :: tgt_elt_volumes(:) => null()
+    double precision, dimension(:), pointer :: points_coords(:)           => null()
+    double precision, dimension(:), pointer :: points_uvw(:)              => null()
+    double precision, dimension(:), pointer :: points_dist2(:)            => null()
+    double precision, dimension(:), pointer :: points_projected_coords(:) => null()
 
-! --> for nearest neighbors spatial interpolation algorithm
+    integer(kind = c_int),          pointer :: cell_vtx_idx(:) => null()
+    integer(kind = c_int),          pointer :: cell_vtx(:)     => null()
 
-double precision, dimension(:), pointer :: distances2(:)        => null()
-double precision, dimension(:), pointer :: nearest_src_coord(:) => null()
+    ! --> for intersection spatial interpolation algorithm
 
-! GENERAL GEOMETRIC DATA
+    double precision, dimension(:), pointer :: volumes(:)         => null()
+    double precision, dimension(:), pointer :: tgt_elt_volumes(:) => null()
 
-! Get the number of components of the field
+    ! --> for nearest neighbors spatial interpolation algorithm
 
-n_components = CWP_Interp_field_n_components_get(local_code_name, &
-                                                 cpl_id,          &
-                                                 field_id)
+    double precision, dimension(:), pointer :: distances2(:)        => null()
+    double precision, dimension(:), pointer :: nearest_src_coord(:) => null()
 
-! Get the field data storage type
+    ! GENERAL GEOMETRIC DATA
 
-storage = CWP_Field_storage_get(local_code_name, &
-                                cpl_id,          &
-                                field_id)
+    ! Get the number of components of the field
 
-! Get the location of the degrees of freedom
+    n_components = CWP_Field_n_components_get(local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
 
-dof_location = CWP_Field_dof_location_get(local_code_name, &
-                                          cpl_id,          &
-                                          field_id)
+    ! Get the field data storage type
 
-! Get data from the source of the exchange
+    storage = CWP_Field_storage_get(local_code_name, &
+                                    cpl_id,          &
+                                    field_id)
 
-call CWP_Interp_src_data_get(local_code_name, &
-                             cpl_id,          &
-                             field_id,        &
-                             i_part,          &
-                             n_elt_src,       &
-                             src_to_tgt_idx)
+    ! Get the location of the degrees of freedom
 
-! Get data from the target of the exchange
+    dof_location = CWP_Field_dof_location_get(local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
 
-call CWP_Interp_tgt_data_get(local_code_name,    &
-                            cpl_id,              &
-                            field_id,            &
-                            i_part,              &
-                            n_elt_tgt,           &
-                            n_referenced_tgt,    &
-                            referenced_tgt,      &
-                            tgt_come_from_src_idx)
+    ! Get data from the source of the exchange
 
-! Transform input C pointers to Fortran pointers
+    call CWP_Field_src_data_properties_get(local_code_name, &
+                                           cpl_id,          &
+                                           field_id,        &
+                                           i_part,          &
+                                           n_elt_src,       &
+                                           src_to_tgt_idx)
 
-if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT .or. &
-    spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE .or. &
-    spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) then
+    ! Get data from the target of the exchange
 
-  call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * n_elt_src])
-  call c_f_pointer(c_buffer_out, buffer_out, [n_components * src_to_tgt_idx(n_elt_src+1)])
+    call CWP_Field_tgt_data_properties_get(local_code_name,    &
+                                           cpl_id,              &
+                                           field_id,            &
+                                           i_part,              &
+                                           n_elt_tgt,           &
+                                           n_referenced_tgt,    &
+                                           referenced_tgt,      &
+                                           tgt_come_from_src_idx)
 
-else if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES .or. &
-         spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES .or. &
-         spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION .or. &
-         spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) then
+    ! Transform input C pointers to Fortran pointers
 
-  call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * tgt_come_from_src_idx(n_referenced_tgt)])
-  call c_f_pointer(c_buffer_out, buffer_out, [n_components * n_elt_tgt])
+    if (spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT .or. &
+        spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE .or. &
+        spatial_interp_algorithm == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) then
 
-endif
+      call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * n_elt_src])
+      call c_f_pointer(c_buffer_out, buffer_out, [n_components * src_to_tgt_idx(n_elt_src+1)])
 
-! LOCATION SPATIAL INTERPOLATION ALGORITHM
+    else if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES .or. &
+             spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES .or. &
+             spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION .or. &
+             spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) then
 
-! Get the weights computed by the location spatial interpolation algorithm
+      call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * tgt_come_from_src_idx(n_referenced_tgt)])
+      call c_f_pointer(c_buffer_out, buffer_out, [n_components * n_elt_tgt])
 
-call CWP_Interp_location_weights_get(local_code_name, &
-                                    cpl_id,           &
-                                    field_id,         &
-                                    i_part,           &
-                                    weights)
+    endif
 
-! Get the point data
+    ! LOCATION SPATIAL INTERPOLATION ALGORITHM
 
-call CWP_Interp_location_point_data_get(local_code_name,       &
-                                        cpl_id,                &
-                                        field_id,              &
-                                        i_part,                &
-                                        points_coords,         &
-                                        points_uvw,            &
-                                        points_dist2,          &
-                                        points_projected_coords)
+    ! Get the weights computed by the location spatial interpolation algorithm
 
-! Get the spatial interpolation internal cell->vertex connectivity
+    call CWP_Field_location_weights_get(local_code_name, &
+                                        cpl_id,           &
+                                        field_id,         &
+                                        i_part,           &
+                                        weights)
 
-call CWP_Interp_location_internal_cell_vtx_get(local_code_name, &
-                                              cpl_id,           &
-                                              field_id,         &
-                                              i_part,           &
-                                              cell_vtx_idx,     &
-                                              cell_vtx)
+    ! Get the point data
 
-! INTERSECTION SPATIAL INTERPOLATION ALGORITHM
+    call CWP_Field_location_point_data_get(local_code_name,       &
+                                           cpl_id,                &
+                                           field_id,              &
+                                           i_part,                &
+                                           points_coords,         &
+                                           points_uvw,            &
+                                           points_dist2,          &
+                                           points_projected_coords)
 
-! Get the intersection volumes
+    ! Get the spatial interpolation internal cell->vertex connectivity
 
-call CWP_Interp_intersection_volumes_get(local_code_name, &
-                                         cpl_id,          &
-                                         field_id,        &
-                                         i_part,          &
-                                         volumes)
+    call CWP_Field_location_internal_cell_vtx_get(local_code_name, &
+                                                 cpl_id,           &
+                                                 field_id,         &
+                                                 i_part,           &
+                                                 cell_vtx_idx,     &
+                                                 cell_vtx)
 
-! Get local target elements volumes
+    ! INTERSECTION SPATIAL INTERPOLATION ALGORITHM
 
-call CWP_Interp_intersection_tgt_elt_volumes_get(local_code_name, &
-                                                 cpl_id,          &
-                                                 field_id,        &
-                                                 i_part,          &
-                                                 tgt_elt_volumes)
+    ! Get the intersection volumes
 
-! NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
+    call CWP_Field_intersection_volumes_get(local_code_name, &
+                                            cpl_id,          &
+                                            field_id,        &
+                                            i_part,          &
+                                            volumes)
 
-! Get squared distances to nearest source points
+    ! Get local target elements volumes
 
-call CWP_Interp_nearest_points_distances_get(local_code_name, &
-                                             cpl_id,          &
-                                             field_id,        &
-                                             i_part,          &
-                                             distances2)
+    call CWP_Field_intersection_tgt_elt_volumes_get(local_code_name, &
+                                                    cpl_id,          &
+                                                    field_id,        &
+                                                    i_part,          &
+                                                    tgt_elt_volumes)
 
-! Get coordinates of nearest source points
+    ! NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM
 
-call CWP_Interp_nearest_points_coord_get(local_code_name, &
-                                         cpl_id,          &
-                                         field_id,        &
-                                         i_part,          &
-                                         nearest_src_coord)
+    ! Get squared distances to nearest source points
+
+    call CWP_Field_nearest_points_distances_get(local_code_name, &
+                                                cpl_id,          &
+                                                field_id,        &
+                                                i_part,          &
+                                                distances2)
+
+    ! Get coordinates of nearest source points
+
+    call CWP_Field_nearest_points_coord_get(local_code_name, &
+                                            cpl_id,          &
+                                            field_id,        &
+                                            i_part,          &
+                                            nearest_src_coord)
+
+end subroutine user_interp_function_fortran
