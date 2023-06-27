@@ -417,7 +417,7 @@ uint32_t Communication::_adler32
 
 uint32_t Communication::_get_tag
 (
-const string    global_data_id,
+const string    name,
 MPI_Comm        comm,
 int             offset
 )
@@ -428,8 +428,8 @@ int             offset
   MPI_Comm_get_attr(comm, MPI_TAG_UB, &maxTagTmp, &flag);
   int maxTag = (int) *maxTagTmp;
 
-  uint32_t mpi_tag = ((_adler32 (global_data_id.c_str(),
-        global_data_id.size()) + offset)% (maxTag - 1)) + 1;
+  uint32_t mpi_tag = ((_adler32 (name.c_str(),
+        name.size()) + offset)% (maxTag - 1)) + 1;
 
   return mpi_tag;
 }

@@ -151,6 +151,30 @@ namespace cwipi {
       return _recv_buffer;
     }
 
+    inline int
+    get_n_send_calls()
+    {
+      return _n_send_calls;
+    }
+
+    inline int
+    get_n_recv_calls()
+    {
+      return _n_recv_calls;
+    }
+
+    inline int
+    get_send_request()
+    {
+      return _send_request;
+    }
+
+    inline int
+    get_recv_request()
+    {
+      return _recv_request;
+    }
+
     // Setters
 
     inline void
@@ -225,12 +249,41 @@ namespace cwipi {
       _recv_buffer = recv_buffer;
     }
 
-    int
-    get_tag
+    inline void
+    incr_n_send_calls
     (
-     const std::string    global_data_id,
-     MPI_Comm        comm
-    );
+     void
+    )
+    {
+      _n_send_calls++;
+    }
+
+    inline void
+    incr_n_recv_calls
+    (
+     void
+    )
+    {
+      _n_recv_calls++;
+    }
+
+    inline void
+    set_send_request
+    (
+     int new_send_request
+    )
+    {
+      _send_request = new_send_request;
+    }
+
+    inline void
+    set_recv_request
+    (
+     int new_recv_request
+    )
+    {
+      _recv_request = new_recv_request;
+    }
 
   private:
 
@@ -252,12 +305,16 @@ namespace cwipi {
     int            _n_part1;
     void         **_part1_to_part2_data;
     int          **_part1_to_part2_idx;
+    int           _send_request;
+    int           _n_send_calls;
 
     // recv
     CWP_g_num_t  **_gnum_elt2;
     int           *_n_elt2;
     int            _n_part2;
     void         **_part2_data;
+    int            _recv_request;
+    int            _n_recv_calls;
 
     // intern
     void         **_recv_buffer;

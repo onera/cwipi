@@ -628,13 +628,24 @@ namespace cwipi {
     MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.get_ptp();
 
-    int mpi_tag = it->second.get_tag(part_data_id,
-                                     unionComm);
-
     // set
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
     it->second.set_part1_to_part2_data(part1_to_part2_data);
+
+    // create mpi tag using part_data name and send number
+    int n_send_calls = it->second.get_n_send_calls();
+    int mpi_tag = _communication._get_tag(part_data_id,
+                                          unionComm,
+                                          n_send_calls);
+
+    // get request
+    int send_request = it->second.get_send_request();
+
+    // check not several send in a row without wait interspersed
+    if (send_request >= -1) {
+      PDM_error(__FILE__, __LINE__, 0, "Issend has already been called for partData %s. No wait_issend has been interspersed.\n", part_data_id);
+    }
 
     // launch issend
     if (_coupledCodeProperties.localCodeIs()) {
@@ -643,15 +654,21 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      // executes if irecv first
-      if (0) { // TODO replace condition on number of sent
+      // get request
+      int recv_request = it->second.get_recv_request();
+
+
+      // to ensure all data has been set, issend will work if irecv executed first
+      if (recv_request == -1) { // -1 means irecv has already executed
 
         PDM_part_to_part_issend(ptp,
                                 s_data,
                                 n_components,
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
-                                0); // choose a request TODO
+                                &send_request);
+
+        it->second.set_send_request(send_request);
 
         void **recv_buffer = NULL;
         int   *n_elt2      = cpl_it->second.get_n_elt2();
@@ -671,9 +688,14 @@ namespace cwipi {
                                n_components,
                                recv_buffer,
                                mpi_tag,
-                               0); // choose a request TODO
+                               &recv_request);
+
+        cpl_it->second.set_recv_request(recv_request);
 
       } // local code works
+      else {
+        it->second.set_send_request(-1);
+      }
     } // joint
     else {
 
@@ -682,9 +704,14 @@ namespace cwipi {
                               n_components,
                               (const void**) part1_to_part2_data,
                               mpi_tag,
-                              0); // choose a request TODO
+                              &send_request);
+
+      it->second.set_send_request(send_request);
 
     } // not joint
+
+    // increment exchange counter
+    it->second.incr_n_send_calls();
   }
 
   /**
@@ -712,13 +739,24 @@ namespace cwipi {
     MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.get_ptp();
 
-    int mpi_tag = it->second.get_tag(part_data_id,
-                                     unionComm);
-
     // set
     it->second.set_part2_data(part2_data);
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
+
+    // create mpi tag using part_data name and send number
+    int n_recv_calls = it->second.get_n_recv_calls();
+    int mpi_tag = _communication._get_tag(part_data_id,
+                                          unionComm,
+                                          n_recv_calls);
+
+    // get request
+    int recv_request = it->second.get_recv_request();
+
+    // check not several recv in a row without wait interspersed
+    if (recv_request >= -1) {
+      PDM_error(__FILE__, __LINE__, 0, "Irecv has already been called for partData %s. No wait_irecv has been interspersed.\n", part_data_id);
+    }
 
     void **recv_buffer = NULL;
     // launch irecv
@@ -728,8 +766,11 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      // executes if issend first
-      if (0) { // TODO condition
+      // get request
+      int send_request = cpl_it->second.get_send_request();
+
+      // to ensure all data has been set, irecv will work if issend executed first
+      if (send_request == -1) { // -1 means issend has already executed
 
         // malloc
         // int *n_elt2  = it->second.get_n_elt2();
@@ -756,7 +797,9 @@ namespace cwipi {
                                n_components,
                                recv_buffer,
                                mpi_tag,
-                               0); // choose a request TODO
+                               &recv_request);
+
+        it->second.set_recv_request(recv_request);
 
         void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
         assert(part1_to_part2_data != NULL); // TO DO
@@ -766,9 +809,14 @@ namespace cwipi {
                                 n_components,
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
-                                0); // choose a request TODO
+                                &send_request);
+
+        cpl_it->second.set_send_request(send_request);
 
       } // local code works
+      else {
+        it->second.set_recv_request(-1);
+      }
     } // joint
     else {
 
@@ -797,9 +845,14 @@ namespace cwipi {
                              n_components,
                              recv_buffer,
                              mpi_tag,
-                             0); // choose a request TODO
+                             &recv_request);
+
+      it->second.set_recv_request(recv_request);
 
     } // not joint
+
+    // increment exchange counter
+    it->second.incr_n_recv_calls();
   }
 
   /**
@@ -899,27 +952,35 @@ namespace cwipi {
 
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
+        // get requests
+        int send_request = it->second.get_send_request();
+        int recv_request = cpl_it->second.get_recv_request();
+
         PDM_part_to_part_issend_wait(ptp,
-                                     0); // choose a request TODO
+                                     send_request);
 
         PDM_part_to_part_irecv_wait(ptp,
-                                    0); // choose a request TODO
-
-        // set to NULL to prepare next send
-        // TODO are there things to reset for next step??
+                                    recv_request);
 
         // filter
         partDatafilter(cpl_it);
+
+        // reset
+        cpl_it->second.set_recv_request(-2);
+        it->second.set_send_request(-2);
 
       } // local code works
     } // joint
     else {
 
-      PDM_part_to_part_issend_wait(ptp,
-                                   0); // choose a request TODO
+      // get request
+      int send_request = it->second.get_send_request();
 
-      // set to NULL to prepare next send
-      // TODO reset for next step
+      PDM_part_to_part_issend_wait(ptp,
+                                   send_request);
+
+      // reset
+      it->second.set_send_request(-2);
 
     } // not joint
   }
@@ -950,30 +1011,38 @@ namespace cwipi {
 
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
+        // get requests
+        int send_request = cpl_it->second.get_send_request();
+        int recv_request = it->second.get_recv_request();
+
         PDM_part_to_part_irecv_wait(ptp,
-                                    0); // choose a request TODO
+                                    recv_request);
 
         PDM_part_to_part_issend_wait(ptp,
-                                     0); // choose a request TODO
-
-        // set to NULL to prepare next send
-        // TODO reset for next step
+                                     send_request);
 
         // filter
         partDatafilter(it);
+
+        // reset
+        it->second.set_recv_request(-2);
+        cpl_it->second.set_send_request(-2);
 
       } // local code works
     } // joint
     else {
 
-      PDM_part_to_part_irecv_wait(ptp,
-                                  0); // choose a request TODO
+      // get request
+      int recv_request = it->second.get_recv_request();
 
-      // set to NULL to prepare next send
-      // TODO reset for next step
+      PDM_part_to_part_irecv_wait(ptp,
+                                  recv_request);
 
       // filter
       partDatafilter(it);
+
+      // reset
+      it->second.set_recv_request(-2);
 
     } // not joint
   }
@@ -1045,7 +1114,7 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n");
+      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n", global_data_id);
     }
     it = _globalData.find(global_data_id.c_str());
 

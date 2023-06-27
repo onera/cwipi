@@ -291,6 +291,20 @@ namespace cwipi {
      int tabSize
     ) = 0;
 */
+
+    /**
+     *
+     * \brief Get an adler code
+     *
+     */
+
+    uint32_t _get_tag
+    (
+     const string    name,
+     MPI_Comm        comm,
+     int             offset
+     );
+
   protected :
 
     /**
@@ -315,19 +329,6 @@ namespace cwipi {
     (
      const void *buf,
      size_t buflength
-     );
-
-    /**
-     *
-     * \brief Get an adler code
-     *
-     */
-
-    uint32_t _get_tag
-    (
-     const string    global_data_id,
-     MPI_Comm        comm,
-     int             offset
      );
 
     /**

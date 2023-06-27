@@ -371,27 +371,20 @@ def runTest():
                                                  exch_type,
                                                  mesh[icode]["pface_ln_to_gn"]))
 
-  request = [np.array([-13], dtype=np.int32)] * n_code
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
       part_data[icode].issend(stride,
-                              send_val,
-                              request[icode])
+                              send_val)
     else:
       part_data[icode].irecv(stride,
-                             recv_val,
-                             request[icode])
-
-  if verbose:
-    f.write("request : {}\n".format(request))
-    f.flush()
+                             recv_val)
 
   error = False
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      part_data[icode].wait_issend(request[icode][0])
+      part_data[icode].wait_issend()
     else:
-      part_data[icode].wait_irecv(request[icode][0])
+      part_data[icode].wait_irecv()
 
       # check received data
       for ipart in range(n_part[icode]):

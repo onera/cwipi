@@ -43,7 +43,11 @@ namespace cwipi {
   _part1_to_part2_data(NULL),
   _part1_to_part2_idx(NULL),
   _recv_buffer(NULL),
-  _filtered_gnum1_come_from(NULL)
+  _filtered_gnum1_come_from(NULL),
+  _recv_request(-2),
+  _n_recv_calls(0),
+  _send_request(-2),
+  _n_send_calls(0)
   {
     if (exch_type == CWP_PARTDATA_SEND) {
       _gnum_elt1 = gnum_elt;
@@ -79,25 +83,6 @@ namespace cwipi {
     }
 
     return (s2 << 16) | s1;
-  }
-
-  int
-  PartData::get_tag
-  (
-   const std::string    part_data_id,
-   MPI_Comm        comm
-  )
-  {
-    MPI_Aint  *maxTagTmp;
-    int flag;
-
-    MPI_Comm_get_attr(comm, MPI_TAG_UB, &maxTagTmp, &flag);
-    int maxTag = (int) *maxTagTmp;
-
-    uint32_t mpi_tag = (_adler32 (part_data_id.c_str(),
-                                  part_data_id.size())% (maxTag - 1)) + 1;
-
-    return mpi_tag;
   }
 
 }
