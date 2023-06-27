@@ -963,7 +963,7 @@ CWP_Field_wait_irecv_cf (
  */
 
 void
-CWP_Interp_function_set_cf (
+CWP_Field_interp_function_set_cf (
   const char                  *f_local_code_name,
         int                    l_local_code_name,
   const char                  *f_cpl_id,
@@ -987,7 +987,7 @@ CWP_Interp_function_set_cf (
  */
 
 void
-CWP_Interp_function_unset_cf (
+CWP_Field_interp_function_unset_cf (
   const char *f_local_code_name,
         int   l_local_code_name,
   const char *f_cpl_id,

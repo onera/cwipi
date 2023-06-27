@@ -595,10 +595,10 @@ program testf
 
   ! Set user-defined interpolation function
   if (code_names(1) == "code1") then
-    call CWP_Interp_function_set(code_names(1), &
-                                 coupling_name, &
-                                 field_name,    &
-                                 my_interpolation)
+    call CWP_Field_interp_function_set(code_names(1), &
+                                       coupling_name, &
+                                       field_name,    &
+                                       my_interpolation)
   endif
 
   !! Compute spatial interpolation weights

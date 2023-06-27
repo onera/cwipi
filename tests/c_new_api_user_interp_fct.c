@@ -229,7 +229,7 @@ main(int argc, char *argv[]) {
                        recv_buff);
   }
 
-  CWP_Interp_function_set(code_name[0], coupling_name, field_name, _locationUserInterpolation);
+  CWP_Field_interp_function_set(code_name[0], coupling_name, field_name, _locationUserInterpolation);
 
   MPI_Barrier(MPI_COMM_WORLD);
 

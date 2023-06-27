@@ -348,7 +348,7 @@ typedef enum {
  *
  * void (*CWP_Interp_function_t) defines the user interpolation
  * interface to take into account an user interpolation
- * Use \ref CWP_Interp_function_set to activate
+ * Use \ref CWP_Field_interp_function_set to activate
  * the function.
  *
  * \param [in]  local_code_name             Local code name
@@ -1681,7 +1681,7 @@ CWP_Field_wait_irecv
  */
 
 void
-CWP_Interp_function_unset
+CWP_Field_interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -1704,7 +1704,7 @@ CWP_Interp_function_unset
  */
 
 void
-CWP_Interp_function_set
+CWP_Field_interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,

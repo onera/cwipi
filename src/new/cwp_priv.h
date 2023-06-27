@@ -292,7 +292,7 @@ CWP_Part_data_n_ref_get
 
 
 void
-CWP_Interp_function_f_unset
+CWP_Field_interp_function_f_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -301,7 +301,7 @@ CWP_Interp_function_f_unset
 
 
 void
-CWP_Interp_function_f_set
+CWP_Field_interp_function_f_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -324,7 +324,7 @@ CWP_Field_python_object_set
 
 
 void
-CWP_Interp_function_p_set
+CWP_Field_interp_function_p_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -334,7 +334,7 @@ CWP_Interp_function_p_set
 
 
 void
-CWP_Interp_function_p_unset
+CWP_Field_interp_function_p_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,

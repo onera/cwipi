@@ -452,10 +452,10 @@ main
                        map_type,
                        field_ptr);
 
-    CWP_Interp_function_set(code_name[icode],
-                             cpl_name,
-                            field_name,
-                            _my_interpolation);
+    CWP_Field_interp_function_set(code_name[icode],
+                                  cpl_name,
+                                  field_name,
+                                  _my_interpolation);
   }
 
 

@@ -5084,9 +5084,9 @@ CWP_server_Interp_function_unset
   read_name(&src_field_id, svr);
 
   // launch
-  CWP_Interp_function_unset(local_code_name,
-                                 cpl_id,
-                                 src_field_id);
+  CWP_Field_interp_function_unset(local_code_name,
+                                  cpl_id,
+                                  src_field_id);
 
   // free
   free(local_code_name);

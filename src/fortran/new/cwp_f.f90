@@ -351,13 +351,13 @@ module cwp
         CWP_Field_wait_irecv_
     end interface CWP_Field_wait_irecv
 
-    interface CWP_Interp_function_unset ; module procedure &
-        CWP_Interp_function_unset_
-    end interface CWP_Interp_function_unset
+    interface CWP_Field_interp_function_unset ; module procedure &
+        CWP_Field_interp_function_unset_
+    end interface CWP_Field_interp_function_unset
 
-    interface CWP_Interp_function_set ; module procedure &
-        CWP_Interp_function_set_
-    end interface CWP_Interp_function_set
+    interface CWP_Field_interp_function_set ; module procedure &
+        CWP_Field_interp_function_set_
+    end interface CWP_Field_interp_function_set
 
     interface CWP_Interp_field_n_components_get ; module procedure &
         CWP_Interp_field_n_components_get_
@@ -544,8 +544,8 @@ module cwp
              CWP_Field_irecv_ ,&
              CWP_Field_wait_issend_ ,&
              CWP_Field_wait_irecv_ ,&
-             CWP_Interp_function_unset_ ,&
-             CWP_Interp_function_set_ ,&
+             CWP_Field_interp_function_unset_ ,&
+             CWP_Field_interp_function_set_ ,&
              CWP_Interp_field_n_components_get_, &
              CWP_Interp_src_data_get_, &
              CWP_Interp_tgt_data_get_, &
@@ -1008,26 +1008,26 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_tgt_field_id
       end subroutine CWP_Field_wait_irecv_cf
 
-      subroutine CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+      subroutine CWP_Field_interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
               field_id, l_field_id, user_interpolation_fct) &
-              bind(c, name = 'CWP_Interp_function_set_cf')
+              bind(c, name = 'CWP_Field_interp_function_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
         character(kind = c_char, len = 1)       :: local_code_name, cpl_id, field_id
         integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_field_id
         type(c_ptr),                   value :: user_interpolation_fct
-      end subroutine CWP_Interp_function_set_cf
+      end subroutine CWP_Field_interp_function_set_cf
 
-      subroutine CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+      subroutine CWP_Field_interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
               field_id, l_field_id) &
-              bind(c, name = 'CWP_Interp_function_unset_cf')
+              bind(c, name = 'CWP_Field_interp_function_unset_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
-      end subroutine CWP_Interp_function_unset_cf
+      end subroutine CWP_Field_interp_function_unset_cf
 
       function CWP_Interp_field_n_components_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
                                                     field_id, l_field_id) &
@@ -3893,7 +3893,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Interp_function_unset_ (local_code_name, &
+  subroutine CWP_Field_interp_function_unset_ (local_code_name, &
                                          cpl_id,          &
                                          field_id)
 
@@ -3906,17 +3906,17 @@ contains
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
 
-    call CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+    call CWP_Field_interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & field_id, l_field_id)
 
-  end subroutine CWP_Interp_function_unset_
+  end subroutine CWP_Field_interp_function_unset_
 
   !>
   !!
   !! \brief Setting of a user interpolation from location.
   !!
   !! This function takes into account an user interpolation function written with
-  !! void (*\ref CWP_Interp_function_t) interface.
+  !! void (*\ref CWP_Field_interp_function_t) interface.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -3924,7 +3924,7 @@ contains
   !! \param [in] fct              Function
   !!
 
-  subroutine CWP_Interp_function_set_(local_code_name,        &
+  subroutine CWP_Field_interp_function_set_(local_code_name,        &
                                       cpl_id,                 &
                                       field_id,               &
                                       user_interpolation_fct)
@@ -3958,14 +3958,14 @@ contains
     l_cpl_id          = len(cpl_id)
     l_field_id        = len(field_id)
 
-    call CWP_Interp_function_set_cf(local_code_name,   &
+    call CWP_Field_interp_function_set_cf(local_code_name,   &
                                     l_local_code_name, &
                                     cpl_id,            &
                                     l_cpl_id,          &
                                     field_id,      &
                                     l_field_id,    &
                                     c_funloc(user_interpolation_fct))
-  end subroutine CWP_Interp_function_set_
+  end subroutine CWP_Field_interp_function_set_
 
   !>
   !!

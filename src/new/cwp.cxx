@@ -2051,7 +2051,7 @@ CWP_Field_python_object_set
  */
 
 void
-CWP_Interp_function_unset
+CWP_Field_interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2062,9 +2062,10 @@ CWP_Interp_function_unset
   cpl.interpFunctionUnSet(field_id);
 }
 
+// Specific function for Fortran interface
 
 void
-CWP_Interp_function_f_unset
+CWP_Field_interp_function_f_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2075,7 +2076,19 @@ CWP_Interp_function_f_unset
   cpl.interpFunctionFUnSet(field_id);
 }
 
+// Specific function for Python interface
 
+void
+CWP_Field_interp_function_p_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id
+ )
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.interpFunctionPUnset(field_id);
+}
 
 /**
  *
@@ -2092,7 +2105,7 @@ CWP_Interp_function_f_unset
  */
 
 void
-CWP_Interp_function_set
+CWP_Field_interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2104,8 +2117,10 @@ CWP_Interp_function_set
   cpl.interpFunctionSet(field_id,fct);
 }
 
+// Specific function for Fortran interface
+
 void
-CWP_Interp_function_f_set
+CWP_Field_interp_function_f_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2117,8 +2132,10 @@ CWP_Interp_function_f_set
   cpl.interpFunctionFSet(field_id,fct);
 }
 
+// Specific function for Python interface
+
 void
-CWP_Interp_function_p_set
+CWP_Field_interp_function_p_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2128,19 +2145,6 @@ CWP_Interp_function_p_set
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.interpFunctionPSet(field_id,fct);
-}
-
-
-void
-CWP_Interp_function_p_unset
-(
- const char                 *local_code_name,
- const char                 *cpl_id,
- const char                 *field_id
- )
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFunctionPUnset(field_id);
 }
 
 /**

@@ -264,10 +264,10 @@ program fortran_new_api_callback_sendrecv_sol
                           recv_field_data)
 
   ! Set user-defined interpolation function
-  call CWP_Interp_function_set(code_names(1), &
-                               coupling_name, &
-                               field_name,    &
-                               my_interpolation)
+  call CWP_Field_interp_function_set(code_names(1), &
+                                     coupling_name, &
+                                     field_name,    &
+                                     my_interpolation)
 
 
   ! Spatial interpolation

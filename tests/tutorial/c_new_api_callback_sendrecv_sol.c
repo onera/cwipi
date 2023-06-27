@@ -260,7 +260,7 @@ main
                      recv_field_data);
 
   // Set user interpolation function :
-  CWP_Interp_function_set(code_name[0], coupling_name, field_name, my_interpolation);
+  CWP_Field_interp_function_set(code_name[0], coupling_name, field_name, my_interpolation);
 
   // Set interpolation property and compute weights
   CWP_Spatial_interp_property_set(code_name[0],

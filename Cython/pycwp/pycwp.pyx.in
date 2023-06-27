@@ -424,13 +424,13 @@ cdef extern from "cwp.h":
   CWP_Field_storage_t CWP_Field_storage_get(const char      *local_code_name,
                                             const char      *cpl_id         ,
                                             const char      *field_id)
-  void CWP_Interp_function_p_unset(char                 *local_code_name,
-                                   char                 *cpl_id,
-                                   char                 *field_id)
-  void CWP_Interp_function_set(char                  *local_code_name,
-                               char                  *cpl_id,
-                               char                  *field_id,
-                               CWP_interp_function_t  fct)
+  void CWP_Field_interp_function_p_unset(char   *local_code_name,
+                                         char   *cpl_id,
+                                         char   *field_id)
+  void CWP_Field_interp_function_p_set(char                     *local_code_name,
+                                       char                     *cpl_id,
+                                       char                     *field_id,
+                                       CWP_Interp_function_p_t   fct)
   int CWP_Interp_field_n_components_get(char    *local_code_name,
                                         char    *cpl_id,
                                         char    *field_id)
@@ -1462,6 +1462,7 @@ cdef class PartData (object):
     cdef int                  *n_elt
     cdef long                **_gnum_elt
 
+    # TODO: hide from user in documentation
     def __init__(self,
                  char *              local_code_name,
                  char *              cpl_id,
@@ -1471,6 +1472,8 @@ cdef class PartData (object):
         """
         __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
         Initialize partitioned data object.
+
+        .. warning:: PartData creation should be done using ``part_data_create``
 
         Parameters:
           local_code_name (str)                         : Local code name
@@ -1666,6 +1669,7 @@ cdef class Field (object):
     cdef str    field_id
     cdef object user_interp
 
+    # TODO: hide from user in documentation
     def __init__(self,
                  char *                 local_code_name,
                  char *                 cpl_id,
@@ -1680,8 +1684,7 @@ cdef class Field (object):
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Initialize field object.
 
-        #TODO: cannot work by itself => either hide constructor from user (possible?)
-        or pass Coupling object to Field constructor (and append Field to the Coupling's field dict)
+        .. warning:: Field creation should be done using ``field_create``
 
         Parameters:
           local_code_name (str)                 : Local code name
@@ -1797,21 +1800,7 @@ cdef class Field (object):
           data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
 
-        # check array size
-        if self.dof_location == DOF_LOCATION_NODE:
-          n_dof = 0 # TODO get from mesh
-        elif self.dof_location == DOF_LOCATION_CELL_CENTER:
-          n_dof = 0 # TODO get from mesh
-        elif self.dof_location == CWP_DOF_LOCATION_USER:
-          n_dof = 0 # TODO get from cpl
-        else:
-          print(f"Error: field {self.field_id}: invalid dof_location {self.dof_location}", flush=True)
-          sys.exit(1)
-
-        if len(data) < self.n_components * n_dof:
-          print(f"Error: field {self.field_id}: data array too short (len = {len(data)} but should be at least {self.n_components * n_dof})", flush=True)
-          sys.exit(1)
-
+        # TODO
 
         CWP_Field_data_set(self.local_code_name,
                            self.cpl_id,
@@ -2363,9 +2352,9 @@ cdef class Field (object):
         Unset a user interpolation function.
         """
 
-        CWP_Interp_function_p_unset(self.local_code_name,
-                                    self.cpl_id,
-                                    self.field_id)
+        CWP_Field_interp_function_p_unset(self.local_code_name,
+                                          self.cpl_id,
+                                          self.field_id)
 
     def interp_function_set(self,
                             fct):
@@ -2381,10 +2370,10 @@ cdef class Field (object):
 
       self.user_interp = fct
 
-      CWP_Interp_function_p_set(self.local_code_name,
-                                self.cpl_id,
-                                self.field_id,
-                                callback)
+      CWP_Field_interp_function_p_set(self.local_code_name,
+                                      self.cpl_id,
+                                      self.field_id,
+                                      callback)
 
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
@@ -2530,7 +2519,6 @@ cdef class Coupling (object):
           field_id        (str)               : Field id
         """
         cdef int idx = self.fields_name[field_id]
-        # TO DO del  self.fields ?
         del self.fields_name[field_id]
 
     # --> PARTDATA
@@ -2575,7 +2563,6 @@ cdef class Coupling (object):
         """
 
         cdef int idx = self.partData_name[part_data_id]
-        # self.partData[idx]
         del self.partData_name[part_data_id]
 
 
