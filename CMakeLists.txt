@@ -700,13 +700,13 @@ else()
 endif()
 
 
-configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_run.in "${PROJECT_BINARY_DIR}/cwp_run"
+configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
                @ONLY)
 
  #
  # Voir comment mieux faire !
 
-configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
+configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
                @ONLY)
 
 configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${PROJECT_BINARY_DIR}/pdm_launch"
