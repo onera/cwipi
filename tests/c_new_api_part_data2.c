@@ -535,8 +535,6 @@ int main
     fflush(stdout);
   }
 
-  int request[2] = {-13};
-
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 1) {
       CWP_Part_data_issend(code_name[icode],
@@ -544,8 +542,7 @@ int main
                            part_data_name,
                            sizeof(double),
                            stride,
-                 (void **) send_val,
-                           &request[icode]);
+                 (void **) send_val);
     }
     else {
       CWP_Part_data_irecv(code_name[icode],
@@ -553,8 +550,7 @@ int main
                           part_data_name,
                           sizeof(double),
                           stride,
-                (void **) recv_val,
-                          &request[icode]);
+                (void **) recv_val);
     }
   }
 
@@ -564,14 +560,12 @@ int main
     if (code_id[icode] == 1) {
       CWP_Part_data_wait_issend(code_name[icode],
                                 cpl_name,
-                                part_data_name,
-                                request[icode]);
+                                part_data_name);
     }
     else {
       CWP_Part_data_wait_irecv(code_name[icode],
                                cpl_name,
-                               part_data_name,
-                               request[icode]);
+                               part_data_name);
     }
   }
 

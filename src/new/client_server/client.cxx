@@ -6754,8 +6754,7 @@ CWP_client_Part_data_issend
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part1_to_part2_data,
- int           *request
+ void         **part1_to_part2_data
 )
 {
   t_message msg;
@@ -6828,9 +6827,6 @@ CWP_client_Part_data_issend
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
-
-  // read request
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
 }
 
 void
@@ -6841,8 +6837,7 @@ CWP_client_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part2_data,
- int           *request
+ void         **part2_data
 )
 {
   t_message msg;
@@ -6905,9 +6900,6 @@ CWP_client_Part_data_irecv
     if (clt->i_rank == 0) verbose(message);
   }
 
-  // read request
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
-
   // read receive data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
@@ -6921,8 +6913,7 @@ CWP_client_Part_data_wait_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id,
- int           request
+ const char    *part_data_id
 )
 {
   t_message msg;
@@ -6959,11 +6950,6 @@ CWP_client_Part_data_wait_issend
   // send part data identifier
   write_name(part_data_id);
 
-  // send request
-  int endian_request = (int) request;
-  CWP_swap_endian_4bytes(&endian_request, 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_request, sizeof(int));
-
   // receive status msg
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -6986,8 +6972,7 @@ CWP_client_Part_data_wait_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id,
- int           request
+ const char    *part_data_id
 )
 {
   t_message msg;
@@ -7023,11 +7008,6 @@ CWP_client_Part_data_wait_irecv
 
   // send part data identifier
   write_name(part_data_id);
-
-  // send request
-  int endian_request = (int) request;
-  CWP_swap_endian_4bytes(&endian_request, 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_request, sizeof(int));
 
   // receive status msg
   MPI_Barrier(clt->comm);

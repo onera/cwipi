@@ -564,26 +564,22 @@ cdef extern from "cwp.h":
                             char          *part_data_id,
                             size_t         s_data,
                             int            n_components,
-                            void         **part1_to_part2_data,
-                            int           *request)
+                            void         **part1_to_part2_data)
 
   void CWP_Part_data_irecv(char          *local_code_name,
                            char          *cpl_id,
                            char          *part_data_id,
                            size_t         s_data,
                            int            n_components,
-                           void         **part2_data,
-                           int           *request)
+                           void         **part2_data)
 
   void CWP_Part_data_wait_issend(char          *local_code_name,
                                  char          *cpl_id,
-                                 char          *part_data_id,
-                                 int            request)
+                                 char          *part_data_id)
 
   void CWP_Part_data_wait_irecv(char          *local_code_name,
                                 char          *cpl_id,
-                                char          *part_data_id,
-                                int            request)
+                                char          *part_data_id)
 
   CWP_Spatial_interp_t CWP_Cpl_spatial_interp_algo_get(char          *local_code_name,
                                                        char          *cpl_id)
@@ -1509,95 +1505,67 @@ cdef class PartData (object):
     # --> DATA
     def issend(self,
                int                    n_components,
-               list                   send_data,
-               np.ndarray[np.int32_t] request):
+               list                   send_data):
         """
-        issend(n_components, send_data, request)
+        issend(n_components, send_data)
         Issend partitioned data.
 
         Parameters:
           n_components (int)  : Number of components
           send_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
-
-        Returns:
-          Exchange request (np.ndarray[np.int32_t])
         """
         data_dtype = send_data[0].dtype # TO DO more robust check ?
         # data_dtype = recover_dtype(send_data, pyptp.py_comm)
         cdef int s_data = data_dtype.itemsize
         cdef void** _send_data   = np_list_to_void_pointers(send_data)
 
-        # cdef int request
         CWP_Part_data_issend(self.local_code_name,
                              self.cpl_id,
                              self.part_data_id,
                              s_data,
                              n_components,
-                             _send_data,
-                    <int *> request.data)
-        # TODO : Pourquoi on retourne pas un int déjà?
-        # return request
+                             _send_data)
 
     def irecv(self,
               int                    n_components,
-              list                   recv_data,
-              np.ndarray[np.int32_t] request):
+              list                   recv_data):
         """
-        irecv(n_components, recv_data, request)
+        irecv(n_components, recv_data)
         Irecv partitioned data.
 
         Parameters:
           n_components (int)  : Number of components
           recv_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
-
-        Returns:
-          Exchange request (np.ndarray[np.int32_t])
         """
         data_dtype = recv_data[0].dtype # TO DO more robust check ?
         # data_dtype = recover_dtype(recv_data, pyptp.py_comm)
         cdef int s_data = data_dtype.itemsize
 
-        # cdef int request
         cdef void** _recv_data = np_list_to_void_pointers(recv_data)
         CWP_Part_data_irecv(self.local_code_name,
                             self.cpl_id,
                             self.part_data_id,
                             s_data,
                             n_components,
-                            _recv_data,
-                    <int *> request.data)
-        # TODO : Pourquoi on retourne pas un int déjà?
-        # return request
+                            _recv_data)
 
-    def wait_issend(self,
-                    int request):
+    def wait_issend(self):
         """
-        wait_issend(request)
         Wait issend partitioned data.
-
-        Parameters:
-          request (int) : Exchange request
         """
 
         CWP_Part_data_wait_issend(self.local_code_name,
                                   self.cpl_id,
-                                  self.part_data_id,
-                                  request)
+                                  self.part_data_id)
 
-    def wait_irecv(self,
-                   int request):
+    def wait_irecv(self):
         """
-        wait_irecv(request)
         Wait irecv partitioned data.
-
-        Parameters:
-          request (int) : Exchange request
         """
 
         CWP_Part_data_wait_irecv(self.local_code_name,
                                  self.cpl_id,
-                                 self.part_data_id,
-                                 request)
+                                 self.part_data_id)
 
 #-----------------------------------------------------------------------------
 # CALLBACK

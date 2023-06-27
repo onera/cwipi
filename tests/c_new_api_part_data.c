@@ -268,9 +268,7 @@ main(int argc, char *argv[]) {
 
     // --> exchange
     double **part1_to_part2_data = NULL;
-    int send_request = -1;
     double **part2_data = NULL;
-    int recv_request = -1;
     int n_comp = 3;
 
     if (rank == 0 || rank == 1) {
@@ -293,8 +291,7 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                 (void **) part1_to_part2_data,
-                           &send_request);
+                 (void **) part1_to_part2_data);
     }
 
     if (rank == 1) {
@@ -309,8 +306,7 @@ main(int argc, char *argv[]) {
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                (void **) part2_data,
-                          &recv_request);
+                (void **) part2_data);
 
     }
 
@@ -321,16 +317,14 @@ main(int argc, char *argv[]) {
 
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
-                                part_data_name,
-                                send_request);
+                                part_data_name);
     }
 
     if (rank == 1) {
 
       CWP_Part_data_wait_irecv(code_name[1],
                                coupling_name,
-                               part_data_name,
-                               recv_request);
+                               part_data_name);
     }
 
     // --> check
@@ -373,8 +367,7 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                 (void **) part1_to_part2_data,
-                           &send_request);
+                 (void **) part1_to_part2_data);
     }
 
     if (rank == 1) {
@@ -392,8 +385,7 @@ main(int argc, char *argv[]) {
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                (void **) part2_data,
-                          &recv_request);
+                (void **) part2_data);
 
     }
 
@@ -404,16 +396,14 @@ main(int argc, char *argv[]) {
 
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
-                                part_data_name,
-                                send_request);
+                                part_data_name);
     }
 
     if (rank == 1) {
 
       CWP_Part_data_wait_irecv(code_name[1],
                                coupling_name,
-                               part_data_name,
-                               recv_request);
+                               part_data_name);
     }
 
 
@@ -615,9 +605,7 @@ main(int argc, char *argv[]) {
 
     // --> exchange
     double **part1_to_part2_data = NULL;
-    int send_request = -1;
     double **part2_data = NULL;
-    int recv_request = -1;
     int n_comp = 3;
 
     if (code_id == 1) {
@@ -640,8 +628,7 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                 (void **) part1_to_part2_data,
-                           &send_request);
+                 (void **) part1_to_part2_data);
     }
     else {
 
@@ -655,8 +642,7 @@ main(int argc, char *argv[]) {
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                (void **) part2_data,
-                          &recv_request);
+                (void **) part2_data);
 
     }
 
@@ -667,15 +653,13 @@ main(int argc, char *argv[]) {
 
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
-                                part_data_name,
-                                send_request);
+                                part_data_name);
     }
     else {
 
       CWP_Part_data_wait_irecv(code_name[0],
                                coupling_name,
-                               part_data_name,
-                               recv_request);
+                               part_data_name);
     }
 
     // --> check

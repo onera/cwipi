@@ -5993,14 +5993,12 @@ CWP_server_Part_data_issend
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  int request = -1;
   CWP_Part_data_issend(local_code_name,
                        cpl_id,
                        part_data_id,
                        s_data,
                        n_components,
-                       svr_cwp.coupling[s1].part_data[s2].send_to_recv_data,
-                       &request);
+                       svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6010,10 +6008,6 @@ CWP_server_Part_data_issend
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
-
-  // send request
-  svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &request, sizeof(int));
 
   // free
   free(local_code_name);
@@ -6078,14 +6072,12 @@ CWP_server_Part_data_irecv
   svr_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
   svr_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
 
-  int    request = -1;
   CWP_Part_data_irecv(local_code_name,
                       cpl_id,
                       part_data_id,
                       s_data,
                       n_components,
-                      svr_cwp.coupling[s1].part_data[s2].recv_data,
-                      &request);
+                      svr_cwp.coupling[s1].part_data[s2].recv_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6095,10 +6087,6 @@ CWP_server_Part_data_irecv
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
-
-  // send data
-  svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &request, sizeof(int));
 
   // free
   free(local_code_name);
@@ -6136,10 +6124,6 @@ CWP_server_Part_data_wait_issend
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
-  // read request
-  int request;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &request, sizeof(int));
-
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -6151,8 +6135,7 @@ CWP_server_Part_data_wait_issend
 
   CWP_Part_data_wait_issend(local_code_name,
                             cpl_id,
-                            part_data_id,
-                            request);
+                            part_data_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6199,10 +6182,6 @@ CWP_server_Part_data_wait_irecv
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
-  // read request
-  int request;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &request, sizeof(int));
-
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -6214,8 +6193,7 @@ CWP_server_Part_data_wait_irecv
 
   CWP_Part_data_wait_irecv(local_code_name,
                            cpl_id,
-                           part_data_id,
-                           request);
+                           part_data_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);

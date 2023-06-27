@@ -3421,7 +3421,6 @@ CWP_Part_data_del_cf
  * \param [in] s_data
  * \param [in] n_components
  * \param [in] part1_to_part2_data
- * \param [in] request
  *
  */
 
@@ -3436,8 +3435,7 @@ CWP_Part_data_issend_cf
  const int      l_part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part1_to_part2_data,
- int           *request
+ void         **part1_to_part2_data
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3451,8 +3449,7 @@ CWP_Part_data_issend_cf
                        c_part_data_id,
                        s_data,
                        n_components,
-                       part1_to_part2_data,
-                       request);
+                       part1_to_part2_data);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3468,7 +3465,6 @@ CWP_Part_data_issend_cf
  * \param [in] s_data
  * \param [in] n_components
  * \param [in] part1_to_part2_data
- * \param [in] request
  *
  */
 
@@ -3483,8 +3479,7 @@ CWP_Part_data_irecv_cf
  const int      l_part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part2_data,
- int           *request
+ void         **part2_data
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3498,8 +3493,7 @@ CWP_Part_data_irecv_cf
                       c_part_data_id,
                       s_data,
                       n_components,
-                      part2_data,
-                      request);
+                      part2_data);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3512,7 +3506,6 @@ CWP_Part_data_irecv_cf
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
- * \param [in] request
  *
  */
 
@@ -3524,8 +3517,7 @@ CWP_Part_data_wait_issend_cf
  const char    *f_cpl_id,
  const int      l_cpl_id,
  const char    *f_part_data_id,
- const int      l_part_data_id,
-       int      request
+ const int      l_part_data_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3536,8 +3528,7 @@ CWP_Part_data_wait_issend_cf
 
   CWP_Part_data_wait_issend(c_local_code_name,
                             c_cpl_id,
-                            c_part_data_id,
-                            request);
+                            c_part_data_id);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3550,7 +3541,6 @@ CWP_Part_data_wait_issend_cf
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
- * \param [in] request
  *
  */
 
@@ -3562,8 +3552,7 @@ CWP_Part_data_wait_irecv_cf
  const char    *f_cpl_id,
  const int      l_cpl_id,
  const char    *f_part_data_id,
- const int      l_part_data_id,
-       int      request
+ const int      l_part_data_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3574,8 +3563,7 @@ CWP_Part_data_wait_irecv_cf
 
   CWP_Part_data_wait_irecv(c_local_code_name,
                            c_cpl_id,
-                           c_part_data_id,
-                           request);
+                           c_part_data_id);
 
   free(c_local_code_name);
   free(c_cpl_id);

@@ -246,7 +246,7 @@ program testf
   type(PDM_pointer_array_t)     :: gnum_elt, part_data
   integer(c_int), pointer       :: n_elt_part(:) => null()
   type(my_type), allocatable    :: my_part(:)
-  integer(c_int)                :: n_comp, j, request
+  integer(c_int)                :: n_comp, j
   !--------------------------------------------------------------------
 
   interface
@@ -823,23 +823,20 @@ program testf
                               coupling_name,  &
                               part_data_name, &
                               n_comp,         &
-                              part_data,      &
-                              request)
+                              part_data)
   else
     call CWP_Part_data_irecv(code_names(1),  &
                              coupling_name,  &
                              part_data_name, &
                              n_comp,         &
-                             part_data,      &
-                             request)
+                             part_data)
   endif
 
 
   if (code_names(1) == "code1") then
     call CWP_Part_data_wait_issend(code_names(1),  &
                                    coupling_name,  &
-                                   part_data_name, &
-                                   request)
+                                   part_data_name)
     if (debug) then
       do i = 1, n_part
         call PDM_pointer_array_part_get(part_data, &
@@ -853,8 +850,7 @@ program testf
   else
     call CWP_Part_data_wait_irecv(code_names(1),  &
                                   coupling_name,  &
-                                  part_data_name, &
-                                  request)
+                                  part_data_name)
 
     if (debug) then
       do i = 1, n_part

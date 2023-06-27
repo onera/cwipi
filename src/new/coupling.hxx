@@ -174,7 +174,6 @@ namespace cwipi {
      * \param [in] s_data
      * \param [in] n_components
      * \param [in] part1_to_part2_data
-     * \param [in] request
      *
      */
 
@@ -184,8 +183,7 @@ namespace cwipi {
      const string   &part_data_id,
      size_t         s_data,
      int            n_components,
-     void         **part1_to_part2_data,
-     int           *request
+     void         **part1_to_part2_data
     );
 
     /**
@@ -195,7 +193,6 @@ namespace cwipi {
      * \param [in] s_data
      * \param [in] n_components
      * \param [in] part2_data
-     * \param [in] request
      *
      */
 
@@ -205,8 +202,7 @@ namespace cwipi {
      const string   &part_data_id,
      size_t         s_data,
      int            n_components,
-     void         **part2_data,
-     int           *request
+     void         **part2_data
     );
 
     /**
@@ -227,30 +223,26 @@ namespace cwipi {
      * \brief Wait issend partitionned data
      *
      * \param [in] part_data_id
-     * \param [in] request
      *
      */
 
     void
     partDataWaitIssend
     (
-     const string   &part_data_id,
-     int             request
+     const string   &part_data_id
     );
 
     /**
      * \brief Wait irecv partitionned data
      *
      * \param [in] part_data_id
-     * \param [in] request
      *
      */
 
     void
     partDataWaitIrecv
     (
-     const string   &part_data_id,
-     int             request
+     const string   &part_data_id
     );
 
     int

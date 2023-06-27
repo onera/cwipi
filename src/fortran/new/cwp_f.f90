@@ -1792,8 +1792,7 @@ module cwp
                                        l_part_data_id,      &
                                        s_data,              &
                                        n_components,        &
-                                       part1_to_part2_data, &
-                                       request)             &
+                                       part1_to_part2_data) &
     bind (c, name='CWP_Part_data_issend_cf')
       use, intrinsic :: iso_c_binding
       implicit none
@@ -1802,7 +1801,6 @@ module cwp
       integer(c_long), value        :: s_data
       integer(c_int),  value        :: n_components
       type(c_ptr),     value        :: part1_to_part2_data
-      integer(c_int)                :: request
     end subroutine CWP_Part_data_issend_cf
 
     subroutine CWP_Part_data_irecv_cf(f_local_code_name,   &
@@ -1813,8 +1811,7 @@ module cwp
                                       l_part_data_id,      &
                                       s_data,              &
                                       n_components,        &
-                                      part2_data,          &
-                                      request)             &
+                                      part2_data)          &
     bind (c, name='CWP_Part_data_irecv_cf')
       use, intrinsic :: iso_c_binding
       implicit none
@@ -1823,7 +1820,6 @@ module cwp
       integer(c_long), value        :: s_data
       integer(c_int),  value        :: n_components
       type(c_ptr),     value        :: part2_data
-      integer(c_int)                :: request
     end subroutine CWP_Part_data_irecv_cf
 
     subroutine CWP_Part_data_wait_issend_cf(f_local_code_name,   &
@@ -1831,14 +1827,12 @@ module cwp
                                             f_cpl_id,            &
                                             l_cpl_id,            &
                                             f_part_data_id,      &
-                                            l_part_data_id,      &
-                                            request)             &
+                                            l_part_data_id)      &
     bind (c, name='CWP_Part_data_wait_issend_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
-      integer(c_int), value         :: request
     end subroutine CWP_Part_data_wait_issend_cf
 
     subroutine CWP_Part_data_wait_irecv_cf(f_local_code_name,   &
@@ -1846,14 +1840,12 @@ module cwp
                                            f_cpl_id,            &
                                            l_cpl_id,            &
                                            f_part_data_id,      &
-                                           l_part_data_id,      &
-                                           request)             &
+                                           l_part_data_id)      &
     bind (c, name='CWP_Part_data_wait_irecv_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
-      integer(c_int), value         :: request
     end subroutine CWP_Part_data_wait_irecv_cf
 
     subroutine CWP_Part_data_n_part_get_cf(f_local_code_name, &
@@ -5602,8 +5594,7 @@ contains
                                    cpl_id,              &
                                    part_data_id,        &
                                    n_components,        &
-                                   part1_to_part2_data, &
-                                   request)
+                                   part1_to_part2_data)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
@@ -5611,7 +5602,6 @@ contains
     character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)        :: n_components
     type(PDM_pointer_array_t), target :: part1_to_part2_data
-    integer(c_int), intent(out)       :: request
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5630,8 +5620,7 @@ contains
                                  l_part_data_id,                  &
                                  s_data,                          &
                                  n_components,                    &
-                                 c_loc(part1_to_part2_data%cptr), &
-                                 request)
+                                 c_loc(part1_to_part2_data%cptr))
 
   end subroutine CWP_Part_data_issend_
 
@@ -5644,7 +5633,6 @@ contains
   !! \param [in]    part_data_id         PartData identifier
   !! \param [in]    n_components         Number of components
   !! \param [inout] part2_data           Pointer to data array to receive
-  !! \param [out]   request              MPI request
   !!
   !!
 
@@ -5652,8 +5640,7 @@ contains
                                   cpl_id,          &
                                   part_data_id,    &
                                   n_components,    &
-                                  part2_data,      &
-                                  request)
+                                  part2_data)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
@@ -5661,7 +5648,6 @@ contains
     character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)        :: n_components
     type(PDM_pointer_array_t), target :: part2_data
-    integer(c_int), intent(out)       :: request
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5681,8 +5667,7 @@ contains
                                 l_part_data_id,         &
                                 s_data,                 &
                                 n_components,           &
-                                c_loc(part2_data%cptr), &
-                                request)
+                                c_loc(part2_data%cptr))
 
     call CWP_Part_data_n_part_get_cf(local_code_name,   &
                                      l_local_code_name, &
@@ -5715,18 +5700,15 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] request          MPI request
   !!
   !!
 
   subroutine CWP_Part_data_wait_issend_(local_code_name, &
                                         cpl_id,          &
-                                        part_data_id,    &
-                                        request)
+                                        part_data_id)
     use, intrinsic :: iso_c_binding
     implicit none
     character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
-    integer(c_int)                :: request
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
@@ -5739,8 +5721,7 @@ contains
                                       cpl_id,            &
                                       l_cpl_id,          &
                                       part_data_id,      &
-                                      l_part_data_id,    &
-                                      request)
+                                      l_part_data_id)
 
   end subroutine CWP_Part_data_wait_issend_
 
@@ -5751,18 +5732,15 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] request          MPI request
   !!
   !!
 
   subroutine CWP_Part_data_wait_irecv_(local_code_name, &
                                        cpl_id,          &
-                                       part_data_id,    &
-                                       request)
+                                       part_data_id)
     use, intrinsic :: iso_c_binding
     implicit none
     character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
-    integer(c_int)                :: request
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
@@ -5775,8 +5753,7 @@ contains
                                      cpl_id,            &
                                      l_cpl_id,          &
                                      part_data_id,      &
-                                     l_part_data_id,    &
-                                     request)
+                                     l_part_data_id)
 
   end subroutine CWP_Part_data_wait_irecv_
 

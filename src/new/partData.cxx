@@ -42,8 +42,6 @@ namespace cwipi {
   _part_data_id(part_data_id),
   _part1_to_part2_data(NULL),
   _part1_to_part2_idx(NULL),
-  _request1(NULL),
-  _request2(NULL),
   _recv_buffer(NULL),
   _filtered_gnum1_come_from(NULL)
   {

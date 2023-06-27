@@ -610,7 +610,6 @@ namespace cwipi {
    * \param [in] s_data
    * \param [in] n_components
    * \param [in] part1_to_part2_data
-   * \param [in] request
    *
    */
 
@@ -620,8 +619,7 @@ namespace cwipi {
    const string   &part_data_id,
    size_t         s_data,
    int            n_components,
-   void         **part1_to_part2_data,
-   int           *request
+   void         **part1_to_part2_data
   )
   {
     // get general data
@@ -637,7 +635,6 @@ namespace cwipi {
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
     it->second.set_part1_to_part2_data(part1_to_part2_data);
-    it->second.set_request1(request);
 
     // launch issend
     if (_coupledCodeProperties.localCodeIs()) {
@@ -646,16 +643,15 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      int   *request2   = cpl_it->second.get_request2();
       // executes if irecv first
-      if (request2 != NULL) {
+      if (0) { // TODO replace condition on number of sent
 
         PDM_part_to_part_issend(ptp,
                                 s_data,
                                 n_components,
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
-                                request);
+                                0); // choose a request TODO
 
         void **recv_buffer = NULL;
         int   *n_elt2      = cpl_it->second.get_n_elt2();
@@ -675,7 +671,7 @@ namespace cwipi {
                                n_components,
                                recv_buffer,
                                mpi_tag,
-                               request2);
+                               0); // choose a request TODO
 
       } // local code works
     } // joint
@@ -686,7 +682,7 @@ namespace cwipi {
                               n_components,
                               (const void**) part1_to_part2_data,
                               mpi_tag,
-                              request);
+                              0); // choose a request TODO
 
     } // not joint
   }
@@ -698,7 +694,6 @@ namespace cwipi {
    * \param [in] s_data
    * \param [in] n_components
    * \param [in] part2_data
-   * \param [in] request
    *
    */
 
@@ -708,8 +703,7 @@ namespace cwipi {
    const string   &part_data_id,
    size_t         s_data,
    int            n_components,
-   void         **part2_data,
-   int           *request
+   void         **part2_data
   )
   {
     // get general data
@@ -725,7 +719,6 @@ namespace cwipi {
     it->second.set_part2_data(part2_data);
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
-    it->second.set_request2(request);
 
     void **recv_buffer = NULL;
     // launch irecv
@@ -735,9 +728,8 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      int   *request1 = cpl_it->second.get_request1();
       // executes if issend first
-      if (request1 != NULL) {
+      if (0) { // TODO condition
 
         // malloc
         // int *n_elt2  = it->second.get_n_elt2();
@@ -764,7 +756,7 @@ namespace cwipi {
                                n_components,
                                recv_buffer,
                                mpi_tag,
-                               request);
+                               0); // choose a request TODO
 
         void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
         assert(part1_to_part2_data != NULL); // TO DO
@@ -774,7 +766,7 @@ namespace cwipi {
                                 n_components,
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
-                                request1);
+                                0); // choose a request TODO
 
       } // local code works
     } // joint
@@ -805,7 +797,7 @@ namespace cwipi {
                              n_components,
                              recv_buffer,
                              mpi_tag,
-                             request);
+                             0); // choose a request TODO
 
     } // not joint
   }
@@ -885,15 +877,13 @@ namespace cwipi {
    * \brief Wait issend partitionned data
    *
    * \param [in] part_data_id
-   * \param [in] request
    *
    */
 
   void
   Coupling::partDataWaitIssend
   (
-   const string   &part_data_id,
-   int             request
+   const string   &part_data_id
   )
   {
     // get general data
@@ -910,16 +900,13 @@ namespace cwipi {
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
         PDM_part_to_part_issend_wait(ptp,
-                                     request);
-
-        int *request2 = cpl_it->second.get_request2();
+                                     0); // choose a request TODO
 
         PDM_part_to_part_irecv_wait(ptp,
-                                    *request2);
+                                    0); // choose a request TODO
 
         // set to NULL to prepare next send
-        it->second.set_request1(NULL);
-        cpl_it->second.set_request2(NULL);
+        // TODO are there things to reset for next step??
 
         // filter
         partDatafilter(cpl_it);
@@ -929,10 +916,10 @@ namespace cwipi {
     else {
 
       PDM_part_to_part_issend_wait(ptp,
-                                   request);
+                                   0); // choose a request TODO
 
       // set to NULL to prepare next send
-      it->second.set_request1(NULL);
+      // TODO reset for next step
 
     } // not joint
   }
@@ -941,15 +928,13 @@ namespace cwipi {
    * \brief Wait irecv partitionned data
    *
    * \param [in] part_data_id
-   * \param [in] request
    *
    */
 
   void
   Coupling::partDataWaitIrecv
   (
-   const string   &part_data_id,
-   int             request
+   const string   &part_data_id
   )
   {
     // get general data
@@ -966,16 +951,13 @@ namespace cwipi {
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
         PDM_part_to_part_irecv_wait(ptp,
-                                    request);
-
-        int *request1 = cpl_it->second.get_request1();
+                                    0); // choose a request TODO
 
         PDM_part_to_part_issend_wait(ptp,
-                                     *request1);
+                                     0); // choose a request TODO
 
         // set to NULL to prepare next send
-        cpl_it->second.set_request1(NULL);
-        it->second.set_request2(NULL);
+        // TODO reset for next step
 
         // filter
         partDatafilter(it);
@@ -985,10 +967,10 @@ namespace cwipi {
     else {
 
       PDM_part_to_part_irecv_wait(ptp,
-                                  request);
+                                  0); // choose a request TODO
 
       // set to NULL to prepare next send
-      it->second.set_request2(NULL);
+      // TODO reset for next step
 
       // filter
       partDatafilter(it);

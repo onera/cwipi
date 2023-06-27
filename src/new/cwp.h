@@ -2300,8 +2300,7 @@ CWP_Part_data_issend
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part1_to_part2_data,
- int           *request
+ void         **part1_to_part2_data
 );
 
 /**
@@ -2313,7 +2312,6 @@ CWP_Part_data_issend
  * \param [in] s_data           Data size
  * \param [in] n_components     Number of components
  * \param [in] part2_data       Received data from send
- * \param [in] request          MPI request
  *
  */
 
@@ -2325,8 +2323,7 @@ CWP_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part2_data,
- int           *request
+ void         **part2_data
 );
 
 /**
@@ -2335,7 +2332,6 @@ CWP_Part_data_irecv
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id     Part data identifier
- * \param [in] request          MPI request
  *
  */
 
@@ -2344,8 +2340,7 @@ CWP_Part_data_wait_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id,
-       int      request
+ const char    *part_data_id
 );
 
 /**
@@ -2354,7 +2349,6 @@ CWP_Part_data_wait_issend
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id     Part data identifier
- * \param [in] request          MPI request
  *
  */
 
@@ -2363,8 +2357,7 @@ CWP_Part_data_wait_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id,
-       int      request
+ const char    *part_data_id
 );
 
 
