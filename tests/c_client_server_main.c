@@ -565,9 +565,7 @@ int main ( int argc, char *argv[] )
   // <<<<
 
   double **part1_to_part2_data = NULL;
-  int send_request = -1;
   double **part2_data = NULL;
-  int recv_request = -1;
   int n_comp = 3;
 
   part1_to_part2_data = malloc(sizeof(double *) * n_part);
@@ -590,8 +588,7 @@ int main ( int argc, char *argv[] )
                                 part_data_name,
                                 sizeof(double),
                                 n_comp,
-                                (void **) part1_to_part2_data,
-                                &send_request);
+                                (void **) part1_to_part2_data);
   }
 
   part2_data = malloc(sizeof(double *) * n_part);
@@ -606,8 +603,7 @@ int main ( int argc, char *argv[] )
                                part_data_name,
                                sizeof(double),
                                n_comp,
-                               (void **) part2_data,
-                               &recv_request);
+                               (void **) part2_data);
   }
 
   // Barrier on coupling communicator >>>>
@@ -626,16 +622,14 @@ int main ( int argc, char *argv[] )
 
     CWP_client_Part_data_wait_issend("code1",
                                      cpl_id1,
-                                     part_data_name,
-                                     send_request);
+                                     part_data_name);
   }
 
   if (id_code == 1) {
 
     CWP_client_Part_data_wait_irecv("code2",
                                     cpl_id1,
-                                    part_data_name,
-                                    recv_request);
+                                    part_data_name);
   }
 
   // Barrier on coupling communicator >>>>

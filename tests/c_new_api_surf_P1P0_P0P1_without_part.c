@@ -573,8 +573,8 @@ int main(int argc, char *argv[])
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
     n_vtx_seg = n_vtx_seg1;
-    comm_type = CWP_COMM_PAR_WITH_PART;
-    // comm_type = CWP_COMM_PAR_WITHOUT_PART;
+    // comm_type = CWP_COMM_PAR_WITH_PART;
+    comm_type = CWP_COMM_PAR_WITHOUT_PART;
   }
   else {
     code_id[0] = 2;
@@ -743,12 +743,20 @@ int main(int argc, char *argv[])
                        CWP_FIELD_MAP_SOURCE,
                        send_val);
 
+    CWP_Involved_srcs_bcast_enable(code_name[0],
+                                   cpl_name,
+                                   field_name1);
+
     CWP_Field_data_set(code_name[0],
                        cpl_name,
                        field_name2,
                        0,
                        CWP_FIELD_MAP_TARGET,
                        recv_val);
+
+    CWP_Computed_tgts_bcast_enable(code_name[0],
+                                   cpl_name,
+                                   field_name2);
   }
   else {
     CWP_Field_create(code_name[0],
@@ -781,12 +789,20 @@ int main(int argc, char *argv[])
                        CWP_FIELD_MAP_TARGET,
                        recv_val);
 
+    CWP_Computed_tgts_bcast_enable(code_name[0],
+                                   cpl_name,
+                                   field_name1);
+
     CWP_Field_data_set(code_name[0],
                        cpl_name,
                        field_name2,
                        0,
                        CWP_FIELD_MAP_SOURCE,
                        send_val);
+
+    CWP_Involved_srcs_bcast_enable(code_name[0],
+                                   cpl_name,
+                                   field_name2);
   }
 
   MPI_Barrier(comm);
