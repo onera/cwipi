@@ -1811,7 +1811,7 @@ cdef class Field (object):
                              self.cpl_id,
                              self.field_id)
 
-    #TODO: @property?
+    # do not use @property since i_part argument
     def n_uncomputed_tgts_get(self,
                               int   i_part):
       """
@@ -1857,7 +1857,7 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
 
-    #TODO: @property?
+    # do not use @property since i_part argument
     def n_computed_tgts_get(self,
                             int   i_part):
       """
@@ -1903,7 +1903,7 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
 
-    #TODO: @property?
+    # do not use @property since i_part argument
     def n_involved_srcs_get(self,
                             int   i_part):
       """
