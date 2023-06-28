@@ -1778,7 +1778,7 @@ cdef class Field (object):
                                                            self.field_id)
 
         if len(data) < n_dof * n_components:
-          print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
+          print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
           sys.exit(1)
 
         CWP_Field_data_set(self.local_code_name,

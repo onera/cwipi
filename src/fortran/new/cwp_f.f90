@@ -331,6 +331,10 @@ module cwp
         CWP_Field_storage_get_
     end interface CWP_Field_storage_get
 
+    interface CWP_Field_n_dof_get ; module procedure &
+        CWP_Field_n_dof_get_
+    end interface CWP_Field_n_dof_get
+
     interface CWP_Field_del ; module procedure &
         CWP_Field_del_
     end interface CWP_Field_del
@@ -539,6 +543,7 @@ module cwp
              CWP_Field_data_set_ ,&
              CWP_Field_dof_location_get_ ,&
              CWP_Field_storage_get_ ,&
+             CWP_Field_n_dof_get_, &
              CWP_Field_del_ ,&
              CWP_Field_issend_ ,&
              CWP_Field_irecv_ ,&
@@ -1638,6 +1643,22 @@ module cwp
       integer(c_int)        :: storage
     end function CWP_Field_storage_get_cf
 
+    function CWP_Field_n_dof_get_cf(local_code_name,   &
+                                    l_local_code_name, &
+                                    cpl_id,            &
+                                    l_cpl_id,          &
+                                    field_id,          &
+                                    l_field_id,        &
+                                    i_part)            &
+      result (n_dof)                                     &
+      bind(c, name='CWP_Field_n_dof_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      integer(c_int), value :: i_part
+      integer(c_int)        :: n_dof
+    end function CWP_Field_n_dof_get_cf
 
     subroutine CWP_Field_del_cf(local_code_name,   &
                                 l_local_code_name, &
@@ -3612,6 +3633,7 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
     integer(c_int) :: i_part
+    integer(c_int) :: n_dof, n_components, array_size
     integer(c_int) :: map_type
     double precision, dimension(:), pointer :: data
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
@@ -3619,6 +3641,20 @@ contains
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
+
+    ! check data array size
+    array_size = size(data)
+    n_dof = CWP_Field_n_dof_get(local_code_name,   &
+                                cpl_id,            &
+                                field_id,          &
+                                i_part)
+    n_components = CWP_Field_n_components_get(local_code_name,   &
+                                              cpl_id,            &
+                                              field_id)
+
+    if (array_size < n_dof * n_components) then
+        print *, "Error : Data array size is inconsistent (too small) with the number of components and degree of freedom location"
+    endif
 
     call CWP_Field_data_set_cf (local_code_name,   &
                                 l_local_code_name, &
@@ -3705,6 +3741,46 @@ contains
                                        l_field_id)
 
   end function CWP_Field_storage_get_
+
+  !>
+  !!
+  !! \brief Get field number of degrees of freedom.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !! \param [in] n_dof            Field number of degrees of freedom
+  !!
+  !! \return                      Field storage type
+  !!
+
+  function CWP_Field_n_dof_get_(local_code_name, &
+                                cpl_id,          &
+                                field_id,        &
+                                i_part)          &
+    result (n_dof)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: i_part
+    integer(c_int) :: n_dof
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    n_dof = CWP_Field_n_dof_get_cf(local_code_name,   &
+                                   l_local_code_name, &
+                                   cpl_id,            &
+                                   l_cpl_id,          &
+                                   field_id,          &
+                                   l_field_id,        &
+                                   i_part)
+
+  end function CWP_Field_n_dof_get_
 
 
   !>

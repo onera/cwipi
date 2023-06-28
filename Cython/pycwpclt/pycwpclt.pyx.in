@@ -1480,18 +1480,19 @@ cdef class Field (object):
           data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
 
-        cdef int n_dof = CWP_Field_n_dof_get(self.local_code_name,
-                                             self.cpl_id,
-                                             self.field_id,
-                                             i_part)
+        # TODO uncomment once added to client-server these functions
+        # cdef int n_dof = CWP_Field_n_dof_get(self.local_code_name,
+        #                                      self.cpl_id,
+        #                                      self.field_id,
+        #                                      i_part)
 
-        cdef int n_components = CWP_Field_n_components_get(self.local_code_name,
-                                                           self.cpl_id,
-                                                           self.field_id)
+        # cdef int n_components = CWP_Field_n_components_get(self.local_code_name,
+        #                                                    self.cpl_id,
+        #                                                    self.field_id)
 
-        if len(data) < n_dof * n_components:
-          print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
-          sys.exit(1)
+        # if len(data) < n_dof * n_components:
+        #   print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
+        #   sys.exit(1)
 
         CWP_client_Field_data_set(self.local_code_name,
                                   self.cpl_id,

@@ -845,6 +845,28 @@ CWP_Field_data_set_cf (
 );
 
 /**
+ *
+ * \brief Get number of field degrees of freedom.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Field id
+ * \param [in] i_part           Partition identifier
+ *
+ */
+
+int
+CWP_Field_n_dof_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part
+);
+
+/**
  * \brief Send a spatially interpolated field to the coupled code with
  *        nonblocking communications.
  *
