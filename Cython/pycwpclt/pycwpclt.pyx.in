@@ -1481,6 +1481,7 @@ cdef class Field (object):
         """
 
         # TODO uncomment once added to client-server these functions
+        # check data array size
         # cdef int n_dof = CWP_Field_n_dof_get(self.local_code_name,
         #                                      self.cpl_id,
         #                                      self.field_id,
@@ -1490,9 +1491,27 @@ cdef class Field (object):
         #                                                    self.cpl_id,
         #                                                    self.field_id)
 
-        # if len(data) < n_dof * n_components:
-        #   print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
-        #   sys.exit(1)
+        # cdef int spatial_interp_algorithm = self.spatial_interp_algo
+        # if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES or
+        #     spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES or
+        #     spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
+        #     spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) :
+
+        #   if map_type == FIELD_MAP_TARGET:
+
+        #     if len(data) < n_dof * n_components:
+        #       print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
+        #       sys.exit(1)
+
+        # elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
+        #       spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
+        #       spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) :
+
+        #   if map_type == FIELD_MAP_SOURCE:
+
+        #     if len(data) < n_dof * n_components:
+        #       print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
+        #       sys.exit(1)
 
         CWP_client_Field_data_set(self.local_code_name,
                                   self.cpl_id,

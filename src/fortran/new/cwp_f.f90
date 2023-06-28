@@ -2911,7 +2911,7 @@ contains
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
-    integer(c_int) :: i_part, n_pts
+    integer(c_int) :: i_part, n_pts, array_size
     double precision, dimension(:,:), pointer :: coord
     integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
@@ -2926,6 +2926,12 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
+
+    array_size = size(coord)
+    if (modulo(array_size, 3) /= 0) then
+        print *, "Error : Length of connectivity array is not a multiple of the 3"
+        stop 'error'
+    endif
 
 
     call CWP_Mesh_interf_vtx_set_cf (local_code_name,   &
@@ -3075,6 +3081,7 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, block_id, n_elts
+    ! integer(c_int) :: array_size
     integer(c_int), dimension(:), pointer :: connec
     integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
@@ -3089,6 +3096,13 @@ contains
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
+
+    ! TODO get stride
+    ! array_size = size(connec)
+    ! if (modulo(array_size, 3) /= 0) then
+    !     print *, "Error : Length of connectivity array is not a multiple of the element size"
+    !     stop 'error'
+    ! endif
 
     call CWP_Mesh_interf_block_std_set_cf (local_code_name,   &
                                            l_local_code_name, &
@@ -3633,7 +3647,7 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
     integer(c_int) :: i_part
-    integer(c_int) :: n_dof, n_components, array_size
+    integer(c_int) :: n_dof, n_components, array_size, spatial_interp_algorithm
     integer(c_int) :: map_type
     double precision, dimension(:), pointer :: data
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
@@ -3651,9 +3665,38 @@ contains
     n_components = CWP_Field_n_components_get(local_code_name,   &
                                               cpl_id,            &
                                               field_id)
+    spatial_interp_algorithm = CWP_Cpl_spatial_interp_algo_get(local_code_name,   &
+                                                               cpl_id)
 
-    if (array_size < n_dof * n_components) then
-        print *, "Error : Data array size is inconsistent (too small) with the number of components and degree of freedom location"
+    if (spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES .or. &
+        spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES .or. &
+        spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_INTERSECTION .or.                  &
+        spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_IDENTITY) then
+
+        if (map_type .eq. CWP_FIELD_MAP_TARGET) then
+
+            if (array_size < n_dof * n_components) then
+                print *, "Error : Data array size is inconsistent (too small) with the number of components &
+                          & and degree of freedom location"
+                stop
+            endif
+
+        endif
+
+    else if (spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT .or. &
+             spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE .or.         &
+             spatial_interp_algorithm .eq. CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) then
+
+        if (map_type .eq. CWP_FIELD_MAP_SOURCE) then
+
+            if (array_size < n_dof * n_components) then
+                print *, "Error : Data array size is inconsistent (too small) with the number of components &
+                          & and degree of freedom location"
+                stop
+            endif
+
+        endif
+
     endif
 
     call CWP_Field_data_set_cf (local_code_name,   &
