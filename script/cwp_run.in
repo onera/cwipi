@@ -114,11 +114,12 @@ Dump_nb_log_vtk_file()
 Wait_job()
 {
   i1=$Indextest
-  ((j1=Indextest+1))
   for pid in "${pids[@]}"
   do
     Testoutput=0
-    TestPath1=$(echo ${listComputedTest[$i1]} | awk '{print $1}')
+    i2=${testSelected[$i1]}
+    ((j1=i2+1))
+    TestPath1=$(echo ${listComputedTest[$i2]} | awk '{print $1}')
     TestName1=$(basename ${TestPath1})
     TestDir1=$(dirname ${TestPath1})
     TestNamel1=($(echo ${TestName1} | tr ":" " "))
@@ -130,11 +131,12 @@ Wait_job()
 
     wait $pid
 
+
     if [ "$?" -ne "0" ]
     then
       Testoutput=1
       printf  "${PURPLE}[%3.3d/%3.3d] - %s: ${RED}Failed${NC}\n" ${j1} ${nTest} ${TestNamel1[0]}
-      failedTest=(${failedTest[@]} "$i1")
+      failedTest=(${failedTest[@]} "$i2")
  
       ((ifailed=ifailed+1))
     else        
@@ -179,7 +181,7 @@ Wait_job()
   
     fi
     ((i1=i1+1))
-    ((j1=j1+1))
+#    ((j1=j1+1))
   
     scriptOutput=$(echo "if($Testoutput>$scriptOutput) $Testoutput else $scriptOutput" | bc)
   done
@@ -204,6 +206,7 @@ NAvailRank=24
 failedTest=()
 testWithOutput=()
 testIgnored=()
+testSelected=()
 exportjunit=1
 JUnitFile=""
 TestOption=""
@@ -285,6 +288,7 @@ IsIntelMPI=$(echo $(${ExeMPI} --version) | grep -c Intel)
 i=0
 ifailed=0
 iignored=0
+iselected=0
 ivtk=0
 nTest=${#listComputedTest[@]}
 
@@ -408,6 +412,8 @@ do
       testIgnored=(${testIgnored[@]} "$i")
       ((iignored=iignored+1))
     else
+      testSelected=(${testSelected[@]} "$i")
+      ((iselected=iselected+1))
       eval "${CmdLine}"
       pids=(${pids[@]} "$!")
     fi
@@ -424,7 +430,7 @@ do
     if [ $cptRank -gt $NAvailRank ]
     then
       Wait_job
-      Indextest=$i
+      Indextest=$iselected
     fi
 
     if [ ${IsIntelMPI} -gt 0 ]
@@ -452,6 +458,8 @@ do
         testIgnored=(${testIgnored[@]} "$i")
         ((iignored=iignored+1))
       else
+        testSelected=(${testSelected[@]} "$i")
+        ((iselected=iselected+1))
         eval "${CmdLine}"
         pids=(${pids[@]} "$!")
       fi
