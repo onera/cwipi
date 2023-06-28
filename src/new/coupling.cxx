@@ -3103,6 +3103,31 @@ namespace cwipi {
     }
   }
 
+  /**
+   *
+   * \brief Get nunmber of field degrees of freedom
+   *
+   * \param [in]   field_id       Field identifier
+   * \param [in]   i_part         Partition identifier
+   *
+   * \return                      Number of field degrees of freedom
+   *
+   */
+
+  int
+  Coupling::fieldNDOFGet
+  (
+    const string &field_id,
+    int          i_part
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
+    }
+    return It->second->nDOFGet(i_part);
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods about exchange                                                     *
    *----------------------------------------------------------------------------*/

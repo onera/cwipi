@@ -123,6 +123,22 @@ namespace cwipi {
       return _nComponent;
     }
 
+    /**
+     *
+     * \brief Get nunmber of field degrees of freedom
+     *
+     * \param [in]   i_part         Partition identifier
+     *
+     * \return             Number of field degrees of freedom
+     *
+     */
+
+    int
+    nDOFGet
+    (
+     int i_part
+    );
+
     inline std::string
     fieldIDGet() const
     {

@@ -2273,7 +2273,7 @@ CWP_Field_storage_get
 
 /**
  *
- * \brief Get spatial interpolation number of algorithms.
+ * \brief Get number of field components.
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
@@ -2291,6 +2291,30 @@ CWP_Field_n_components_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   return cpl.fieldNComponentGet(field_id);
+}
+
+/**
+ *
+ * \brief Get number of field degrees of freedom.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ *
+ */
+
+int
+CWP_Field_n_dof_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ int                     i_part
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  return cpl.fieldNDOFGet(field_id, i_part);
 }
 
 /**

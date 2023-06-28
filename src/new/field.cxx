@@ -402,6 +402,38 @@ Field::write
 
 }
 
+/**
+ *
+ * \brief Get nunmber of field degrees of freedom
+ *
+ * \param [in]   i_part         Partition identifier
+ *
+ * \return             Number of field degrees of freedom
+ *
+ */
+
+int
+Field::nDOFGet
+(
+ int i_part
+)
+{
+
+  int n_dof = 0;
+
+  if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+    n_dof = _mesh->getPartNElts(i_part);
+  }
+  else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+    n_dof = _mesh->getPartNVertex(i_part);
+  }
+  else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+    n_dof = _cpl->userTargetNGet(i_part);
+  }
+
+  return n_dof;
+}
+
 
 }
 

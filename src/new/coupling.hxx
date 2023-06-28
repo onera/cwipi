@@ -1140,6 +1140,23 @@ namespace cwipi {
       const string &field_id
     );
 
+    /**
+     *
+     * \brief Get nunmber of field degrees of freedom
+     *
+     * \param [in]   field_id       Field identifier
+     * \param [in]   i_part         Partition identifier
+     *
+     * \return                      Number of field degrees of freedom
+     *
+     */
+
+    int
+    fieldNDOFGet (
+      const string &field_id,
+      int          i_part
+    );
+
 
     /**
      *

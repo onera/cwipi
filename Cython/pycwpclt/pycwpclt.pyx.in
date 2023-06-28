@@ -1358,7 +1358,6 @@ cdef class PartData (object):
         data_dtype = recv_data[0].dtype
         cdef int s_data = data_dtype.itemsize
 
-        # cdef int request
         cdef void **_recv_data = np_list_to_void_pointers(recv_data)
         CWP_client_Part_data_irecv(self.local_code_name,
                                    self.cpl_id,
@@ -1414,6 +1413,7 @@ cdef class Field (object):
     cdef str cpl_id
     cdef str field_id
 
+    # TODO: hide from user in documentation
     def __init__(self,
                  char                  *local_code_name,
                  char                  *cpl_id,
@@ -1428,8 +1428,7 @@ cdef class Field (object):
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Initialize field object.
 
-        #TODO: cannot work by itself => either hide constructor from user (possible?)
-        or pass Coupling object to Field constructor (and append Field to the Coupling's field dict)
+        .. warning:: Field creation should be done using ``field_create``
 
         Parameters:
           local_code_name (str)                 : Local code name
@@ -1481,19 +1480,17 @@ cdef class Field (object):
           data      (np.ndarray[np.double_t]) : Storage array (Mapping)
         """
 
-        # check array size
-        if self.dof_location == DOF_LOCATION_NODE:
-          n_dof = 0 # TODO get from mesh
-        elif self.dof_location == DOF_LOCATION_CELL_CENTER:
-          n_dof = 0 # TODO get from mesh
-        elif self.dof_location == CWP_DOF_LOCATION_USER:
-          n_dof = 0 # TODO get from cpl
-        else:
-          print(f"Error: field {self.field_id}: invalid dof_location {self.dof_location}")
-          sys.exit(1)
+        cdef int n_dof = CWP_Field_n_dof_get(self.local_code_name,
+                                             self.cpl_id,
+                                             self.field_id,
+                                             i_part)
 
-        if len(data) < self.n_components * n_dof:
-          print(f"Error: field {self.field_id}: data array too short (len = {len(data)} but should be at least {self.n_components * n_dof})", flush=True)
+        cdef int n_components = CWP_Field_n_components_get(self.local_code_name,
+                                                           self.cpl_id,
+                                                           self.field_id)
+
+        if len(data) < n_dof * n_components:
+          print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
           sys.exit(1)
 
         CWP_client_Field_data_set(self.local_code_name,
@@ -1573,7 +1570,6 @@ cdef class Field (object):
                                     self.field_id)
 
     # --> LOCALISATION
-    #TODO: @property?
     def n_uncomputed_tgts_get(self,
                               int   i_part):
       """
@@ -1619,7 +1615,6 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(unc_tgt, n_unc_tgt, False)
 
-    #TODO: @property?
     def n_computed_tgts_get(self,
                             int   i_part):
       """
@@ -1665,7 +1660,6 @@ cdef class Field (object):
 
       return create_numpy_or_none_i(c_tgt, n_c_tgt, False)
 
-    #TODO: @property?
     def n_involved_srcs_get(self,
                             int   i_part):
       """
@@ -1727,6 +1721,7 @@ cdef class Coupling (object):
 
     cdef dict __dict__
 
+    # TODO: hide from user in documentation
     def __init__(self,
                  char                *local_code_name,
                  char                *cpl_id,
@@ -1740,6 +1735,8 @@ cdef class Coupling (object):
         """
         __init__(local_code_name, cpl_id, coupled_code_name, entities_dim, comm_type, spatial_interp, n_part, displacement, recv_freq_type)
         Initialize coupling object.
+
+        .. warning:: PartData creation should be done using ``part_data_create``
 
         Parameters:
           local_code_name   (str)                  : Local code name
