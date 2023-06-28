@@ -128,13 +128,13 @@ Wait_job()
     ErrFile1=$(echo ${TestNamel1[0]}${postErr})
 
     printf  "${PURPLE}[%3.3d/%3.3d] - %s: Finalize${NC}\n" ${j1} ${nTest} ${TestNamel1[0]} 
-
+    echo $pid
     wait $pid
-
 
     if [ "$?" -ne "0" ]
     then
       Testoutput=1
+
       printf  "${PURPLE}[%3.3d/%3.3d] - %s: ${RED}Failed${NC}\n" ${j1} ${nTest} ${TestNamel1[0]}
       failedTest=(${failedTest[@]} "$i2")
  
@@ -414,6 +414,7 @@ do
     else
       testSelected=(${testSelected[@]} "$i")
       ((iselected=iselected+1))
+      echo "${CmdLine}"
       eval "${CmdLine}"
       pids=(${pids[@]} "$!")
     fi
@@ -468,8 +469,6 @@ do
       echo -e "${RED}Error${NC}: OpenMPI is not available for cwp_run script"
       echo -e "${PURPLE}${TestNamel[0]}: ${RED}Failed${NC}"
       exit 1
-#      @PDM_RUN_LSAN@ @PDM_RUN_PYTHONPATH@ ${ExeMPI} -genv @PDM_RUN_PRELOAD@ -output-filename $OutputFile -n $Nrank /usr/bin/time  -f "Maximum Resident Memory : %M Kb\nReal time : %e s" ../${TestName} ${TestOption} 2>/dev/null
-#      pids=(${pids[@]} "$!")
     fi
     ((IndexRank=IndexRank+Nranks)) 
   
