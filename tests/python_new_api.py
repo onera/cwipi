@@ -236,6 +236,7 @@ def runTest():
                  pycwp.VISU_FORMAT_ENSIGHT,
                  "text")
 
+    # ------------------------------------------------------------------
     # std or polygon
     polygon = True
 
@@ -369,17 +370,6 @@ def runTest():
         f.flush()
         cpl.field_del("champs")
 
-        comm.Barrier()
-
-        # USER TGT PTS
-        coord = np.array([6, 7, 8, 9, 10, 11], dtype=np.double)
-        f.write("cpl.user_tgt_pts_set:\n")
-        f.flush()
-        cpl.user_tgt_pts_set(0,
-                             2,
-                             coord,
-                             None)
-
         # USER STRUCTURE
         class userClass:
             animal = "chat"
@@ -446,6 +436,7 @@ def runTest():
         f.flush()
         cpl.mesh_interf_del()
 
+    # ------------------------------------------------------------------
     # Volumic Cpl
     f.write("pycwp.Coupling:\n")
     f.flush()
@@ -507,8 +498,7 @@ def runTest():
     f.flush()
     cpl2.mesh_interf_del()
 
-
-
+    # ------------------------------------------------------------------
     # High-order
     f.write("pycwp.Coupling:\n")
     f.flush()
@@ -564,7 +554,65 @@ def runTest():
     f.flush()
     cpl3.mesh_interf_del()
 
+    # ------------------------------------------------------------------
+    # user target coupling
+    f.write("pycwp.Coupling:\n")
+    f.flush()
+    cpl4 = pycwp.Coupling(code_name,
+                         "test_user_target",
+                         code_names[(i_rank+1)%2],
+                         pycwp.INTERFACE_SURFACE,
+                         pycwp.COMM_PAR_WITH_PART,
+                         pycwp.SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES,
+                         1,
+                         pycwp.DYNAMIC_MESH_STATIC,
+                         pycwp.TIME_EXCH_USER_CONTROLLED)
 
+    # face poly mesh
+    if (i_rank == 0):
+        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+    if (i_rank == 1):
+        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 4, 1, 4, 3], dtype=np.int32)
+
+    f.write("cpl4.mesh_interf_vtx_set:\n")
+    f.flush()
+    cpl4.mesh_interf_vtx_set(0,
+                            coord,
+                            None)
+
+    f.write("cpl4.mesh_interf_block_add:\n")
+    f.flush()
+    block_id = cpl4.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+    f.write("cpl4.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+    f.flush()
+
+    cpl4.mesh_interf_f_poly_block_set(0,
+                                     block_id,
+                                     connec_idx,
+                                     connec,
+                                     None)
+
+    # user targets
+    user_tgt_coords = np.array([1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4], dtype=np.double)
+    cpl4.user_tgt_pts_set(0,
+                          4,
+                          user_tgt_coords,
+                          None)
+
+    # finalize
+    f.write("cpl4.mesh_interf_finalize:\n")
+    f.flush()
+    cpl4.mesh_interf_finalize()
+
+    # delete
+    f.write("cpl4.mesh_interf_del:\n")
+    f.flush()
+    cpl4.mesh_interf_del()
 
     # FINALIZE
     pycwp.finalize()
