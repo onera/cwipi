@@ -366,9 +366,10 @@ def runTest():
 
         pycwp.time_step_end(code_name)
 
-        f.write("cpl.field_del:\n")
+        f.write("field del:\n")
         f.flush()
-        cpl.field_del("champs")
+
+        del field
 
         # USER STRUCTURE
         class userClass:

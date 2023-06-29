@@ -234,7 +234,7 @@ def runTest():
 
     # part data
     part_data_name = "ratchet and clank"
-    gnum_elt = [np.array([1, 2, 3], dtype=np.int64)] # implicit that n_part = 1
+    gnum_elt = [np.array([1, 2, 3], dtype=npy_cwp_gnum_dtype)] # implicit that n_part = 1
 
     if (i_rank == 0):
         part_data = cpl.part_data_create(part_data_name,

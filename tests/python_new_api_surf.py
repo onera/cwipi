@@ -24,9 +24,12 @@ import numpy as np
 import sys
 import argparse
 import ctypes
+from pycwp import pycwp
+from pycwp.pycwp import npy_cwp_gnum_dtype
 
 
 def gen_mesh(comm, n_part, n, center, radius, part_method):
+
   dmn_capsule = PDM.sphere_surf_icosphere_gen_nodal(comm,
                                                     n,
                                                     center[0],
@@ -69,10 +72,10 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 
   return {
     "pvtx_coord"     : pvtx_coord,
-    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=np.int64) for pg in pvtx_ln_to_gn],
+    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=npy_cwp_gnum_dtype) for pg in pvtx_ln_to_gn],
     "pface_vtx_idx"  : pface_vtx_idx,
     "pface_vtx"      : pface_vtx,
-    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=np.int64) for pg in pface_ln_to_gn]
+    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=npy_cwp_gnum_dtype) for pg in pface_ln_to_gn]
   }
 
 
@@ -81,11 +84,12 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 def runTest():
   print(f"pdm : {PDM.__file__}")
 
-  try:
-    from pycwp import pycwp
-  except:
-    print("Error : CWIPI module not found (update PYTHONPATH variable)")
-    sys.exit(1)
+  # try:
+  #   from pycwp import pycwp
+  #   from pycwp.pycwp import npy_cwp_gnum_dtype
+  # except:
+  #   print("Error : CWIPI module not found (update PYTHONPATH variable)")
+  #   sys.exit(1)
 
   print("file :", PDM.__file__)
 
@@ -457,7 +461,7 @@ def runTest():
     print("End")
 
   for icode in range(n_code):
-    cpl[icode].field_del(field_name)
+    del field[icode]
     pycwp.time_step_end(code_name[icode])
     cpl[icode].mesh_interf_del()
 

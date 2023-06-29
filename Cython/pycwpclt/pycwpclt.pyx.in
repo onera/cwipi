@@ -44,6 +44,18 @@ cimport mpi4py.MPI as MPI
 # initialize the numpy C API
 np.import_array()
 
+# CWP Specific type :
+# -----------------
+
+ctypedef @PYX_NPY_G_NUM@ npy_cwp_gnum_t
+ctypedef @PYX_NPY_L_NUM@ npy_cwp_lnum_t
+npy_cwp_gnum_dtype = @PYX_NPY_G_NUM_DTYPE@
+ctypedef @PYX_G_NUM@ CWP_g_num_t
+ctypedef @PYX_L_NUM@ CWP_l_num_t
+
+ctypedef enum CWP_g_num_npy_t:
+  CWP_G_NUM_NPY_INT = @CWP_G_NUM_NPY_INT@
+
 #-----------------------------------------------------------------------------
 # EXTERN
 
@@ -244,7 +256,7 @@ cdef extern from "client_server/client.h":
                                    int      i_part,
                                    int      n_pts,
                                    double   *coord,
-                                   long     *global_num)
+                                   CWP_g_num_t     *global_num)
 
   # --> functions about Mesh
   void CWP_client_Mesh_interf_finalize(char         *local_code_name,
@@ -254,7 +266,7 @@ cdef extern from "client_server/client.h":
                                       int             i_part,
                                       int             n_pts,
                                       double          *coord,
-                                      long            *global_num)
+                                      CWP_g_num_t            *global_num)
   int CWP_client_Mesh_interf_block_add(char           *local_code_name,
                                        char           *cpl_id,
                                        CWP_Block_t     block_type)
@@ -264,14 +276,14 @@ cdef extern from "client_server/client.h":
                                             int          block_id,
                                             int          n_elts,
                                             int          *connec,
-                                            long         *global_num)
+                                            CWP_g_num_t         *global_num)
   void CWP_client_Mesh_interf_block_std_get(char         *local_code_name,
                                             char         *cpl_id,
                                             int           i_part,
                                             int           block_id,
                                             int          *n_elts,
                                             int         **connec,
-                                            long        **global_num)
+                                            CWP_g_num_t        **global_num)
   CWP_Block_t CWP_client_std_block_type_get(char             *local_code_name,
                                             char             *cpl_id,
                                             int               block_id)
@@ -282,7 +294,7 @@ cdef extern from "client_server/client.h":
                                                int               n_elts,
                                                int              *connec_idx,
                                                int              *connec,
-                                               long             *global_num)
+                                               CWP_g_num_t             *global_num)
   void CWP_client_Mesh_interf_f_poly_block_get(char             *local_code_name,
                                                char             *cpl_id,
                                                int               i_part,
@@ -290,7 +302,7 @@ cdef extern from "client_server/client.h":
                                                int              *n_elts,
                                                int             **connec_idx,
                                                int             **connec,
-                                               long            **global_num)
+                                               CWP_g_num_t            **global_num)
   void CWP_client_Mesh_interf_c_poly_block_set(char           *local_code_name,
                                                char           *cpl_id,
                                                int             i_part,
@@ -301,7 +313,7 @@ cdef extern from "client_server/client.h":
                                                int            *connec_faces,
                                                int            *connec_cells_idx,
                                                int            *connec_cells,
-                                               long           *global_num)
+                                               CWP_g_num_t           *global_num)
   void CWP_client_Mesh_interf_c_poly_block_get(char           *local_code_name,
                                                char           *cpl_id,
                                                int             i_part,
@@ -312,7 +324,7 @@ cdef extern from "client_server/client.h":
                                                int             **connec_faces,
                                                int             **connec_cells_idx,
                                                int             **connec_cells,
-                                               long            **global_num)
+                                               CWP_g_num_t            **global_num)
   void CWP_client_Mesh_interf_block_ho_set(const char        *local_code_name,
                                            const char        *cpl_id,
                                            const int          i_part,
@@ -320,7 +332,7 @@ cdef extern from "client_server/client.h":
                                            const int          n_elts,
                                            const int          order,
                                            int                connec[],
-                                           long               global_num[])
+                                           CWP_g_num_t               global_num[])
   void CWP_client_Mesh_interf_block_ho_get(const char        *local_code_name,
                                            const char        *cpl_id,
                                            const int          i_part,
@@ -328,7 +340,7 @@ cdef extern from "client_server/client.h":
                                            int               *n_elts,
                                            int               *order,
                                            int              **connec,
-                                           long             **global_num)
+                                           CWP_g_num_t             **global_num)
   void CWP_client_Mesh_interf_ho_ordering_from_IJK_set(const char        *local_code_name,
                                                        const char        *cpl_id,
                                                        const CWP_Block_t  block_type,
@@ -348,7 +360,7 @@ cdef extern from "client_server/client.h":
                                                 int             n_faces,
                                                 int            *face_vtx_idx,
                                                 int            *face_vtx,
-                                                long           *global_num)
+                                                CWP_g_num_t           *global_num)
   void CWP_client_Mesh_interf_from_faceedge_set(char           *local_code_name,
                                                 char           *cpl_id,
                                                 int             i_part,
@@ -357,7 +369,7 @@ cdef extern from "client_server/client.h":
                                                 int            *face_edge,
                                                 int             n_edges,
                                                 int            *edge_vtx,
-                                                long           *global_num)
+                                                CWP_g_num_t           *global_num)
 
   # --> functions about field
   void CWP_client_Field_create(char                  *local_code_name,
@@ -472,7 +484,7 @@ cdef extern from "client_server/client.h":
                                    char                 *cpl_id,
                                    char                 *part_data_id,
                                    CWP_PartData_exch_t   exch_type,
-                                   long                **gnum_elt,
+                                   CWP_g_num_t                **gnum_elt,
                                    int                  *n_elt,
                                    int                   n_part)
 
@@ -705,8 +717,8 @@ cdef create_numpy_or_none(void* array, int nptype, int size, bint flag_owndata=T
 cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
     return create_numpy(<void *> array, np.NPY_INT32, size, flag_owndata)
 
-cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
-    return create_numpy(<void *> array, np.NPY_INT64, size, flag_owndata)
+cdef create_numpy_g(CWP_g_num_t* array, int size, bint flag_owndata=True):
+    return create_numpy(<void *> array, CWP_G_NUM_NPY_INT, size, flag_owndata)
 
 cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
     return create_numpy(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
@@ -714,8 +726,8 @@ cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
 cdef create_numpy_or_none_i(int* array, int size, bint flag_owndata=True):
     return create_numpy_or_none(<void *> array, np.NPY_INT32, size, flag_owndata)
 
-cdef create_numpy_or_none_l(long int* array, int size, bint flag_owndata=True):
-    return create_numpy_or_none(<void *> array, np.NPY_INT64, size, flag_owndata)
+cdef create_numpy_or_none_g(CWP_g_num_t* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, CWP_G_NUM_NPY_INT, size, flag_owndata)
 
 cdef create_numpy_or_none_d(double* array, int size, bint flag_owndata=True):
     return create_numpy_or_none(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
@@ -734,11 +746,11 @@ cdef int* list_to_int_pointer(list data):
     array[i] = <int> d
   return array
 
-cdef long** np_list_to_long_pointers(list datas):
-  cdef np.ndarray[np.int64_t, ndim=1, mode='c'] numpy_gnum
-  cdef long** array = <long **> malloc(len(datas) * sizeof(long*))
+cdef CWP_g_num_t** np_list_to_gnum_pointers(list datas):
+  cdef np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] numpy_gnum
+  cdef CWP_g_num_t** array = <CWP_g_num_t **> malloc(len(datas) * sizeof(CWP_g_num_t*))
   for i, numpy_gnum in enumerate(datas):
-    array[i] = <long *> numpy_gnum.data
+    array[i] = <CWP_g_num_t *> numpy_gnum.data
   return array
 
 #-----------------------------------------------------------------------------
@@ -1280,7 +1292,7 @@ cdef class PartData (object):
     cdef CWP_PartData_exch_t   exch_type
     cdef int                   n_part
     cdef int                  *n_elt
-    cdef long                **_gnum_elt
+    cdef CWP_g_num_t                **_gnum_elt
     cdef dict                  recv_part_data
     cdef int                   n_recv
     cdef int                   n_wait_recv
@@ -1300,7 +1312,7 @@ cdef class PartData (object):
           cpl_id          (str)                         : Coupling id
           part_data_id    (str)                         : Partitioned data id
           exch_type       (CWP_PartData_exch_t)         : Enum if SEND or RECV side
-          gnum_elt        (np.ndarray[np.int64_t] list) : Global ids
+          gnum_elt        (np.ndarray[npy_cwp_gnum_t] list) : Global ids
         """
 
         self.local_code_name = local_code_name
@@ -1310,7 +1322,7 @@ cdef class PartData (object):
 
         self.n_part    = len(gnum_elt)
         self.n_elt     = list_to_int_pointer([array.size for array in gnum_elt])
-        self._gnum_elt = np_list_to_long_pointers(gnum_elt)
+        self._gnum_elt = np_list_to_gnum_pointers(gnum_elt)
 
         self.recv_part_data = dict()
 
@@ -1321,7 +1333,7 @@ cdef class PartData (object):
                                     self.cpl_id,
                                     self.part_data_id,
                                     self.exch_type,
-                          <long **> self._gnum_elt,
+                          <CWP_g_num_t **> self._gnum_elt,
                           <int   *> self.n_elt,
                                     self.n_part)
         free(self.n_elt)
@@ -1792,8 +1804,6 @@ cdef class Coupling (object):
     """
     cdef str local_code_name
     cdef str cpl_id
-    cdef int n_fields
-    cdef list fields
     cdef int n_partData
     cdef list partData
 
@@ -1830,9 +1840,6 @@ cdef class Coupling (object):
 
         self.local_code_name = local_code_name
         self.cpl_id = cpl_id
-        self.n_fields = 0
-        self.fields_name = {}
-        self.fields = []
         self.partData_name = {}
         self.n_partData = 0
         self.partData = []
@@ -1885,8 +1892,6 @@ cdef class Coupling (object):
           visu_status     (CWP_Status_t)        : Visualization status
         """
 
-        self.fields_name[field_id] = self.n_fields
-
         field = Field(self.local_code_name,
                       self.cpl_id,
                       field_id,
@@ -1897,24 +1902,7 @@ cdef class Coupling (object):
                       exch_type,
                       visu_status)
 
-        self.fields.append(field)
-
-        self.n_fields = self.n_fields + 1
-
         return field
-
-    def field_del(self,
-                  char                  *field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Delete Field object and field form self.fiels dictionary
-
-        Parameters:
-          field_id        (str)               : Field id
-        """
-        cdef int idx = self.fields_name[field_id]
-
-        del self.fields_name[field_id]
 
     # --> PARTDATA
     def part_data_create(self,
@@ -1928,7 +1916,7 @@ cdef class Coupling (object):
         Parameters:
           part_data_id    (str)                 : Partitioned data id
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
-          gnum_elt        (long)                : Global number of entities
+          gnum_elt        (CWP_g_num_t)                : Global number of entities
         Returns:
           Part Data object (PartData)
         """
@@ -2056,7 +2044,7 @@ cdef class Coupling (object):
     def mesh_interf_vtx_set(self,
                             int                                       i_part,
                             np.ndarray[np.double_t, ndim=1, mode='c'] coord not None,
-                            np.ndarray[np.int64_t , ndim=1, mode='c'] global_num):
+                            np.ndarray[npy_cwp_gnum_t , ndim=1, mode='c'] global_num):
         """
         mesh_interf_vtx_set(i_part, coord, global_num)
         Set interface mesh vertices.
@@ -2065,7 +2053,7 @@ cdef class Coupling (object):
           i_part     (int)                       : Current partition
           n_pts      (int)                       : Number of points
           coord      (np.ndarray[np.double_t])   : Coordinates (size = 3 * n_pts)
-          global_num (np.ndarray[np.int64_t])    : Global vertex ids (or None)
+          global_num (np.ndarray[npy_cwp_gnum_t])    : Global vertex ids (or None)
         """
 
         if len(coord)%3 != 0:
@@ -2087,7 +2075,7 @@ cdef class Coupling (object):
                                          i_part,
                                          n_pts,
                               <double *> coord.data,
-                                <long *> global_num.data)
+                                <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_block_add(self,
                               CWP_Block_t block_type):
@@ -2112,7 +2100,7 @@ cdef class Coupling (object):
                                   i_part,
                                   block_id,
                                   np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
-                                  np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                  np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_block_std_set(i_part, block_id, connec, global_num)
         Set a standard block to the interface mesh.
@@ -2122,7 +2110,7 @@ cdef class Coupling (object):
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
           connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
         cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2151,7 +2139,7 @@ cdef class Coupling (object):
                                                block_id,
                                                n_elts,
                                        <int *> connec.data,
-                                      <long *> global_num.data)
+                                      <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_block_std_get(self,
                                   i_part,
@@ -2168,12 +2156,12 @@ cdef class Coupling (object):
           Dictionary
             - ``"n_elts"``     : Number of elements (int)
             - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = n_vertex_elt * n_elts)
-            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
+            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t] or None)
         """
 
         cdef int   n_elts = -1
         cdef int  *connec
-        cdef long *global_num
+        cdef CWP_g_num_t *global_num
 
         CWP_client_Mesh_interf_block_std_get(self.local_code_name,
                                              self.cpl_id,
@@ -2190,7 +2178,7 @@ cdef class Coupling (object):
         return {
                 'n_elts'     : n_elts,
                 'connec'     : create_numpy_i(connec, size, False),
-                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
+                'global_num' : create_numpy_or_none_g(global_num, n_elts, False)
                }
 
     def mesh_interf_f_poly_block_set(self,
@@ -2198,7 +2186,7 @@ cdef class Coupling (object):
                                      int                                      block_id,
                                      np.ndarray[np.int32_t, ndim=1, mode='c'] connec_idx not None,
                                      np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
-                                     np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                     np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_f_poly_block_set(i_part, block_id, connec_idx, connec, global_num)
         Set the connectivity of a polygon block in a interface mesh partition.
@@ -2209,7 +2197,7 @@ cdef class Coupling (object):
           n_elts     (int)                    : Number of elements
           connec_idx (np.ndarray[np.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
           connec     (np.ndarray[np.int32_t]) : Connectivity (size = connec_idx[n_elts])
-          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
         cdef int n_elts = len(connec_idx) - 1
@@ -2231,7 +2219,7 @@ cdef class Coupling (object):
                                                   n_elts,
                                           <int *> connec_idx.data,
                                           <int *> connec.data,
-                                         <long *> global_num.data)
+                                         <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_f_poly_block_get(self,
                                      int i_part,
@@ -2249,13 +2237,13 @@ cdef class Coupling (object):
             - ``"n_elts"``     : Number of elements (int)
             - ``"connec_idx"`` : Connectivity index (np.ndarray[np.int32_t])
             - ``"connec"``     : Connectivity (np.ndarray[np.int32_t])
-            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
+            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t] or None)
         """
 
         cdef int n_elts = -1
         cdef int  *connec
         cdef int  *connec_idx
-        cdef long *global_num
+        cdef CWP_g_num_t *global_num
 
         CWP_client_Mesh_interf_f_poly_block_get(self.local_code_name,
                                                 self.cpl_id,
@@ -2270,7 +2258,7 @@ cdef class Coupling (object):
                 'n_elts'     : n_elts,
                 'connec_idx' : create_numpy_i(connec_idx, n_elts+1, False),
                 'connec'     : create_numpy_i(connec, connec_idx[n_elts], False),
-                'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
+                'global_num' : create_numpy_or_none_g(global_num, n_elts, False)
                }
 
     def mesh_interf_c_poly_block_set(self,
@@ -2280,7 +2268,7 @@ cdef class Coupling (object):
                                      np.ndarray[np.int32_t, ndim=1, mode='c'] connec_faces not None,
                                      np.ndarray[np.int32_t, ndim=1, mode='c'] connec_cells_idx not None,
                                      np.ndarray[np.int32_t, ndim=1, mode='c'] connec_cells not None,
-                                     np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                     np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_c_poly_block_set(i_part, block_id, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num)
         Set the properties of a polyhedron block in a interface mesh partition.
@@ -2292,7 +2280,7 @@ cdef class Coupling (object):
           connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
           connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
           connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
-          global_num       (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num       (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
         cdef int n_faces = len(connec_faces_idx) - 1
@@ -2321,7 +2309,7 @@ cdef class Coupling (object):
                                           <int *> connec_faces.data,
                                           <int *> connec_cells_idx.data,
                                           <int *> connec_cells.data,
-                                         <long *> global_num.data)
+                                         <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_c_poly_block_get(self,
                                      int i_part,
@@ -2342,7 +2330,7 @@ cdef class Coupling (object):
             - ``"connec_faces"``     : Polyhedron face to vertex connectivity (np.ndarray[np.int32_t])
             - ``"connec_cells_idx"`` : Polyhedron to face index (np.ndarray[np.int32_t])
             - ``"connec_cells"``     : Polyhedron to face connectivity (np.ndarray[np.int32_t])
-            - ``"global_num"``       : Global element ids (np.ndarray[np.int64_t] or None)
+            - ``"global_num"``       : Global element ids (np.ndarray[npy_cwp_gnum_t] or None)
         """
 
         cdef int n_elts  = -1
@@ -2351,7 +2339,7 @@ cdef class Coupling (object):
         cdef int  *connec_faces
         cdef int  *connec_cells_idx
         cdef int  *connec_cells
-        cdef long *global_num
+        cdef CWP_g_num_t *global_num
 
         CWP_client_Mesh_interf_c_poly_block_get(self.local_code_name,
                                                 self.cpl_id,
@@ -2372,7 +2360,7 @@ cdef class Coupling (object):
                 'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces], False),
                 'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1, False),
                 'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts], False),
-                'global_num'       : create_numpy_or_none_l(global_num, n_elts, False)
+                'global_num'       : create_numpy_or_none_g(global_num, n_elts, False)
                }
 
     def mesh_interf_block_ho_set(self,
@@ -2380,7 +2368,7 @@ cdef class Coupling (object):
                                  int                                      block_id,
                                  int                                      order,
                                  np.ndarray[np.int32_t, ndim=1, mode='c'] connec not None,
-                                 np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                 np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
       """
         mesh_interf_block_ho_set(i_part, block_id, order, connec, global_num)
         Set a high-order block to the interface mesh.
@@ -2391,7 +2379,7 @@ cdef class Coupling (object):
           block_id   (int)                    : Block identifier
           order      (int)                    : Element order
           connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
       """
 
       cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2423,7 +2411,7 @@ cdef class Coupling (object):
                                             n_elts,
                                             order,
                                             <int *> connec.data,
-                                            <long *> global_num.data)
+                                            <CWP_g_num_t *> global_num.data)
 
 
     def mesh_interf_block_ho_get(self,
@@ -2442,13 +2430,13 @@ cdef class Coupling (object):
             - ``"n_elts"``     : Number of elements (int)
             - ``"order"``      : Element order (int)
             - ``"connec"``     : Connectivity (np.ndarray[np.int32_t])
-            - ``"global_num"`` : Global element ids (np.ndarray[np.int64_t] or None)
+            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t] or None)
       """
 
       cdef int   n_elts = -1
       cdef int   order  = -1
       cdef int  *connec
-      cdef long *global_num
+      cdef CWP_g_num_t *global_num
 
       CWP_client_Mesh_interf_block_ho_get(self.local_code_name,
                                           self.cpl_id,
@@ -2467,7 +2455,7 @@ cdef class Coupling (object):
               'n_elts'     : n_elts,
               'order'      : order,
               'connec'     : create_numpy_i(connec, size, False),
-              'global_num' : create_numpy_or_none_l(global_num, n_elts, False)
+              'global_num' : create_numpy_or_none_g(global_num, n_elts, False)
              }
 
 
@@ -2509,7 +2497,7 @@ cdef class Coupling (object):
                                       int                                      n_faces,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx_idx not None,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx not None,
-                                      np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                      np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_from_cellface_set(i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, global_num)
         Define the interface mesh from a cell to face connectivity.
@@ -2522,7 +2510,7 @@ cdef class Coupling (object):
           n_faces       (int)                    : Number of faces
           face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
           face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
-          global_num    (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
         if (global_num is None):
@@ -2546,7 +2534,7 @@ cdef class Coupling (object):
                                                    n_faces,
                                            <int *> face_vtx_idx.data,
                                            <int *> face_vtx.data,
-                                          <long *> global_num.data)
+                                          <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
                                       int                                      i_part,
@@ -2555,7 +2543,7 @@ cdef class Coupling (object):
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] face_edge not None,
                                       int                                      n_edges,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] edge_vtx not None,
-                                      np.ndarray[np.int64_t, ndim=1, mode='c'] global_num):
+                                      np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_from_faceedge_set(i_part, n_faces, face_edge_idx, face_edge, n_edges, edge_vtx, global_num)
         Define the surface interface mesh from a face to edge connectivity.
@@ -2567,7 +2555,7 @@ cdef class Coupling (object):
           face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
           n_edges       (int)                    : Number of edges
           edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2*n_edges)
-          global_num    (np.ndarray[np.int64_t]) : Global element ids (or None)
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
         if (global_num is None):
@@ -2589,7 +2577,7 @@ cdef class Coupling (object):
                                            <int *> face_edge.data,
                                                    n_edges,
                                            <int *> edge_vtx.data,
-                                          <long *> global_num.data)
+                                          <CWP_g_num_t *> global_num.data)
 
     # --> SPATIAL INTERPOLATION
     def spatial_interp_weights_compute(self):
@@ -2646,7 +2634,7 @@ cdef class Coupling (object):
                          int                                       i_part,
                          int                                       n_pts,
                          np.ndarray[np.double_t, ndim=1, mode='c'] coord not None,
-                         np.ndarray[np.int64_t,  ndim=1, mode='c'] global_num):
+                         np.ndarray[npy_cwp_gnum_t,  ndim=1, mode='c'] global_num):
         """
         user_tgt_pts_set(i_part, n_pts, coord, global_num)
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
@@ -2655,7 +2643,7 @@ cdef class Coupling (object):
            i_part     (int)                    : Current partition
            n_pts      (int)                    : Number of points
            coord      (np.ndarray[np.double_t) : Coordinates (size = 3 * n_pts)
-           global_num (np.ndarray[np.int64_t]) : Global number or None (size = n_pts)
+           global_num (np.ndarray[npy_cwp_gnum_t]) : Global number or None (size = n_pts)
         """
 
         if (global_num is None):
@@ -2671,7 +2659,7 @@ cdef class Coupling (object):
                                       i_part,
                                       n_pts,
                            <double *> coord.data,
-                             <long *> global_num.data)
+                             <CWP_g_num_t *> global_num.data)
 
 #-----------------------------------------------------------------------------
 # EXTERN
