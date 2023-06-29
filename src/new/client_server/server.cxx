@@ -2074,6 +2074,124 @@ CWP_server_Loc_codes_list_get
 }
 
 void
+CWP_server_Computed_tgts_bcast_enable
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = (char *) malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Computed_tgts_bcast_enable(local_code_name,
+                                 cpl_id,
+                                 field_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(field_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Involved_srcs_bcast_enable
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = (char *) malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Involved_srcs_bcast_enable(local_code_name,
+                                 cpl_id,
+                                 field_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(field_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
 CWP_server_N_uncomputed_tgts_get
 (
   p_server                 svr
@@ -5542,6 +5660,62 @@ CWP_server_Mesh_interf_ho_ordering_from_IJK_set
 }
 
 void
+CWP_server_Cpl_spatial_interp_algo_get
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Spatial_interp_t spatial_interp_algo = CWP_Cpl_spatial_interp_algo_get(local_code_name,
+                                                                             cpl_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send block_type
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &spatial_interp_algo, sizeof(CWP_Spatial_interp_t));
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
 CWP_server_Global_data_issend
 (
   p_server                 svr
@@ -6806,6 +6980,30 @@ CWP_server_msg_handler
 
     break;
 
+  case CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Computed_tgts_bcast_enable signal\n");
+    }
+
+    // launch
+    CWP_server_Computed_tgts_bcast_enable(svr);
+
+    break;
+
+  case CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Involved_srcs_bcast_enable signal\n");
+    }
+
+    // launch
+    CWP_server_Involved_srcs_bcast_enable(svr);
+
+    break;
+
   case CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET:
 
     // verbose
@@ -7271,6 +7469,18 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Mesh_interf_ho_ordering_from_IJK_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Cpl_spatial_interp_algo_get signal\n");
+    }
+
+    // launch
+    CWP_server_Cpl_spatial_interp_algo_get(svr);
 
     break;
 

@@ -136,6 +136,11 @@ extern "C" {
 
 #define CWP_MSG_CWP_CPL_BARRIER                          75
 
+#define CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE           76
+#define CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE           77
+
+#define CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET          78
+
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 

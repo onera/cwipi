@@ -189,6 +189,12 @@ cdef extern from "client_server/client.h":
                              CWP_Time_exch_t      recv_freq_type)
   void CWP_client_Cpl_del(char *local_code_name,
                           char *cpl_id)
+  void CWP_client_Computed_tgts_bcast_enable(const char *local_code_name,
+                                             const char *cpl_id,
+                                             const char *field_id)
+  void CWP_client_Involved_srcs_bcast_enable(const char *local_code_name,
+                                             const char *cpl_id,
+                                             const char *field_id)
   void CWP_client_Cpl_barrier (const char *local_code_name,
                                const char *cpl_id)
   int CWP_client_N_uncomputed_tgts_get(char *local_code_name,
@@ -329,6 +335,8 @@ cdef extern from "client_server/client.h":
                                                        const int          order,
                                                        const int          n_nodes,
                                                        const int         *ijk_grid)
+  CWP_Spatial_interp_t CWP_client_Cpl_spatial_interp_algo_get(char          *local_code_name,
+                                                              char          *cpl_id)
   void CWP_client_Mesh_interf_del(char *local_code_name,
                                   char *cpl_id)
   void CWP_client_Mesh_interf_from_cellface_set(char           *local_code_name,
@@ -1504,7 +1512,7 @@ cdef class Field (object):
                                                                   self.cpl_id,
                                                                   self.field_id)
 
-        cdef int spatial_interp_algorithm = self.spatial_interp_algo
+        cdef int spatial_interp_algorithm = self.spatial_interp_algo # TODO create this function
         if (spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES or
             spatial_interp_algorithm == SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES or
             spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION or
@@ -1533,7 +1541,8 @@ cdef class Field (object):
                                   map_type,
                        <double *> data.data)
 
-    def dof_location_get(self):
+    @property
+    def dof_location(self):
         """
         Get target degrees of freedom location.
 
@@ -1547,7 +1556,8 @@ cdef class Field (object):
 
         return dof_loc
 
-    def storage_get(self):
+    @property
+    def storage(self):
         """
         Get field storage type.
 
@@ -1560,6 +1570,17 @@ cdef class Field (object):
                                                                         self.field_id)
 
         return storage
+
+    @property
+    def spatial_interp_algo(self):
+      """
+      Get the coupling spatial interpolation algorithm.
+
+      Returns:
+        Spatial interpolation algorithm (CWP_Spatial_interp_t)
+      """
+      return CWP_client_Cpl_spatial_interp_algo_get(self.local_code_name,
+                                                    self.cpl_id)
 
     # --> exchange
     def issend(self):
@@ -1601,6 +1622,30 @@ cdef class Field (object):
         CWP_client_Field_wait_irecv(self.local_code_name,
                                     self.cpl_id,
                                     self.field_id)
+
+    def computed_tgts_bcast_enable(self):
+        """
+        Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+
+        .. warning:: This function must be called in order for the computed targets to be accessible
+                     on non-root ranks
+        """
+
+        CWP_client_Computed_tgts_bcast_enable(self.local_code_name,
+                                              self.cpl_id,
+                                              self.field_id)
+
+    def involved_srcs_bcast_enable(self):
+        """
+        Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+
+        .. warning:: This function must be called in order for the involved sources to be accessible
+                     on non-root ranks
+        """
+
+        CWP_client_Involved_srcs_bcast_enable(self.local_code_name,
+                                              self.cpl_id,
+                                              self.field_id)
 
     # --> LOCALISATION
     def n_uncomputed_tgts_get(self,

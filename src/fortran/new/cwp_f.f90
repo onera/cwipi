@@ -227,6 +227,14 @@ module cwp
         CWP_Cpl_Del_
     end interface CWP_Cpl_Del
 
+    interface CWP_Computed_tgts_bcast_enable ; module procedure &
+        CWP_Computed_tgts_bcast_enable_
+    end interface CWP_Computed_tgts_bcast_enable
+
+    interface CWP_Involved_srcs_bcast_enable ; module procedure &
+        CWP_Involved_srcs_bcast_enable_
+    end interface CWP_Involved_srcs_bcast_enable
+
     interface CWP_N_uncomputed_tgts_get ; module procedure &
         CWP_N_uncomputed_tgts_get_
     end interface CWP_N_uncomputed_tgts_get
@@ -517,6 +525,8 @@ module cwp
              CWP_Cpl_create_ ,&
              CWP_Cpl_barrier_ ,&
              CWP_Cpl_Del_ ,&
+             CWP_Computed_tgts_bcast_enable_,&
+             CWP_Involved_srcs_bcast_enable_,&
              CWP_N_uncomputed_tgts_get_ ,&
              CWP_Uncomputed_tgts_get_ ,&
              CWP_N_computed_tgts_get_ ,&
@@ -708,6 +718,22 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Cpl_del_cf
+
+      subroutine CWP_Computed_tgts_bcast_enable_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id) &
+        bind(c, name = 'CWP_Computed_tgts_bcast_enable_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      end subroutine CWP_Computed_tgts_bcast_enable_cf
+
+      subroutine CWP_Involved_srcs_bcast_enable_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id) &
+        bind(c, name = 'CWP_Involved_srcs_bcast_enable_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      end subroutine CWP_Involved_srcs_bcast_enable_cf
 
       function CWP_N_uncomputed_tgts_get_cf (local_code_name,   &
                                              l_local_code_name, &
@@ -2376,6 +2402,63 @@ contains
     call CWP_Cpl_del_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id)
   end subroutine CWP_Cpl_Del_
 
+  !>
+  !!
+  !! \brief Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+  !!
+  !! This function must be called in order for the computed targets to be accessible
+  !! on non-root ranks
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] i_part           Current partition
+  !!
+
+  subroutine CWP_Computed_tgts_bcast_enable_ (local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    call CWP_Computed_tgts_bcast_enable_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id)
+  end subroutine CWP_Computed_tgts_bcast_enable_
+
+  !>
+  !!
+  !! \brief Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+  !!
+  !! This function must be called in order for the involved sources to be accessible
+  !! on non-root ranks
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] i_part           Current partition
+  !!
+
+  subroutine CWP_Involved_srcs_bcast_enable_ (local_code_name, &
+                                              cpl_id,          &
+                                              field_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    call CWP_Involved_srcs_bcast_enable_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id)
+  end subroutine CWP_Involved_srcs_bcast_enable_
 
   !>
   !!

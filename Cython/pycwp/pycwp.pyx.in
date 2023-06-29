@@ -212,6 +212,12 @@ cdef extern from "cwp.h":
 
   void CWP_Cpl_del(char *local_code_name,
                    char *cpl_id)
+  void CWP_Computed_tgts_bcast_enable(const char *local_code_name,
+                                      const char *cpl_id,
+                                      const char *field_id)
+  void CWP_Involved_srcs_bcast_enable(const char *local_code_name,
+                                      const char *cpl_id,
+                                      const char *field_id)
   int CWP_N_uncomputed_tgts_get(char *local_code_name,
                                 char *cpl_id,
                                 char *field_id,
@@ -1845,6 +1851,30 @@ cdef class Field (object):
         CWP_Field_wait_irecv(self.local_code_name,
                              self.cpl_id,
                              self.field_id)
+
+    def computed_tgts_bcast_enable(self):
+        """
+        Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+
+        .. warning:: This function must be called in order for the computed targets to be accessible
+                     on non-root ranks
+        """
+
+        CWP_Computed_tgts_bcast_enable(self.local_code_name,
+                                       self.cpl_id,
+                                       self.field_id)
+
+    def involved_srcs_bcast_enable(self):
+        """
+        Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+
+        .. warning:: This function must be called in order for the involved sources to be accessible
+                     on non-root ranks
+        """
+
+        CWP_Involved_srcs_bcast_enable(self.local_code_name,
+                                       self.cpl_id,
+                                       self.field_id)
 
     # do not use @property since i_part argument
     def n_uncomputed_tgts_get(self,

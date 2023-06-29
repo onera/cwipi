@@ -167,7 +167,57 @@ CWP_Cpl_del_cf (
   const int l_cpl_id
 );
 
+/**
+ *
+ * \brief Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+ *
+ * This function must be called in order for the computed targets to be accessible
+ * on non-root ranks
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  f_field_id          Fortran Field identifier
+ * \param [in]  l_field_id          Length of Fortran Field identifier
+ *
+ */
 
+void
+CWP_Computed_tgts_bcast_enable_cf (
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id
+);
+
+/**
+ *
+ * \brief Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+ *
+ * This function must be called in order for the involved sources to be accessible
+ * on non-root ranks
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  f_field_id          Fortran Field identifier
+ * \param [in]  l_field_id          Length of Fortran Field identifier
+ *
+ */
+
+void
+CWP_Involved_srcs_bcast_enable_cf (
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id
+);
 
 /**
  *

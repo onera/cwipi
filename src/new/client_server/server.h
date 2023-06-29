@@ -452,6 +452,32 @@ CWP_server_Properties_dump
 
 /**
  *
+ * \brief Computed_tgts_bcast_enable CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ */
+
+void
+CWP_server_Computed_tgts_bcast_enable
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Involved_srcs_bcast_enable CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ */
+
+void
+CWP_server_Involved_srcs_bcast_enable
+(
+  p_server                 svr
+);
+
+/**
+ *
  * \brief N_uncomputed_tgts_get CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
@@ -1006,6 +1032,20 @@ CWP_server_Mesh_interf_ho_ordering_from_IJK_set
 );
 
 /**
+ *
+ * \brief Cpl_spatial_interp_algo_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_spatial_interp_algo_get
+(
+  p_server                 svr
+);
+
+/**
  * \brief Global_data_issend CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
@@ -1137,7 +1177,7 @@ CWP_server_Part_data_wait_irecv
 );
 
 /*=============================================================================
- * Client CWIPI function interfaces that are not implemented yet
+ * Server CWIPI function interfaces that are not implemented yet
  *============================================================================*/
 
 /**

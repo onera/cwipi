@@ -2441,6 +2441,23 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
  const int         *ijk_grid
  );
 
+/**
+ *
+ * \brief Get the coupling spatial interpolation algorithm.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ * \return                      Spatial interpolation algorithm
+ */
+
+CWP_Spatial_interp_t
+CWP_Cpl_spatial_interp_algo_get
+(
+ const char *local_code_name,
+ const char *cpl_id
+ );
+
 
 /*****************************************************************************************************
  *                                                                                                   *
@@ -2777,24 +2794,6 @@ CWP_Field_gradient_data_set
  const CWP_Field_storage_t  storage_type,
  double                     data[]
 );
-
-
-/**
- *
- * \brief Get the coupling spatial interpolation algorithm.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- *
- * \return                      Spatial interpolation algorithm
- */
-
-CWP_Spatial_interp_t
-CWP_Cpl_spatial_interp_algo_get
-(
- const char *local_code_name,
- const char *cpl_id
- );
 
 #include "fortran/new/cwp_cf.h"
 

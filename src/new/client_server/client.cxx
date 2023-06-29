@@ -456,6 +456,16 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
+  case CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE: {
+    char name[] = "CWP_Computed_tgts_bcast_enable";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE: {
+    char name[] = "CWP_Involved_srcs_bcast_enable";
+    strcpy(function, name);
+    } break;
+
   case CWP_MSG_CWP_UNCOMPUTED_TGTS_GET: {
     char name[] = "CWP_Uncomputed_tgts_get";
     strcpy(function, name);
@@ -643,6 +653,11 @@ static void verbose(t_message msg) {
 
   case CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET: {
     char name[] = "CWP_Mesh_interf_ho_ordering_from_IJK_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET: {
+    char name[] = "CWP_Cpl_spatial_interp_algo_get";
     strcpy(function, name);
     } break;
 
@@ -2867,6 +2882,125 @@ CWP_client_Loc_codes_list_get
   }
 
   return (const char **) clt_cwp.loc_code_names;
+}
+
+void
+CWP_client_Computed_tgts_bcast_enable
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Computed_tgts_bcast_enable\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_COMPUTED_TGTS_BCAST_ENABLE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Computed_tgts_bcast_enable failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+}
+
+void
+CWP_client_Involved_srcs_bcast_enable
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Involved_srcs_bcast_enable\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_INVOLVED_SRCS_BCAST_ENABLE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Involved_srcs_bcast_enable failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
 }
 
 int
@@ -6397,6 +6531,67 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
 
   // free
   free(endian_ijk_grid);
+}
+
+CWP_Spatial_interp_t
+CWP_client_Cpl_spatial_interp_algo_get
+(
+ const char *local_code_name,
+ const char *cpl_id
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_spatial_interp_algo_get\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_CPL_SPATIAL_INTERP_ALGO_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_spatial_interp_algo_get failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read spatial interpolation algorithm type
+  CWP_Spatial_interp_t spatial_interp_algo = (CWP_Spatial_interp_t) -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) &spatial_interp_algo, sizeof(CWP_Spatial_interp_t));
+
+  return spatial_interp_algo;
 }
 
 void

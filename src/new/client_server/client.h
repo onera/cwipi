@@ -527,6 +527,40 @@ void
 
 /**
  *
+ * \brief Computed_tgts_bcast_enable CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ */
+
+void
+CWP_client_Computed_tgts_bcast_enable
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id
+);
+
+/**
+ *
+ * \brief Involved_srcs_bcast_enable CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ */
+
+void
+CWP_client_Involved_srcs_bcast_enable
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id
+);
+
+/**
+ *
  * \brief N_uncomputed_tgts_get CWIPI.
  *
  * \param [in] local_code_name  Local code name
@@ -1455,6 +1489,23 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
  const int          order,
  const int          n_nodes,
  const int         *ijk_grid
+);
+
+/**
+ *
+ * \brief Cpl_spatial_interp_algo_get CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ * \return                      Spatial interpolation algorithm
+ */
+
+CWP_Spatial_interp_t
+CWP_client_Cpl_spatial_interp_algo_get
+(
+ const char *local_code_name,
+ const char *cpl_id
 );
 
 /**
