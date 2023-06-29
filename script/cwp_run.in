@@ -128,7 +128,6 @@ Wait_job()
     ErrFile1=$(echo ${TestNamel1[0]}${postErr})
 
     printf  "${PURPLE}[%3.3d/%3.3d] - %s: Finalize${NC}\n" ${j1} ${nTest} ${TestNamel1[0]} 
-    echo $pid
     wait $pid
 
     if [ "$?" -ne "0" ]
@@ -407,7 +406,7 @@ do
 
     CmdLine="${CmdLine} 2>/dev/null &"
 
-    if grep -q client_server <<< $CmdLine && [ ${Ics} -eq 1 ]
+    if ( [ $(grep -ic client_server <<< $CmdLine) -ge 1 ] || [ $(grep -ic c_new_api_callback_sendrecv_sol <<< $CmdLine) -ge 1 ] ) && [ ${Ics} -eq 1 ]
     then
       testIgnored=(${testIgnored[@]} "$i")
       ((iignored=iignored+1))
@@ -453,7 +452,7 @@ do
 
       CmdLine="${CmdLine} 2>/dev/null &"
 
-      if grep -q client_server <<< $CmdLine && [ ${Ics} -eq 1 ]
+      if ( [ $(grep -ic client_server <<< $CmdLine) -ge 1 ] || [ $(grep -ic c_new_api_callback_sendrecv_sol <<< $CmdLine) -ge 1 ] ) && [ ${Ics} -eq 1 ]
       then
         testIgnored=(${testIgnored[@]} "$i")
         ((iignored=iignored+1))
