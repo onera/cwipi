@@ -248,32 +248,57 @@ def runTest():
 
     comm.Barrier()
 
+    # FIRST exchange
+
     send_data = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
-    send_request = np.zeros(1, dtype=np.int32)
     if (i_rank == 0):
         part_data.issend(2,
-                         send_data,
-                         send_request)
+                         send_data)
 
     recv_data = [np.zeros(6, dtype=np.int32)]
-    recv_request = np.zeros(1, dtype=np.int32)
     if (i_rank == 1):
         part_data.irecv(2,
-                        recv_data,
-                        recv_request)
+                        recv_data)
 
     comm.Barrier()
 
     if (i_rank == 0):
-        part_data.wait_issend(send_request[0])
+        part_data.wait_issend()
 
     if (i_rank == 1):
-        part_data.wait_irecv(recv_request[0])
+        part_data.wait_irecv()
 
     if (i_rank == 0):
         print("send_part_data : {param}\n".format(param=send_data))
     if (i_rank == 1):
         print("recv_part_data : {param}\n".format(param=recv_data))
+
+    # SECOND exchange
+
+    comm.Barrier()
+
+    send_data2 = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
+    if (i_rank == 0):
+        part_data.issend(2,
+                         send_data2)
+
+    recv_data2 = [np.zeros(6, dtype=np.int32)]
+    if (i_rank == 1):
+        part_data.irecv(2,
+                        recv_data2)
+
+    comm.Barrier()
+
+    if (i_rank == 0):
+        part_data.wait_issend()
+
+    if (i_rank == 1):
+        part_data.wait_irecv()
+
+    if (i_rank == 0):
+        print("send_part_data : {param}\n".format(param=send_data2))
+    if (i_rank == 1):
+        print("recv_part_data : {param}\n".format(param=recv_data2))
 
     cpl.part_data_del(part_data_name)
 

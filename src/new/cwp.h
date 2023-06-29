@@ -1521,26 +1521,6 @@ CWP_Field_dof_location_get
 
 /**
  *
- * \brief Get source degrees of freedom location.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      Location of degrees of freedom
- *
- */
-
-CWP_Dof_location_t
-CWP_Field_dof_location_get
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const char      *field_id
-);
-
-/**
- *
  * \brief Get field storage type.
  *
  * \param [in] local_code_name  Local code name

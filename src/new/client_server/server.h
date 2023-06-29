@@ -840,6 +840,33 @@ CWP_server_Field_storage_get
 );
 
 /**
+ * \brief Field_n_components_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_n_components_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_n_dof_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_n_dof_get
+(
+  p_server                 svr
+);
+
+/**
  * \brief Field_del CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure

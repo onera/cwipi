@@ -98,42 +98,43 @@ extern "C" {
 
 #define CWP_MSG_CWP_FIELD_CREATE                         45
 #define CWP_MSG_CWP_FIELD_DATA_SET                       46
-#define CWP_MSG_CWP_FIELD_N_COMPONENT_GET                47
-#define CWP_MSG_CWP_Field_dof_location_get               48
-#define CWP_MSG_CWP_FIELD_STORAGE_GET                    49
-#define CWP_MSG_CWP_FIELD_DEL                            50
-#define CWP_MSG_CWP_FIELD_ISSEND                         51
-#define CWP_MSG_CWP_FIELD_IRECV                          52
-#define CWP_MSG_CWP_FIELD_WAIT_ISSEND                    53
-#define CWP_MSG_CWP_FIELD_WAIT_IRECV                     54
+#define CWP_MSG_CWP_FIELD_N_DOF_GET                      47
+#define CWP_MSG_CWP_FIELD_N_COMPONENTS_GET               48
+#define CWP_MSG_CWP_FIELD_DOF_LOCATION_GET               49
+#define CWP_MSG_CWP_FIELD_STORAGE_GET                    50
+#define CWP_MSG_CWP_FIELD_DEL                            51
+#define CWP_MSG_CWP_FIELD_ISSEND                         52
+#define CWP_MSG_CWP_FIELD_IRECV                          53
+#define CWP_MSG_CWP_FIELD_WAIT_ISSEND                    54
+#define CWP_MSG_CWP_FIELD_WAIT_IRECV                     55
 
-#define CWP_MSG_CWP_INTERP_FUNCTION_UNSET                55
-#define CWP_MSG_CWP_INTERP_FUNCTION_SET                  56
+#define CWP_MSG_CWP_INTERP_FUNCTION_UNSET                56
+#define CWP_MSG_CWP_INTERP_FUNCTION_SET                  57
 
-#define CWP_MSG_CWP_OUTPUT_FILE_SET                      57
+#define CWP_MSG_CWP_OUTPUT_FILE_SET                      58
 
-#define CWP_MSG_CWP_STD_BLOCK_TYPE_GET                   58
+#define CWP_MSG_CWP_STD_BLOCK_TYPE_GET                   59
 
-#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET             59
-#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET             60
-#define CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET 61
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET             60
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET             61
+#define CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET 62
 
-#define CWP_MSG_CWP_GLOBAL_DATA_ISSEND                   62
-#define CWP_MSG_CWP_GLOBAL_DATA_IRECV                    63
-#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND              64
-#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV               65
+#define CWP_MSG_CWP_GLOBAL_DATA_ISSEND                   63
+#define CWP_MSG_CWP_GLOBAL_DATA_IRECV                    64
+#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND              65
+#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV               66
 
-#define CWP_MSG_CWP_PART_DATA_CREATE                     66
-#define CWP_MSG_CWP_PART_DATA_DEL                        67
-#define CWP_MSG_CWP_PART_DATA_ISSEND                     68
-#define CWP_MSG_CWP_PART_DATA_IRECV                      69
-#define CWP_MSG_CWP_PART_DATA_WAIT_ISSEND                70
-#define CWP_MSG_CWP_PART_DATA_WAIT_IRECV                 71
+#define CWP_MSG_CWP_PART_DATA_CREATE                     67
+#define CWP_MSG_CWP_PART_DATA_DEL                        68
+#define CWP_MSG_CWP_PART_DATA_ISSEND                     69
+#define CWP_MSG_CWP_PART_DATA_IRECV                      70
+#define CWP_MSG_CWP_PART_DATA_WAIT_ISSEND                71
+#define CWP_MSG_CWP_PART_DATA_WAIT_IRECV                 72
 
-#define CWP_MSG_CWP_TIME_STEP_BEG                        72
-#define CWP_MSG_CWP_TIME_STEP_END                        73
+#define CWP_MSG_CWP_TIME_STEP_BEG                        73
+#define CWP_MSG_CWP_TIME_STEP_END                        74
 
-#define CWP_MSG_CWP_CPL_BARRIER                          74
+#define CWP_MSG_CWP_CPL_BARRIER                          75
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

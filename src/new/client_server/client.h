@@ -1197,6 +1197,44 @@ CWP_client_Field_storage_get
 );
 
 /**
+ *
+ * \brief Field_n_components_get CWIPI.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ *
+ */
+
+int
+CWP_client_Field_n_components_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id
+);
+
+/**
+ *
+ * \brief Field_n_dof_get CWIPI.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  field_id                  Field identifier
+ * \param [in]  i_part                    Partition identifier
+ *
+ */
+
+int
+CWP_client_Field_n_dof_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ int                     i_part
+);
+
+/**
  * \brief Field_del CWIPI.
  *
  * \param [in] local_code_name Local code name
