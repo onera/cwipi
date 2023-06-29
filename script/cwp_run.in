@@ -27,7 +27,7 @@ Help()
   echo "-n <\"number of ranks\">            Number of ranks of executables (template : n_rannks_exe1:...:n_rannks_exen)"
   echo "-args <\"options of executables\">    Arguments of each executable (template : arg1exe1;...;argnexe1:...:arg1exen;...;argnexen) "
   echo "-output-junit  <file>               Export to Format XML JUnit"
-  echo "-timeout       <time>               time (minute) (default 2)"
+  echo "-timeout       <time>               time (minute) (default 1)"
   echo
 }
 
