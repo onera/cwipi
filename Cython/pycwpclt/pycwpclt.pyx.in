@@ -1339,7 +1339,9 @@ cdef class PartData (object):
         free(self.n_elt)
         free(self._gnum_elt)
 
-    def __del__(self):
+    # TODO should work with __del__ but a leak remains
+    # in __dealloc__ Python object might already partially destroyed
+    def __dealloc__(self):
         """
         Delete a PartData object.
         """

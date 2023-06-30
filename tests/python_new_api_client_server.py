@@ -25,6 +25,7 @@ import os
 import time
 from pycwpclt import pycwpclt
 from pycwpclt.pycwpclt import npy_cwp_gnum_dtype
+import gc
 
 def runTest():
     """
@@ -301,6 +302,9 @@ def runTest():
         print("send_part_data : {param}\n".format(param=send_data2))
     if (i_rank == 1):
         print("recv_part_data : {param}\n".format(param=recv_data2))
+
+    # sys.get_ref_count(part_data)
+    print("reffers: {}".format(gc.get_referrers(part_data)))
 
     del part_data
 
@@ -591,3 +595,4 @@ def runTest():
 
 if __name__ == '__main__':
     runTest()
+    gc.collect()
