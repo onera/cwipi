@@ -2426,11 +2426,6 @@ cdef class Coupling (object):
     cdef str local_code_name
     cdef str cpl_id
 
-    cdef int    n_fields
-    cdef list   fields
-    cdef int    n_partData
-    cdef list   partData
-
     cdef dict __dict__
 
     def __init__(self,
@@ -2461,13 +2456,6 @@ cdef class Coupling (object):
 
         self.local_code_name = local_code_name
         self.cpl_id          = cpl_id
-
-        self.n_fields = 0
-        self.fields_name = {}
-        self.fields = []
-        self.partData_name = {}
-        self.n_partData = 0
-        self.partData = []
 
         CWP_Cpl_create(self.local_code_name,
                        self.cpl_id,
@@ -2520,8 +2508,6 @@ cdef class Coupling (object):
           Field object (Field)
         """
 
-        self.fields_name[field_id] = self.n_fields
-
         field = Field(self.local_code_name,
                       self.cpl_id,
                       field_id,
@@ -2531,10 +2517,6 @@ cdef class Coupling (object):
                       target_location,
                       exch_type,
                       visu_status)
-
-        self.fields.append(field)
-
-        self.n_fields = self.n_fields + 1
 
         return field
 
@@ -2549,18 +2531,6 @@ cdef class Coupling (object):
       """
       return CWP_Cpl_spatial_interp_algo_get(self.local_code_name,
                                              self.cpl_id)
-
-    def field_del(self,
-                  char * field_id):
-        """
-        #TODO: remove access to Field Class from Coupling object?
-        Delete Field object and field form self.field dictionary
-
-        Parameters:
-          field_id        (str)               : Field id
-        """
-        cdef int idx = self.fields_name[field_id]
-        del self.fields_name[field_id]
 
     # --> PARTDATA
     def part_data_create(self,
@@ -2579,32 +2549,12 @@ cdef class Coupling (object):
           Part Data object (PartData)
         """
 
-        self.partData_name[part_data_id] = self.n_partData
-
         part_data = PartData(self.local_code_name,
                              self.cpl_id,
                              part_data_id,
                              exch_type,
                              gnum_elt)
-
-        self.partData.append(part_data)
-
-        self.n_partData = self.n_partData + 1
         return part_data
-
-    def part_data_del(self,
-                      char * part_data_id):
-        """
-        part_data_del(part_data_id)
-        #TODO: remove access to PartData Class from Coupling object?
-        Delete PartData object and partitioned data form self.partData dictionary
-
-        Parameters:
-          part_data_id       (str)  : Partitioned data id
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        del self.partData_name[part_data_id]
 
 
     # --> Global Data

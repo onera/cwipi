@@ -84,12 +84,11 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 def runTest():
   print(f"pdm : {PDM.__file__}")
 
-  # try:
-  #   from pycwp import pycwp
-  #   from pycwp.pycwp import npy_cwp_gnum_dtype
-  # except:
-  #   print("Error : CWIPI module not found (update PYTHONPATH variable)")
-  #   sys.exit(1)
+  try:
+    from pycwp import pycwp
+  except:
+    print("Error : CWIPI module not found (update PYTHONPATH variable)")
+    sys.exit(1)
 
   print("file :", PDM.__file__)
 
@@ -301,7 +300,6 @@ def runTest():
                             map_type,
                             field_val[ipart])
 
-
   comm.Barrier()
   if i_rank == 0:
     print("Create fields OK")
@@ -404,8 +402,9 @@ def runTest():
   if error:
     exit(1)
 
-  for icode in range(n_code):
-    cpl[icode].part_data_del(part_data_name)
+  for icode in range(n_code-1, -1, -1):
+    if code_name[icode] == all_code_name[icode]:
+      del part_data[icode]
 
   comm.Barrier()
   if i_rank == 0:
@@ -460,8 +459,11 @@ def runTest():
     print("Global data exchange OK")
     print("End")
 
+  for icode in range(n_code-1, -1, -1):
+    if code_name[icode] == all_code_name[icode]:
+      del field[icode]
+
   for icode in range(n_code):
-    del field[icode]
     pycwp.time_step_end(code_name[icode])
     cpl[icode].mesh_interf_del()
 

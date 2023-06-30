@@ -23,6 +23,8 @@ import numpy as np
 import sys
 import os
 import time
+from pycwpclt import pycwpclt
+from pycwpclt.pycwpclt import npy_cwp_gnum_dtype
 
 def runTest():
     """
@@ -300,7 +302,7 @@ def runTest():
     if (i_rank == 1):
         print("recv_part_data : {param}\n".format(param=recv_data2))
 
-    cpl.part_data_del(part_data_name)
+    del part_data
 
     # MESH
     polygon = 0
@@ -455,9 +457,9 @@ def runTest():
 
         comm.Barrier()
 
-        print("cpl.field_del:\n")
+        print("del field:\n")
 
-        cpl.field_del("champs")
+        del field
 
         comm.Barrier()
 

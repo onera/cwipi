@@ -2268,6 +2268,7 @@ CWP_client_Cpl_del
     }
   }
 
+  // FIELD
   if (!clt_cwp.coupling[s].field.empty()) {
 
     std::map<std::string, t_field>::iterator it_f = clt_cwp.coupling[s].field.begin();
@@ -2284,7 +2285,7 @@ CWP_client_Cpl_del
         free((it_f->second).u_tgts);
         (it_f->second).u_tgts = NULL;
       }
-      if ((it_f->second).data   != NULL) {
+      if ((it_f->second).data   != NULL) { // TODO: shouldn't it be left to the user to free it ?
        free((it_f->second).data);
        (it_f->second).data = NULL;
       }
@@ -2296,12 +2297,31 @@ CWP_client_Cpl_del
     }
   }
 
+  // Global data
   if (!clt_cwp.coupling[s].global_data.empty()) {
 
     std::map<std::string, t_global_data>::iterator it_gd = clt_cwp.coupling[s].global_data.begin();
     while (it_gd != clt_cwp.coupling[s].global_data.end()) {
       // user handles recv_data
       it_gd = clt_cwp.coupling[s].global_data.erase(it_gd);
+    }
+  }
+
+  // Part Data
+  if (!clt_cwp.coupling[s].part_data.empty()) {
+
+    std::map<std::string, t_part_data>::iterator it_pd = clt_cwp.coupling[s].part_data.begin();
+    while (it_pd != clt_cwp.coupling[s].part_data.end()) {
+
+      // CWP_PARTDATA_SEND
+      if ((it_pd->second).n_send_elt != NULL) free((it_pd->second).n_send_elt);
+      (it_pd->second).n_send_elt = NULL;
+
+      // CWP_PARTDATA_RECV
+      if ((it_pd->second).n_recv_elt != NULL) free((it_pd->second).n_recv_elt);
+      (it_pd->second).n_recv_elt = NULL;
+
+      it_pd = clt_cwp.coupling[s].part_data.erase(it_pd);
     }
   }
 
@@ -7072,19 +7092,17 @@ CWP_client_Part_data_del
 
   // free
   std::string s1(cpl_id);
-  t_coupling coupling = clt_cwp.coupling[s1];
   std::string s2(part_data_id);
-  t_part_data part_data = coupling.part_data[s2];
 
   if (exch_type == CWP_PARTDATA_SEND) {
-    if (part_data.n_send_elt != NULL) free(part_data.n_send_elt);
-    part_data.n_send_elt = NULL;
+    if (clt_cwp.coupling[s1].part_data[s2].n_send_elt != NULL) free(clt_cwp.coupling[s1].part_data[s2].n_send_elt);
+    clt_cwp.coupling[s1].part_data[s2].n_send_elt = NULL;
   } else if (exch_type == CWP_PARTDATA_RECV) {
-    if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
-    part_data.n_recv_elt = NULL;
+    if (clt_cwp.coupling[s1].part_data[s2].n_recv_elt != NULL) free(clt_cwp.coupling[s1].part_data[s2].n_recv_elt);
+    clt_cwp.coupling[s1].part_data[s2].n_recv_elt = NULL;
   }
 
-  coupling.part_data.erase(s2);
+  clt_cwp.coupling[s1].part_data.erase(s2);
 }
 
 void

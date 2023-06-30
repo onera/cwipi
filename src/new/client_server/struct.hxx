@@ -109,10 +109,12 @@ struct t_global_data
 struct t_part_data
 {
   t_part_data() {
-    n_send_elt    = NULL;
-    gnum_send_elt = NULL;
-    n_recv_elt    = NULL;
-    gnum_recv_elt = NULL;
+    n_send_elt        = NULL;
+    gnum_send_elt     = NULL;
+    n_recv_elt        = NULL;
+    gnum_recv_elt     = NULL;
+    send_to_recv_data = NULL;
+    recv_data         = NULL;
   }
 
   // Global number of sending code

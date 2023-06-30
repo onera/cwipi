@@ -1545,6 +1545,50 @@ CWP_server_Cpl_del
     }
   }
 
+  // Part Data
+  if (!svr_cwp.coupling[s].part_data.empty()) {
+    std::map<std::string, t_part_data>::iterator it_pd = svr_cwp.coupling[s].part_data.begin();
+    while (it_pd != svr_cwp.coupling[s].part_data.end()) {
+
+      // CWP_PARTDATA_SEND
+      if ((it_pd->second).n_send_elt != NULL) free((it_pd->second).n_send_elt);
+      (it_pd->second).n_send_elt = NULL;
+      if ((it_pd->second).gnum_send_elt != NULL) {
+        for (int i_part = 0; i_part < (it_pd->second).n_part_send; i_part++) {
+          if ((it_pd->second).gnum_send_elt[i_part] != NULL) free((it_pd->second).gnum_send_elt[i_part]);
+        }
+        free((it_pd->second).gnum_send_elt);
+        (it_pd->second).gnum_send_elt = NULL;
+      }
+      if ((it_pd->second).send_to_recv_data != NULL) {
+        for (int i_part = 0; i_part < (it_pd->second).n_part_send; i_part++) {
+          if ((it_pd->second).send_to_recv_data[i_part] != NULL) free((it_pd->second).send_to_recv_data[i_part]);
+        }
+        free((it_pd->second).send_to_recv_data);
+        (it_pd->second).send_to_recv_data = NULL;
+      }
+      // CWP_PARTDATA_RECV
+      if ((it_pd->second).n_recv_elt != NULL) free((it_pd->second).n_recv_elt);
+      (it_pd->second).n_recv_elt = NULL;
+      if ((it_pd->second).gnum_recv_elt != NULL) {
+        for (int i_part = 0; i_part < (it_pd->second).n_part_recv; i_part++) {
+          if ((it_pd->second).gnum_recv_elt[i_part] != NULL) free((it_pd->second).gnum_recv_elt[i_part]);
+        }
+        free((it_pd->second).gnum_recv_elt);
+        (it_pd->second).gnum_recv_elt = NULL;
+      }
+      if ((it_pd->second).recv_data != NULL) {
+        for (int i_part = 0; i_part < (it_pd->second).n_part_recv; i_part++) {
+          if ((it_pd->second).recv_data[i_part] != NULL) free((it_pd->second).recv_data[i_part]);
+        }
+        free((it_pd->second).recv_data);
+        (it_pd->second).recv_data = NULL;
+      }
+
+      it_pd = svr_cwp.coupling[s].part_data.erase(it_pd);
+    }
+  }
+
   // Properties
   if (!svr_cwp.coupling[s].property.empty()) {
     std::map<std::string, t_property>::iterator it_p = svr_cwp.coupling[s].property.begin();
@@ -6188,50 +6232,48 @@ CWP_server_Part_data_del
 
   // free struct
   std::string s1(cpl_id);
-  t_coupling coupling = svr_cwp.coupling[s1];
   std::string s2(part_data_id);
-  t_part_data part_data = coupling.part_data[s2];
 
   if (exch_type == CWP_PARTDATA_SEND) {
-    if (part_data.n_send_elt != NULL) free(part_data.n_send_elt);
-    part_data.n_send_elt = NULL;
+    if (svr_cwp.coupling[s1].part_data[s2].n_send_elt != NULL) free(svr_cwp.coupling[s1].part_data[s2].n_send_elt);
+    svr_cwp.coupling[s1].part_data[s2].n_send_elt = NULL;
 
-    if (part_data.gnum_send_elt != NULL) {
-      for (int i_part = 0; i_part < part_data.n_part_send; i_part++) {
-        if (part_data.gnum_send_elt[i_part] != NULL) free(part_data.gnum_send_elt[i_part]);
+    if (svr_cwp.coupling[s1].part_data[s2].gnum_send_elt != NULL) {
+      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+        if (svr_cwp.coupling[s1].part_data[s2].gnum_send_elt[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].gnum_send_elt[i_part]);
       }
-      free(part_data.gnum_send_elt);
-      part_data.gnum_send_elt = NULL;
+      free(svr_cwp.coupling[s1].part_data[s2].gnum_send_elt);
+      svr_cwp.coupling[s1].part_data[s2].gnum_send_elt = NULL;
     }
 
-    if (part_data.send_to_recv_data != NULL) {
-      for (int i_part = 0; i_part < part_data.n_part_send; i_part++) {
-        if (part_data.send_to_recv_data[i_part] != NULL) free(part_data.send_to_recv_data[i_part]);
+    if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data != NULL) {
+      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+        if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part]);
       }
-      free(part_data.send_to_recv_data);
-      part_data.send_to_recv_data = NULL;
+      free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
+      svr_cwp.coupling[s1].part_data[s2].send_to_recv_data = NULL;
     }
   } else if (exch_type == CWP_PARTDATA_RECV) {
-    if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
-    part_data.n_recv_elt = NULL;
+    if (svr_cwp.coupling[s1].part_data[s2].n_recv_elt != NULL) free(svr_cwp.coupling[s1].part_data[s2].n_recv_elt);
+    svr_cwp.coupling[s1].part_data[s2].n_recv_elt = NULL;
 
-    if (part_data.gnum_recv_elt != NULL) {
-      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
-        if (part_data.gnum_recv_elt[i_part] != NULL) free(part_data.gnum_recv_elt[i_part]);
+    if (svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt != NULL) {
+      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+        if (svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt[i_part]);
       }
-      free(part_data.gnum_recv_elt);
-      part_data.gnum_recv_elt = NULL;
+      free(svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt);
+      svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt = NULL;
     }
 
-    if (part_data.recv_data != NULL) {
-      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
-        if (part_data.recv_data[i_part] != NULL) free(part_data.recv_data[i_part]);
+    if (svr_cwp.coupling[s1].part_data[s2].recv_data != NULL) {
+      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+        if (svr_cwp.coupling[s1].part_data[s2].recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].recv_data[i_part]);
       }
-      free(part_data.recv_data);
-      part_data.recv_data = NULL;
+      free(svr_cwp.coupling[s1].part_data[s2].recv_data);
+      svr_cwp.coupling[s1].part_data[s2].recv_data = NULL;
     }
   }
-  coupling.part_data.erase(s2);
+  svr_cwp.coupling[s1].part_data.erase(s2);
 
   // free
   free(local_code_name);
@@ -6287,6 +6329,14 @@ CWP_server_Part_data_issend
   for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) part1_to_part2_data[i_part], s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
   }
+
+  if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+      if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part]);
+    }
+    free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
+  }
+
   svr_cwp.coupling[s1].part_data[s2].send_to_recv_data = part1_to_part2_data;
 
   // send status msg
@@ -6370,10 +6420,14 @@ CWP_server_Part_data_irecv
   // allocate array
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  svr_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * svr_cwp.coupling[s1].part_data[s2].n_part_recv);
-  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-    (svr_cwp.coupling[s1].part_data[s2].recv_data)[i_part] = malloc(s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+
+  if (svr_cwp.coupling[s1].part_data[s2].recv_data == NULL) {
+    svr_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * svr_cwp.coupling[s1].part_data[s2].n_part_recv);
+    for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+      (svr_cwp.coupling[s1].part_data[s2].recv_data)[i_part] = malloc(s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+    }
   }
+
   svr_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
   svr_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
 

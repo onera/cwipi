@@ -1292,7 +1292,7 @@ cdef class PartData (object):
     cdef CWP_PartData_exch_t   exch_type
     cdef int                   n_part
     cdef int                  *n_elt
-    cdef CWP_g_num_t                **_gnum_elt
+    cdef CWP_g_num_t         **_gnum_elt
     cdef dict                  recv_part_data
     cdef int                   n_recv
     cdef int                   n_wait_recv
@@ -1804,8 +1804,6 @@ cdef class Coupling (object):
     """
     cdef str local_code_name
     cdef str cpl_id
-    cdef int n_partData
-    cdef list partData
 
     cdef dict __dict__
 
@@ -1921,33 +1919,13 @@ cdef class Coupling (object):
           Part Data object (PartData)
         """
 
-        self.partData_name[part_data_id] = self.n_partData
-
         part_data = PartData(self.local_code_name,
                              self.cpl_id,
                              part_data_id,
                              exch_type,
                              gnum_elt)
 
-        self.partData.append(part_data)
-
-        self.n_partData = self.n_partData + 1
         return part_data
-
-
-    def part_data_del(self,
-                      char  *part_data_id):
-        """
-        #TODO: remove access to PartData Class from Coupling object?
-        Delete PartData object and partitioned data form self.partData dictionary
-
-        Parameters:
-          part_data_id       (str)  : Partitioned data id
-        """
-
-        cdef int idx = self.partData_name[part_data_id]
-        self.partData[idx].__del__()
-        del self.partData_name[part_data_id]
 
     # --> Global Data
     def global_data_issend(self,
