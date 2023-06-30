@@ -11,8 +11,19 @@ The library does not rely on a central coupling instance. The coupling is minima
 to call primitives of the library in the codes. Still, such a central supervisor can be set up by writing a Python supervisor script
 calling the Python interface of CWIPI.
 
-Summary
--------
+####################
+General presentation
+####################
+
+:ref:`Code philosophy <philosophy>`
+
+:ref:`Installation guide <installation>`
+
+:ref:`Licence <license>`
+
+###########
+User manual
+###########
 
 :ref:`Quick Start <quick_start>` references basic information for inexperienced CWIPI users.
 
@@ -29,20 +40,24 @@ Summary
 .. toctree::
   :hidden:
   :maxdepth: 1
-  :caption: Reference
+  :caption: Summary
 
-  quick_start
+  philosophy
   installation
-  faq
+  license
+  quick_start
   old_cwipi/old_cwipi
+  old_to_new/old_to_new
   new_cwipi/new_cwipi
   client_server_cwipi/client_server_cwipi
-  old_to_new/old_to_new
+  faq
 
-Functions index
-===============
+##################
+Indices and tables
+##################
 
 * :ref:`genindex`
+* :ref:`search`
 
 
 

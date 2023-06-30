@@ -2288,7 +2288,6 @@ CWP_Part_data_del
  * \param [in] s_data              Data size
  * \param [in] n_components        Number of components
  * \param [in] part1_to_part2_data Partition send to partition receive data link
- * \param [in] request             MPI request
  *
  */
 
