@@ -211,12 +211,12 @@ int main
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
 
   n_code = 0;
-  for (int icode = 0; icode < n_code; icode++) {
+  for (int icode = 0; icode < 2; icode++) {
     if (has_code[icode]) {
-      code_id          [icode] = icode+1;
-      code_name        [icode] = all_code_names[icode];
-      coupled_code_name[icode] = all_code_names[(icode+1)%2];
-      n_part           [icode] = all_n_part    [icode];
+      code_id          [n_code] = icode+1;
+      code_name        [n_code] = all_code_names[icode];
+      coupled_code_name[n_code] = all_code_names[(icode+1)%2];
+      n_part           [n_code] = all_n_part    [icode];
 
       if (verbose) {
         log_trace("Running %s, coupled with %s, n_part = %d\n",
