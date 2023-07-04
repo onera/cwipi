@@ -4,13 +4,10 @@
 From version 1.0 onwards, CWIPI offers multiple spatial interpolation methods.
 A specific spatial interpolation method can be affected to each coupling object.
 
-
- (à détailler...)
-
 Interpolation from nearest neighbors
 ------------------------------------
 
-Weighted Least Square interpolation from nearest neighbors (à détailler...)
+Weighted Least Square interpolation from nearest neighbors
 
 parameters:
   - ``n_neighbors``: number of neighbors to interpolate from

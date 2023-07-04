@@ -6,22 +6,10 @@ New CWIPI
 Released in 2023, this version relies on the parallel geometrical algortihm library ParaDiGM (Parallel Distributed Generalized
 Mesh). ParaDiGM (LGPL) is developped by the CWIPI developpers team.
 
-C API documentation
-===================
+General concepts
+================
 
-.. doxygenfile:: cwp.h
-   :project: cwipi
-
-Python API documentation : pycwp
-================================
-
-.. currentmodule:: pycwp
-
-.. automodule:: pycwp
-   :imported-members:
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. include:: concepts.rst
 
 Spatial interpolation methods
 =============================
@@ -53,5 +41,22 @@ Data getters for user interpolation functions in Python
 
 .. literalinclude:: ../../../../pattern/user_interp_function_python_pattern.txt
    :language: python
+
+C API documentation
+===================
+
+.. doxygenfile:: cwp.h
+   :project: cwipi
+
+Python API documentation : pycwp
+================================
+
+.. currentmodule:: pycwp
+
+.. automodule:: pycwp
+   :imported-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
