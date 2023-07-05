@@ -1454,13 +1454,14 @@ namespace cwipi {
         }
       }
       else {
+        // TODO K: why do we do this?
         for (int i_part = 0 ; i_part < _nPart; i_part++) {
           _send_coord[i_part] = NULL;
         }
 
         if (cond2) {
           cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-          for (int i_part = 0 ; i_part < _nPart; i_part++) {
+          for (int i_part = 0 ; i_part < cpl_spatial_interp->_nPart; i_part++) {
             if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
               cpl_spatial_interp->_send_coord[i_part] = cpl_mesh->eltCentersGet(i_part);
             }
