@@ -132,7 +132,7 @@ job:coverage_report:
     - export SLURM_EXACT=1
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
     - cd $CUSTOM_CI_DIR/build_coverage
-    - ctest -R new --timeout 120 --verbose || echo ""
+    - ./cwp_run || echo ""
     - gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CUSTOM_CI_DIR}/src/new --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
   when: on_success
   coverage: /^TOTAL.*\s+(\d+\%)$/
