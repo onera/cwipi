@@ -135,7 +135,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        code_elt_type[0] = atoi(argv[i]);
+        code_elt_type[0] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-e2") == 0) {
@@ -144,7 +144,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        code_elt_type[1] = atoi(argv[i]);
+        code_elt_type[1] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-c") == 0) {

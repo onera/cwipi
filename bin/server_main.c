@@ -265,7 +265,7 @@ main
   MPI_Comm_split_type(comm, MPI_COMM_TYPE_SHARED, i_intra_rank, MPI_INFO_NULL, &comm_node);
   MPI_Comm_rank(comm_node, &i_rank_node);
 
-  int server_port = port_begin + i_rank_node;
+  uint16_t server_port = (uint16_t) (port_begin + i_rank_node);
 
   // create server
   p_server svr = malloc(sizeof(t_server));

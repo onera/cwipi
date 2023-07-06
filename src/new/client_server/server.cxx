@@ -6589,8 +6589,8 @@ int
 CWP_server_create
 (
  MPI_Comm global_comm,
- int server_port,
- int flags,
+ uint16_t server_port,
+ int      flags,
  p_server svr
 )
 {

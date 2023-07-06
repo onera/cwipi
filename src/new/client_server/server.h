@@ -61,7 +61,7 @@ extern "C" {
 
 typedef struct t_server
 {
-  int          port;
+  uint16_t     port;
   int          state;
   int          flags;
   int          max_msg_size;
@@ -1429,7 +1429,7 @@ int
 CWP_server_create
 (
  MPI_Comm global_comm,
- int server_port,
+ uint16_t server_port,
  int flags,
  p_server svr
 );

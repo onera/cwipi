@@ -175,7 +175,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *spatial_interp_algo = atoi(argv[i]);
+        *spatial_interp_algo = (CWP_Spatial_interp_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-visu") == 0) {

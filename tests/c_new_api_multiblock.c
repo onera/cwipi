@@ -886,7 +886,7 @@ int main(int argc, char *argv[])
       int idx = 0;
       for (int iblock = 0; iblock < n_block; iblock++) {
         for (int ielt = 0; ielt < n_elt[iblock][ipart]; ielt++) {
-          send_val2[ipart][idx++] = elt_g_num[iblock][ipart][ielt];
+          send_val2[ipart][idx++] = (double) elt_g_num[iblock][ipart][ielt];
           // send_val2[ipart][idx++] = elt_type[iblock];
         }
       }

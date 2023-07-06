@@ -644,7 +644,7 @@ namespace cwipi {
 
     // check not several send in a row without wait interspersed
     if (send_request >= -1) {
-      PDM_error(__FILE__, __LINE__, 0, "Issend has already been called for partData %s. No wait_issend has been interspersed.\n", part_data_id);
+      PDM_error(__FILE__, __LINE__, 0, "Issend has already been called for partData %s. No wait_issend has been interspersed.\n", part_data_id.c_str());
     }
 
     // launch issend
@@ -755,7 +755,7 @@ namespace cwipi {
 
     // check not several recv in a row without wait interspersed
     if (recv_request >= -1) {
-      PDM_error(__FILE__, __LINE__, 0, "Irecv has already been called for partData %s. No wait_irecv has been interspersed.\n", part_data_id);
+      PDM_error(__FILE__, __LINE__, 0, "Irecv has already been called for partData %s. No wait_irecv has been interspersed.\n", part_data_id.c_str());
     }
 
     void **recv_buffer = NULL;
@@ -1114,7 +1114,7 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n", global_data_id);
+      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n", global_data_id.c_str());
     }
     it = _globalData.find(global_data_id.c_str());
 

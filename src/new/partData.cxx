@@ -42,12 +42,12 @@ namespace cwipi {
   _part_data_id(part_data_id),
   _part1_to_part2_data(NULL),
   _part1_to_part2_idx(NULL),
-  _recv_buffer(NULL),
-  _filtered_gnum1_come_from(NULL),
+  _send_request(-2),
+  _n_send_calls(0),
   _recv_request(-2),
   _n_recv_calls(0),
-  _send_request(-2),
-  _n_send_calls(0)
+  _recv_buffer(NULL),
+  _filtered_gnum1_come_from(NULL)
   {
     if (exch_type == CWP_PARTDATA_SEND) {
       _gnum_elt1 = gnum_elt;

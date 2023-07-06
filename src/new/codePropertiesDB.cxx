@@ -263,7 +263,7 @@ namespace cwipi {
         rankCode[currentName]->push_back(irank);
 
         if (currentRank == irank) {
-          _codePropertiesDB[currentName]->isActiveRankset(is_active_rank);
+          _codePropertiesDB[currentName]->isActiveRankset((bool) is_active_rank);
         }
 
         index += currentName.size() + 1;

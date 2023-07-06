@@ -168,7 +168,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *spatial_interp_algo = atoi(argv[i]);
+        *spatial_interp_algo = (CWP_Spatial_interp_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-t1") == 0) {
@@ -177,7 +177,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        all_elt_type[0] = atoi(argv[i]);
+        all_elt_type[0] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-t2") == 0) {
@@ -186,7 +186,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        all_elt_type[1] = atoi(argv[i]);
+        all_elt_type[1] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-rotate") == 0) {
