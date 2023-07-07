@@ -2017,6 +2017,8 @@ CWP_Param_del
  *
  * \brief Return the number of parameters for the code \p code_name.
  *
+ * /!\ Still unstable
+ *
  * \param [in] code_name       Local or distant code name
  * \param [in] data_type       Parameter type,
  *
@@ -2034,6 +2036,8 @@ CWP_Param_n_get
 /**
  *
  * \brief Return the list of parameters for the code \p code_name.
+ *
+ * /!\ Still unstable
  *
  * \param [in]  code_name      Local or distant code name
  * \param [in]  data_type      Parameter type,
@@ -2056,6 +2060,8 @@ CWP_Param_list_get
  *
  * \brief Is this \p code_name a parameter ?
  *
+ * /!\ Still unstable
+ *
  * \param [in] code_name      Local or distant code name
  * \param [in] param_name     Parameter name
  * \param [in] data_type      Parameter type
@@ -2076,6 +2082,8 @@ CWP_Param_is
  *
  * \brief Return the parameter value of \p param_name on \p code_name.
  *
+ * /!\ Still unstable
+ *
  * \param [in]  code_name  Local or distant code name
  * \param [in]  param_name Parameter name
  * \param [in]  data_type  Parameter type
@@ -2095,6 +2103,8 @@ CWP_Param_get
 /**
  *
  * \brief Return the result of a reduce operation about a parameter.
+ *
+ * /!\ Still unstable
  *
  * The parameter name has to be the same for all codes.
  *
@@ -2122,6 +2132,8 @@ CWP_Param_reduce
  *
  * \brief Lock access to local parameters from a distant code.
  *
+ * /!\ Still unstable
+ *
  * \param [in]  code_name  Code to lock
  *
  */
@@ -2135,6 +2147,8 @@ const char *code_name
 /**
  *
  * \brief Unlock access to local parameters from a distant code.
+ *
+ * /!\ Still unstable
  *
  * \param [in]  code_name  Code to unlock
  *
