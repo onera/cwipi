@@ -135,7 +135,7 @@ job:coverage_report:
     - ./cwp_run || echo ""
     - gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CUSTOM_CI_DIR}/src/new --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
   when: on_success
-  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  coverage: /lines:\s*(\d+\.\d+)%/
   artifacts:
     when: always
     reports:
