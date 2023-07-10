@@ -464,9 +464,36 @@ do
       fi
 
     else
-      echo -e "${RED}Error${NC}: OpenMPI is not available for cwp_run script"
-      echo -e "${PURPLE}${TestNamel[0]}: ${RED}Failed${NC}"
-      exit 1
+      CmdLine="${ExeMPI} --timeout ${TimeOutS} --output-filename $OutputFile"
+      k=0
+      sep=""
+      for ex in "${TestNamel[@]}"
+      do
+        OptExe=$(echo ${TestOptionl[k]} | tr ";" " ")
+        CmdLine="${CmdLine} ${sep} -n ${Nrankl[k]} /usr/bin/time  -f \"Maximum Resident Memory : %M Kb\nReal time : %e s\""
+        if [ -f "${TestDir}/${ex}.py" ]; then
+          CmdLine="${CmdLine} ${PROJECT_BINARY_DIR}/pdm_launch_python ${PythonUnbuffered} ${TestDir}/$ex.py ${optExe}"
+        else
+          CmdLine="${CmdLine} ${PROJECT_BINARY_DIR}/pdm_launch ${TestDir}/$ex ${OptExe}"
+        fi
+        sep=":"
+        ((k=k+1))
+      done 
+
+      CmdLine="${CmdLine} 2>/dev/null >/dev/null &"
+
+      if ( [ $(grep -ic client_server <<< $CmdLine) -ge 1 ] || [ $(grep -ic c_new_api_callback_sendrecv_sol <<< $CmdLine) -ge 1 ] ) && [ ${Ics} -eq 1 ]
+      then
+        testIgnored=(${testIgnored[@]} "$i")
+        ((iignored=iignored+1))
+      else
+        testSelected=(${testSelected[@]} "$i")
+        ((iselected=iselected+1))
+        echo "${CmdLine}"
+        eval "${CmdLine}"
+        pids=(${pids[@]} "$!")
+      fi
+
     fi
     ((IndexRank=IndexRank+Nranks)) 
   

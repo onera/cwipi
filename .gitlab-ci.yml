@@ -43,6 +43,11 @@ build:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
+        - COMPILER: "gcc@12"
+          MPI_LIB: 
+            - "openmpi"
+          BUILD_TYPE: 
+            - "Debug"
         - COMPILER: "gcc@10"
           MPI_LIB: 
             - "intel-oneapi"
@@ -87,6 +92,11 @@ unit_test:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
+        - COMPILER: "gcc@12"
+          MPI_LIB: 
+            - "openmpi"
+          BUILD_TYPE: 
+            - "Debug"
         - COMPILER: "gcc@10"
           MPI_LIB: 
             - "intel-oneapi"

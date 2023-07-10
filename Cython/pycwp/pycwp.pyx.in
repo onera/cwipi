@@ -871,21 +871,19 @@ def init(MPI.Comm global_comm,
     Returns:
       MPI intra-communicators of each code (size = number of codes on current MPI rank) (MPI.Comm list)
     """
-    global n_code
-    global c_code_names
-    global intra_comms
-
+   
     n_code = len(code_names)
 
     # code names
     c_code_names = <char**> malloc(sizeof(char*) * n_code)
+    py_byte_code_name = []
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('ascii') + b'\x00'
+        py_byte_code_name.append ((<unicode>code_names[i]).encode('ascii') + b'\x00')
       else :
-        py_byte_code_name = code_names[i]
-      c_code_names[i] = py_byte_code_name
+        py_byte_code_name.append(code_names[i])
+      c_code_names[i] = py_byte_code_name[i]
 
     # MPI communicator
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
@@ -906,6 +904,9 @@ def init(MPI.Comm global_comm,
       tmp_comm.ob_mpi = intra_comms[i_code]
       py_intra_comms[i_code] = tmp_comm # hidden cast to (PyObject *)
 
+    free (intra_comms)
+    free (c_code_names)  
+
     return py_intra_comms
 
 def finalize():
@@ -915,14 +916,7 @@ def finalize():
     After this call, no other function from this module can be called.
     It is a synchronization point between all applications.
     """
-    global n_code
-    global c_code_names
-    global intra_comms
-
-    free(c_code_names)
-
-    free(intra_comms)
-
+ 
     CWP_Finalize()
 
 # --> functions about current code properties
@@ -1154,6 +1148,15 @@ def param_add_dbl(char *       local_code_name,
       param_name       (str)    : Parameter name
       initial_value    (double) : Initial value
     """
+    # if isinstance(local_code_name, unicode):
+    #   py_byte_local_code_name = (<unicode>local_code_name).encode('ascii') + b'\x00')
+    # else :
+    #   py_byte_local_code_name = local_code_name
+
+    # if isinstance(param_name, unicode):
+    #   py_byte_param_name = (<unicode>param_name).encode('ascii') + b'\x00')
+    # else :
+    #   py_byte_param_name = param_name
 
     CWP_Param_add(local_code_name,
                   param_name,
@@ -1393,15 +1396,19 @@ def param_reduce(CWP_Op_t    op,
     """
 
     cdef int _n_code = len(code_names)
+    n_code = len(code_names)
 
     cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
+    py_byte_code_name=[]
+
+    print("param_reduce n_code", n_code, code_names)
 
     for i in range(n_code):
       if isinstance(code_names[i], unicode):
-        py_byte_code_name = (<unicode>code_names[i]).encode('ascii') + b'\x00'
+        py_byte_code_name.append((<unicode>code_names[i]).encode('ascii') + b'\x00')
       else :
-        py_byte_code_name = code_names[i]
-      c_code_names[i] = py_byte_code_name
+        py_byte_code_name.append(code_names[i])
+      c_code_names[i] = py_byte_code_name[i]
 
     cdef int int_res = -1
     cdef double dbl_res = -1
@@ -1436,7 +1443,7 @@ def param_reduce(CWP_Op_t    op,
                        n_code,
                        c_code_names)
       free(c_code_names)
-    return str_res
+      return str_res
 
 def param_lock(char * code_name):
     """
