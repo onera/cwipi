@@ -248,11 +248,11 @@ namespace cwipi {
       for (int i = 0; i < nPoly; i++) {
         int nFacePolyhedra = polyhedraFaceIndex[i+1] - polyhedraFaceIndex[i];
         int faceIndex = polyhedraCellToFaceConnectivity[i];
-        int nVertexFace = 0;
+//        int nVertexFace = 0;
         for (int j = 0; j < nFacePolyhedra; j++) {
           int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
           int nVertexLocFace = polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
-          nVertexFace += nVertexLocFace;
+//          nVertexFace += nVertexLocFace;
           int vertexIndex = polyhedraFaceConnectivityIndex[iface];
           for (int k = 0; k < nVertexLocFace; k++) {
             if (vertexPoly.capacity() <= vertexPoly.size()) {

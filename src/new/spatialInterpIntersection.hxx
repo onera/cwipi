@@ -55,7 +55,7 @@ namespace cwipi {
 
     virtual void clear() override;
 
-    SpatialInterpIntersection *_spatial_interp_cpl;
+//    SpatialInterpIntersection *_spatial_interp_cpl;
 
     int         **_src_to_tgt_idx;
     PDM_g_num_t **_src_to_tgt_gnum;

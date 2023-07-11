@@ -1047,7 +1047,7 @@ module cwp
 
         character(kind = c_char, len = 1)       :: local_code_name, cpl_id, field_id
         integer(kind = c_int),            value :: l_local_code_name, l_cpl_id, l_field_id
-        type(c_ptr),                   value :: user_interpolation_fct
+        type(c_funptr),                   value :: user_interpolation_fct
       end subroutine CWP_Field_interp_function_set_cf
 
       subroutine CWP_Field_interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &

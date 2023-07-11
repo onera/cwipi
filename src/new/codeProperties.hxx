@@ -960,7 +960,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1074,7 +1074,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1187,7 +1187,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1951,7 +1951,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -2040,7 +2040,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -2165,7 +2165,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          sleep(1e-6); // WARNING mandatory to allow ECLUSIVE to access
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);

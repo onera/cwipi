@@ -616,7 +616,7 @@ namespace cwipi {
     //
     // Loop on polyhedra
 
-    double volume_t =0;
+//    double volume_t =0;
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
 
       double *polyCenter = center + 3*ipoly;
@@ -779,7 +779,7 @@ namespace cwipi {
       for (int i = 0; i < 3; i++)
         polyCenter[i] =  polyCenter[i] + signeVol * denomVol * disp[i];
 
-      volume_t += volume[ipoly];
+//      volume_t += volume[ipoly];
 
       //
       // Check convergence

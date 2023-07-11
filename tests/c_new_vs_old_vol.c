@@ -828,10 +828,10 @@ _cube_mesh
       /* Cells */
       (*pcell_face_idx)[i_part] = cell_face_idx;
 
-      int s_cell_face = cell_face_idx[n_cell];
-      if (part_extension_depth > 0) {
-        s_cell_face += ext_cell_face_idx[n_ext_cell];
-      }
+      // int s_cell_face = cell_face_idx[n_cell];
+      // if (part_extension_depth > 0) {
+      //   s_cell_face += ext_cell_face_idx[n_ext_cell];
+      // }
       (*pcell_face)[i_part] = cell_face;
       (*pcell_ln_to_gn)[i_part] = cell_ln_to_gn;
 
@@ -839,10 +839,10 @@ _cube_mesh
       /* Faces */
       (*pface_vtx_idx)[i_part] = face_vtx_idx;
 
-      int s_face_vtx = face_vtx_idx[n_face];
-      if (part_extension_depth > 0) {
-        s_face_vtx += ext_face_vtx_idx[n_ext_face];
-      }
+      // int s_face_vtx = face_vtx_idx[n_face];
+      // if (part_extension_depth > 0) {
+      //   s_face_vtx += ext_face_vtx_idx[n_ext_face];
+      // }
       (*pface_vtx)[i_part] = face_vtx;
 
       (*pface_ln_to_gn)[i_part] = face_ln_to_gn;

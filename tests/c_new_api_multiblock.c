@@ -697,15 +697,15 @@ int main(int argc, char *argv[])
   // Define mesh
   PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
 
-  int _n_proc_data = n_proc_data;
-  if (n_proc_data > 0) {
-    if (code_id == 1) {
-      _n_proc_data /= 2;
-    }
-    else {
-      _n_proc_data -= n_proc_data / 2;
-    }
-  }
+  // int _n_proc_data = n_proc_data;
+  // if (n_proc_data > 0) {
+  //   if (code_id == 1) {
+  //     _n_proc_data /= 2;
+  //   }
+  //   else {
+  //     _n_proc_data -= n_proc_data / 2;
+  //   }
+  // }
   int current_rank_has_mesh = 1;//_set_rank_has_mesh(intra_comm[0], _n_proc_data, &mesh_comm);
 
   // int true_n_proc_data;

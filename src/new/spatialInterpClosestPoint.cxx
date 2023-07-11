@@ -772,7 +772,14 @@ namespace cwipi {
      )
     {
       double A[4*4] = {0.};
-      double b[4*stride] = {0.};
+
+      double *b = (double *) malloc(sizeof(double) * 4 *stride);
+      double *coeff = (double *) malloc(sizeof(double) * 4 *stride);
+
+      for (int i = 0; i < n_neighbors; i++) {
+        b[i] = 0.;
+        coeff[i] = 0.;
+      }
 
       for (int i = 0; i < n_neighbors; i++) {
         // log_trace("i = %d / %d\n", i, n_neighbors);
@@ -813,7 +820,6 @@ namespace cwipi {
 
       A[4*3+2] = A[4*2+3];
 
-      double coeff[4*stride];
       int stat = PDM_linear_algebra_linsolve_svd(4,
                                                  4,
                                                  stride,
@@ -840,6 +846,9 @@ namespace cwipi {
         //   tgt_value[j] = (j+1)*1000;
         // }
       }
+
+      free(b);
+      free(coeff);
     }
 
 
@@ -892,8 +901,9 @@ namespace cwipi {
      )
     {
       int stat = 1;
-      #define siz (1 + degree*3)
-      double c[siz*stride];
+      int siz = (1 + degree*3);
+
+      double *c = (double *) malloc(sizeof(double) * siz *stride);
 
       if (n_neighbors >= siz) {
 
@@ -905,15 +915,27 @@ namespace cwipi {
             for (int j = 0; j < stride; j++) {
               tgt_value[j] = src_value[stride*i+j];
             }
+            free (c);
             return;
           }
         }
 
 
+        double *A = (double *) malloc(sizeof(double) * siz * siz);
+        double *rhs = (double *) malloc(sizeof(double) * siz *stride);
+        double *b = (double *) malloc(sizeof(double) * siz );
 
-        double A[siz*siz] = {0.};
-        double rhs[siz*stride] = {0.};
-        double b[siz];
+        for (int i = 0; i < siz * siz; i++) {
+          A[i] = 0;
+        }
+
+        for (int i = 0; i < siz * stride; i++) {
+          rhs[i] = 0;
+        }
+
+        for (int i = 0; i < siz; i++) {
+          b[i] = 0;
+        }
 
         for (int i = 0; i < n_neighbors; i++) {
           double wi = _weight_function(src_dist2[i]);
@@ -945,6 +967,10 @@ namespace cwipi {
                                     (double *) A,
                                     (double *) rhs,
                                                c);
+
+        free (A);
+        free (rhs);
+        free (b);
       }
 
       if (stat == 0) {
@@ -962,7 +988,8 @@ namespace cwipi {
                     tgt_value);
       }
 
-      #undef siz
+      free (c);
+
     }
 
 
