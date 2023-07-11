@@ -115,7 +115,7 @@ unit_test:
     - export SLURM_EXACT=1
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
-    - ./cwp_run -srun -ics
+    - ./cwp_run -srun -ics -timeout 2
 #    - ./cwp_run
 #    - ctest -R new --timeout 120 --verbose --output-junit $CI_PROJECT_DIR/cwp_ctest$MATRIX_KEY.xml || echo " "
     # - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
