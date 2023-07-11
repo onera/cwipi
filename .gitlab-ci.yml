@@ -53,6 +53,16 @@ build:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
+        - COMPILER: "intel-llvm@2022"
+          MPI_LIB: 
+            - "intel-oneapi"
+          BUILD_TYPE: 
+            - "Debug"
+        - COMPILER: "intel@2022"
+          MPI_LIB: 
+            - "intel-oneapi"
+          BUILD_TYPE: 
+            - "Debug"
   variables:
     MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
   stage: build
@@ -70,6 +80,8 @@ build:
     -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
     - elif [ "${COMPILER}" == "intel@22" ]; then
     -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
+    - elif [ "${COMPILER}" == "intel-llvm@2022" ]; then
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=OFF -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=OFF  ../
     - fi
     - make -j
 #          -DPDM_ENABLE_Fortran_MPI_MODULE=OFF \
@@ -103,6 +115,16 @@ unit_test:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
+        - COMPILER: "intel-llvm@2022"
+          MPI_LIB: 
+            - "intel-oneapi"
+          BUILD_TYPE: 
+            - "Debug"
+        - COMPILER: "intel@2022"
+          MPI_LIB: 
+            - "intel-oneapi"
+          BUILD_TYPE: 
+            - "Debug"
   variables:
     MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
     SCHEDULER_PARAMETERS:  "--qos=co_inter_bigmem  --ntasks=40 --time=01:00:00 --exclusive"
