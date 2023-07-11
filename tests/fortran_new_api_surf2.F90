@@ -380,6 +380,7 @@ program testf
       data => recv_data
     endif
 
+    field_name="exchanged_field"
     call CWP_Field_create(code_name(i),                 &
                           coupling_name,                &
                           field_name,                   &
