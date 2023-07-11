@@ -19,8 +19,11 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cwp.h"
 #include "cwp_priv.h"
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
+#include "cwp.h"
+CWP_GCC_SUPPRESS_WARNING_POP
+
 
 #include "pdm_mesh_nodal.h"
 #include "pdm_geom_elem.h"

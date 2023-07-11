@@ -19,15 +19,6 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-} /* Fake brace to force back Emacs auto-indentation back to column 0 */
-#endif
-#endif /* __cplusplus */
-
-
-#include "cwp.h" 
 
 /*=============================================================================
  * Macro definitions
@@ -83,6 +74,17 @@ extern "C" {
 
 CWP_GCC_SUPPRESS_WARNING("-Wcast-qual")
 CWP_GCC_SUPPRESS_WARNING("-Wunknown-pragmas")
+
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
+#include "cwp.h" 
+CWP_GCC_SUPPRESS_WARNING_POP
+
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* Fake brace to force back Emacs auto-indentation back to column 0 */
+#endif
+#endif /* __cplusplus */
 
 /*============================================================================
  * Type

@@ -489,7 +489,6 @@ do
       else
         testSelected=(${testSelected[@]} "$i")
         ((iselected=iselected+1))
-        echo "${CmdLine}"
         eval "${CmdLine}"
         pids=(${pids[@]} "$!")
       fi
