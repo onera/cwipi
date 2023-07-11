@@ -43,7 +43,7 @@ build:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
-        - COMPILER: "gcc@12"
+        - COMPILER: "gcc@10"
           MPI_LIB: 
             - "openmpi"
           BUILD_TYPE: 
@@ -93,7 +93,7 @@ unit_test:
             - "intel-oneapi"
           BUILD_TYPE: 
             - "Sanitize"
-        - COMPILER: "gcc@12"
+        - COMPILER: "gcc@10"
           MPI_LIB: 
             - "openmpi"
           BUILD_TYPE: 
