@@ -84,9 +84,9 @@ author = 'B. Andrieu, K. Hoogveld, E. Quémerais'
 # built documents.
 #
 # The short X.Y version.
-version = 'CWP_VERSION_MAJOR@.@CWP_VERSION_MINOR@'
+version = '@CWP_VERSION_MAJOR@.@CWP_VERSION_MINOR@'
 # The full version, including alpha/beta/rc tags.
-release = 'CWP_VERSION'
+release = '@CWP_VERSION@'
 # try:
 #     import pycwp
 #     version = pycwp.__version__
@@ -154,13 +154,13 @@ todo_include_todos = False
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
-    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
-                                 "../tests/tutorial/c_new_api_polygon_sol.c",
-                                 "../tests/tutorial/fortran_new_api_polygon_sol.F90",
-                                 "../tests/tutorial/python_new_api_polygon_sol.py",
-                                 "../pattern/user_interp_function_c_pattern.txt",
-                                 "../pattern/user_interp_function_fortran_pattern.txt",
-                                 "../pattern/user_interp_function_python_pattern.txt"] )
+    "cwipi" : ( "@PROJECT_SOURCE_DIR@/src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
+                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
+                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
+                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
+                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_c_pattern.txt",
+                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_fortran_pattern.txt",
+                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_python_pattern.txt"] )
 }
 
 breathe_default_project = "cwipi"
@@ -205,7 +205,7 @@ html_short_title = project
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = "./images/logo-cwipi.png"
+html_logo = "@CMAKE_CURRENT_SOURCE_DIR@/images/logo-cwipi.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
