@@ -16,8 +16,8 @@ if(CWP_ENABLE_DOCUMENTATION)
 
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-    set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py.in)
-    set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py)
+    set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py.in)
+    set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source/conf.py)
 
     set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
