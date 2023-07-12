@@ -70,7 +70,7 @@ job:build:
   before_script:
     - module purge
     - echo "compilo = $COMPILER"
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f  && module load doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
   script:
     - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
     - cd $CUSTOM_CI_DIR
@@ -91,7 +91,7 @@ job:build_coverage:
   stage: build
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f  && module load doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
   script:
     - cd $CUSTOM_CI_DIR
     - mkdir -p build_coverage && cd build_coverage
@@ -146,7 +146,7 @@ unit_test:
   stage: test
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f && module load doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
   script:
     - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
     - export SLURM_EXACT=1
@@ -175,7 +175,7 @@ job:coverage_report:
   stage: coverage
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f && module load doxygen-1.9.3-gcc-8.3.1-4qcntlg 
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg 
   script:
     - export SLURM_EXACT=1
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
