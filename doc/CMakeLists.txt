@@ -16,9 +16,13 @@ if(CWP_ENABLE_DOCUMENTATION)
 
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py.in)
+    set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py)
+
     set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
     configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
+    configure_file(${SPHINX_IN} ${SPHINX_OUT} @ONLY)
 
     add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
                        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}

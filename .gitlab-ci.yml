@@ -194,13 +194,14 @@ job:coverage_report:
 
 pages:
   stage: deploy
+# $CI_COMMIT_TAG : a ajouter
   rules:
     - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
   before_script: 
     - ''
   script:
     - mkdir public
-    - cp -r $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug/doc/sphinx/html public/dev
+    - cp -r $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug/doc/sphinx/html public/$CI_COMMIT_BRANCH
     - |
       cat > public/index.html << EOF
       <head>
@@ -211,6 +212,7 @@ pages:
     paths:
       - public
 
+# $CI_COMMIT_TAG
 # non_regression:
 #   variables:
 #     COMPILER: "gcc@10"

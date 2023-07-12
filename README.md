@@ -1,5 +1,9 @@
 **CWIPI** (Coupling With Interpolation Parallel Interface) is a C++/C parallel coupling library under LGPL.
 
+## Documentation  ##
+ 
+User documentation is deployed on the Gitlab pages server: https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html
+
 ## Build and install ##
 
 ### Basic Installation
