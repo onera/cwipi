@@ -14,9 +14,7 @@ Initialize and Finalize
 
 All function calls are still framed by a call to the initialization and finalization functions.
 Version 1.x supports multiple codes running on a single MPI rank.
-Besides, one can select for each code which MPI ranks will be available for CWIPI.
-Future versions will support time interpolation.
-In anticipation for this feature, the initial time of each local code must be provided.
+Besides, one can select which MPI ranks will be available for CWIPI.
 
 In summary, from version 1.x onwards the following additional arguments are required at CWIPI initialization:
    - ``n_code``: the number of codes executed on current MPI rank ;
@@ -59,14 +57,14 @@ Thus, a coupling object is created between exactly two codes.
 Define mesh
 ===========
 
-Each code defines a coupling interface mesh for the given coupling.
+Each code defines an interface mesh for the given coupling.
 
 .. image:: ./images/mesh.png
    :scale: 90%
 
-In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in a element->vertex fashion.
-In version 1.x, to aim more flexibility in the way the mesh is provided there are several functions to define the mesh.
-In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given bellow.
+In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in an element->vertex fashion.
+Version 1.x, gives more flexibility in the way the mesh is provided so several functions must be called to define the mesh.
+In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given below.
 
 
 Mesh vertices coordinates
@@ -81,14 +79,14 @@ The coordinates of the mesh vertices should be provided in the following way::
                           coordinates,
                           NULL);
 
-The different ways to give the mesh to CWIPI are explained bellow with C code. Note that all functions with the ``partition_identifier``
-argument should be called for all partitions on the given MPI rank.
+The different ways to provide the mesh to CWIPI are explained below with C code. Note that all functions with the ``partition_identifier``
+argument must be called for all partitions on the given MPI rank.
 
 Polygonal/Polyhedral Mesh
 --------------------------
 
 This way of defining the mesh is the most similar to the way the mesh where defined in version 0.x.
-If you want to provide a polygonal (2D) mesh in a element->vertex fashion, you should do::
+If you want to provide a polygonal (2D) mesh in an element->vertex fashion, you should do::
 
   int block_idendifier = CWP_Mesh_interf_block_add("code_name",
                                                    "coupling_name",
@@ -103,7 +101,7 @@ If you want to provide a polygonal (2D) mesh in a element->vertex fashion, you s
                                    face_vertex_connectivity,
                                    NULL);
 
-If you want to provide a polyhedral (3D) mesh in a element->vertex fashion, you should do::
+If you want to provide a polyhedral (3D) mesh in an element->vertex fashion, you should do::
 
   int block_idendifier = CWP_Mesh_interf_block_add("code_name",
                                                    "coupling_name",
@@ -197,16 +195,20 @@ In any case, it is mandatory to finalize the mesh definition using ``CWP_Mesh_in
 code blocks allows to provide a global numbering. Since it is only used low-level in CWIPI, the finalize function allow to generate them
 if not provided.
 
+.. TODO: on mettrait pas l'argument global_ids plutôt que NULL? En précisant qu'il est optionnel
+
 Exchange fields
 ===============
 
-In version 0.x the field data array was provided upon exchange. More flexibility and clarity is provided by version 1.x with
-an object-oriented point of view. On a code's mesh within a coupling, several field objects can be created. The field definition
-is given once and for all at start. Setting the field objects means giving an array pointer in which the field data is defined. This pointer
-should be changed is the field data is to be updated. The only case a field has to be set again is if the mesh topology changes.
+In version 0.x the field data array was provided upon exchange.
+More flexibility and clarity is provided by version 1.x with an object-oriented point of view.
+Multiple fields can be defined for the same coupling object, each one having its own set of degrees-of-freedom.
+The field definition is given once and for all at start.
+Setting the field objects means giving an array pointer in which the field data is defined.
+This pointer should be changed is the field data is to be updated.
+The only case a field has to be set again is if the mesh topology changes.
 The non-blocking exchange functions were kept and are the way to go.
 
-On the defined coupling, you can add as many field objects as you want.
-
+*TODO: corriger schéma (receive field 2 pour code1)*
 .. image:: ./images/field.png
    :scale: 90%

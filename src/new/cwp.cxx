@@ -156,6 +156,103 @@ _cpl_get
                                  cpl_name_str);
 }
 
+
+void
+_check_interface_spatial_interp_compatibility
+(
+ const CWP_Interface_t       entities_dim,
+ const CWP_Spatial_interp_t  spatial_interp
+)
+{
+  switch (entities_dim) {
+    case CWP_INTERFACE_POINT:
+    {
+      if (spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
+          spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES &&
+          spatial_interp != CWP_SPATIAL_INTERP_FROM_IDENTITY) {
+        PDM_error(__FILE__, __LINE__, 0, "Only 'Nearest Neighbors' or 'Identity' spatial interpolation methods can be used with CWP_INTERFACE_POINT\n");
+      }
+      break;
+    }
+    case CWP_INTERFACE_LINEAR:
+    {
+      if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+        PDM_error(__FILE__, __LINE__, 0, "'Intersection' spatial interpolation is not yet implemented for CWP_INTERFACE_LINEAR\n");
+      }
+      break;
+    }
+    case CWP_INTERFACE_SURFACE:
+    {
+      break;
+    }
+    case CWP_INTERFACE_VOLUME:
+    {
+      break;
+    }
+    default:
+    {
+      PDM_error(__FILE__, __LINE__, 0, "Invalid coupling interface dimension (%d)\n", entities_dim);
+    }
+  }
+}
+
+void
+_check_dof_location_spatial_interp_compatibility
+(
+ const CWP_Dof_location_t    dof_location,
+ const CWP_Field_exch_t      exch_type,
+ const CWP_Spatial_interp_t  spatial_interp
+)
+{
+  switch (spatial_interp) {
+    case CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
+    case CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES:
+    {
+      // All dof location are accepted for both source and target fields
+      break;
+    }
+    case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
+    {
+      if (dof_location == CWP_DOF_LOCATION_USER) {
+        PDM_error(__FILE__, __LINE__, 0,
+                  "Field dofs must be located at mesh nodes or cell centers when using spatial interpolation from intersection\n");
+      }
+
+      if (dof_location == CWP_DOF_LOCATION_NODE) {
+        PDM_error(__FILE__, __LINE__, 0,
+                  "Spatial interpolation from intersection is not yet implemented for dof located at mesh nodes\n");
+      }
+      break;
+    }
+    case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT:
+    case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
+    case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE:
+    {
+      if (exch_type == CWP_FIELD_EXCH_RECV) {
+        // All dof location are accepted for target field
+      }
+      else {
+        if (dof_location == CWP_DOF_LOCATION_USER) {
+          PDM_error(__FILE__, __LINE__, 0,
+                    "Source field dofs must be located at mesh nodes or cell centers when using spatial interpolation from location\n");
+        }
+      }
+      break;
+    }
+    case CWP_SPATIAL_INTERP_FROM_IDENTITY:
+    {
+      // All dof location are accepted for both source and target fields
+      break;
+    }
+    default:
+    {
+      PDM_error(__FILE__, __LINE__, 0, "Invalid spatial interpolation method (%d)\n", spatial_interp);
+    }
+  }
+}
+
+
+
 // --> Fonctions privee qui n'appartiennent pas a l'API
 
  CWP_g_num_t*
@@ -802,6 +899,8 @@ CWP_Cpl_create
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
   const string &local_application_str = local_code_name;
+
+  _check_interface_spatial_interp_compatibility(entities_dim, spatial_interp);
 
 
  // printf("couplingDB.couplingCreate(proper\n");
@@ -2015,6 +2114,14 @@ CWP_Field_create
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp = CWP_Cpl_spatial_interp_algo_get(local_code_name,
+                                                                        cpl_id);
+
+  _check_dof_location_spatial_interp_compatibility(dof_location,
+                                                   exch_type,
+                                                   spatial_interp);
+
   cpl.fieldCreate(field_id,
                   data_type,
                   storage,

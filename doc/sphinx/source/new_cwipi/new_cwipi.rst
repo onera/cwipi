@@ -3,8 +3,8 @@
 New CWIPI
 #########
 
-Released in 2023, this version relies on the parallel geometrical algortihm library ParaDiGM (Parallel Distributed Generalized
-Mesh). ParaDiGM (LGPL) is developped by the CWIPI developpers team.
+Released in 2023, this version relies on the parallel computational geometry library **ParaDiGM** (Parallel Distributed Generalized
+Mesh), which is developed by the same team as CWIPI.
 
 General concepts
 ================
@@ -19,10 +19,10 @@ Spatial interpolation methods
 Advanced functionalities
 ========================
 
-For more precision, you may wish to adapt the spatial interpolation computed by CWIPI.
-That is done by setting your own local interpolation function.
-To write it you need local geometric data computed by CWIPI. Here is explained how to retrieve
-within your own interpolation function.
+Users can perform customized spatial interpolation based on the geometric mapping computed by CWIPI.
+To do so, one needs to provide CWIPI with a pointer to a user-written interpolation function (via ``CWP_Field_interp_function_set`` in C).
+Each Field object can have a specific user-defined spatial interpolation.
+The following sections show how to retrieve all the information required to write such a function.
 
 Data getters for user interpolation functions in C
 --------------------------------------------------

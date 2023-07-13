@@ -1,31 +1,34 @@
 .. _concepts:
 
-The aim of this section is to underline the structure of a coupling set up in this new version of CWIPI.
-The concepts will be detailled working with the following coupling scheme:
+This section aims to underline the structure of a coupling set up in this new version of CWIPI.
+The concepts will be detailed working with the following coupling scheme:
 
-.. image:: ./images/schema.png
-   :scale: 90%
+.. image:: ./images/schema_basic_coupling.svg
 
 Coupling
 --------
 
-To set up the coupling between `solver1` and `solver2` one needs to create a Coupling instance to which general information such as the dimension of the coupling interface will be associated.
+To set up the coupling between `Solver1` and `Solver2` one needs to create a Coupling instance to which general information such as the dimension of the coupling interface will be associated.
 
 Mesh
 ----
 
-Then the coupling interface needs to be specified (see Define_mesh in :ref:`Old to New <old_to_new>`).
-In this case, we set a 2D triangle and quadrangle mesh for `solver1` and a polygon mesh for `solver2`.
+Then the coupling interface needs to be specified (see :ref:`Define mesh`).
+In this case, we set a 2D triangle and quadrangle mesh for `Solver1` and a polygon mesh for `Solver2`.
 After setting the mesh coordinates, a so called block of the mesh elements should be added.
-This means that in the mesh instance a section for the given type of elements will be added.
-After creating this section, the mesh element data can be given using the add function for standard elements (`CWP_Mesh_interf_block_std_set` in C) for `solver1` and for polygons (`CWP_Mesh_interf_f_poly_block_set` in C) for `solver2`.
-For CWIPI to be able to do the internal geometric computations on the mesh, it should be "finalized".
+This means that in the mesh instance a block for the given type of elements will be added.
+After creating this block, the mesh element data can be given using the add function for standard elements (``CWP_Mesh_interf_block_std_set`` in C) for `Solver1` and for polygons (``CWP_Mesh_interf_f_poly_block_set`` in C) for `Solver2`.
+
+For CWIPI to be able to do the internal geometric computations on the mesh, it must be "finalized" (``CWP_Mesh_interf_finalize`` in C).
 
 Fields
 ------
 
-Defining the interface mesh is mandatory before creating field instances since the location of the field will be given relatively to the degrees of freedom of the mesh.
-For `solver1` a field instance for sending the temparature will be created and another instance for receiving the pressure.
-For `solver2` the opposite will be done.
+It is mandatory to define the interface mesh *before* creating field instances.
+The degrees-of-freedom (dof) of a Field can either be located at mesh nodes, cell centers or a user-defined points.
+There can be no more than one user-defined point cloud per Coupling object.
+
+For `Solver1` a field instance for sending the temperature will be created and another instance for receiving the pressure.
+For `Solver2` the opposite will be done.
 
 
