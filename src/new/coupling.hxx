@@ -31,11 +31,12 @@
 #include "mesh.hxx"
 
 #include "spatialInterp.hxx"
-// #include "visualization.hxx"
 #include "field.hxx"
 #include "globalData.hxx"
 #include "partData.hxx"
+#include "partData2.hxx"
 #include "pdm_part_to_part.h"
+
 #include "pdm_writer.h"
 
 /**
@@ -152,6 +153,16 @@ namespace cwipi {
      int                   n_part
     );
 
+    void
+    partData2Create
+    (
+     const string          &part_data_id,
+     CWP_PartData_exch_t   exch_type,
+     CWP_g_num_t         **gnum_elt,
+     int                  *n_elt,
+     int                   n_part
+    );
+
     /**
      * \brief Delete partitionned data exchange object
      *
@@ -162,6 +173,13 @@ namespace cwipi {
 
     void
     partDataDel
+    (
+     const string          &part_data_id,
+     CWP_PartData_exch_t   exch_type
+    );
+
+    void
+    partData2Del
     (
      const string          &part_data_id,
      CWP_PartData_exch_t   exch_type
@@ -186,6 +204,17 @@ namespace cwipi {
      void         **part1_to_part2_data
     );
 
+    void
+    partData2Issend
+    (
+     const string  &part_data_id,
+     const int      tag,
+           size_t   s_data,
+           int      n_components,
+           void   **send_data,
+           int     *send_request
+    );
+
     /**
      * \brief Irecv partitionned data
      *
@@ -203,6 +232,17 @@ namespace cwipi {
      size_t         s_data,
      int            n_components,
      void         **part2_data
+    );
+
+    void
+    partData2Irecv
+    (
+     const string  &part_data_id,
+     const int      tag,
+           size_t   s_data,
+           int      n_components,
+           void   **recv_data,
+           int     *recv_request
     );
 
     /**
@@ -232,6 +272,13 @@ namespace cwipi {
      const string   &part_data_id
     );
 
+    void
+    partData2WaitIssend
+    (
+     const string   &part_data_id,
+     const int       request
+    );
+
     /**
      * \brief Wait irecv partitionned data
      *
@@ -243,6 +290,13 @@ namespace cwipi {
     partDataWaitIrecv
     (
      const string   &part_data_id
+    );
+
+    void
+    partData2WaitIrecv
+    (
+     const string   &part_data_id,
+     const int       request
     );
 
     int
@@ -1868,6 +1922,7 @@ namespace cwipi {
           std::map < string, Field * >       &_fields;                                 /*!< Fields Data Base */
           std::map < string, GlobalData >    &_globalData;                             /*!< GlobalData Data Base */
           std::map < string, PartData >      &_partData;                               /*!< PartData Data Base */
+          std::map < string, PartData2>      &_partData2;                              /*!< PartData Data Base */
           CouplingDB                         &_cplDB;                                  /*!< Coupling Data base */
           CWP_Dynamic_mesh_t                  _displacement;                           /*!< Type of mesh displacement */
     const CWP_Spatial_interp_t                _spatialInterpAlgo;                      /*!< Spatial intepolation algorithm */

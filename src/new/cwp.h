@@ -2269,6 +2269,18 @@ CWP_Part_data_create
  int                   n_part
  );
 
+void
+CWP_Part_data2_create
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
+ );
+
 /**
  * \brief Delete a partitioned data exchange object
  *
@@ -2288,6 +2300,14 @@ CWP_Part_data_del
  CWP_PartData_exch_t  exch_type
 );
 
+void
+CWP_Part_data2_del
+(
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id,
+ CWP_PartData_exch_t  exch_type
+);
 
 /**
  * \brief Initiate the sending of a partitioned data array.
@@ -2310,6 +2330,19 @@ CWP_Part_data_issend
  size_t         s_data,
  int            n_components,
  void         **part1_to_part2_data
+);
+
+void
+CWP_Part_data2_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      tag,
+       size_t   s_data,
+       int      n_components,
+       void   **send_data,
+       int     *send_request
 );
 
 /**
@@ -2335,6 +2368,19 @@ CWP_Part_data_irecv
  void         **part2_data
 );
 
+void
+CWP_Part_data2_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      tag,
+       size_t   s_data,
+       int      n_components,
+       void   **recv_data,
+       int     *recv_request
+);
+
 /**
  * \brief Finalize the sending of a partitioned data array.
  *
@@ -2352,6 +2398,15 @@ CWP_Part_data_wait_issend
  const char    *part_data_id
 );
 
+void
+CWP_Part_data2_wait_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      request
+);
+
 /**
  * \brief Finalize the reception of a data array.
  *
@@ -2367,6 +2422,15 @@ CWP_Part_data_wait_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id
+);
+
+void
+CWP_Part_data2_wait_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      request
 );
 
 

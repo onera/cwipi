@@ -25,6 +25,7 @@
 #include "cwp_priv.h"
 
 #include "pdm_part_to_part.h"
+#include "pdm_logging.h"
 
 /**
  * \cond
@@ -63,7 +64,9 @@ namespace cwipi {
   }
 
   PartData::~PartData()
-  {}
+  {
+    log_trace("~PartData %s\n", _part_data_id.c_str());
+  }
 
   uint32_t PartData::_adler32
   (
