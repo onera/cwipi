@@ -84,9 +84,10 @@ author = 'B. Andrieu, K. Hoogveld, E. Quémerais'
 # built documents.
 #
 # The short X.Y version.
-version = '@CWP_VERSION_MAJOR@.@CWP_VERSION_MINOR@'
+#version = '@CWP_VERSION_MAJOR@.@CWP_VERSION_MINOR@'
+version = '@CWP_DEF_VERSION@'
 # The full version, including alpha/beta/rc tags.
-release = '@CWP_VERSION@'
+release = '@CWP_DEF_VERSION@'
 # try:
 #     import pycwp
 #     version = pycwp.__version__

@@ -16,7 +16,7 @@ if(CWP_ENABLE_DOCUMENTATION)
 
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-    set(SPHINX_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py.in)
+    set(SPHINX_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py.in)
     set(SPHINX_OUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source/conf.py)
 
     set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
@@ -37,9 +37,17 @@ if(CWP_ENABLE_DOCUMENTATION)
     # Build sphinx documentation
     #------------------------------------------------------------------------------
 
-    set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source)
+    set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source)
     set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html)
     set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
+
+    file(GLOB_RECURSE SOURCES_SPHINX
+     sphinx/source
+    )
+
+    foreach(_src IN ITEMS ${SOURCES_SPHINX})
+      configure_file(${_src} {CMAKE_CURRENT_BINARY_DIR}/${_src})
+    endforeach()
 
     if(DEFINED ENV{PYTHONPATH})
       set (DOC_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
@@ -57,6 +65,9 @@ if(CWP_ENABLE_DOCUMENTATION)
     # - Doxygen has rerun
     # - Our doc files have been updated
     # - The Sphinx config has been updated
+
+    file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                        COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN}
                          ${SPHINX_EXECUTABLE} -Q -b html # -Q to suppress warning output
@@ -68,7 +79,7 @@ if(CWP_ENABLE_DOCUMENTATION)
                        DEPENDS
                        # Other docs files you want to track should go here (or in some variable)
                        ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/index.rst
-                       ${DOXYGEN_INDEX_FILE}
+                       ${DOXYGEN_INDEX_FILE} ${SOURCES_SPHINX}
                        MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
                        COMMENT "Generating documentation with Sphinx")
 
