@@ -41,14 +41,6 @@ if(CWP_ENABLE_DOCUMENTATION)
     set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html)
     set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
-    file(GLOB_RECURSE SOURCES_SPHINX
-     sphinx/source
-    )
-
-    foreach(_src IN ITEMS ${SOURCES_SPHINX})
-      configure_file(${_src} {CMAKE_CURRENT_BINARY_DIR}/${_src})
-    endforeach()
-
     if(DEFINED ENV{PYTHONPATH})
       set (DOC_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
     else()
@@ -67,6 +59,15 @@ if(CWP_ENABLE_DOCUMENTATION)
     # - The Sphinx config has been updated
 
     file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+    file(GLOB_RECURSE SOURCES_SPHINX
+     sphinx/source/*.rst
+    )
+
+    foreach(_src IN ITEMS ${SOURCES_SPHINX})
+      file(RELATIVE_PATH F_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
+      configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME})
+    endforeach()
 
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                        COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN}

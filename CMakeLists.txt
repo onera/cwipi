@@ -617,7 +617,20 @@ if (CWP_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()
 
+#------------------------------------------------------------------------------
+# Add doc
+#------------------------------------------------------------------------------
+
 add_subdirectory(doc)
+
+file(GLOB_RECURSE SOURCES_PATTERN
+  pattern/*
+)
+
+foreach(_src IN ITEMS ${SOURCES_PATTERN})
+  file(RELATIVE_PATH F_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
+  configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME})
+endforeach()
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages
