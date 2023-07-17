@@ -237,11 +237,11 @@ cdef extern from "client_server/client.h":
   # --> functions about spatial interpolation
   void CWP_client_Spatial_interp_weights_compute(char     *local_code_name,
                                                  char     *cpl_id)
-  void CWP_client_Spatial_interp_property_set(char     *local_code_name,
-                                              char     *cpl_id,
-                                              char     *property_name,
-                                              char     *property_type,
-                                              char     *property_value)
+  void CWP_client_Spatial_interp_property_set(char       *local_code_name,
+                                              char       *cpl_id,
+                                              char       *property_name,
+                                              CWP_Type_t  property_type,
+                                              char       *property_value)
 
   # --> functions about visualization
   void CWP_client_Visu_set(char                 *local_code_name,
@@ -952,7 +952,7 @@ def param_add_int(char        *local_code_name,
                   int          initial_value):
     """
     param_add_int(local_code_name, param_name, initial_value)
-    Add a new integer parameter and initialize it.
+    Add a new control parameter of type `int` and initialize it.
 
     Parameters:
       local_code_name  (str)   : Local code name
@@ -970,7 +970,7 @@ def param_add_dbl(char        *local_code_name,
                   double       initial_value):
     """
     param_add_dbl(local_code_name, param_name, initial_value)
-    Add a new double parameter and initialize it.
+    Add a new control parameter of type `double` and initialize it.
 
     Parameters:
       local_code_name  (str)    : Local code name
@@ -988,7 +988,7 @@ def param_add_str(char        *local_code_name,
                   char        *initial_value):
     """
     param_add_str(local_code_name, param_name, initial_value)
-    Add a new string parameter and initialize it.
+    Add a new control parameter of type `str` and initialize it.
 
     Parameters:
       local_code_name  (str) : Local code name
@@ -1006,7 +1006,7 @@ def param_set_int(char        *local_code_name,
                   int          current_value):
     """
     param_set_int(local_code_name, param_name, current_value)
-    Set an integer parameter.
+    Set the value of an `int` control parameter.
 
     Parameters:
       local_code_name  (str) : Local code name
@@ -1024,7 +1024,7 @@ def param_set_dbl(char        *local_code_name,
                   double       current_value):
     """
     param_set_dbl(local_code_name, param_name, current_value)
-    Set a double parameter.
+    Set the value of a `double` control parameter.
 
     Parameters:
       local_code_name  (str)    : Local code name
@@ -1042,7 +1042,7 @@ def param_set_str(char        *local_code_name,
                   char        *current_value):
     """
     param_set_str(local_code_name, param_name, current_value)
-    Set a string parameter.
+    Set the value of a `str` control parameter.
 
     Parameters:
       local_code_name  (str) : Local code name
@@ -1060,7 +1060,7 @@ def param_del(char        *local_code_name,
               CWP_Type_t   data_type):
     """
     param_del(local_code_name, param_name, data_type)
-    Delete a parameter.
+    Delete a control parameter.
 
     Parameters:
       local_code_name  (str)        : Local code name
@@ -1077,14 +1077,14 @@ def param_n_get(char        *code_name,
                 CWP_Type_t   data_type):
     """
     param_n_get(code_name, data_type)
-    Return the number of parameters for the code code_name.
+    Return the number of control parameters for the code ``code_name``.
 
     Parameters:
       code_name        (str)        : Code name
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-      Number of parameters for the code code_name (int)
+      Number of control parameters for the code ``code_name`` (int)
     """
 
     cdef int n_param = CWP_client_Param_n_get(code_name,
@@ -1096,14 +1096,14 @@ def param_list_get(char        *code_name,
                    CWP_Type_t   data_type):
     """
     param_list_get(code_name, data_type)
-    Return the list of parameters for the code code_name.
+    Return the list of control parameters for the code ``code_name``.
 
     Parameters:
       code_name        (str)        : Code name
       data_type        (CWP_Type_t) : Parameter type
 
     Returns:
-      Parameter names (str list)
+      Control parameter names (str list)
     """
 
     cdef int n_param = -1;
@@ -1134,7 +1134,7 @@ def param_is(char        *code_name,
              CWP_Type_t   data_type):
     """
     param_is(code_name, param_name, data_type)
-    Is this an existing parameter ?
+    Is this an existing control parameter for code ``code_name`` ?
 
     Parameters:
       code_name        (str)        : Code name
@@ -1156,7 +1156,7 @@ def param_get(char        *code_name,
               CWP_Type_t   data_type):
     """
     param_get(code_name, param_name, data_type)
-    Return the parameter value of param_name on code_name.
+    Return the value of control parameter ``param_name`` on ``code_name``.
 
     Parameters:
       code_name        (str)        : Code name
@@ -1199,14 +1199,14 @@ def param_reduce(CWP_Op_t    op,
                  list        code_names not None):
     """
     param_reduce(op, param_name, data_type, code_names)
-    Return the result of a reduction operation about a parameter.
-    The parameter name has to be the same for all codes.
+    Return the result of a reduce operation on a control parameter shared by multiple codes.
+    .. note:: The parameter name has to be the same for all the codes involved in the reduction operation.
 
     Parameters:
       op         (CWP_Op_t)   : Operation
       param_name (str)        : Parameter name
       data_type  (CWP_Type_t) : Parameter type
-      code_names (str list)   : Code names (size = number of codes in the reduction operation)
+      code_names (str list)   : Names of codes involved in the reduction operation
 
     Returns:
       Result of reduction (data_type)
@@ -1259,7 +1259,7 @@ def param_reduce(CWP_Op_t    op,
 def param_lock(char        *code_name):
     """
     param_lock(code_name)
-    Lock access to local parameters from a distant code.
+    Lock access to local control parameters from a distant code.
 
     Parameters:
       code_name (str) : Code name
@@ -1270,7 +1270,7 @@ def param_lock(char        *code_name):
 def param_unlock(char        *code_name):
     """
     param_unlock(code_name)
-    Unlock access to local parameters from a distant code.
+    Unlock access to local control parameters from a distant code.
 
     Parameters:
       code_name (str) : Code name
@@ -1305,13 +1305,13 @@ cdef class PartData (object):
                  list                     gnum_elt):
         """
         __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
-        Initialize partitioned data object.
+        Initialize a PartData object.
 
         Parameters:
-          local_code_name (str)                         : Local code name
-          cpl_id          (str)                         : Coupling id
-          part_data_id    (str)                         : Partitioned data id
-          exch_type       (CWP_PartData_exch_t)         : Enum if SEND or RECV side
+          local_code_name (str)                             : Local code name
+          cpl_id          (str)                             : Coupling id
+          part_data_id    (str)                             : Partitioned data id
+          exch_type       (CWP_PartData_exch_t)             : Send or receive
           gnum_elt        (np.ndarray[npy_cwp_gnum_t] list) : Global ids
         """
 
@@ -1357,7 +1357,7 @@ cdef class PartData (object):
                list                   send_data):
         """
         issend(n_components, send_data)
-        Issend partitioned data.
+        Initiate the sending of a partitioned data array.
 
         Parameters:
           n_components (int)  : Number of components
@@ -1383,7 +1383,7 @@ cdef class PartData (object):
               list                   recv_data):
         """
         irecv(n_components, recv_data)
-        Irecv partitioned data.
+        Initiate the reception of a partitioned data array.
 
         Parameters:
           n_components (int)  : Number of components
@@ -1408,7 +1408,7 @@ cdef class PartData (object):
     def wait_issend(self):
         """
         wait_issend()
-        Wait issend partitioned data.
+        Finalize the sending of a partitioned data array.
 
         Parameters:
           request (int) : Exchange request
@@ -1421,7 +1421,7 @@ cdef class PartData (object):
     def wait_irecv(self):
         """
         wait_irecv()
-        Wait irecv partitioned data.
+        Finalize the reception of a data array.
 
         Parameters:
           request (int) : Exchange request
@@ -1462,7 +1462,7 @@ cdef class Field (object):
                  CWP_Status_t           visu_status):
         """
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
-        Initialize field object.
+        Initialize a Field object.
 
         .. warning:: Field creation should be done using ``field_create``
 
@@ -1472,7 +1472,7 @@ cdef class Field (object):
           field_id        (str)                 : Field id
           data_type       (CWP_Type_t)          : Data type
           storage         (CWP_Field_storage_t) : Storage type
-          n_component     (int)                 : Number of component
+          n_component     (int)                 : Number of components
           target_location (CWP_Dof_location_t)  : Target location
           exch_type       (CWP_Field_exch_t)    : Exchange type
           visu_status     (CWP_Status_t)        : Visualization status
@@ -1494,7 +1494,7 @@ cdef class Field (object):
 
     def __del__(self):
         """
-        Delete a field object.
+        Delete a Field object.
         """
 
         CWP_client_Field_del(self.local_code_name,
@@ -1619,7 +1619,7 @@ cdef class Field (object):
 
     def wait_issend(self):
         """
-        Wait the end of an exchange related to request from CWP_Field_issend.
+        Finalize the sending of an interpolated field.
         """
 
         CWP_client_Field_wait_issend(self.local_code_name,
@@ -1628,7 +1628,7 @@ cdef class Field (object):
 
     def wait_irecv(self):
         """
-        Wait the end of an exchange related to request from CWP_Field_irecv.
+        Finalize the reception of an interpolated field.
         """
 
         cdef double *data
@@ -1639,7 +1639,7 @@ cdef class Field (object):
 
     def computed_tgts_bcast_enable(self):
         """
-        Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+        Enable broadcast of the computed targets ids (in ``CWP_COMM_PAR_WITHOUT_PART`` mode).
 
         .. warning:: This function must be called in order for the computed targets to be accessible
                      on non-root ranks
@@ -1651,7 +1651,7 @@ cdef class Field (object):
 
     def involved_srcs_bcast_enable(self):
         """
-        Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode).
+        Enable broadcast of the involved sources ids (in ``CWP_COMM_PAR_WITHOUT_PART`` mode).
 
         .. warning:: This function must be called in order for the involved sources to be accessible
                      on non-root ranks
@@ -1886,7 +1886,7 @@ cdef class Coupling (object):
           field_id        (str)                 : Field id
           data_type       (CWP_Type_t)          : Data type
           storage         (CWP_Field_storage_t) : Storage type
-          n_component     (int)                 : Number of component
+          n_component     (int)                 : Number of components
           target_location (CWP_Dof_location_t)  : Target location
           exch_type       (CWP_Field_exch_t)    : Exchange type
           visu_status     (CWP_Status_t)        : Visualization status
@@ -1937,7 +1937,7 @@ cdef class Coupling (object):
                            np.ndarray  send_data):
       """
       global_data_issend(global_data_id, send_stride, n_send_entity, send_data)
-      Initiate the sending of a data array.
+      Initiate the sending of a global data array.
 
       Parameters:
         global_data_id  (str)        : Global data identifier
@@ -1963,7 +1963,7 @@ cdef class Coupling (object):
                           np.ndarray  recv_data):
       """
       global_data_irecv(global_data_id, recv_stride, n_recv_entity, recv_data)
-      Initiate the reception of a data array.
+      Initiate the reception of a global data array.
 
       Parameters:
         global_data_id  (str)        : Global data identifier
@@ -1986,7 +1986,7 @@ cdef class Coupling (object):
                                 char *  global_data_id):
       """
       global_data_wait_issend(global_data_id)
-      Finalize the sending of a data array.
+      Finalize the sending of a global data array.
 
       Parameters:
         global_data_id  (str) : Global data identifier
@@ -2000,7 +2000,7 @@ cdef class Coupling (object):
                                char * global_data_id):
       """
       global_data_wait_irecv(global_data_id)
-      Finalize the reception of a data array.
+      Finalize the reception of a global data array.
 
       Parameters:
         global_data_id  (str) : Global data identifier
@@ -2030,10 +2030,10 @@ cdef class Coupling (object):
         Set interface mesh vertices.
 
         Parameters:
-          i_part     (int)                       : Current partition
-          n_pts      (int)                       : Number of points
-          coord      (np.ndarray[np.double_t])   : Coordinates (size = 3 * n_pts)
-          global_num (np.ndarray[npy_cwp_gnum_t])    : Global vertex ids (or None)
+          i_part     (int)                        : Current partition
+          n_pts      (int)                        : Number of points
+          coord      (np.ndarray[np.double_t])    : Coordinates (size = 3 * \ref n_pts)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global vertex ids (size = \ref n_pts or None)
         """
 
         if len(coord)%3 != 0:
@@ -2089,8 +2089,8 @@ cdef class Coupling (object):
         Parameters:
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_per_elt * \ref n_elts)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
         """
 
         cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2135,8 +2135,8 @@ cdef class Coupling (object):
         Returns:
           Dictionary
             - ``"n_elts"``     : Number of elements (int)
-            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = n_vertex_elt * n_elts)
-            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t] or None)
+            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = n_vertex_per_elt * \ref n_elts)
+            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t], size = \ref n_elts or None)
         """
 
         cdef int   n_elts = -1
@@ -2175,9 +2175,9 @@ cdef class Coupling (object):
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
           n_elts     (int)                    : Number of elements
-          connec_idx (np.ndarray[np.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = connec_idx[n_elts])
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
+          connec_idx (np.ndarray[np.int32_t]) : Connectivity index (\ref connec_id[0] = 0 and size = \ref n_elts + 1)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = \ref connec_idx[\ref n_elts])
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
         """
 
         cdef int n_elts = len(connec_idx) - 1
@@ -2256,10 +2256,10 @@ cdef class Coupling (object):
         Parameters:
           i_part           (int)                    : Partition identifier
           block_id         (int)                    : Block identifier
-          connec_faces_idx (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
-          connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
-          connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-          connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
+          connec_faces_idx (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (\ref face_vertex_idx[0] = 0 and size = max(\ref cell_face_connec) + 1)
+          connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = \ref face_vertex_idx[n_elts])
+          connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (\ref cell_face_idx[0] = 0 and size = \ref n_elts + 1)
+          connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = \ref cell_face_idx[\ref n_elts])
           global_num       (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
@@ -2358,8 +2358,8 @@ cdef class Coupling (object):
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
           order      (int)                    : Element order
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_nodes_per_elt * \ref n_elts)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
       """
 
       cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2470,13 +2470,11 @@ cdef class Coupling (object):
                                    self.cpl_id)
 
     def mesh_interf_from_cellface_set(self,
-                                      int                                      i_part,
-                                      int                                      n_cells,
-                                      np.ndarray[np.int32_t, ndim=1, mode='c'] cell_face_idx not None,
-                                      np.ndarray[np.int32_t, ndim=1, mode='c'] cell_face not None,
-                                      int                                      n_faces,
-                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx_idx not None,
-                                      np.ndarray[np.int32_t, ndim=1, mode='c'] face_vtx not None,
+                                      int                                          i_part,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c']     cell_face_idx not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c']     cell_face not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c']     face_vtx_idx not None,
+                                      np.ndarray[np.int32_t, ndim=1, mode='c']     face_vtx not None,
                                       np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
         mesh_interf_from_cellface_set(i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, global_num)
@@ -2485,13 +2483,15 @@ cdef class Coupling (object):
         Parameters:
           i_part        (int)                    : Current partition
           n_cells       (int)                    : Number of cells
-          cell_face_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-          cell_face     (np.ndarray[np.int32_t]) : Cell to face connectivity (size = cell_face_idx[n_elts])
+          cell_face_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (\ref cell_face_idx[0] = 0 and size = \ref n_elts + 1)
+          cell_face     (np.ndarray[np.int32_t]) : Cell to face connectivity (size = \ref cell_face_idx[\ref n_elts])
           n_faces       (int)                    : Number of faces
-          face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
-          face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
-          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
+          face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (\ref face_vtx_idx[0] = 0 and size = \ref n_faces + 1)
+          face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = \ref face_vtx_idx[\ref n_elts])
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
         """
+        cdef int n_cells = len(cell_face_idx) - 1
+        cdef int n_faces = len(face_vtx_idx)  - 1
 
         if (global_num is None):
           CWP_client_Mesh_interf_from_cellface_set(self.local_code_name,
@@ -2531,11 +2531,11 @@ cdef class Coupling (object):
         Parameters:
           i_part        (int)                    : Current partition
           n_faces       (int)                    : Number of faces
-          face_edge_idx (np.ndarray[np.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
-          face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
+          face_edge_idx (np.ndarray[np.int32_t]) : Polygon to edge index (\ref face_edge_idx[0] = 0 and size =  \ref n_faces + 1)
+          face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = \ref face_edge_idx[\ref n_faces])
           n_edges       (int)                    : Number of edges
-          edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2*n_edges)
-          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
+          edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2*\ref n_edges)
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_faces or None)
         """
 
         if (global_num is None):
@@ -2569,17 +2569,17 @@ cdef class Coupling (object):
                                                   self.cpl_id)
 
     def spatial_interp_property_set(self,
-                                    char *property_name,
-                                    char *property_type,
-                                    char *property_value):
+                                    char       *property_name,
+                                    CWP_Type_t  property_type,
+                                    char       *property_value):
         """
         spatial_interp_property_set(property_name, property_type, property_value)
         Set a property of the spatial interpolation algorithm.
 
         Parameters:
-          property_name  (str) : Name of the property
-          property_type  (str) : Type of the property ("double" or "int")
-          property_value (str) : Value of the property
+          property_name  (str)        : Name of the property
+          property_type  (CWP_Type_t) : Type of the property
+          property_value (str)        : Value of the property
         """
 
         CWP_client_Spatial_interp_property_set(self.local_code_name,
@@ -2599,7 +2599,7 @@ cdef class Coupling (object):
 
         Parameters:
           freq            (int)               : Output frequency
-          visu_format     (CWP_Visu_format_t) : Output format to visualize exchanged fieldsDouble
+          visu_format     (CWP_Visu_format_t) : Output format to visualize exchanged fields
           format_option   (str)               : Output options "opt1, opt2, ..."
         """
 

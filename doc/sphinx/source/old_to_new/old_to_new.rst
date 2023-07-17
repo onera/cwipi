@@ -209,6 +209,5 @@ This pointer should be changed is the field data is to be updated.
 The only case a field has to be set again is if the mesh topology changes.
 The non-blocking exchange functions were kept and are the way to go.
 
-*TODO: corriger schéma (receive field 2 pour code1)*
 .. image:: ./images/field.png
    :scale: 90%

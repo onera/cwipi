@@ -677,13 +677,13 @@ main(int argc, char *argv[]) {
   CWP_client_Spatial_interp_property_set(code_name,
                                          cpl_name,
                                          "tolerance",
-                                         "double",
+                                         CWP_DOUBLE,
                                          "0.1");
 
   CWP_client_Spatial_interp_property_set(code_name,
                                          cpl_name,
                                          "n_neighbors",
-                                         "int",
+                                         CWP_INT,
                                          "1");
 
   CWP_client_Spatial_interp_weights_compute(code_name,

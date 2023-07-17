@@ -667,14 +667,14 @@ main
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "tolerance",
-                                    "double",
+                                    CWP_DOUBLE,
                                     char_param);
 
     sprintf(char_param, "%d", n_neighbors);
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "n_neighbors",
-                                    "int",
+                                    CWP_INT,
                                     char_param);
 
     CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);

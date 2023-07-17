@@ -306,7 +306,7 @@ def runTest():
 
 
   for icode in range(n_code):
-    cpl[icode].spatial_interp_property_set("tolerance", "double", "1e-2")
+    cpl[icode].spatial_interp_property_set("tolerance", pycwp.DOUBLE, "1e-2")
 
     cpl[icode].spatial_interp_weights_compute()
 

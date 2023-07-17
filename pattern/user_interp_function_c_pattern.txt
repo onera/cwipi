@@ -49,20 +49,20 @@ user_interp_function_c
 
   // Get data from the target of the exchange
 
-  int n_elt_tgt        = 0;
-  int n_referenced_tgt = 0;
+  int n_elt_tgt      = 0;
+  int n_computed_tgt = 0;
 
-  int *referenced_tgt        = NULL;
-  int *tgt_come_from_src_idx = NULL;
+  int *computed_tgt   = NULL;
+  int *tgt_to_src_idx = NULL;
 
   CWP_Field_tgt_data_properties_get(local_code_name,
                                     cpl_id,
                                     field_id,
                                     i_part,
                                     &n_elt_tgt,
-                                    &n_referenced_tgt,
-                                    &referenced_tgt,
-                                    &tgt_come_from_src_idx);
+                                    &n_computed_tgt,
+                                    &computed_tgt,
+                                    &tgt_to_src_idx);
 
   // LOCATION SPATIAL INTERPOLATION ALGORITHM
 

@@ -266,7 +266,7 @@ main
   CWP_Spatial_interp_property_set(code_name[0],
                                   coupling_name,
                                   "n_neighbors",
-                                  "int",
+                                  CWP_INT,
                                   "3");
 
   CWP_Spatial_interp_weights_compute(code_name[0],

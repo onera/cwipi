@@ -1204,7 +1204,7 @@ main(int argc, char *argv[]) {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
 
-    CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "1e-2");
+    CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, "1e-2");
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
     if (code_id != 1) {

@@ -464,7 +464,7 @@ main
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "n_neighbors",
-                                    "int",
+                                    CWP_INT,
                                     "1");
   }
 

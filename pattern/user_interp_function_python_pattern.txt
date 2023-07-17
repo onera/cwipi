@@ -37,7 +37,7 @@ def user_interp_function_python(field,
 
   src_data = field.src_data_properties_get(i_part)
 
-  n_elt_src      = src_data["n_src"]
+  n_src          = src_data["n_src"]
   src_to_tgt_idx = src_data["src_to_tgt_idx"]
 
   # Get data from the target of the exchange
@@ -45,7 +45,7 @@ def user_interp_function_python(field,
   tgt_data = field.tgt_data_properties_get(i_part)
 
   n_tgt          = tgt_data["n_tgt"]
-  ref_tgt        = tgt_data["computed_tgt"]
+  computed_tgt   = tgt_data["computed_tgt"]
   tgt_to_src_idx = tgt_data["tgt_to_src_idx"]
 
   spatial_interp_algorithm = field.spatial_interp_algo

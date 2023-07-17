@@ -70,7 +70,7 @@ The servers are shut down in ``CWP_client_Finalize``.
 The client code needs to have access to the path to the server configuration file.
 Once the above message is printed the client executable can be launched.
 
-Doxygen documentation
+C API documentation
 =====================
 
 .. doxygenfile:: client.h

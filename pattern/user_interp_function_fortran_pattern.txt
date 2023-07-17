@@ -42,9 +42,9 @@ subroutine user_interp_function_fortran(c_local_code_name,        &
     integer(kind = c_int), pointer  :: src_to_tgt_idx(:) => null()
 
     integer(kind = c_int)           :: n_elt_tgt
-    integer(kind = c_int)           :: n_referenced_tgt
-    integer(kind = c_int), pointer  :: referenced_tgt(:)        => null()
-    integer(kind = c_int), pointer  :: tgt_come_from_src_idx(:) => null()
+    integer(kind = c_int)           :: n_computed_tgt
+    integer(kind = c_int), pointer  :: computed_tgt(:) => null()
+    integer(kind = c_int), pointer  :: tgt_to_src_idx(:) => null()
 
     ! --> for location spatial interpolation algorithm
 
@@ -99,14 +99,14 @@ subroutine user_interp_function_fortran(c_local_code_name,        &
 
     ! Get data from the target of the exchange
 
-    call CWP_Field_tgt_data_properties_get(local_code_name,    &
-                                           cpl_id,              &
-                                           field_id,            &
-                                           i_part,              &
-                                           n_elt_tgt,           &
-                                           n_referenced_tgt,    &
-                                           referenced_tgt,      &
-                                           tgt_come_from_src_idx)
+    call CWP_Field_tgt_data_properties_get(local_code_name, &
+                                           cpl_id,          &
+                                           field_id,        &
+                                           i_part,          &
+                                           n_elt_tgt,       &
+                                           n_computed_tgt,  &
+                                           computed_tgt,    &
+                                           tgt_to_src_idx)
 
     ! Transform input C pointers to Fortran pointers
 
@@ -122,7 +122,7 @@ subroutine user_interp_function_fortran(c_local_code_name,        &
              spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION .or. &
              spatial_interp_algorithm == SPATIAL_INTERP_FROM_IDENTITY) then
 
-      call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * tgt_come_from_src_idx(n_referenced_tgt)])
+      call c_f_pointer(c_buffer_in,  buffer_in,  [n_components * tgt_to_src_idx(n_computed_tgt)])
       call c_f_pointer(c_buffer_out, buffer_out, [n_components * n_elt_tgt])
 
     endif

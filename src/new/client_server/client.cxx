@@ -3547,11 +3547,11 @@ CWP_client_Spatial_interp_weights_compute
 void
 CWP_client_Spatial_interp_property_set
 (
- const char     *local_code_name,
- const char     *cpl_id,
- const char     *property_name,
- const char     *property_type,
- const char     *property_value
+ const char       *local_code_name,
+ const char       *cpl_id,
+ const char       *property_name,
+ const CWP_Type_t  property_type,
+ const char       *property_value
 )
 {
   t_message msg;
@@ -3589,7 +3589,10 @@ CWP_client_Spatial_interp_property_set
   write_name(property_name);
 
   // send property type
-  write_name(property_type);
+  int endian_property_type = (int) property_type;
+  CWP_swap_endian_4bytes(&endian_property_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_property_type, sizeof(int));
+
 
   // send property value
   write_name(property_value);

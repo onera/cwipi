@@ -427,7 +427,7 @@ def runTest():
 
         print("cpl.spatial_interp_property_set:\n")
 
-        cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
+        cpl.spatial_interp_property_set("tolerance", pycwp.DOUBLE, "1e-2")
 
         comm.Barrier()
 
@@ -569,10 +569,8 @@ def runTest():
     print("cpl2.mesh_interf_from_cellface_set:\n")
 
     cpl2.mesh_interf_from_cellface_set(0,
-                                       1,
                                        cell_face_idx,
                                        cell_face,
-                                       4,
                                        face_vtx_idx,
                                        face_vtx,
                                        None)

@@ -902,38 +902,38 @@ CWP_Involved_srcs_get_cf (
   return res;
 }
 
-/**
- * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
- *
- * \param [in]  f_local_code_name   Fortran local code name
- * \param [in]  l_local_code_name   Length of Fortran local code name
- * \param [in]  f_cpl_id            Fortran Coupling identifier
- * \param [in]  l_cpl_id            Length of Fortran coupling identifier
- *
- * \return               Distance
- *
- */
+// /**
+//  * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
+//  *
+//  * \param [in]  f_local_code_name   Fortran local code name
+//  * \param [in]  l_local_code_name   Length of Fortran local code name
+//  * \param [in]  f_cpl_id            Fortran Coupling identifier
+//  * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+//  *
+//  * \return               Distance
+//  *
+//  */
 
-const double *
-CWP_Computed_tgts_dist_to_spatial_interp_get_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id,
-  const int l_cpl_id
-) 
-{
-  char *c_local_code_name, *c_cpl_id;
+// const double *
+// CWP_Computed_tgts_dist_to_spatial_interp_get_cf (
+//   const char *f_local_code_name,
+//   const int l_local_code_name,
+//   const char *f_cpl_id,
+//   const int l_cpl_id
+// )
+// {
+//   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+//   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+//   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  const double *res = CWP_Computed_tgts_dist_to_spatial_interp_get(c_local_code_name, c_cpl_id);
+//   const double *res = CWP_Computed_tgts_dist_to_spatial_interp_get(c_local_code_name, c_cpl_id);
 
-  free ( c_local_code_name);
-  free ( c_cpl_id);
+//   free ( c_local_code_name);
+//   free ( c_cpl_id);
 
-  return res;
-}
+//   return res;
+// }
 
 
 /**
@@ -2676,36 +2676,33 @@ CWP_Field_location_internal_cell_vtx_get_cf (
 void
 CWP_Spatial_interp_property_set_cf
 (
- const char     *f_local_code_name,
-       int       l_local_code_name,
- const char     *f_cpl_id,
-       int       l_cpl_id,
- const char     *f_property_name,
-       int       l_property_name,
- const char     *f_property_type,
-       int       l_property_type,
- const char     *f_property_value,
-       int       l_property_value
+ const char       *f_local_code_name,
+       int         l_local_code_name,
+ const char       *f_cpl_id,
+       int         l_cpl_id,
+ const char       *f_property_name,
+       int         l_property_name,
+ const CWP_Type_t  property_type,
+ const char       *f_property_value,
+       int         l_property_value
 )
 {
-  char *c_local_code_name, *c_cpl_id, *c_property_name, *c_property_type, *c_property_value;
+  char *c_local_code_name, *c_cpl_id, *c_property_name, *c_property_value;
 
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
   c_property_name   = _fortran_to_c_string(f_property_name,   l_property_name);
-  c_property_type   = _fortran_to_c_string(f_property_type,   l_property_type);
   c_property_value  = _fortran_to_c_string(f_property_value,  l_property_value);
 
   CWP_Spatial_interp_property_set(c_local_code_name,
                                   c_cpl_id,
                                   c_property_name,
-                                  c_property_type,
+                                  property_type,
                                   c_property_value);
-  free ( c_local_code_name);
-  free ( c_cpl_id);
-  free ( c_property_name);
-  free ( c_property_type);
-  free ( c_property_value);
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_property_name);
+  free(c_property_value);
 }
 
 

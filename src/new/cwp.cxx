@@ -1358,18 +1358,18 @@ CWP_Spatial_interp_weights_compute
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  property_name    Name of the property
- * \param [in]  property_type    Type of the property ("double" or "int")
+ * \param [in]  property_type    Type of the property
  * \param [in]  property_value   Value of the property
  *
  */
 
 void
 CWP_Spatial_interp_property_set (
- const char     *local_code_name,
- const char     *cpl_id,
- const char     *property_name,
- const char     *property_type,
- const char     *property_value
+ const char       *local_code_name,
+ const char       *cpl_id,
+ const char       *property_name,
+ const CWP_Type_t  property_type,
+ const char       *property_value
 )
 {
   int is_property = 0;
@@ -1385,18 +1385,20 @@ CWP_Spatial_interp_property_set (
 
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-    if (strcmp(property_type, "double") == 0) {
-      cpl.spatialInterpPropertyDoubleSet(string(property_name),
-                                         atof(property_value));
-    }
-
-    else if (strcmp(property_type, "int") == 0) {
-      cpl.spatialInterpPropertyIntSet(string(property_name),
-                                      atoi(property_value));
-    }
-
-    else {
-      printf("Warning: invalid property type '%s'\n", property_type);
+    switch (property_type) {
+      case CWP_DOUBLE: {
+        cpl.spatialInterpPropertyDoubleSet(string(property_name),
+                                           atof(property_value));
+        break;
+      }
+      case CWP_INT: {
+        cpl.spatialInterpPropertyIntSet(string(property_name),
+                                        atoi(property_value));
+        break;
+      }
+      default: {
+        printf("Warning: invalid property type %d\n", property_type);
+      }
     }
 
   } else {

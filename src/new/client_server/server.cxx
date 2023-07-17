@@ -1593,8 +1593,7 @@ CWP_server_Cpl_del
   if (!svr_cwp.coupling[s].property.empty()) {
     std::map<std::string, t_property>::iterator it_p = svr_cwp.coupling[s].property.begin();
     while (it_p != svr_cwp.coupling[s].property.end()) {
-      if ((it_p->second).property_name != NULL) free((it_p->second).property_name);
-      if ((it_p->second).property_type != NULL) free((it_p->second).property_type);
+      if ((it_p->second).property_name  != NULL) free((it_p->second).property_name);
       if ((it_p->second).property_value != NULL) free((it_p->second).property_value);
       it_p = svr_cwp.coupling[s].property.erase(it_p);
     }
@@ -2757,8 +2756,8 @@ CWP_server_Spatial_interp_property_set
   read_name(&property_name, svr);
 
   // read property type
-  char *property_type = (char *) malloc(sizeof(char));
-  read_name(&property_type, svr);
+   CWP_Type_t property_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &property_type, sizeof(int));
 
   // read property value
   char *property_value = (char *) malloc(sizeof(char));
@@ -2783,8 +2782,6 @@ CWP_server_Spatial_interp_property_set
     svr_cwp.coupling[s1].property[s2].property_value = property_value;
 
     free(property_name);
-    free(property_type);
-
   }
 
   // send status msg

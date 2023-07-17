@@ -32,3 +32,7 @@ For `Solver1` a field instance for sending the temperature will be created and a
 For `Solver2` the opposite will be done.
 
 
+Control Parameters
+------------------
+
+*à remplir*

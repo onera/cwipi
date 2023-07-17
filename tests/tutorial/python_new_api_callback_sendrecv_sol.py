@@ -257,7 +257,7 @@ def run_coupling():
 
   # Spatial interpolation
   cpl_CP.spatial_interp_property_set("n_neighbors",
-                                     "int",
+                                     pycwp.INT,
                                      "3")
 
   cpl_CP.spatial_interp_weights_compute()
@@ -284,7 +284,7 @@ def run_coupling():
 
   # Spatial interpolation
   cpl_PF.spatial_interp_property_set("tolerance",
-                                     "double",
+                                     pycwp.DOUBLE,
                                      "0.1")
 
   cpl_PF.spatial_interp_weights_compute()

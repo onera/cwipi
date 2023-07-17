@@ -140,13 +140,13 @@ struct t_property
 {
   t_property() {
     property_name  = NULL;
-    property_type  = NULL;
+    property_type  = (CWP_Type_t) -1;
     property_value = NULL;
   }
 
-  char *property_name;
-  char *property_type;
-  char *property_value;
+  char       *property_name;
+  CWP_Type_t  property_type;
+  char       *property_value;
 
 };
 

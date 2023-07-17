@@ -275,7 +275,7 @@ program fortran_new_api_polygon_sol
   call CWP_Spatial_interp_property_set(code_names(1), &
                                        coupling_name, &
                                        "tolerance",   &
-                                       "double",      &
+                                       CWP_DOUBLE,    &
                                        "0.1")
 
   call CWP_Spatial_interp_weights_compute(code_names(1), &

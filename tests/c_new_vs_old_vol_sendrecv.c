@@ -1388,7 +1388,7 @@ main(int argc, char *argv[]) {
 
     char char_tol[99];
     sprintf(char_tol, "%e", tolerance);
-    CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", char_tol);
+    CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, char_tol);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
     // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);

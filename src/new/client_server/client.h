@@ -705,12 +705,15 @@ CWP_client_Spatial_interp_weights_compute
 
 
 /**
- * \brief Spatial_interp_property_set CWIPI.
+ * \brief Set a property of the spatial interpolation algorithm.
+ *
+ * Use "n_neighbors" and "polyfit_degree" for the nearest neighbors
+ * algorithms. Use "tolerance" for the location algorithm.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  property_name    Name of the property
- * \param [in]  property_type    Type of the property ("double" or "int")
+ * \param [in]  property_type    Type of the property
  * \param [in]  property_value   Value of the property
  *
  */
@@ -718,11 +721,11 @@ CWP_client_Spatial_interp_weights_compute
 void
 CWP_client_Spatial_interp_property_set
 (
- const char     *local_code_name,
- const char     *cpl_id,
- const char     *property_name,
- const char     *property_type,
- const char     *property_value
+ const char       *local_code_name,
+ const char       *cpl_id,
+ const char       *property_name,
+ const CWP_Type_t  property_type,
+ const char       *property_value
 );
 
 /**

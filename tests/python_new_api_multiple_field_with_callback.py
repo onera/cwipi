@@ -309,7 +309,7 @@ def runTest():
 
     # INTERPOLATION
     cpl.spatial_interp_property_set("n_neighbors",
-                                    "int",
+                                    pycwp.INT,
                                     "1")
 
     cpl.spatial_interp_weights_compute()

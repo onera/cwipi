@@ -17,7 +17,7 @@ This data is computed by CWIPI and can be accessed to design :ref:`customized in
   Only the first :math:`n_{mapped} \times n_{comp}` values of the receiving data array are thus filled by CWIPI, where :math:`n_{mapped}` is the number of mapped targets (returned by ``CWP_N_computed_tgts_get``), and :math:`n_{comp}` the number of field components (specified when creating the field and returned by ``CWP_Field_n_components_get``).
   Please refer to section :ref:`Advanced functionalities` for some examples of use.
 
-The spatial interpolation methods can be classed in the following four families.
+The spatial interpolation methods can be divided into the following four families.
 
 Interpolation from nearest neighbors
 ------------------------------------
@@ -110,7 +110,7 @@ This family includes three methods:
   As for the :ref:`intersection method <bbox paragraph>`, the first step of the localization method uses bounding boxes inflated by a relative geometric tolerance.
   The ``tolerance`` property is of type `double` and is set to 0.001 by default but be can adjusted as well.
   Again, it is recommended to tune this property for non-planar, surface interface meshes when using either of the first two methods, in order to avoid true positive detection errors.
-  The third method is however much less sensitive to this property so one should keep it a low value to avoid detecting too much false positive candidates, which could degrade performance.
+  The third method is however much less sensitive to this property so it should be kept to a low value to avoid detecting too many false positive candidates, which could impair performance.
 
 **Acceptable degrees-of-freedom**
 

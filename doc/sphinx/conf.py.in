@@ -155,13 +155,17 @@ todo_include_todos = False
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
-    "cwipi" : ( "@PROJECT_SOURCE_DIR@/src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
-                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
-                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
-                                 "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
-                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_c_pattern.txt",
-                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_fortran_pattern.txt",
-                                 "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_python_pattern.txt"] )
+    "cwipi" : ( "@PROJECT_SOURCE_DIR@/src",
+               ["cwipi.h",
+               "new/cwp.h",
+               # "fortran/new/cwp_f.f90",
+               "new/client_server/client.h",
+               "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
+               "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
+               "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
+               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_c_pattern.txt",
+               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_fortran_pattern.txt",
+               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_python_pattern.txt"] )
 }
 
 breathe_default_project = "cwipi"
@@ -324,7 +328,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'CWIPI.tex', 'CWIPI Documentation',
-     'E. Quemerais', 'manual'),
+     'E. Quémerais', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

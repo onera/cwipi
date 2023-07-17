@@ -249,7 +249,7 @@ main(int argc, char *argv[]) {
   CWP_Spatial_interp_property_set(code_name[0],
                                   coupling_name,
                                   "tolerance",
-                                  "double",
+                                  CWP_DOUBLE,
                                   "0.1");
   CWP_Spatial_interp_weights_compute(code_name[0],
                                      coupling_name);

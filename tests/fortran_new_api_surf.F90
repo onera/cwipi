@@ -590,7 +590,7 @@ program testf
   call CWP_Spatial_interp_property_set(code_names(1), &
                                        coupling_name, &
                                        "tolerance",   &
-                                       "double",      &
+                                       CWP_DOUBLE,    &
                                        "1e-3")
 
   ! Set user-defined interpolation function

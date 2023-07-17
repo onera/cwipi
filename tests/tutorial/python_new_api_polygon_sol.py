@@ -202,7 +202,7 @@ def runTest():
     # Set a geometric tolerance of 10% of an element size for
     # point localisation.
     cpl.spatial_interp_property_set("tolerance",
-                                    "double",
+                                    pycwp.DOUBLE,
                                     "0.1")
 
     cpl.spatial_interp_weights_compute()

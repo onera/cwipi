@@ -153,7 +153,7 @@ program fortran_new_api_callback_sendrecv_sol
   allocate(code_names (n_code), &
            intra_comms(n_code))
 
-  code_names(1)     = "codeFortran"
+  code_names(1) = "codeFortran"
 
   call CWP_Init(mpi_comm_world, &
                 n_code,         &
@@ -274,23 +274,19 @@ program fortran_new_api_callback_sendrecv_sol
   call CWP_Spatial_interp_property_set(code_names(1), &
                                        coupling_name, &
                                        "tolerance",   &
-                                       "double",      &
+                                       CWP_DOUBLE,    &
                                        "0.1")
 
-  print *, "Fortran ", i_rank, " >> CWP_Spatial_interp_weights_compute"
 
   call CWP_Spatial_interp_weights_compute(code_names(1), &
                                           coupling_name)
 
-  print *, "Fortran ", i_rank, " << CWP_Spatial_interp_weights_compute"
 
 
   ! Exchange interpolated fields
-  print *, "Fortran ", i_rank, " > irecv"
   call CWP_Field_irecv(code_names(1), &
                        coupling_name, &
                        field_name)
-  print *, "Fortran ", i_rank, " > issend"
   call CWP_Field_issend(code_names(1), &
                         coupling_name, &
                         field_name)
@@ -298,11 +294,9 @@ program fortran_new_api_callback_sendrecv_sol
   call CWP_Field_wait_irecv(code_names(1), &
                             coupling_name, &
                             field_name)
-  print *, "Fortran ", i_rank, " < wait_irecv"
   call CWP_Field_wait_issend(code_names(1), &
                              coupling_name, &
                              field_name)
-  print *, "Fortran ", i_rank, " < wait_issend"
 
   write (strnum, '(i1)') i_rank
   if (.false.) then

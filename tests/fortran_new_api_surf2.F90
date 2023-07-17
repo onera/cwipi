@@ -423,7 +423,7 @@ program testf
     call CWP_Spatial_interp_property_set(code_name(i),  &
                                          coupling_name, &
                                          "tolerance",   &
-                                         "double",      &
+                                         CWP_DOUBLE,    &
                                          "1e-2")
 
     ! Compute spatial interpolation weights

@@ -988,7 +988,7 @@ int main(int argc, char *argv[])
   }
 
   // Perform geometric algorithm
-  CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "0.01");
+  CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, "0.01");
   CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
 
   //  Exchange interpolated fields
