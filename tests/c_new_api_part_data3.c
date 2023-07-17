@@ -339,38 +339,38 @@ int main
     }
 
     if (code_id[icode] == 1) {
-      CWP_Part_data2_create(code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            CWP_PARTDATA_SEND,
-                            pvtx_ln_to_gn[icode],
-                            pn_vtx       [icode],
-                            n_part       [icode]);
+      CWP_Part_data_create(code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           CWP_PARTDATA_SEND,
+                           pvtx_ln_to_gn[icode],
+                           pn_vtx       [icode],
+                           n_part       [icode]);
 
-      CWP_Part_data2_create(code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            CWP_PARTDATA_RECV,
-                            pface_ln_to_gn[icode],
-                            pn_face       [icode],
-                            n_part        [icode]);
+      CWP_Part_data_create(code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           CWP_PARTDATA_RECV,
+                           pface_ln_to_gn[icode],
+                           pn_face       [icode],
+                           n_part        [icode]);
     }
     else {
-      CWP_Part_data2_create(code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            CWP_PARTDATA_RECV,
-                            pvtx_ln_to_gn[icode],
-                            pn_vtx       [icode],
-                            n_part       [icode]);
+      CWP_Part_data_create(code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           CWP_PARTDATA_RECV,
+                           pvtx_ln_to_gn[icode],
+                           pn_vtx       [icode],
+                           n_part       [icode]);
 
-      CWP_Part_data2_create(code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            CWP_PARTDATA_SEND,
-                            pface_ln_to_gn[icode],
-                            pn_face       [icode],
-                            n_part        [icode]);
+      CWP_Part_data_create(code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           CWP_PARTDATA_SEND,
+                           pface_ln_to_gn[icode],
+                           pn_face       [icode],
+                           n_part        [icode]);
     }
 
   }
@@ -386,70 +386,70 @@ int main
   for (int icode = 0; icode < n_code; icode++) {
 
     if (code_id[icode] == 1) {
-      CWP_Part_data2_issend(code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            0,
-                            sizeof(double),
-                            3,
-                  (void **) send_val1[icode][0]);
+      CWP_Part_data_issend(code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           0,
+                           sizeof(double),
+                           3,
+                 (void **) send_val1[icode][0]);
 
-      CWP_Part_data2_issend(code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            1,
-                            sizeof(double),
-                            1,
-                  (void **) send_val1[icode][1]);
+      CWP_Part_data_issend(code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           1,
+                           sizeof(double),
+                           1,
+                 (void **) send_val1[icode][1]);
 
-      CWP_Part_data2_irecv (code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            0,
-                            sizeof(int),
-                            1,
-                  (void **) recv_val2[icode][0]);
+      CWP_Part_data_irecv (code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           0,
+                           sizeof(int),
+                           1,
+                 (void **) recv_val2[icode][0]);
 
-      CWP_Part_data2_irecv (code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            1,
-                            sizeof(int),
-                            2,
-                  (void **) recv_val2[icode][1]);
+      CWP_Part_data_irecv (code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           1,
+                           sizeof(int),
+                           2,
+                 (void **) recv_val2[icode][1]);
     }
     else {
-      CWP_Part_data2_irecv (code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            0,
-                            sizeof(double),
-                            3,
-                  (void **) recv_val1[icode][0]);
+      CWP_Part_data_irecv (code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           0,
+                           sizeof(double),
+                           3,
+                 (void **) recv_val1[icode][0]);
 
-      CWP_Part_data2_irecv (code_name[icode],
-                            cpl_name,
-                            part_data_name1,
-                            1,
-                            sizeof(double),
-                            1,
-                  (void **) recv_val1[icode][1]);
+      CWP_Part_data_irecv (code_name[icode],
+                           cpl_name,
+                           part_data_name1,
+                           1,
+                           sizeof(double),
+                           1,
+                 (void **) recv_val1[icode][1]);
 
-      CWP_Part_data2_issend(code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            0,
-                            sizeof(int),
-                            1,
-                  (void **) send_val2[icode][0]);
+      CWP_Part_data_issend(code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           0,
+                           sizeof(int),
+                           1,
+                 (void **) send_val2[icode][0]);
 
-      CWP_Part_data2_issend(code_name[icode],
-                            cpl_name,
-                            part_data_name2,
-                            1,
-                            sizeof(int),
-                            2,
-                  (void **) send_val2[icode][1]);
+      CWP_Part_data_issend(code_name[icode],
+                           cpl_name,
+                           part_data_name2,
+                           1,
+                           sizeof(int),
+                           2,
+                 (void **) send_val2[icode][1]);
     }
   }
 
@@ -457,46 +457,46 @@ int main
   for (int icode = 0; icode < n_code; icode++) {
 
     if (code_id[icode] == 1) {
-      CWP_Part_data2_wait_issend(code_name[icode],
-                                 cpl_name,
-                                 part_data_name1,
-                                 0);
+      CWP_Part_data_wait_issend(code_name[icode],
+                                cpl_name,
+                                part_data_name1,
+                                0);
 
-      CWP_Part_data2_wait_issend(code_name[icode],
-                                 cpl_name,
-                                 part_data_name1,
-                                 1);
+      CWP_Part_data_wait_issend(code_name[icode],
+                                cpl_name,
+                                part_data_name1,
+                                1);
 
-      CWP_Part_data2_wait_irecv (code_name[icode],
-                                 cpl_name,
-                                 part_data_name2,
-                                 0);
+      CWP_Part_data_wait_irecv (code_name[icode],
+                                cpl_name,
+                                part_data_name2,
+                                0);
 
-      CWP_Part_data2_wait_irecv (code_name[icode],
-                                 cpl_name,
-                                 part_data_name2,
-                                 1);
+      CWP_Part_data_wait_irecv (code_name[icode],
+                                cpl_name,
+                                part_data_name2,
+                                1);
     }
     else {
-      CWP_Part_data2_wait_irecv (code_name[icode],
-                                 cpl_name,
-                                 part_data_name1,
-                                 0);
+      CWP_Part_data_wait_irecv (code_name[icode],
+                                cpl_name,
+                                part_data_name1,
+                                0);
 
-      CWP_Part_data2_wait_irecv (code_name[icode],
-                                 cpl_name,
-                                 part_data_name1,
-                                 1);
+      CWP_Part_data_wait_irecv (code_name[icode],
+                                cpl_name,
+                                part_data_name1,
+                                1);
 
-      CWP_Part_data2_wait_issend(code_name[icode],
-                                 cpl_name,
-                                 part_data_name2,
-                                 0);
+      CWP_Part_data_wait_issend(code_name[icode],
+                                cpl_name,
+                                part_data_name2,
+                                0);
 
-      CWP_Part_data2_wait_issend(code_name[icode],
-                                 cpl_name,
-                                 part_data_name2,
-                                 1);
+      CWP_Part_data_wait_issend(code_name[icode],
+                                cpl_name,
+                                part_data_name2,
+                                1);
     }
 
   }
@@ -578,13 +578,13 @@ CWP_GCC_SUPPRESS_WARNING_POP
 
 
   for (int icode = 0; icode < n_code; icode++) {
-    CWP_Part_data2_del(code_name[icode],
-                       cpl_name,
-                       part_data_name1);
+    CWP_Part_data_del(code_name[icode],
+                      cpl_name,
+                      part_data_name1);
 
-    CWP_Part_data2_del(code_name[icode],
-                       cpl_name,
-                       part_data_name2);
+    CWP_Part_data_del(code_name[icode],
+                      cpl_name,
+                      part_data_name2);
   }
 
 

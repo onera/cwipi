@@ -375,18 +375,20 @@ def runTest():
 
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      part_data[icode].issend(stride,
+      part_data[icode].issend(0,
+                              stride,
                               send_val)
     else:
-      part_data[icode].irecv(stride,
+      part_data[icode].irecv(0,
+                             stride,
                              recv_val)
 
   error = False
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      part_data[icode].wait_issend()
+      part_data[icode].wait_issend(0)
     else:
-      part_data[icode].wait_irecv()
+      part_data[icode].wait_irecv(0)
 
       # check received data
       for ipart in range(n_part[icode]):

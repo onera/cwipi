@@ -550,7 +550,7 @@ _gen_mesh
 
 /*----------------------------------------------------------------------
  *
- * Main : surface coupling test : part_data
+ * Main : volume coupling test : c_new_api_vol
  *
  *---------------------------------------------------------------------*/
 int main

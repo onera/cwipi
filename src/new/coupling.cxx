@@ -148,7 +148,6 @@ namespace cwipi {
    _fields(*(new map < string, Field * >())),
    _globalData(*(new map < string, GlobalData >())),
    _partData(*(new map < string, PartData >())),
-   _partData2(*(new map < string, PartData2>())),
    _cplDB(cplDB),
    _displacement(displacement),
    _spatialInterpAlgo(spatialInterpAlgo),
@@ -212,8 +211,6 @@ namespace cwipi {
 
   Coupling::~Coupling()
   {
-    log_trace("~Coupling\n");
-
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
@@ -245,8 +242,6 @@ namespace cwipi {
     delete &_globalData;
 
     delete &_partData;
-
-    delete &_partData2;
 
     delete &_communication;
 
@@ -289,53 +284,6 @@ namespace cwipi {
   }
 
   /**
-   *
-   * \brief Filter come_from array
-   *
-   * \param [in] it
-   *
-   */
-
-  void
-  Coupling::createFilteredComeFrom
-  (
-   map<string,PartData>::iterator it
-  )
-  {
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    int          **gnum1_come_from_idx = NULL;
-    CWP_g_num_t  **gnum1_come_from     = NULL;
-    PDM_part_to_part_gnum1_come_from_get(ptp,
-                                         &gnum1_come_from_idx,
-                                         &gnum1_come_from);
-
-    int  *n_ref_lnum2 = NULL;
-    int **ref_lnum2   = NULL;
-    PDM_part_to_part_ref_lnum2_get(ptp,
-                                   &n_ref_lnum2,
-                                   &ref_lnum2);
-
-    int  n_part2  = it->second.get_n_part2();
-
-    // malloc
-    CWP_g_num_t **filtered_gnum1_come_from = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * n_part2);
-    for (int i_part = 0; i_part < n_part2; i_part++) {
-      filtered_gnum1_come_from[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_ref_lnum2[i_part]);
-    }
-
-    // filter on void**
-    for (int i_part = 0; i_part < n_part2; i_part++) {
-      for (int i = 0; i < n_ref_lnum2[i_part]; i++) {
-        int first_idx = gnum1_come_from_idx[i_part][i];
-        filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
-      }
-    }
-
-    it->second.set_filtered_gnum1_come_from(filtered_gnum1_come_from);
-  }
-
-  /**
    * \brief Create partitionned data exchange object
    *
    * \param [in] part_data_id
@@ -356,8 +304,8 @@ namespace cwipi {
    int                   n_part
   )
   {
-    // Check if not yet exists
-    if (partDataIs(part_data_id)) {
+    map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
+    if (it != _partData.end()) {
       PDM_error(__FILE__, __LINE__, 0, "'%s' partitionned data exchange object already exists\n", part_data_id.c_str());
     }
 
@@ -368,207 +316,6 @@ namespace cwipi {
                                 n_elt,
                                 n_part);
 
-    pair<string, PartData > newPair(part_data_id, newPartData);
-    _partData.insert(newPair);
-
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-
-    // Create ptp
-    PDM_part_to_part_t *ptp;
-    MPI_Comm unionComm = _communication.unionCommGet();
-    int **part1_to_part2_idx = NULL;
-
-
-    if (_coupledCodeProperties.localCodeIs()) {
-
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-
-      // second code to execute writes to be sure coupled part data object has been filled in
-      if (cpl_it != cpl_cpl._partData.end()) {
-
-        // // malloc
-        // part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-        // for (int i_part = 0; i_part < n_part; i_part++) {
-        //   part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
-        // }
-
-        // fill in
-        // for (int i_part = 0; i_part < n_part; i_part++) {
-        //   part1_to_part2_idx[i_part][0] = 0;
-        //   for (int i = 0; i < n_elt[i_part]; i++) {
-        //     part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
-        //   }
-        // }
-
-        if (exch_type == CWP_PARTDATA_SEND) {
-
-
-          CWP_g_num_t  **gnum_elt2 = cpl_it->second.get_gnum_elt2();
-          int           *n_elt2    = cpl_it->second.get_n_elt2();
-          int            n_part2   = cpl_it->second.get_n_part2();
-
-          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-          for (int i_part = 0; i_part < n_part; i_part++) {
-            part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
-                                                                                 n_elt[i_part]);
-          }
-
-          // set
-          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-
-          ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt,
-                                        n_elt,
-                                        n_part,
-                                        (const PDM_g_num_t**) gnum_elt2,
-                                        n_elt2,
-                                        n_part2,
-                                        (const int**) part1_to_part2_idx,
-                                        (const PDM_g_num_t**) gnum_elt,
-                                        PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
-
-          int  *n_ref;
-          int **ref;
-          for (int i_part = 0; i_part < n_part2; i_part++) {
-            PDM_part_to_part_ref_lnum2_get(ptp,
-                                           &n_ref,
-                                           &ref);
-            if (n_ref[i_part] != n_elt2[i_part]) {
-              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
-            }
-          }
-
-          it->second.set_ptp(ptp);
-          cpl_it->second.set_ptp(ptp);
-
-          createFilteredComeFrom(cpl_it);
-        } // sending code
-
-        else if (exch_type == CWP_PARTDATA_RECV) {
-
-          CWP_g_num_t  **gnum_elt1 = cpl_it->second.get_gnum_elt1();
-          int           *n_elt1    = cpl_it->second.get_n_elt1();
-          int            n_part1   = cpl_it->second.get_n_part1();
-
-          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part1);
-          for (int i_part = 0; i_part < n_part1; i_part++) {
-            part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
-                                                                                 n_elt1[i_part]);
-          }
-
-          // set
-          cpl_it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-
-
-          ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt1,
-                                        n_elt1,
-                                        n_part1,
-                                        (const PDM_g_num_t**) gnum_elt,
-                                        n_elt,
-                                        n_part,
-                                        (const int**) part1_to_part2_idx,
-                                        (const PDM_g_num_t**) gnum_elt1,
-                                        PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
-
-          int  *n_ref;
-          int **ref;
-          for (int i_part = 0; i_part < n_part; i_part++) {
-            PDM_part_to_part_ref_lnum2_get(ptp,
-                                           &n_ref,
-                                           &ref);
-            if (n_ref[i_part] != n_elt[i_part]) {
-              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
-            }
-          }
-
-          it->second.set_ptp(ptp);
-          cpl_it->second.set_ptp(ptp);
-
-          createFilteredComeFrom(it);
-        } // receiving code
-
-      } // local code works
-    } // joint
-    else {
-
-      if (exch_type == CWP_PARTDATA_SEND) {
-
-        part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
-                                                                               n_elt[i_part]);
-        }
-
-        // set
-        it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-
-        ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt,
-                                      n_elt,
-                                      n_part,
-                                      NULL,
-                                      NULL,
-                                      0,
-                                      (const int**) part1_to_part2_idx,
-                                      (const PDM_g_num_t**) gnum_elt,
-                                      PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
-
-        it->second.set_ptp(ptp);
-      } // sending code
-
-      else if (exch_type == CWP_PARTDATA_RECV) {
-        ptp = PDM_part_to_part_create(NULL,
-                                      NULL,
-                                      0,
-                                      (const PDM_g_num_t**) gnum_elt,
-                                      n_elt,
-                                      n_part,
-                                      NULL,
-                                      NULL,
-                                      PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
-
-        int  *n_ref;
-        int **ref;
-        PDM_part_to_part_ref_lnum2_get(ptp,
-                                       &n_ref,
-                                       &ref);
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          if (n_ref[i_part] != n_elt[i_part]) {
-            PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
-          }
-        }
-
-        it->second.set_ptp(ptp);
-
-        createFilteredComeFrom(it);
-      } // recving code
-
-    } // not joint
-  }
-
-
-
-  void
-  Coupling::partData2Create
-  (
-   const string          &part_data_id,
-   CWP_PartData_exch_t   exch_type,
-   CWP_g_num_t         **gnum_elt,
-   int                  *n_elt,
-   int                   n_part
-  )
-  {
-    map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it != _partData2.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "'%s' partitionned data exchange object already exists\n", part_data_id.c_str());
-    }
-
-    // Create object
-    cwipi::PartData2 newPartData(part_data_id,
-                                 exch_type,
-                                 gnum_elt,
-                                 n_elt,
-                                 n_part);
-
 
     // Create ptp
     MPI_Comm unionComm = _communication.unionCommGet();
@@ -578,13 +325,13 @@ namespace cwipi {
     /* Overlapping intracomms */
     if (_coupledCodeProperties.localCodeIs()) {
       cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string, PartData2>::iterator cpl_it = cpl_cpl._partData2.find(part_data_id.c_str());
+      map<string, PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
 
-      if (cpl_it != cpl_cpl._partData2.end()) {
+      if (cpl_it != cpl_cpl._partData.end()) {
         if (exch_type == CWP_PARTDATA_SEND) {
-          CWP_g_num_t **gnum_elt2 = cpl_it->second.gnum_elt_get(CWP_PARTDATA_RECV);
-          int          *n_elt2    = cpl_it->second.n_elt_get   (CWP_PARTDATA_RECV);
-          int           n_part2   = cpl_it->second.n_part_get  (CWP_PARTDATA_RECV);
+          CWP_g_num_t **gnum_elt2 = cpl_it->second.gnum_elt_get();
+          int          *n_elt2    = cpl_it->second.n_elt_get   ();
+          int           n_part2   = cpl_it->second.n_part_get  ();
 
           part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
           for (int i_part = 0; i_part < n_part; i_part++) {
@@ -711,8 +458,8 @@ namespace cwipi {
     newPartData.ptp_set(ptp);
 
 
-    pair<string, PartData2> newPair(part_data_id, newPartData);
-    _partData2.insert(newPair);
+    pair<string, PartData> newPair(part_data_id, newPartData);
+    _partData.insert(newPair);
   }
 
 
@@ -722,71 +469,17 @@ namespace cwipi {
    * \brief Delete partitionned data exchange object
    *
    * \param [in] part_data_id
-   * \param [in] exch_type
    *
    */
 
   void
   Coupling::partDataDel
   (
-   const string          &part_data_id,
-   CWP_PartData_exch_t   exch_type
+   const string          &part_data_id
   )
   {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
-    }
-    else {
-      // free part1_to_part2_idx
-      if (exch_type == CWP_PARTDATA_SEND) {
-        int    n_part1      = it->second.get_n_part1();
-        int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
-        if (part1_to_part2_idx != NULL) {
-          for (int i_part = 0; i_part < n_part1; i_part++) {
-            free(part1_to_part2_idx[i_part]);
-          }
-          free(part1_to_part2_idx);
-        }
-      }
-
-      // free
-      if (exch_type == CWP_PARTDATA_RECV) {
-        CWP_g_num_t **filtered_gnum1_come_from = it->second.get_filtered_gnum1_come_from();
-        int    n_part2      = it->second.get_n_part2();
-        if (filtered_gnum1_come_from != NULL) {
-          for (int i_part = 0; i_part < n_part2; i_part++) {
-            free(filtered_gnum1_come_from[i_part]);
-          }
-          free(filtered_gnum1_come_from);
-        }
-      }
-
-      // free ptp
-      PDM_part_to_part_t *ptp = it->second.get_ptp();
-      if (_coupledCodeProperties.localCodeIs()) {
-        if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-          PDM_part_to_part_free(ptp);
-        }
-      } else {
-        PDM_part_to_part_free(ptp);
-      }
-
-      // remove from map
-      _partData.erase(part_data_id.c_str());
-    }
-  }
-
-
-  void
-  Coupling::partData2Del
-  (
-   const string          &part_data_id
-  )
-  {
-    map<string,PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it == _partData2.end()) {
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
     }
@@ -800,7 +493,7 @@ namespace cwipi {
     }
 
     // remove from map
-    _partData2.erase(part_data_id.c_str());
+    _partData.erase(part_data_id.c_str());
 
   }
 
@@ -810,116 +503,15 @@ namespace cwipi {
    * \brief Issend partitionned data
    *
    * \param [in] part_data_id
+   * \param [in] exch_id
    * \param [in] s_data
    * \param [in] n_components
-   * \param [in] part1_to_part2_data
+   * \param [in] send_data
    *
    */
 
   void
   Coupling::partDataIssend
-  (
-   const string   &part_data_id,
-   size_t         s_data,
-   int            n_components,
-   void         **part1_to_part2_data
-  )
-  {
-    // get general data
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
-    MPI_Comm unionComm = _communication.unionCommGet();
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    // set
-    it->second.set_s_data(s_data);
-    it->second.set_n_components(n_components);
-    it->second.set_part1_to_part2_data(part1_to_part2_data);
-
-    // create mpi tag using part_data name and send number
-    int n_send_calls = it->second.get_n_send_calls();
-    int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
-                                          n_send_calls);
-
-    // get request
-    int send_request = it->second.get_send_request();
-
-    // check not several send in a row without wait interspersed
-    if (send_request >= -1) {
-      PDM_error(__FILE__, __LINE__, 0, "Issend has already been called for partData %s. No wait_issend has been interspersed.\n", part_data_id.c_str());
-    }
-
-    // launch issend
-    if (_coupledCodeProperties.localCodeIs()) {
-
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      // get request
-      int recv_request = it->second.get_recv_request();
-
-
-      // to ensure all data has been set, issend will work if irecv executed first
-      if (recv_request == -1) { // -1 means irecv has already executed
-
-        PDM_part_to_part_issend(ptp,
-                                s_data,
-                                n_components,
-                                (const void**) part1_to_part2_data,
-                                mpi_tag,
-                                &send_request);
-
-        it->second.set_send_request(send_request);
-
-        void **recv_buffer = NULL;
-        int   *n_elt2      = cpl_it->second.get_n_elt2();
-        int    n_part2     = cpl_it->second.get_n_part2();
-
-        // malloc
-        recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
-        for (int i_part = 0; i_part < n_part2; i_part++) {
-          recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
-        }
-
-        // set
-        cpl_it->second.set_recv_buffer(recv_buffer);
-
-        PDM_part_to_part_irecv(ptp,
-                               s_data,
-                               n_components,
-                               recv_buffer,
-                               mpi_tag,
-                               &recv_request);
-
-        cpl_it->second.set_recv_request(recv_request);
-
-      } // local code works
-      else {
-        it->second.set_send_request(-1);
-      }
-    } // joint
-    else {
-
-      PDM_part_to_part_issend(ptp,
-                              s_data,
-                              n_components,
-                              (const void**) part1_to_part2_data,
-                              mpi_tag,
-                              &send_request);
-
-      it->second.set_send_request(send_request);
-
-    } // not joint
-
-    // increment exchange counter
-    it->second.incr_n_send_calls();
-  }
-
-
-  void
-  Coupling::partData2Issend
   (
    const string  &part_data_id,
    const int      exch_id,
@@ -928,8 +520,8 @@ namespace cwipi {
          void   **send_data
   )
   {
-    map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it == _partData2.end()) {
+    map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
+    if (it == _partData.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
 
@@ -967,146 +559,15 @@ namespace cwipi {
    * \brief Irecv partitionned data
    *
    * \param [in] part_data_id
+   * \param [in] exch_id
    * \param [in] s_data
    * \param [in] n_components
-   * \param [in] part2_data
+   * \param [in] recv_data
    *
    */
 
   void
   Coupling::partDataIrecv
-  (
-   const string   &part_data_id,
-   size_t         s_data,
-   int            n_components,
-   void         **part2_data
-  )
-  {
-    // get general data
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
-    MPI_Comm unionComm = _communication.unionCommGet();
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    // set
-    it->second.set_part2_data(part2_data);
-    it->second.set_s_data(s_data);
-    it->second.set_n_components(n_components);
-
-    // create mpi tag using part_data name and send number
-    int n_recv_calls = it->second.get_n_recv_calls();
-    int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
-                                          n_recv_calls);
-
-    // get request
-    int recv_request = it->second.get_recv_request();
-
-    // check not several recv in a row without wait interspersed
-    if (recv_request >= -1) {
-      PDM_error(__FILE__, __LINE__, 0, "Irecv has already been called for partData %s. No wait_irecv has been interspersed.\n", part_data_id.c_str());
-    }
-
-    void **recv_buffer = NULL;
-    // launch irecv
-    if (_coupledCodeProperties.localCodeIs()) {
-
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      // get request
-      int send_request = cpl_it->second.get_send_request();
-
-      // to ensure all data has been set, irecv will work if issend executed first
-      if (send_request == -1) { // -1 means issend has already executed
-
-        // malloc
-        // int *n_elt2  = it->second.get_n_elt2();
-        // int  n_part2 = it->second.get_n_part2();
-        int  n_part1;
-        int  n_part2;
-        int *n_elt1;
-        int *n_elt2;
-        PDM_part_to_part_n_part_and_n_elt_get(ptp,
-                                              &n_part1,
-                                              &n_part2,
-                                              &n_elt1,
-                                              &n_elt2);
-        recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
-        for (int i_part = 0; i_part < n_part2; i_part++) {
-          recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
-        }
-
-        // set
-        it->second.set_recv_buffer(recv_buffer);
-
-        PDM_part_to_part_irecv(ptp,
-                               s_data,
-                               n_components,
-                               recv_buffer,
-                               mpi_tag,
-                               &recv_request);
-
-        it->second.set_recv_request(recv_request);
-
-        void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
-        assert(part1_to_part2_data != NULL); // TO DO
-
-        PDM_part_to_part_issend(ptp,
-                                s_data,
-                                n_components,
-                                (const void**) part1_to_part2_data,
-                                mpi_tag,
-                                &send_request);
-
-        cpl_it->second.set_send_request(send_request);
-
-      } // local code works
-      else {
-        it->second.set_recv_request(-1);
-      }
-    } // joint
-    else {
-
-      // malloc
-      // int *n_elt2  = it->second.get_n_elt2();
-      // int  n_part2 = it->second.get_n_part2();
-      int  n_part1;
-      int  n_part2;
-      int *n_elt1;
-      int *n_elt2;
-      PDM_part_to_part_n_part_and_n_elt_get(ptp,
-                                            &n_part1,
-                                            &n_part2,
-                                            &n_elt1,
-                                            &n_elt2);
-      recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
-      for (int i_part = 0; i_part < n_part2; i_part++) {
-        recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
-      }
-
-      // set
-      it->second.set_recv_buffer(recv_buffer);
-
-      PDM_part_to_part_irecv(ptp,
-                             s_data,
-                             n_components,
-                             recv_buffer,
-                             mpi_tag,
-                             &recv_request);
-
-      it->second.set_recv_request(recv_request);
-
-    } // not joint
-
-    // increment exchange counter
-    it->second.incr_n_recv_calls();
-  }
-
-
-  void
-  Coupling::partData2Irecv
   (
    const string  &part_data_id,
    const int      exch_id,
@@ -1115,8 +576,8 @@ namespace cwipi {
          void   **recv_data
   )
   {
-    map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it == _partData2.end()) {
+    map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
+    if (it == _partData.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
 
@@ -1153,145 +614,22 @@ namespace cwipi {
   }
 
   /**
-   *
-   * \brief Filter PartData receive buffer
-   *
-   * \param [in] it
-   *
-   */
-
-  void
-  Coupling::partDatafilter
-  (
-   map<string,PartData>::iterator it
-  )
-  {
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    size_t s_data       = it->second.get_s_data();
-    int    n_components = it->second.get_n_components();
-    // int    n_part2      = it->second.get_n_part2();
-    int  n_part1;
-    int  n_part2;
-    int *n_elt1;
-    int *n_elt2;
-    PDM_part_to_part_n_part_and_n_elt_get(ptp,
-                                          &n_part1,
-                                          &n_part2,
-                                          &n_elt1,
-                                          &n_elt2);
-    void **recv_buffer  = it->second.get_recv_buffer();
-
-    int          **gnum1_come_from_idx = NULL;
-    CWP_g_num_t  **gnum1_come_from     = NULL;
-    PDM_part_to_part_gnum1_come_from_get(ptp,
-                                         &gnum1_come_from_idx,
-                                         &gnum1_come_from);
-
-    int  *n_ref_lnum2 = NULL;
-    int **ref_lnum2   = NULL;
-    PDM_part_to_part_ref_lnum2_get(ptp,
-                                   &n_ref_lnum2,
-                                   &ref_lnum2);
-
-    // malloc
-    void **part2_data   = it->second.get_part2_data();
-    // (*part2_data) = (void **) malloc(sizeof(void *) * n_part2);
-    // for (int i_part = 0; i_part < n_part2; i_part++) {
-    //   (*part2_data)[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
-    // }
-
-    // filter on void**
-    int delta = (int) s_data * n_components;
-    for (int i_part = 0; i_part < n_part2; i_part++) {
-      for (int i = 0; i < n_ref_lnum2[i_part]; i++) {
-        int first_idx = gnum1_come_from_idx[i_part][i];
-        for (int j = 0; j < delta; j++) {
-          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
-        }
-      }
-    }
-
-    // free
-    if (recv_buffer != NULL) {
-      for (int i_part = 0; i_part < n_part2; i_part++) {
-        free(recv_buffer[i_part]);
-      }
-      free(recv_buffer);
-      it->second.set_recv_buffer(NULL);
-    }
-
-  }
-
-  /**
    * \brief Wait issend partitionned data
    *
    * \param [in] part_data_id
+   * \param [in] exch_id
    *
    */
 
   void
   Coupling::partDataWaitIssend
   (
-   const string   &part_data_id
-  )
-  {
-    // get general data
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    // launch wait issend
-    if (_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-
-        // get requests
-        int send_request = it->second.get_send_request();
-        int recv_request = cpl_it->second.get_recv_request();
-
-        PDM_part_to_part_issend_wait(ptp,
-                                     send_request);
-
-        PDM_part_to_part_irecv_wait(ptp,
-                                    recv_request);
-
-        // filter
-        partDatafilter(cpl_it);
-
-        // reset
-        cpl_it->second.set_recv_request(-2);
-        it->second.set_send_request(-2);
-
-      } // local code works
-    } // joint
-    else {
-
-      // get request
-      int send_request = it->second.get_send_request();
-
-      PDM_part_to_part_issend_wait(ptp,
-                                   send_request);
-
-      // reset
-      it->second.set_send_request(-2);
-
-    } // not joint
-  }
-
-
-  void
-  Coupling::partData2WaitIssend
-  (
    const string   &part_data_id,
    const int       exch_id
    )
   {
-    map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it == _partData2.end()) {
+    map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
+    if (it == _partData.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
 
@@ -1316,74 +654,19 @@ namespace cwipi {
    * \brief Wait irecv partitionned data
    *
    * \param [in] part_data_id
+   * \param [in] exch_id
    *
    */
 
-  void
-  Coupling::partDataWaitIrecv
-  (
-   const string   &part_data_id
-  )
-  {
-    // get general data
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    // launch wait irecv
-    if (_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-
-        // get requests
-        int send_request = cpl_it->second.get_send_request();
-        int recv_request = it->second.get_recv_request();
-
-        PDM_part_to_part_irecv_wait(ptp,
-                                    recv_request);
-
-        PDM_part_to_part_issend_wait(ptp,
-                                     send_request);
-
-        // filter
-        partDatafilter(it);
-
-        // reset
-        it->second.set_recv_request(-2);
-        cpl_it->second.set_send_request(-2);
-
-      } // local code works
-    } // joint
-    else {
-
-      // get request
-      int recv_request = it->second.get_recv_request();
-
-      PDM_part_to_part_irecv_wait(ptp,
-                                  recv_request);
-
-      // filter
-      partDatafilter(it);
-
-      // reset
-      it->second.set_recv_request(-2);
-
-    } // not joint
-  }
-
-
    void
-  Coupling::partData2WaitIrecv
+  Coupling::partDataWaitIrecv
   (
    const string   &part_data_id,
    const int       exch_id
    )
   {
-    map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
-    if (it == _partData2.end()) {
+    map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
+    if (it == _partData.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
 
@@ -1399,7 +682,7 @@ namespace cwipi {
     int request = it->second.request_get(exch_id);
 
     PDM_part_to_part_irecv_wait(ptp,
-                                exch_id);
+                                request);
 
     it->second.recv_data_filter(exch_id);
 
@@ -1416,7 +699,7 @@ namespace cwipi {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     assert(it != _partData.end());
 
-    return it->second.get_n_part2();
+    return it->second.n_part_get();
   }
 
   int
@@ -1429,9 +712,9 @@ namespace cwipi {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     assert(it != _partData.end());
 
-    assert(i_part < it->second.get_n_part2());
+    assert(i_part < it->second.n_part_get());
 
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
+    PDM_part_to_part_t *ptp = it->second.ptp_get();
 
     int  *n_ref;
     int **ref;

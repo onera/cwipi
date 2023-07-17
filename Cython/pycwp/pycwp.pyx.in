@@ -578,30 +578,33 @@ cdef extern from "cwp.h":
 
   void CWP_Part_data_del(char                 *local_code_name,
                          char                 *cpl_id,
-                         char                 *part_data_id,
-                         CWP_PartData_exch_t   exch_type)
+                         char                 *part_data_id)
 
   void CWP_Part_data_issend(char          *local_code_name,
                             char          *cpl_id,
                             char          *part_data_id,
+                            int            exch_id,
                             size_t         s_data,
                             int            n_components,
-                            void         **part1_to_part2_data)
+                            void         **send_data)
 
   void CWP_Part_data_irecv(char          *local_code_name,
                            char          *cpl_id,
                            char          *part_data_id,
+                           int            exch_id,
                            size_t         s_data,
                            int            n_components,
-                           void         **part2_data)
+                           void         **recv_data)
 
   void CWP_Part_data_wait_issend(char          *local_code_name,
                                  char          *cpl_id,
-                                 char          *part_data_id)
+                                 char          *part_data_id,
+                                 int            exch_id)
 
   void CWP_Part_data_wait_irecv(char          *local_code_name,
                                 char          *cpl_id,
-                                char          *part_data_id)
+                                char          *part_data_id,
+                                int            exch_id)
 
   CWP_Spatial_interp_t CWP_Cpl_spatial_interp_algo_get(char          *local_code_name,
                                                        char          *cpl_id)
@@ -1519,11 +1522,11 @@ cdef class PartData (object):
 
         CWP_Part_data_del(self.local_code_name,
                           self.cpl_id,
-                          self.part_data_id,
-                          self.exch_type)
+                          self.part_data_id)
 
     # --> DATA
     def issend(self,
+               int                    exch_id,
                int                    n_components,
                list                   send_data):
         """
@@ -1542,11 +1545,13 @@ cdef class PartData (object):
         CWP_Part_data_issend(self.local_code_name,
                              self.cpl_id,
                              self.part_data_id,
+                             exch_id,
                              s_data,
                              n_components,
                              _send_data)
 
     def irecv(self,
+              int                    exch_id,
               int                    n_components,
               list                   recv_data):
         """
@@ -1565,27 +1570,32 @@ cdef class PartData (object):
         CWP_Part_data_irecv(self.local_code_name,
                             self.cpl_id,
                             self.part_data_id,
+                            exch_id,
                             s_data,
                             n_components,
                             _recv_data)
 
-    def wait_issend(self):
+    def wait_issend(self,
+                    int exch_id):
         """
         Finalize the sending of a partitioned data array.
         """
 
         CWP_Part_data_wait_issend(self.local_code_name,
                                   self.cpl_id,
-                                  self.part_data_id)
+                                  self.part_data_id,
+                                  exch_id)
 
-    def wait_irecv(self):
+    def wait_irecv(self,
+                   int exch_id):
         """
         Finalize the reception of a data array.
         """
 
         CWP_Part_data_wait_irecv(self.local_code_name,
                                  self.cpl_id,
-                                 self.part_data_id)
+                                 self.part_data_id,
+                                 exch_id)
 
 #-----------------------------------------------------------------------------
 # CALLBACK

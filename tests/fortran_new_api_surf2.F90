@@ -553,12 +553,14 @@ program testf
       call CWP_Part_data_issend(code_name(i),   &
                                 coupling_name,  &
                                 part_data_name, &
+                                0,              &
                                 stride,         &
                                 send_data)
     else
       call CWP_Part_data_irecv(code_name(i),   &
                                coupling_name,  &
                                part_data_name, &
+                               0,              &
                                stride,         &
                                recv_data)
     endif
@@ -569,11 +571,13 @@ program testf
     if (code_id(i) == 1) then
       call CWP_Part_data_wait_issend(code_name(i),   &
                                      coupling_name,  &
-                                     part_data_name)
+                                     part_data_name, &
+                                     0)
     else
       call CWP_Part_data_wait_irecv(code_name(i),   &
                                     coupling_name,  &
-                                    part_data_name)
+                                    part_data_name, &
+                                    0)
     endif
   enddo
 
@@ -635,8 +639,7 @@ program testf
 
     call CWP_Part_data_del(code_name(i),   &
                            coupling_name,  &
-                           part_data_name, &
-                           exch_type)
+                           part_data_name)
   enddo
 
 

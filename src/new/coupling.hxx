@@ -34,7 +34,6 @@
 #include "field.hxx"
 #include "globalData.hxx"
 #include "partData.hxx"
-#include "partData2.hxx"
 #include "pdm_part_to_part.h"
 
 #include "pdm_writer.h"
@@ -118,19 +117,6 @@ namespace cwipi {
      const string &part_data_id
     );
 
-    /**
-     *
-     * \brief Filter come_from array
-     *
-     * \param [in] it
-     *
-     */
-
-    void
-    createFilteredComeFrom
-    (
-     map<string,PartData>::iterator it
-    );
 
     /**
      * \brief Create partitionned data exchange object
@@ -153,16 +139,6 @@ namespace cwipi {
      int                   n_part
     );
 
-    void
-    partData2Create
-    (
-     const string          &part_data_id,
-     CWP_PartData_exch_t   exch_type,
-     CWP_g_num_t         **gnum_elt,
-     int                  *n_elt,
-     int                   n_part
-    );
-
     /**
      * \brief Delete partitionned data exchange object
      *
@@ -174,13 +150,6 @@ namespace cwipi {
     void
     partDataDel
     (
-     const string          &part_data_id,
-     CWP_PartData_exch_t   exch_type
-    );
-
-    void
-    partData2Del
-    (
      const string          &part_data_id
     );
 
@@ -188,26 +157,18 @@ namespace cwipi {
      * \brief Issend partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      * \param [in] s_data
      * \param [in] n_components
-     * \param [in] part1_to_part2_data
+     * \param [in] send_data
      *
      */
 
     void
     partDataIssend
     (
-     const string   &part_data_id,
-     size_t         s_data,
-     int            n_components,
-     void         **part1_to_part2_data
-    );
-
-    void
-    partData2Issend
-    (
      const string  &part_data_id,
-     const int      tag,
+     const int      exch_id,
            size_t   s_data,
            int      n_components,
            void   **send_data
@@ -217,83 +178,51 @@ namespace cwipi {
      * \brief Irecv partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      * \param [in] s_data
      * \param [in] n_components
-     * \param [in] part2_data
+     * \param [in] recv_data
      *
      */
 
     void
     partDataIrecv
     (
-     const string   &part_data_id,
-     size_t         s_data,
-     int            n_components,
-     void         **part2_data
-    );
-
-    void
-    partData2Irecv
-    (
      const string  &part_data_id,
-     const int      tag,
+     const int      exch_id,
            size_t   s_data,
            int      n_components,
            void   **recv_data
     );
 
     /**
-     *
-     * \brief Filter PartData receive buffer
-     *
-     * \param [in] it
-     *
-     */
-
-    void
-    partDatafilter
-    (
-     map<string,PartData>::iterator it
-     );
-
-    /**
      * \brief Wait issend partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      *
      */
 
     void
     partDataWaitIssend
     (
-     const string   &part_data_id
-    );
-
-    void
-    partData2WaitIssend
-    (
      const string   &part_data_id,
-     const int       tag
+     const int       exch_id
     );
 
     /**
      * \brief Wait irecv partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      *
      */
 
     void
     partDataWaitIrecv
     (
-     const string   &part_data_id
-    );
-
-    void
-    partData2WaitIrecv
-    (
      const string   &part_data_id,
-     const int       tag
+     const int       exch_id
     );
 
     int
@@ -1919,7 +1848,6 @@ namespace cwipi {
           std::map < string, Field * >       &_fields;                                 /*!< Fields Data Base */
           std::map < string, GlobalData >    &_globalData;                             /*!< GlobalData Data Base */
           std::map < string, PartData >      &_partData;                               /*!< PartData Data Base */
-          std::map < string, PartData2>      &_partData2;                              /*!< PartData Data Base */
           CouplingDB                         &_cplDB;                                  /*!< Coupling Data base */
           CWP_Dynamic_mesh_t                  _displacement;                           /*!< Type of mesh displacement */
     const CWP_Spatial_interp_t                _spatialInterpAlgo;                      /*!< Spatial intepolation algorithm */

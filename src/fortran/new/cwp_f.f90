@@ -1820,14 +1820,12 @@ module cwp
                                     f_cpl_id,          &
                                     l_cpl_id,          &
                                     f_part_data_id,    &
-                                    l_part_data_id,    &
-                                    exch_type)         &
+                                    l_part_data_id)    &
     bind (c, name='CWP_Part_data_del_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
-      integer(c_int), value         :: exch_type
     end subroutine CWP_Part_data_del_cf
 
     subroutine CWP_Part_data_issend_cf(f_local_code_name,   &
@@ -1836,17 +1834,19 @@ module cwp
                                        l_cpl_id,            &
                                        f_part_data_id,      &
                                        l_part_data_id,      &
+                                       exch_id,             &
                                        s_data,              &
                                        n_components,        &
-                                       part1_to_part2_data) &
+                                       send_data)           &
     bind (c, name='CWP_Part_data_issend_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int),  value        :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int),  value        :: exch_id
       integer(c_long), value        :: s_data
       integer(c_int),  value        :: n_components
-      type(c_ptr),     value        :: part1_to_part2_data
+      type(c_ptr),     value        :: send_data
     end subroutine CWP_Part_data_issend_cf
 
     subroutine CWP_Part_data_irecv_cf(f_local_code_name,   &
@@ -1855,17 +1855,19 @@ module cwp
                                       l_cpl_id,            &
                                       f_part_data_id,      &
                                       l_part_data_id,      &
+                                      exch_id,             &
                                       s_data,              &
                                       n_components,        &
-                                      part2_data)          &
+                                      recv_data)           &
     bind (c, name='CWP_Part_data_irecv_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int),  value        :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int),  value        :: exch_id
       integer(c_long), value        :: s_data
       integer(c_int),  value        :: n_components
-      type(c_ptr),     value        :: part2_data
+      type(c_ptr),     value        :: recv_data
     end subroutine CWP_Part_data_irecv_cf
 
     subroutine CWP_Part_data_wait_issend_cf(f_local_code_name,   &
@@ -1873,12 +1875,14 @@ module cwp
                                             f_cpl_id,            &
                                             l_cpl_id,            &
                                             f_part_data_id,      &
-                                            l_part_data_id)      &
+                                            l_part_data_id,      &
+                                            exch_id)             &
     bind (c, name='CWP_Part_data_wait_issend_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int),  value        :: exch_id
     end subroutine CWP_Part_data_wait_issend_cf
 
     subroutine CWP_Part_data_wait_irecv_cf(f_local_code_name,   &
@@ -1886,12 +1890,14 @@ module cwp
                                            f_cpl_id,            &
                                            l_cpl_id,            &
                                            f_part_data_id,      &
-                                           l_part_data_id)      &
+                                           l_part_data_id,      &
+                                           exch_id)             &
     bind (c, name='CWP_Part_data_wait_irecv_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int),  value        :: exch_id
     end subroutine CWP_Part_data_wait_irecv_cf
 
     subroutine CWP_Part_data_n_part_get_cf(f_local_code_name, &
@@ -5748,18 +5754,15 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
-  !! \param [in] exch_type        Exchange type
   !!
   !!
 
   subroutine CWP_Part_data_del_(local_code_name, &
                                 cpl_id,          &
-                                part_data_id,    &
-                                exch_type)
+                                part_data_id)
     use, intrinsic :: iso_c_binding
     implicit none
     character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
-    integer(c_int), intent(in)    :: exch_type
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
@@ -5772,8 +5775,7 @@ contains
                               cpl_id,            &
                               l_cpl_id,          &
                               part_data_id,      &
-                              l_part_data_id,    &
-                              exch_type)
+                              l_part_data_id)
 
   end subroutine CWP_Part_data_del_
 
@@ -5784,24 +5786,27 @@ contains
   !! \param [in]  local_code_name      Local code name
   !! \param [in]  cpl_id               Coupling identifier
   !! \param [in]  part_data_id         PartData identifier
+  !! \param [in]  exch_id              Exchange identifier
   !! \param [in]  n_components         Number of components
-  !! \param [in]  part1_to_part2_data  Pointer to data array to send
+  !! \param [in]  send_data            Pointer to data array to send
   !! \param [out] request              MPI request
   !!
   !!
 
-  subroutine CWP_Part_data_issend_(local_code_name,     &
-                                   cpl_id,              &
-                                   part_data_id,        &
-                                   n_components,        &
-                                   part1_to_part2_data)
+  subroutine CWP_Part_data_issend_(local_code_name, &
+                                   cpl_id,          &
+                                   part_data_id,    &
+                                   exch_id,         &
+                                   n_components,    &
+                                   send_data)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
 
     character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
+    integer(c_int), intent(in)        :: exch_id
     integer(c_int), intent(in)        :: n_components
-    type(PDM_pointer_array_t), target :: part1_to_part2_data
+    type(PDM_pointer_array_t), target :: send_data
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5810,17 +5815,18 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = part1_to_part2_data%s_data
+    s_data = send_data%s_data
 
-    call CWP_Part_data_issend_cf(local_code_name,                 &
-                                 l_local_code_name,               &
-                                 cpl_id,                          &
-                                 l_cpl_id,                        &
-                                 part_data_id,                    &
-                                 l_part_data_id,                  &
-                                 s_data,                          &
-                                 n_components,                    &
-                                 c_loc(part1_to_part2_data%cptr))
+    call CWP_Part_data_issend_cf(local_code_name,       &
+                                 l_local_code_name,     &
+                                 cpl_id,                &
+                                 l_cpl_id,              &
+                                 part_data_id,          &
+                                 l_part_data_id,        &
+                                 exch_id,               &
+                                 s_data,                &
+                                 n_components,          &
+                                 c_loc(send_data%cptr))
 
   end subroutine CWP_Part_data_issend_
 
@@ -5831,23 +5837,26 @@ contains
   !! \param [in]    local_code_name      Local code name
   !! \param [in]    cpl_id               Coupling identifier
   !! \param [in]    part_data_id         PartData identifier
+  !! \param [in]    exch_id              Exchange identifier
   !! \param [in]    n_components         Number of components
-  !! \param [inout] part2_data           Pointer to data array to receive
+  !! \param [inout] recv_data            Pointer to data array to receive
   !!
   !!
 
   subroutine CWP_Part_data_irecv_(local_code_name, &
                                   cpl_id,          &
                                   part_data_id,    &
+                                  exch_id,         &
                                   n_components,    &
-                                  part2_data)
+                                  recv_data)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
 
     character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
+    integer(c_int), intent(in)        :: exch_id
     integer(c_int), intent(in)        :: n_components
-    type(PDM_pointer_array_t), target :: part2_data
+    type(PDM_pointer_array_t), target :: recv_data
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5857,7 +5866,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = part2_data%s_data
+    s_data = recv_data%s_data
 
     call CWP_Part_data_irecv_cf(local_code_name,        &
                                 l_local_code_name,      &
@@ -5865,9 +5874,10 @@ contains
                                 l_cpl_id,               &
                                 part_data_id,           &
                                 l_part_data_id,         &
+                                exch_id,                &
                                 s_data,                 &
                                 n_components,           &
-                                c_loc(part2_data%cptr))
+                                c_loc(recv_data%cptr))
 
     call CWP_Part_data_n_part_get_cf(local_code_name,   &
                                      l_local_code_name, &
@@ -5888,7 +5898,7 @@ contains
                                       i-1,               &
                                       n_ref)
 
-      part2_data%length(i) = n_components * n_ref
+      recv_data%length(i) = n_components * n_ref
     enddo
 
   end subroutine CWP_Part_data_irecv_
@@ -5900,15 +5910,18 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
+  !! \param [in] exch_id          Exchange identifier
   !!
   !!
 
   subroutine CWP_Part_data_wait_issend_(local_code_name, &
                                         cpl_id,          &
-                                        part_data_id)
+                                        part_data_id,    &
+                                        exch_id)
     use, intrinsic :: iso_c_binding
     implicit none
     character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
+    integer(c_int), intent(in)    :: exch_id
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
@@ -5921,7 +5934,8 @@ contains
                                       cpl_id,            &
                                       l_cpl_id,          &
                                       part_data_id,      &
-                                      l_part_data_id)
+                                      l_part_data_id,    &
+                                      exch_id)
 
   end subroutine CWP_Part_data_wait_issend_
 
@@ -5932,15 +5946,18 @@ contains
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] part_data_id     PartData identifier
+  !! \param [in] exch_id          Exchange identifier
   !!
   !!
 
   subroutine CWP_Part_data_wait_irecv_(local_code_name, &
                                        cpl_id,          &
-                                       part_data_id)
+                                       part_data_id,    &
+                                       exch_id)
     use, intrinsic :: iso_c_binding
     implicit none
     character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
+    integer(c_int), intent(in)    :: exch_id
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
@@ -5953,7 +5970,8 @@ contains
                                      cpl_id,            &
                                      l_cpl_id,          &
                                      part_data_id,      &
-                                     l_part_data_id)
+                                     l_part_data_id,    &
+                                     exch_id)
 
   end subroutine CWP_Part_data_wait_irecv_
 
