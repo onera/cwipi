@@ -51,16 +51,14 @@ The following table establishes the equivalence between the arguments that are e
 
 Thus, a coupling object is created between exactly two codes.
 
-.. image:: ./images/coupling.png
-   :scale: 90%
+.. image:: ./images/schema_concept_coupling.svg
 
-Define mesh
-===========
+Define the interface mesh
+=========================
 
 Each code defines an interface mesh for the given coupling.
 
-.. image:: ./images/mesh.png
-   :scale: 90%
+.. image:: ./images/schema_concept_mesh.svg
 
 In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in an element->vertex fashion.
 Version 1.x, gives more flexibility in the way the mesh is provided so several functions must be called to define the mesh.
@@ -121,7 +119,7 @@ If you want to provide a polyhedral (3D) mesh in an element->vertex fashion, you
 Standard element Mesh
 ---------------------
 
-If you want to provide your mesh per standard element type, you should do for each element type::
+If you want to provide your mesh per standard element type (eg for Finite Element codes), you should do for each element type::
 
   int block_idendifier = CWP_Mesh_interf_block_add("code_name",
                                                    "coupling_name",
@@ -163,7 +161,7 @@ If you want to provide your mesh per standard high-order element type, you shoul
 Downward topological connections Mesh
 -------------------------------------
 
-If you want to provide a polygonal (2D) mesh in a downward topological connection fashion, you should do::
+If you want to provide a polygonal (2D) mesh in a downward topological connection fashion (eg for Finite Volume codes), you should do::
 
   CWP_Mesh_interf_from_faceedge_set("code_name",
                                     "coupling_name",
@@ -209,5 +207,4 @@ This pointer should be changed is the field data is to be updated.
 The only case a field has to be set again is if the mesh topology changes.
 The non-blocking exchange functions were kept and are the way to go.
 
-.. image:: ./images/field.png
-   :scale: 90%
+.. image:: ./images/schema_concept_field.svg
