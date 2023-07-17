@@ -39,6 +39,7 @@
 
 #include "mpi.h"
 #include "cwp.h"
+#include "pdm_logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,31 +110,19 @@ struct t_global_data
 struct t_part_data
 {
   t_part_data() {
-    n_send_elt        = NULL;
-    gnum_send_elt     = NULL;
-    n_recv_elt        = NULL;
-    gnum_recv_elt     = NULL;
-    send_to_recv_data = NULL;
-    recv_data         = NULL;
+    exch_type = (CWP_PartData_exch_t) 123;
+    gnum_elt  = NULL;
+    n_elt     = NULL;
+    n_part    = 0;
   }
 
-  // Global number of sending code
-  int            n_part_send;
-  int           *n_send_elt;
-  CWP_g_num_t  **gnum_send_elt;
+  CWP_PartData_exch_t     exch_type;
 
-  // Global number of receiving code
-  size_t         s_recv_data;
-  int            n_recv_components;
-  int            n_part_recv;
-  int           *n_recv_elt;
-  CWP_g_num_t  **gnum_recv_elt;
-
-  // Send to recv data
-  void **send_to_recv_data;
-
-  // Receive data
-  void **recv_data;
+  CWP_g_num_t            **gnum_elt;
+  int                     *n_elt;
+  int                      n_part;
+  std::map<int, void **>   data;
+  std::map<int, int>       s_unit;
 };
 
 struct t_property
@@ -247,13 +236,13 @@ struct t_coupling
   // Spatial_interp_property_set
   std::map<std::string, t_property> property;
 
-  // field_id
+  // field
   std::map<std::string, t_field> field;
 
-  // global_data_id
+  // global_data
   std::map<std::string, t_global_data> global_data;
 
-  // part_data_id
+  // part_data
   std::map<std::string, t_part_data> part_data;
 
   // block_id

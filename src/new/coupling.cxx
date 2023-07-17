@@ -161,7 +161,6 @@ namespace cwipi {
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_properties_double(*new std::map<std::string, double>),
    _spatial_interp_properties_int(*new std::map<std::string, int>),
-   // _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
    _is_mesh_finalized(0),
    _is_first_field_created(0),
    _n_step(0)
@@ -396,9 +395,9 @@ namespace cwipi {
           }
 
         }
-      }
 
-      cpl_it->second.ptp_set(ptp);
+        cpl_it->second.ptp_set(ptp);
+      }
     }
 
     /* Disjoint intracomms */

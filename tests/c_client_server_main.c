@@ -564,19 +564,19 @@ int main ( int argc, char *argv[] )
   }
   // <<<<
 
-  double **part1_to_part2_data = NULL;
-  double **part2_data = NULL;
+  double **send_part_data = NULL;
+  double **recv_part_data = NULL;
   int n_comp = 3;
 
-  part1_to_part2_data = malloc(sizeof(double *) * n_part);
+  send_part_data = malloc(sizeof(double *) * n_part);
   for (int i_part = 0; i_part < n_part; i_part++) {
-    part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+    send_part_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
   }
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     for (int i = 0; i < n_elt; i++) {
       for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-        part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
+        send_part_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
       }
     }
   }
@@ -586,14 +586,15 @@ int main ( int argc, char *argv[] )
     CWP_client_Part_data_issend("code1",
                                 cpl_id1,
                                 part_data_name,
+                                0,
                                 sizeof(double),
                                 n_comp,
-                                (void **) part1_to_part2_data);
+                      (void **) send_part_data);
   }
 
-  part2_data = malloc(sizeof(double *) * n_part);
+  recv_part_data = malloc(sizeof(double *) * n_part);
   for (int i_part = 0; i_part < n_part; i_part++) {
-    part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+    recv_part_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
   }
 
   if (id_code == 1) {
@@ -601,9 +602,10 @@ int main ( int argc, char *argv[] )
     CWP_client_Part_data_irecv("code2",
                                cpl_id1,
                                part_data_name,
+                               0,
                                sizeof(double),
                                n_comp,
-                               (void **) part2_data);
+                     (void **) recv_part_data);
   }
 
   // Barrier on coupling communicator >>>>
@@ -622,14 +624,16 @@ int main ( int argc, char *argv[] )
 
     CWP_client_Part_data_wait_issend("code1",
                                      cpl_id1,
-                                     part_data_name);
+                                     part_data_name,
+                                     0);
   }
 
   if (id_code == 1) {
 
     CWP_client_Part_data_wait_irecv("code2",
                                     cpl_id1,
-                                    part_data_name);
+                                    part_data_name,
+                                    0);
   }
 
   // Barrier on coupling communicator >>>>
@@ -650,7 +654,7 @@ int main ( int argc, char *argv[] )
     for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          if (part1_to_part2_data[i_part][3*i + i_comp] != part2_data[i_part][3*i + i_comp]) {
+          if (send_part_data[i_part][3*i + i_comp] != recv_part_data[i_part][3*i + i_comp]) {
             exit_check = 1;
           }
         }
@@ -671,19 +675,9 @@ int main ( int argc, char *argv[] )
   }
   // <<<<
 
-  if (id_code == 0) {
-    CWP_client_Part_data_del("code1",
-                             cpl_id1,
-                             part_data_name,
-                             CWP_PARTDATA_SEND);
-  }
-
-  if (id_code == 1) {
-    CWP_client_Part_data_del("code2",
-                             cpl_id1,
-                             part_data_name,
-                             CWP_PARTDATA_RECV);
-  }
+  CWP_client_Part_data_del(code_name,
+                           cpl_id1,
+                           part_data_name);
 
   // Barrier on coupling communicator >>>>
   if (id_code == 0) {
@@ -832,14 +826,14 @@ int main ( int argc, char *argv[] )
   free(n_elts);
   for (int i_part = 0; i_part < n_part; i_part++) {
     if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
-    if (part1_to_part2_data[i_part] != NULL) free(part1_to_part2_data[i_part]);
-    if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+    if (send_part_data[i_part] != NULL) free(send_part_data[i_part]);
+    if (recv_part_data[i_part] != NULL) free(recv_part_data[i_part]);
   }
-  if (gnum_elt != NULL) free(gnum_elt);
-  if (part1_to_part2_data != NULL) free(part1_to_part2_data);
-  if (part2_data != NULL) free(part2_data);
+  if (gnum_elt  != NULL) free(gnum_elt);
   if (send_data != NULL) free(send_data);
   if (recv_data != NULL) free(recv_data);
+  if (send_part_data != NULL) free(send_part_data);
+  if (recv_part_data != NULL) free(recv_part_data);
 
   MPI_Comm_free(&intra_comm);
 

@@ -1534,6 +1534,7 @@ cdef class PartData (object):
         Initiate the sending of a partitioned data array.
 
         Parameters:
+          exch_id      (int)  : Exchange identifier
           n_components (int)  : Number of components
           send_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
         """
@@ -1549,6 +1550,7 @@ cdef class PartData (object):
                              s_data,
                              n_components,
                              _send_data)
+        free(_send_data)
 
     def irecv(self,
               int                    exch_id,
@@ -1559,6 +1561,7 @@ cdef class PartData (object):
         Initiate the reception of a partitioned data array.
 
         Parameters:
+          exch_id      (int)  : Exchange identifier
           n_components (int)  : Number of components
           recv_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
         """
@@ -1574,11 +1577,15 @@ cdef class PartData (object):
                             s_data,
                             n_components,
                             _recv_data)
+        free(_recv_data)
 
     def wait_issend(self,
                     int exch_id):
         """
         Finalize the sending of a partitioned data array.
+
+        Parameters:
+          exch_id      (int)  : Exchange identifier
         """
 
         CWP_Part_data_wait_issend(self.local_code_name,
@@ -1590,6 +1597,9 @@ cdef class PartData (object):
                    int exch_id):
         """
         Finalize the reception of a data array.
+
+        Parameters:
+          exch_id      (int)  : Exchange identifier
         """
 
         CWP_Part_data_wait_irecv(self.local_code_name,
