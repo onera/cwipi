@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <cassert>
 
 #include <partData2.hxx>
 #include "cwp.h"
@@ -48,29 +49,12 @@ namespace cwipi {
                        int                  *n_elt,
                        int                   n_part):
   _part_data_id(part_data_id),
-  _ptp(NULL),
-  _s_unit(*(new map < int, int >()))
-  // _part1_to_part2_idx(NULL)
+  _exch_type(exch_type),
+  _ptp(NULL)
   {
-    log_trace("PartData2 %s, exch_type %d, n_part %d\n", part_data_id.c_str(), exch_type, n_part);
-    _gnum_elt[exch_type] = gnum_elt;
-    _n_elt   [exch_type] = n_elt;
-    _n_part  [exch_type] = n_part;
-
-    // _n_exch  [exch_type] = 0;
-
-    // if (exch_type == CWP_PARTDATA_SEND) {
-    //   _part1_to_part2_idx = malloc(sizeof(int *) * n_part);
-    //   for (int i = 0; i < n_part; i++) {
-    //     _part1_to_part2_idx[i] = PDM_array_new_idx_from_const_stride_int(1, n_elt[i]);
-    //   }
-    // }
-    // else {
-    //   _part1_to_part2_idx = NULL;
-    // }
-
-    // _data   [exch_type] = new std::map<int, void **>();
-    // _request[exch_type] = new std::vector<int>();
+    _gnum_elt = gnum_elt;
+    _n_elt    = n_elt;
+    _n_part   = n_part;
   }
 
 
@@ -79,59 +63,69 @@ namespace cwipi {
     *
     */
   PartData2::~PartData2()
-  {
-    // for (int i = 0; i < 2; i++) {
-    //   delete &_data[i];
-    //   delete &_request[i];
-    // }
-    // log_trace("~PartData2 %s\n", _part_data_id.c_str());
-
-    // delete &_s_unit;
-  }
+  {}
 
 
   void
-  PartData2::data_set(int                   request,
-                      CWP_PartData_exch_t   exch_type,
-                      void                **data)
+  PartData2::data_set(int    exch_id,
+                      void **data)
   {
-    map<int, void **>::iterator it = _data[exch_type].find(request);
+    map<int, void **>::iterator it = _data.find(exch_id);
 
-    if (it != _data[exch_type].end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Data pointer with exch_type %d already set for request %d\n", exch_type, request);
+    if (it != _data.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Data pointer with exch_type %d already set for exch_id %d\n",
+                _part_data_id.c_str(), _exch_type, exch_id);
     }
 
-    pair<int, void **> new_pair(request, data);
-    _data[exch_type].insert(new_pair);
+    pair<int, void **> new_pair(exch_id, data);
+    _data.insert(new_pair);
   };
 
-  bool
-  PartData2::data_get(int                    request,
-                      CWP_PartData_exch_t    exch_type,
-                      void                ***data)
-  {
-    map<int, void **>::iterator it = _data[exch_type].find(request);
-
-    if (it == _data[exch_type].end()) {
-      return false;
-    }
-    else {
-      *data = it->second;
-      return true;
-    }
-  }
-
 
   void
-  PartData2::recv_data_filter(int request)
+  PartData2::request_set(int exch_id,
+                         int request)
   {
-    map<int, void **>::iterator it = _data[CWP_PARTDATA_RECV].find(request);
+    map<int, int>::iterator it = _request.find(exch_id);
 
-    if (it == _data[CWP_PARTDATA_RECV].end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Recv data pointer with was not set for request %d\n", request);
+    if (it != _request.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Request pointer with exch_type %d already set for exch_id %d\n",
+                _part_data_id.c_str(), _exch_type, exch_id);
     }
 
-    map<int, int>::iterator it_s_unit = _s_unit.find(request);
+    pair<int, int> new_pair(exch_id, request);
+    _request.insert(new_pair);
+  };
+
+
+  int
+  PartData2::request_get(int exch_id)
+  {
+    map<int, int>::iterator it = _request.find(exch_id);
+
+    if (it == _request.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Request for exch_type %d undiefined set for exch_id %d\n",
+                _part_data_id.c_str(), _exch_type, exch_id);
+    }
+
+    return it->second;
+  };
+
+
+  /* In-place filtering of data coming from multiple origins */
+  void
+  PartData2::recv_data_filter(int exch_id)
+  {
+    assert(_exch_type == CWP_PARTDATA_RECV);
+
+    map<int, void **>::iterator it = _data.find(exch_id);
+
+    if (it == _data.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Recv data pointer with was not set for exch_id %d\n",
+                _part_data_id.c_str(), exch_id);
+    }
+
+    map<int, int>::iterator it_s_unit = _s_unit.find(exch_id);
     int s_unit = it_s_unit->second;
 
     int         **come_from_idx = NULL;
@@ -167,15 +161,12 @@ namespace cwipi {
 
 
   void
-  PartData2::request_clear(int                 request,
-                           CWP_PartData_exch_t exch_type)
+  PartData2::exch_clear(int exch_id)
   {
-    _data[exch_type].erase(request);
+    _data   .erase(exch_id);
+    _request.erase(exch_id);
 
-    map<int, int>::iterator it = _s_unit.find(request);
-    if (it != _s_unit.end()) {
-      _s_unit.erase(request);
-    }
+    _s_unit.erase(exch_id);
   }
 
 

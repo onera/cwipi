@@ -31,8 +31,6 @@
 #include "pdm_array.h"
 #include "pdm_logging.h"
 
-#define ABS(a) ((a) < 0 ? -(a) : (a))
-
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -233,8 +231,6 @@ int main
   /* Create coupling */
   const char *cpl_name = "c_new_api_part_data3";
 
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
-
   for (int icode = 0; icode < n_code; icode++) {
     if (verbose) {
       log_trace("Cpl_create %s\n", code_name[icode]);
@@ -244,7 +240,7 @@ int main
                    coupled_code_name[icode],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-                   spatial_interp,
+                   CWP_SPATIAL_INTERP_FROM_IDENTITY, // unused
                    n_part[icode],
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
@@ -386,8 +382,6 @@ int main
   }
 
 
-  int request1[2][2]; // #icode, #exch
-  int request2[2][2];
 
   for (int icode = 0; icode < n_code; icode++) {
 
@@ -398,17 +392,15 @@ int main
                             0,
                             sizeof(double),
                             3,
-                  (void **) send_val1[icode][0],
-                            &request1[icode][0]);
+                  (void **) send_val1[icode][0]);
 
       CWP_Part_data2_issend(code_name[icode],
                             cpl_name,
                             part_data_name1,
-                            0,
+                            1,
                             sizeof(double),
                             1,
-                  (void **) send_val1[icode][1],
-                            &request1[icode][1]);
+                  (void **) send_val1[icode][1]);
 
       CWP_Part_data2_irecv (code_name[icode],
                             cpl_name,
@@ -416,17 +408,15 @@ int main
                             0,
                             sizeof(int),
                             1,
-                  (void **) recv_val2[icode][0],
-                            &request2[icode][0]);
+                  (void **) recv_val2[icode][0]);
 
       CWP_Part_data2_irecv (code_name[icode],
                             cpl_name,
                             part_data_name2,
-                            0,
+                            1,
                             sizeof(int),
                             2,
-                  (void **) recv_val2[icode][1],
-                            &request2[icode][1]);
+                  (void **) recv_val2[icode][1]);
     }
     else {
       CWP_Part_data2_irecv (code_name[icode],
@@ -435,17 +425,15 @@ int main
                             0,
                             sizeof(double),
                             3,
-                  (void **) recv_val1[icode][0],
-                            &request1[icode][0]);
+                  (void **) recv_val1[icode][0]);
 
       CWP_Part_data2_irecv (code_name[icode],
                             cpl_name,
                             part_data_name1,
-                            0,
+                            1,
                             sizeof(double),
                             1,
-                  (void **) recv_val1[icode][1],
-                            &request1[icode][1]);
+                  (void **) recv_val1[icode][1]);
 
       CWP_Part_data2_issend(code_name[icode],
                             cpl_name,
@@ -453,17 +441,15 @@ int main
                             0,
                             sizeof(int),
                             1,
-                  (void **) send_val2[icode][0],
-                            &request2[icode][0]);
+                  (void **) send_val2[icode][0]);
 
       CWP_Part_data2_issend(code_name[icode],
                             cpl_name,
                             part_data_name2,
-                            0,
+                            1,
                             sizeof(int),
                             2,
-                  (void **) send_val2[icode][1],
-                            &request2[icode][1]);
+                  (void **) send_val2[icode][1]);
     }
   }
 
@@ -474,43 +460,43 @@ int main
       CWP_Part_data2_wait_issend(code_name[icode],
                                  cpl_name,
                                  part_data_name1,
-                                 request1[icode][0]);
+                                 0);
 
       CWP_Part_data2_wait_issend(code_name[icode],
                                  cpl_name,
                                  part_data_name1,
-                                 request1[icode][1]);
+                                 1);
 
       CWP_Part_data2_wait_irecv (code_name[icode],
                                  cpl_name,
                                  part_data_name2,
-                                 request2[icode][0]);
+                                 0);
 
       CWP_Part_data2_wait_irecv (code_name[icode],
                                  cpl_name,
                                  part_data_name2,
-                                 request2[icode][1]);
+                                 1);
     }
     else {
       CWP_Part_data2_wait_irecv (code_name[icode],
                                  cpl_name,
                                  part_data_name1,
-                                 request1[icode][0]);
+                                 0);
 
       CWP_Part_data2_wait_irecv (code_name[icode],
                                  cpl_name,
                                  part_data_name1,
-                                 request1[icode][1]);
+                                 1);
 
       CWP_Part_data2_wait_issend(code_name[icode],
                                  cpl_name,
                                  part_data_name2,
-                                 request2[icode][0]);
+                                 0);
 
       CWP_Part_data2_wait_issend(code_name[icode],
                                  cpl_name,
                                  part_data_name2,
-                                 request2[icode][1]);
+                                 1);
     }
 
   }
@@ -556,10 +542,12 @@ int main
           double expected_y = pvtx_coord[icode][ipart][3*i+1];
           double expected_z = pvtx_coord[icode][ipart][3*i+2];
 
-          if (ABS(recv_val1[icode][0][ipart][3*i  ] - expected_x) > 1e-12 ||
-              ABS(recv_val1[icode][0][ipart][3*i+1] - expected_y) > 1e-12 ||
-              ABS(recv_val1[icode][0][ipart][3*i+2] - expected_z) > 1e-12 ||
-              ABS(recv_val1[icode][1][ipart][i    ] - expected_x) > 1e-12) {
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
+          if (recv_val1[icode][0][ipart][3*i  ] != expected_x ||
+              recv_val1[icode][0][ipart][3*i+1] != expected_y ||
+              recv_val1[icode][0][ipart][3*i+2] != expected_z ||
+              recv_val1[icode][1][ipart][i    ] != expected_x) {
+CWP_GCC_SUPPRESS_WARNING_POP
             error = 1;
             printf("[%d] error for "PDM_FMT_G_NUM" : received %f %f %f %f, expected %f %f %f %f\n",
                    i_rank,
@@ -590,28 +578,13 @@ int main
 
 
   for (int icode = 0; icode < n_code; icode++) {
-    if (code_id[icode] == 1) {
-      CWP_Part_data2_del(code_name[icode],
-                         cpl_name,
-                         part_data_name1,
-                         CWP_PARTDATA_SEND);
+    CWP_Part_data2_del(code_name[icode],
+                       cpl_name,
+                       part_data_name1);
 
-      CWP_Part_data2_del(code_name[icode],
-                         cpl_name,
-                         part_data_name2,
-                         CWP_PARTDATA_RECV);
-    }
-    else {
-      CWP_Part_data2_del(code_name[icode],
-                         cpl_name,
-                         part_data_name1,
-                         CWP_PARTDATA_RECV);
-
-      CWP_Part_data2_del(code_name[icode],
-                         cpl_name,
-                         part_data_name2,
-                         CWP_PARTDATA_SEND);
-    }
+    CWP_Part_data2_del(code_name[icode],
+                       cpl_name,
+                       part_data_name2);
   }
 
 

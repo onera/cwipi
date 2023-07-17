@@ -2300,13 +2300,21 @@ CWP_Part_data_del
  CWP_PartData_exch_t  exch_type
 );
 
+/**
+ * \brief Delete partitioned data exchange object
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id     Part data identifier
+ *
+ */
+
 void
 CWP_Part_data2_del
 (
  const char          *local_code_name,
  const char          *cpl_id,
- const char          *part_data_id,
- CWP_PartData_exch_t  exch_type
+ const char          *part_data_id
 );
 
 /**
@@ -2332,17 +2340,29 @@ CWP_Part_data_issend
  void         **part1_to_part2_data
 );
 
+/**
+ * \brief Initiate the sending of a partitioned data array.
+ *
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Partitioned data identifier
+ * \param [in] exch_id             Exchange identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] send_data           Pointer to send data
+ *
+ */
+
 void
 CWP_Part_data2_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- const int      tag,
+ const int      exch_id,
        size_t   s_data,
        int      n_components,
-       void   **send_data,
-       int     *send_request
+       void   **send_data
 );
 
 /**
@@ -2368,17 +2388,29 @@ CWP_Part_data_irecv
  void         **part2_data
 );
 
+/**
+ * \brief Initiate the reception of a partitioned data array.
+ *
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Partitioned data identifier
+ * \param [in] exch_id             Exchange identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] recv_data           Pointer to received data
+ *
+ */
+
 void
 CWP_Part_data2_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- const int      tag,
+ const int      exch_id,
        size_t   s_data,
        int      n_components,
-       void   **recv_data,
-       int     *recv_request
+       void   **recv_data
 );
 
 /**
@@ -2398,13 +2430,23 @@ CWP_Part_data_wait_issend
  const char    *part_data_id
 );
 
+/**
+ * \brief Finalize the sending of a partitioned data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id     Partitioned data identifier
+ * \param [in] exch_id          Exchange identifier
+ *
+ */
+
 void
 CWP_Part_data2_wait_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- const int      request
+ const int      exch_id
 );
 
 /**
@@ -2424,13 +2466,23 @@ CWP_Part_data_wait_irecv
  const char    *part_data_id
 );
 
+/**
+ * \brief Finalize the reception of a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id     Partitioned data identifier
+ * \param [in] exch_id          Exchange identifier
+ *
+ */
+
 void
 CWP_Part_data2_wait_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- const int      request
+ const int      exch_id
 );
 
 

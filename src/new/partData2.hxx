@@ -50,11 +50,9 @@ namespace cwipi {
   public:
 
     /**
-     * \brief Constructors
+     * \brief Constructor
      *
      */
-    // PartData2() {}
-
     PartData2(std::string           part_data_id,
               CWP_PartData_exch_t   exch_type,
               CWP_g_num_t         **gnum_elt,
@@ -68,28 +66,21 @@ namespace cwipi {
     ~PartData2();
 
     void
-    data_set(int                   request,
-             CWP_PartData_exch_t   exch_type,
-             void                **data);
-
-    bool
-    data_get(int                    request,
-             CWP_PartData_exch_t    exch_type,
-             void                ***data);
+    data_set(int    exch_id,
+             void **data);
 
     void
-    recv_data_filter(int request);
+    request_set(int exch_id,
+                int request);
+
+    int
+    request_get(int exch_id);
 
     void
-    request_clear(int                 request,
-                  CWP_PartData_exch_t exch_type);
+    recv_data_filter(int exch_id);
 
-    /* awkward... (why does the destructor get called early??) */
-    inline void s_unit_delete()
-    {
-      delete &_s_unit;
-    }
-
+    void
+    exch_clear(int exch_id);
 
     inline PDM_part_to_part_t *
     ptp_get()
@@ -104,69 +95,43 @@ namespace cwipi {
     }
 
     inline CWP_g_num_t **
-    gnum_elt_get(CWP_PartData_exch_t exch_type)
+    gnum_elt_get()
     {
-      return _gnum_elt[exch_type];
+      return _gnum_elt;
     }
 
     inline int *
-    n_elt_get(CWP_PartData_exch_t exch_type)
+    n_elt_get()
     {
-      return _n_elt[exch_type];
+      return _n_elt;
     }
 
     inline int
-    n_part_get(CWP_PartData_exch_t exch_type)
+    n_part_get()
     {
-      return _n_part[exch_type];
+      return _n_part;
     }
 
-    inline int **
-    part1_to_part2_idx_get()
+    inline CWP_PartData_exch_t
+    exch_type_get()
     {
-      int          *n_elt1             = NULL;
-      int         **part1_to_part2_idx = NULL;
-      PDM_g_num_t **part1_to_part2     = NULL;
-      PDM_part_to_part_part1_to_part2_get(_ptp,
-                                          &n_elt1,
-                                          &part1_to_part2_idx,
-                                          &part1_to_part2);
-
-      return part1_to_part2_idx;
+      return _exch_type;
     }
-
-    // inline int
-    // n_exch_get(CWP_PartData_exch_t exch_type) {
-    //   return _n_exch[exch_type];
-    // }
-
-    // inline void
-    // n_exch_increment(CWP_PartData_exch_t exch_type) {
-    //   _n_exch[exch_type]++;
-    // }
-
-    // inline void
-    // part1_to_part2_idx_set(part1_to_part2_idx)
-    // {
-    //   _part1_to_part2_idx = part1_to_part2_idx;
-    // }
-
 
   private:
 
     std::string              _part_data_id;
+    CWP_PartData_exch_t      _exch_type;
     PDM_part_to_part_t      *_ptp;
 
-    CWP_g_num_t            **_gnum_elt[2]; // redundant with ptp -> to remove
-    int                     *_n_elt[2];    // redundant with ptp -> to remove
-    int                      _n_part[2];   // redundant with ptp -> to remove
-    std::map<int, void **>   _data[2];
-    // std::vector<int>         _request[2];
+    CWP_g_num_t            **_gnum_elt;
+    int                     *_n_elt;
+    int                      _n_part;
+    std::map<int, void **>   _data;
 
     /* Internal */
-    std::map<int, int>      &_s_unit;
-    // int _n_exch[2];
-    // int **_part1_to_part2_idx;
+    std::map<int, int>       _s_unit;
+    std::map<int, int>       _request;
   };
 
 }

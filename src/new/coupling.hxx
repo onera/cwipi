@@ -181,8 +181,7 @@ namespace cwipi {
     void
     partData2Del
     (
-     const string          &part_data_id,
-     CWP_PartData_exch_t   exch_type
+     const string          &part_data_id
     );
 
     /**
@@ -211,8 +210,7 @@ namespace cwipi {
      const int      tag,
            size_t   s_data,
            int      n_components,
-           void   **send_data,
-           int     *send_request
+           void   **send_data
     );
 
     /**
@@ -241,8 +239,7 @@ namespace cwipi {
      const int      tag,
            size_t   s_data,
            int      n_components,
-           void   **recv_data,
-           int     *recv_request
+           void   **recv_data
     );
 
     /**
@@ -276,7 +273,7 @@ namespace cwipi {
     partData2WaitIssend
     (
      const string   &part_data_id,
-     const int       request
+     const int       tag
     );
 
     /**
@@ -296,7 +293,7 @@ namespace cwipi {
     partData2WaitIrecv
     (
      const string   &part_data_id,
-     const int       request
+     const int       tag
     );
 
     int

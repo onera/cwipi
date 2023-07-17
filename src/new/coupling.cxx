@@ -602,6 +602,7 @@ namespace cwipi {
                                         (const PDM_g_num_t **) gnum_elt,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
+          /* part1_to_part2_idx gets copied in PDM_part_to_part_create so we don't need it anymore */
           for (int i_part = 0; i_part < n_part; i_part++) {
             free(part1_to_part2_idx[i_part]);
           }
@@ -610,9 +611,9 @@ namespace cwipi {
         }
 
         else {
-          CWP_g_num_t **gnum_elt1 = cpl_it->second.gnum_elt_get(CWP_PARTDATA_SEND);
-          int          *n_elt1    = cpl_it->second.n_elt_get   (CWP_PARTDATA_SEND);
-          int           n_part1   = cpl_it->second.n_part_get  (CWP_PARTDATA_SEND);
+          CWP_g_num_t **gnum_elt1 = cpl_it->second.gnum_elt_get();
+          int          *n_elt1    = cpl_it->second.n_elt_get   ();
+          int           n_part1   = cpl_it->second.n_part_get  ();
 
           part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part1);
           for (int i_part = 0; i_part < n_part1; i_part++) {
@@ -630,6 +631,7 @@ namespace cwipi {
                                         (const PDM_g_num_t **) gnum_elt1,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
+          /* part1_to_part2_idx gets copied in PDM_part_to_part_create so we don't need it anymore */
           for (int i_part = 0; i_part < n_part1; i_part++) {
             free(part1_to_part2_idx[i_part]);
           }
@@ -672,6 +674,7 @@ namespace cwipi {
                                       (const PDM_g_num_t **) gnum_elt,
                                       PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
+        /* part1_to_part2_idx gets copied in PDM_part_to_part_create so we don't need it anymore */
         for (int i_part = 0; i_part < n_part; i_part++) {
           free(part1_to_part2_idx[i_part]);
         }
@@ -779,8 +782,7 @@ namespace cwipi {
   void
   Coupling::partData2Del
   (
-   const string          &part_data_id,
-   CWP_PartData_exch_t   exch_type
+   const string          &part_data_id
   )
   {
     map<string,PartData2>::iterator it = _partData2.find(part_data_id.c_str());
@@ -797,14 +799,12 @@ namespace cwipi {
       PDM_part_to_part_free(ptp);
     }
 
-    it->second.s_unit_delete();
-
     // remove from map
     _partData2.erase(part_data_id.c_str());
 
   }
 
-  // TO DO: Global Data need to remove the object ??
+
 
   /**
    * \brief Issend partitionned data
@@ -922,55 +922,45 @@ namespace cwipi {
   Coupling::partData2Issend
   (
    const string  &part_data_id,
-   const int      tag,
+   const int      exch_id,
          size_t   s_data,
          int      n_components,
-         void   **send_data,
-         int     *send_request
+         void   **send_data
   )
   {
     map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
     if (it == _partData2.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
+
+    if (it->second.exch_type_get() != CWP_PARTDATA_SEND) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "PartData '%s' is not in SEND mode for %s\n",
+                part_data_id.c_str(),
+                _localCodeProperties.nameGet().c_str());
+    }
+
     MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.ptp_get();
 
     int mpi_tag = _communication._get_tag(part_data_id,
                                           unionComm,
-                                          tag);
+                                          exch_id);
 
-    /* Overlapping intracomms */
-    if (0) {//_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-      map<string, PartData2>::iterator cpl_it = cpl_cpl._partData2.find(part_data_id.c_str());
+    int send_request = -1;
 
-      if (cpl_it == cpl_cpl._partData2.end()) {
-        PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
-      }
+    PDM_part_to_part_issend(ptp,
+                            s_data,
+                            n_components,
+            (const void **) send_data,
+                            mpi_tag,
+                            &send_request);
 
+    it->second.data_set(exch_id,
+                        send_data);
 
-
-
-      // TODO!
-      assert(0);
-    }
-
-    /* Disjoint intracomms */
-    else {
-      PDM_part_to_part_issend(ptp,
-                              s_data,
-                              n_components,
-              (const void **) send_data,
-                              mpi_tag,
-                              send_request);
-
-      it->second.data_set(*send_request,
-                          CWP_PARTDATA_SEND,
-                          send_data);
-    }
-
-
+    it->second.request_set(exch_id,
+                           send_request);
   }
 
   /**
@@ -1119,50 +1109,47 @@ namespace cwipi {
   Coupling::partData2Irecv
   (
    const string  &part_data_id,
-   const int      tag,
+   const int      exch_id,
          size_t   s_data,
          int      n_components,
-         void   **recv_data,
-         int     *recv_request
+         void   **recv_data
   )
   {
     map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
     if (it == _partData2.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
+
+    if (it->second.exch_type_get() != CWP_PARTDATA_RECV) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "PartData '%s' is not in RECV mode for %s\n",
+                part_data_id.c_str(),
+                _localCodeProperties.nameGet().c_str());
+    }
+
+
     MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.ptp_get();
 
     int mpi_tag = _communication._get_tag(part_data_id,
                                           unionComm,
-                                          tag);
+                                          exch_id);
 
-    /* Overlapping intracomms */
-    if (0) {//if (_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-      map<string, PartData2>::iterator cpl_it = cpl_cpl._partData2.find(part_data_id.c_str());
+    int recv_request = -1;
 
-      if (cpl_it == cpl_cpl._partData2.end()) {
-        PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
-      }
+    PDM_part_to_part_irecv(ptp,
+                           s_data,
+                           n_components,
+                           recv_data,
+                           mpi_tag,
+                           &recv_request);
 
-      // TODO!
-      assert(0);
-    }
-
-    /* Disjoint intracomms */
-    else {
-      PDM_part_to_part_irecv(ptp,
-                              s_data,
-                              n_components,
-                              recv_data,
-                              mpi_tag,
-                              recv_request);
-    }
-
-    it->second.data_set(*recv_request,
-                        CWP_PARTDATA_RECV,
+    it->second.data_set(exch_id,
                         recv_data);
+
+    it->second.request_set(exch_id,
+                           recv_request);
+
   }
 
   /**
@@ -1300,28 +1287,29 @@ namespace cwipi {
   Coupling::partData2WaitIssend
   (
    const string   &part_data_id,
-   const int       request
+   const int       exch_id
    )
   {
     map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
     if (it == _partData2.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
-    MPI_Comm unionComm = _communication.unionCommGet();
+
+    if (it->second.exch_type_get() != CWP_PARTDATA_SEND) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "PartData '%s' is not in SEND mode for %s\n",
+                part_data_id.c_str(),
+                _localCodeProperties.nameGet().c_str());
+    }
+
     PDM_part_to_part_t *ptp = it->second.ptp_get();
 
-    /* Overlapping intracomms */
-    if (0) {//if (_coupledCodeProperties.localCodeIs()) {
-      // TODO!
-      assert(0);
-    }
+    int request = it->second.request_get(exch_id);
 
-    /* Disjoint intracomms */
-    else {
-      PDM_part_to_part_issend_wait(ptp,
-                                   request);
-    }
+    PDM_part_to_part_issend_wait(ptp,
+                                 request);
 
+    it->second.exch_clear(exch_id);
   }
 
   /**
@@ -1391,31 +1379,31 @@ namespace cwipi {
   Coupling::partData2WaitIrecv
   (
    const string   &part_data_id,
-   const int       request
+   const int       exch_id
    )
   {
     map<string, PartData2>::iterator it = _partData2.find(part_data_id.c_str());
     if (it == _partData2.end()) {
       PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
     }
-    MPI_Comm unionComm = _communication.unionCommGet();
+
+    if (it->second.exch_type_get() != CWP_PARTDATA_RECV) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "PartData '%s' is not in RECV mode for %s\n",
+                part_data_id.c_str(),
+                _localCodeProperties.nameGet().c_str());
+    }
+
     PDM_part_to_part_t *ptp = it->second.ptp_get();
 
-    /* Overlapping intracomms */
-    if (0) {//if (_coupledCodeProperties.localCodeIs()) {
-      // TODO!
-      assert(0);
-    }
+    int request = it->second.request_get(exch_id);
 
-    /* Disjoint intracomms */
-    else {
-      PDM_part_to_part_irecv_wait(ptp,
-                                  request);
-      it->second.recv_data_filter(request);
-    }
+    PDM_part_to_part_irecv_wait(ptp,
+                                exch_id);
 
-    it->second.request_clear(request,
-                             CWP_PARTDATA_SEND);
+    it->second.recv_data_filter(exch_id);
+
+    it->second.exch_clear(exch_id);
   }
 
 
