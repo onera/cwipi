@@ -82,7 +82,6 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 
 
 def runTest():
-  print(f"pdm : {PDM.__file__}")
 
   try:
     from pycwp import pycwp
@@ -90,7 +89,6 @@ def runTest():
     print("Error : CWIPI module not found (update PYTHONPATH variable)")
     sys.exit(1)
 
-  print("file :", PDM.__file__)
 
   parser = argparse.ArgumentParser()
 

@@ -1381,8 +1381,6 @@ cdef class PartData (object):
                                     n_components,
                                     _send_data)
 
-        for i in range(self.n_part):
-          free(_send_data[i])
         free(_send_data)
 
     def irecv(self,

@@ -1,3 +1,8 @@
+!>
+!! \file
+!!
+
+
 !-----------------------------------------------------------------------------
 ! This file is part of the CWIPI library.
 !
@@ -5037,7 +5042,7 @@ contains
   !!
   !! \param [in]  op           Operation
   !! \param [in]  param_name   Parameter name
-  !! \param [in]  data_type    Parameter type,
+  !! \param [in]  data_type    Parameter type
   !! \param [out] res          Result
   !! \param [in]  n_codes      Number of codes
   !! \param [in]  code_names   Codes name
@@ -5789,7 +5794,6 @@ contains
   !! \param [in]  exch_id              Exchange identifier
   !! \param [in]  n_components         Number of components
   !! \param [in]  send_data            Pointer to data array to send
-  !! \param [out] request              MPI request
   !!
   !!
 
