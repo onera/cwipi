@@ -24,7 +24,7 @@ import sys
 import os
 import time
 from pycwpclt import pycwpclt
-from pycwpclt.pycwpclt import npy_cwp_gnum_dtype
+from pycwpclt.pycwpclt import gnum_dtype
 
 def runTest():
     """
@@ -236,7 +236,7 @@ def runTest():
 
     # part data
     part_data_name = "ratchet and clank"
-    gnum_elt = [np.array([1, 2, 3], dtype=npy_cwp_gnum_dtype)] # implicit that n_part = 1
+    gnum_elt = [np.array([1, 2, 3], dtype=gnum_dtype)] # implicit that n_part = 1
 
     if (i_rank == 0):
         part_data = cpl.part_data_create(part_data_name,
@@ -508,10 +508,8 @@ def runTest():
         edge_vtx_idx = np.array([0, 2, 4, 6, 8, 10], dtype=np.int32)
         edge_vtx = np.array([3, 1, 1, 2, 2, 3, 4, 2, 3, 4], dtype=np.int32)
         cpl.mesh_interf_from_faceedge_set(0,
-                                          2,
                                           face_edge_idx,
                                           face_edge,
-                                          5,
                                           edge_vtx_idx,
                                           edge_vtx,
                                           None)

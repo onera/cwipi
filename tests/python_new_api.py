@@ -425,10 +425,8 @@ def runTest():
         edge_vtx_idx = np.array([0, 2, 4, 6, 8, 10], dtype=np.int32)
         edge_vtx = np.array([3, 1, 1, 2, 2, 3, 4, 2, 3, 4], dtype=np.int32)
         cpl.mesh_interf_from_faceedge_set(0,
-                                          2,
                                           face_edge_idx,
                                           face_edge,
-                                          5,
                                           edge_vtx_idx,
                                           edge_vtx,
                                           None)

@@ -821,9 +821,9 @@ namespace cwipi {
      * \param [in]  i_part      Current partition
      * \param [in]  block_id    Block identifier
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and
+     * \param [in]  connec_idx  Connectivity index (connec_idx[0] = 0 and
      *                          size = n_elts + 1)
-     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * n_elts)
+     * \param [in]  connec      Connectivity (size = connec_idx[n_elts] * n_elts)
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
@@ -846,9 +846,9 @@ namespace cwipi {
      * \param [in]   i_part      Current partition
      * \param [in]   block_id    Block identifier
      * \param [out]  n_elts      Number of elements
-     * \param [out]  connec_idx  Connectivity index (connec_id[0] = 0 and
+     * \param [out]  connec_idx  Connectivity index (connec_idx[0] = 0 and
      *                          size = n_elts + 1)
-     * \param [out]  connec      Connectivity (size = connec_id[n_elts] * n_elts)
+     * \param [out]  connec      Connectivity (size = connec_idx[n_elts] * n_elts)
      * \param [out]  global_num  Pointer to global element number (or NULL)
      *
      */

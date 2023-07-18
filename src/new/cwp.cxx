@@ -1776,7 +1776,7 @@ CWP_std_block_type_get
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [in]  n_elts           Number of elements
- * \param [in]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [in]  connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [in]  connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [in]  global_num       Pointer to global element number (or NULL)
@@ -1817,7 +1817,7 @@ CWP_Mesh_interf_f_poly_block_set
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [out]  n_elts           Number of elements
- * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [out]  connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [out]  global_num       Pointer to global element number (or NULL)
@@ -1849,25 +1849,25 @@ CWP_Mesh_interf_f_poly_block_get
 
 
 /**
- * \brief Adding a polyhedron connectivity block to the interface mesh.
+ * \brief Get the properties of a polyhedron block of the interface mesh partition..
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
  * \param [in]  block_id          Block identifier
  * \param [in]  n_elts            Number of elements
- * \param [in]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
- *                                 size = \p n_elts + 1)
- * \param [in]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
  * \param [in]  n_faces           Number of faces
  * \param [in]  connec_faces_idx  Polyhedron face to vertex index
- *                                (\p face_vertex_idx[0] = 0 and
- *                                 size = max(\p cell_face_connec) + 1)
+ *                                (\p connec_faces_idx[0] = 0 and
+ *                                 size = max(\p connec_cells) + 1)
  * \param [in]  connec_faces      Polyhedron face to vertex connectivity
- *                                (size = \p face_vertex_idx[\p n_elts])
- * \param [in]  global_num        Pointer to global element number (or NULL)
+ *                                (size = \p connec_faces_idx[\p n_elts])
+ * \param [in]  connec_cells_idx  Polyhedron to face index
+ *                                (\p connec_cells_idx[0] = 0 and
+ *                                 size = \p n_elts + 1)
+ * \param [in]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p connec_cells_idx[\p n_elts])
+ * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
 
@@ -1907,19 +1907,19 @@ CWP_Mesh_interf_c_poly_block_set
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
  * \param [in]  block_id          Block identifier
- * \param [out]  n_elts            Number of elements
- * \param [out]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
+ * \param [in]  n_elts            Number of elements
+ * \param [in]  n_faces           Number of faces
+ * \param [in]  connec_faces_idx  Polyhedron face to vertex index
+ *                                (\p connec_faces_idx[0] = 0 and
+ *                                 size = max(\p connec_cells) + 1)
+ * \param [in]  connec_faces      Polyhedron face to vertex connectivity
+ *                                (size = \p connec_faces_idx[\p n_elts])
+ * \param [in]  connec_cells_idx  Polyhedron to face index
+ *                                (\p connec_cells_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
- * \param [out]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
- * \param [out]  n_faces           Number of faces
- * \param [out]  connec_faces_idx  Polyhedron face to vertex index
- *                                (\p face_vertex_idx[0] = 0 and
- *                                 size = max(\p cell_face_connec) + 1)
- * \param [out]  connec_faces      Polyhedron face to vertex connectivity
- *                                (size = \p face_vertex_idx[\p n_elts])
- * \param [out]  global_num        Pointer to global element number (or NULL)
+ * \param [in]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p connec_cells_idx[\p n_elts])
+ * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
 
@@ -1961,7 +1961,7 @@ CWP_Mesh_interf_c_poly_block_get
  * \param [in]  i_part            Current partition
  * \param [in]  n_cells           Number of cells
  * \param [in]  cell_face_idx     Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                (\p cell_face_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
  * \param [in]  cell_face         Cell to face connectivity
  *                                (size = \p cell_face_idx[\p n_elts])
@@ -1971,24 +1971,23 @@ CWP_Mesh_interf_c_poly_block_get
  *                                 size = \p n_faces + 1)
  * \param [in]  face_vtx          Face to vertex connectivity
  *                                (size = \p face_vtx_idx[\p n_elts])
- * \param [in]  parent_num        Pointer to parent element number (or NULL)
+ * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
-
 
 void
 CWP_Mesh_interf_from_cellface_set
 (
- const char      *local_code_name,
- const char      *cpl_id,
- const int       i_part,
- const int       n_cells,
- int             cell_face_idx[],
- int             cell_face[],
- const int       n_faces,
- int             face_vtx_idx[],
- int             face_vtx[],
- CWP_g_num_t     parent_num[]
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_cells,
+ int                   cell_face_idx[],
+ int                   cell_face[],
+ const int             n_faces,
+ int                   face_vtx_idx[],
+ int                   face_vtx[],
+ CWP_g_num_t           global_num[]
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1999,7 +1998,7 @@ CWP_Mesh_interf_from_cellface_set
                           n_faces,
                           face_vtx_idx,
                           face_vtx,
-                          parent_num);
+                          global_num);
 }
 
 

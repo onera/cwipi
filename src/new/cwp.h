@@ -1201,7 +1201,7 @@ CWP_std_block_type_get
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [in]  n_elts           Number of elements
- * \param [in]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [in]  connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [in]  connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [in]  global_num       Global element ids (size = \p n_elts or NULL)
@@ -1230,7 +1230,7 @@ CWP_Mesh_interf_f_poly_block_set
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [out] n_elts           Number of elements
- * \param [out] connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [out] connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [out] connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [out] global_num       Global element ids (size = \p n_elts or NULL)
@@ -1261,15 +1261,15 @@ CWP_Mesh_interf_f_poly_block_get
  * \param [in]  n_elts            Number of elements
  * \param [in]  n_faces           Number of faces
  * \param [in]  connec_faces_idx  Polyhedron face to vertex index
- *                                (\p face_vertex_idx[0] = 0 and
- *                                 size = max(\p cell_face_connec) + 1)
+ *                                (\p connec_faces_idx[0] = 0 and
+ *                                 size = max(\p connec_faces) + 1)
  * \param [in]  connec_faces      Polyhedron face to vertex connectivity
- *                                (size = \p face_vertex_idx[\p n_elts])
+ *                                (size = \p connec_faces_idx[\p n_elts])
  * \param [in]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                (\p connec_cells_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
  * \param [in]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
+ *                                (size = \p connec_cells_idx[\p n_elts])
  * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
@@ -1301,15 +1301,15 @@ CWP_Mesh_interf_c_poly_block_set
  * \param [in]  n_elts            Number of elements
  * \param [in]  n_faces           Number of faces
  * \param [in]  connec_faces_idx  Polyhedron face to vertex index
- *                                (\p face_vertex_idx[0] = 0 and
- *                                 size = max(\p cell_face_connec) + 1)
+ *                                (\p connec_faces_idx[0] = 0 and
+ *                                 size = max(\p connec_cells) + 1)
  * \param [in]  connec_faces      Polyhedron face to vertex connectivity
- *                                (size = \p face_vertex_idx[\p n_elts])
+ *                                (size = \p connec_faces_idx[\p n_elts])
  * \param [in]  connec_cells_idx  Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                (\p connec_cells_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
  * \param [in]  connec_cells      Polyhedron to face connectivity
- *                                (size = \p cell_face_idx[\p n_elts])
+ *                                (size = \p connec_cells_idx[\p n_elts])
  * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
@@ -1355,7 +1355,7 @@ CWP_Mesh_interf_del
  * \param [in]  i_part            Current partition
  * \param [in]  n_cells           Number of cells
  * \param [in]  cell_face_idx     Polyhedron to face index
- *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                (\p cell_face_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
  * \param [in]  cell_face         Cell to face connectivity
  *                                (size = \p cell_face_idx[\p n_elts])
@@ -1587,7 +1587,7 @@ CWP_Field_n_dof_get
  * \param [in]  field_id                  Field identifier
  * \param [in]  i_part                    Partition identifier
  * \param [out] n_src                     Number of source dofs
- * \param [out] src_to_tgt_idx            Index for source->target mapping (size = \p n_elt_src + 1)
+ * \param [out] src_to_tgt_idx            Index for source->target mapping (size = \p n_src + 1)
  *
  */
 
@@ -1611,8 +1611,8 @@ CWP_Field_src_data_properties_get
  * \param [in]  field_id        Field identifier
  * \param [in]  i_part          Partition identifier
  * \param [out] n_tgt           Number of target dofs
- * \param [out] n_computed_tgt  Number of computed target elements
- * \param [out] computed_tgt    Computed target elements
+ * \param [out] n_computed_tgt  Number of computed target dofs
+ * \param [out] computed_tgt    Computed target dofs (size = \p n_computed_tgt)
  * \param [out] tgt_to_src_idx  Index for target->source mapping (size = \p n_computed_tgt + 1)
  *
  */

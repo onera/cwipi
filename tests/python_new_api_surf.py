@@ -25,7 +25,7 @@ import sys
 import argparse
 import ctypes
 from pycwp import pycwp
-from pycwp.pycwp import npy_cwp_gnum_dtype
+from pycwp.pycwp import gnum_dtype
 
 
 def gen_mesh(comm, n_part, n, center, radius, part_method):
@@ -72,10 +72,10 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 
   return {
     "pvtx_coord"     : pvtx_coord,
-    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=npy_cwp_gnum_dtype) for pg in pvtx_ln_to_gn],
+    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=gnum_dtype) for pg in pvtx_ln_to_gn],
     "pface_vtx_idx"  : pface_vtx_idx,
     "pface_vtx"      : pface_vtx,
-    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=npy_cwp_gnum_dtype) for pg in pface_ln_to_gn]
+    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=gnum_dtype) for pg in pface_ln_to_gn]
   }
 
 

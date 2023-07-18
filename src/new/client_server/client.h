@@ -918,7 +918,7 @@ CWP_client_std_block_type_get
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [in]  n_elts           Number of elements
- * \param [in]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [in]  connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [in]  connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [in]  global_num       Pointer to global element number (or NULL)
@@ -949,7 +949,7 @@ CWP_client_Mesh_interf_f_poly_block_set
  * \param [in]  i_part           Current partition
  * \param [in]  block_id         Block identifier
  * \param [out]  n_elts           Number of elements
- * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ * \param [out]  connec_idx       Connectivity index (\p connec_idx[0] = 0 and
  *                               size = \p n_elts + 1)
  * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
  * \param [out]  global_num       Pointer to global element number (or NULL)

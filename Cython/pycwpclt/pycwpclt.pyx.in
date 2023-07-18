@@ -49,7 +49,7 @@ np.import_array()
 
 ctypedef @PYX_NPY_G_NUM@ npy_cwp_gnum_t
 ctypedef @PYX_NPY_L_NUM@ npy_cwp_lnum_t
-npy_cwp_gnum_dtype = @PYX_NPY_G_NUM_DTYPE@
+gnum_dtype = @PYX_NPY_G_NUM_DTYPE@
 ctypedef @PYX_G_NUM@ CWP_g_num_t
 ctypedef @PYX_L_NUM@ CWP_l_num_t
 
@@ -1307,6 +1307,8 @@ cdef class PartData (object):
         __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
         Initialize a PartData object.
 
+        .. warning:: PartData creation should be done using ``part_data_create``
+
         Parameters:
           local_code_name (str)                             : Local code name
           cpl_id          (str)                             : Coupling id
@@ -1824,8 +1826,6 @@ cdef class Coupling (object):
         __init__(local_code_name, cpl_id, coupled_code_name, entities_dim, comm_type, spatial_interp, n_part, displacement, recv_freq_type)
         Initialize coupling object.
 
-        .. warning:: PartData creation should be done using ``part_data_create``
-
         Parameters:
           local_code_name   (str)                  : Local code name
           cpl_id            (str)                  : Coupling identifier
@@ -1915,8 +1915,8 @@ cdef class Coupling (object):
 
         Parameters:
           part_data_id    (str)                 : Partitioned data id
-          exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
-          gnum_elt        (CWP_g_num_t)                : Global number of entities
+          exch_type       (CWP_PartData_exch_t) : Send or receive
+          gnum_elt        (CWP_g_num_t)         : Global numbers of entities
         Returns:
           Part Data object (PartData)
         """
@@ -2032,8 +2032,8 @@ cdef class Coupling (object):
         Parameters:
           i_part     (int)                        : Current partition
           n_pts      (int)                        : Number of points
-          coord      (np.ndarray[np.double_t])    : Coordinates (size = 3 * \ref n_pts)
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global vertex ids (size = \ref n_pts or None)
+          coord      (np.ndarray[np.double_t])    : Coordinates (size = 3 * *n_pts*)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global vertex ids (size = *n_pts* or None)
         """
 
         if len(coord)%3 != 0:
@@ -2089,8 +2089,8 @@ cdef class Coupling (object):
         Parameters:
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_vertex_per_elt * \ref n_elts)
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = *n_vertex_per_elt* * *n_elts*)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_elts* or None)
         """
 
         cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2135,8 +2135,8 @@ cdef class Coupling (object):
         Returns:
           Dictionary
             - ``"n_elts"``     : Number of elements (int)
-            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = n_vertex_per_elt * \ref n_elts)
-            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t], size = \ref n_elts or None)
+            - ``"connec"``     : Connectivity (np.ndarray[np.int32_t], size = *n_vertex_per_elt* * *n_elts*)
+            - ``"global_num"`` : Global element ids (np.ndarray[npy_cwp_gnum_t], size = *n_elts* or None)
         """
 
         cdef int   n_elts = -1
@@ -2175,9 +2175,9 @@ cdef class Coupling (object):
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
           n_elts     (int)                    : Number of elements
-          connec_idx (np.ndarray[np.int32_t]) : Connectivity index (\ref connec_id[0] = 0 and size = \ref n_elts + 1)
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = \ref connec_idx[\ref n_elts])
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
+          connec_idx (np.ndarray[np.int32_t]) : Connectivity index (``connec_idx`` [0] = 0 and size = *n_elts* + 1)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = ``connec_idx`` [*n_elts*])
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_elts* or None)
         """
 
         cdef int n_elts = len(connec_idx) - 1
@@ -2256,10 +2256,10 @@ cdef class Coupling (object):
         Parameters:
           i_part           (int)                    : Partition identifier
           block_id         (int)                    : Block identifier
-          connec_faces_idx (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (\ref face_vertex_idx[0] = 0 and size = max(\ref cell_face_connec) + 1)
-          connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = \ref face_vertex_idx[n_elts])
-          connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (\ref cell_face_idx[0] = 0 and size = \ref n_elts + 1)
-          connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = \ref cell_face_idx[\ref n_elts])
+          connec_faces_idx (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (``connec_faces_idx`` [0] = 0 and size = max(``connec_cells``) + 1)
+          connec_faces     (np.ndarray[np.int32_t]) : Polyhedron face to vertex connectivity (size = ``connec_faces_idx`` [*n_elts*])
+          connec_cells_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (``connec_cells_idx`` [0] = 0 and size = *n_elts* + 1)
+          connec_cells     (np.ndarray[np.int32_t]) : Polyhedron to face connectivity (size = ``connec_cells_idx`` [*n_elts*])
           global_num       (np.ndarray[npy_cwp_gnum_t]) : Global element ids (or None)
         """
 
@@ -2358,8 +2358,8 @@ cdef class Coupling (object):
           i_part     (int)                    : Partition identifier
           block_id   (int)                    : Block identifier
           order      (int)                    : Element order
-          connec     (np.ndarray[np.int32_t]) : Connectivity (size = n_nodes_per_elt * \ref n_elts)
-          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
+          connec     (np.ndarray[np.int32_t]) : Connectivity (size = *n_nodes_per_elt* * *n_elts*)
+          global_num (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_elts* or None)
       """
 
       cdef CWP_Block_t block_type = CWP_client_std_block_type_get(self.local_code_name,
@@ -2483,12 +2483,12 @@ cdef class Coupling (object):
         Parameters:
           i_part        (int)                    : Current partition
           n_cells       (int)                    : Number of cells
-          cell_face_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (\ref cell_face_idx[0] = 0 and size = \ref n_elts + 1)
-          cell_face     (np.ndarray[np.int32_t]) : Cell to face connectivity (size = \ref cell_face_idx[\ref n_elts])
+          cell_face_idx (np.ndarray[np.int32_t]) : Polyhedron to face index (``cell_face_idx`` [0] = 0 and size = *n_elts* + 1)
+          cell_face     (np.ndarray[np.int32_t]) : Cell to face connectivity (size = ``cell_face_idx`` [*n_elts*])
           n_faces       (int)                    : Number of faces
-          face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (\ref face_vtx_idx[0] = 0 and size = \ref n_faces + 1)
-          face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = \ref face_vtx_idx[\ref n_elts])
-          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_elts or None)
+          face_vtx_idx  (np.ndarray[np.int32_t]) : Polyhedron face to vertex index (``face_vtx_idx`` [0] = 0 and size = *n_faces* + 1)
+          face_vtx      (np.ndarray[np.int32_t]) : Face to vertex connectivity (size = ``face_vtx_idx`` [*n_elts*])
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_elts* or None)
         """
         cdef int n_cells = len(cell_face_idx) - 1
         cdef int n_faces = len(face_vtx_idx)  - 1
@@ -2518,10 +2518,8 @@ cdef class Coupling (object):
 
     def mesh_interf_from_faceedge_set(self,
                                       int                                      i_part,
-                                      int                                      n_faces,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] face_edge_idx not None,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] face_edge not None,
-                                      int                                      n_edges,
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] edge_vtx not None,
                                       np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
@@ -2530,13 +2528,13 @@ cdef class Coupling (object):
 
         Parameters:
           i_part        (int)                    : Current partition
-          n_faces       (int)                    : Number of faces
-          face_edge_idx (np.ndarray[np.int32_t]) : Polygon to edge index (\ref face_edge_idx[0] = 0 and size =  \ref n_faces + 1)
-          face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = \ref face_edge_idx[\ref n_faces])
-          n_edges       (int)                    : Number of edges
-          edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2*\ref n_edges)
-          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = \ref n_faces or None)
+          face_edge_idx (np.ndarray[np.int32_t]) : Polygon to edge index (``face_edge_idx`` [0] = 0 and size =  *n_faces* + 1)
+          face_edge     (np.ndarray[np.int32_t]) : Face to edge connectivity (size = ``face_edge_idx`` [*n_faces*])
+          edge_vtx      (np.ndarray[np.int32_t]) : Edge to vertex connectivity (size = 2 * *n_edges*)
+          global_num    (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_faces* or None)
         """
+        cdef int n_faces = len(face_edge_idx) - 1
+        cdef int n_edges = len(edge_vtx) // 2
 
         if (global_num is None):
           CWP_client_Mesh_interf_from_faceedge_set(self.local_code_name,

@@ -73,7 +73,7 @@ It is suited for conservative interpolation.
   The intersection algorithm uses efficient bounding box collisions detection as a first step.
   The boxes can be inflated using a relative tolerance.
   This is especially useful for non-planar, surface interface meshes where alignment with cartesian axes might cause some detection misses if the tolerance is set too low.
-  The ``tolerance`` property is of type `double` and is set to 0.001 by default but be can adjusted as well.
+  The ``tolerance`` property is of type `double` and is set to 0.001 by default, but be can adjusted as well.
 
 **Acceptable degrees-of-freedom**
 

@@ -667,7 +667,7 @@ CWP_Mesh_interf_block_std_get_cf
  * \param [in]  i_part              Current partition
  * \param [in]  block_id            Block identifier
  * \param [in]  n_elts              Number of elements
- * \param [in]  connec_idx          Connectivity index (\p connec_id[0] = 0 and
+ * \param [in]  connec_idx          Connectivity index (\p connec_idx[0] = 0 and
  *                                  size = \p n_elts + 1)
  * \param [in]  connec              Connectivity (size = \p connec_idx[\p n_elts])
  * \param [in]  global_num          Pointer to global element number (or NULL)

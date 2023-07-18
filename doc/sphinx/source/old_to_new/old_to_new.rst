@@ -16,7 +16,7 @@ All function calls are still framed by a call to the initialization and finaliza
 Version 1.x supports multiple codes running on a single MPI rank.
 Besides, one can select which MPI ranks will be available for CWIPI.
 
-In summary, from version 1.x onwards the following additional arguments are required at CWIPI initialization:
+In summary, since version 1.0 the following additional arguments are required at CWIPI initialization:
    - ``n_code``: the number of codes executed on current MPI rank ;
    - ``code_names``: the list of local code names ;
    - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling.

@@ -69,8 +69,8 @@ Fortran API documentation
 
 *à remplir*
 
-.. .. doxygenfile:: cwp_f.f90
-..    :project: cwipi
+.. doxygenfile:: cwp_f.f90
+   :project: cwipi
 
 Python API documentation : pycwp
 ================================
