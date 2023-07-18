@@ -822,12 +822,14 @@ program testf
     call CWP_Part_data_issend(code_names(1),  &
                               coupling_name,  &
                               part_data_name, &
+                              0,              &
                               n_comp,         &
                               part_data)
   else
     call CWP_Part_data_irecv(code_names(1),  &
                              coupling_name,  &
                              part_data_name, &
+                             0,              &
                              n_comp,         &
                              part_data)
   endif
@@ -836,7 +838,8 @@ program testf
   if (code_names(1) == "code1") then
     call CWP_Part_data_wait_issend(code_names(1),  &
                                    coupling_name,  &
-                                   part_data_name)
+                                   part_data_name, &
+                                   0)
     if (debug) then
       do i = 1, n_part
         call PDM_pointer_array_part_get(part_data, &
@@ -850,7 +853,8 @@ program testf
   else
     call CWP_Part_data_wait_irecv(code_names(1),  &
                                   coupling_name,  &
-                                  part_data_name)
+                                  part_data_name, &
+                                  0)
 
     if (debug) then
       do i = 1, n_part
@@ -866,8 +870,7 @@ program testf
 
   call CWP_Part_data_del(code_names(1),  &
                          coupling_name,  &
-                         part_data_name, &
-                         exch_type)
+                         part_data_name)
 
   do i = 1, n_part
     deallocate(my_part(i)%g_num, &

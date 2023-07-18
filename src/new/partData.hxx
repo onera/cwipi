@@ -1,9 +1,10 @@
 #ifndef __PARTDATA_H__
 #define __PARTDATA_H__
+
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2022-2023  ONERA
+  Copyright (C) 2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,6 +21,7 @@
 */
 
 #include <map>
+#include <vector>
 #include <sstream>
 #include <iostream>
 
@@ -51,8 +53,6 @@ namespace cwipi {
      * \brief Constructor
      *
      */
-    PartData() {}
-
     PartData(std::string           part_data_id,
              CWP_PartData_exch_t   exch_type,
              CWP_g_num_t         **gnum_elt,
@@ -65,261 +65,73 @@ namespace cwipi {
      */
     ~PartData();
 
-    // Getters
+    void
+    data_set(int    exch_id,
+             void **data);
+
+    void
+    request_set(int exch_id,
+                int request);
+
+    int
+    request_get(int exch_id);
+
+    void
+    recv_data_filter(int exch_id);
+
+    void
+    exch_clear(int exch_id);
 
     inline PDM_part_to_part_t *
-    get_ptp()
+    ptp_get()
     {
       return _ptp;
     }
 
-    inline size_t
-    get_s_data()
-    {
-      return _s_data;
-    }
-
-    inline int
-    get_n_components()
-    {
-      return _n_components;
-    }
-
-    inline CWP_g_num_t  **
-    get_gnum_elt1()
-    {
-      return _gnum_elt1;
-    }
-
-    inline int *
-    get_n_elt1()
-    {
-      return _n_elt1;
-    }
-
-    inline int
-    get_n_part1()
-    {
-      return _n_part1;
-    }
-
-    inline void **
-    get_part1_to_part2_data()
-    {
-      return _part1_to_part2_data;
-    }
-
-    inline int **
-    get_part1_to_part2_idx()
-    {
-      return _part1_to_part2_idx;
-    }
-
-    inline CWP_g_num_t  **
-    get_gnum_elt2()
-    {
-      return _gnum_elt2;
-    }
-
-    inline int *
-    get_n_elt2()
-    {
-      return _n_elt2;
-    }
-
-    inline int
-    get_n_part2()
-    {
-      return _n_part2;
-    }
-
-    inline void **
-    get_part2_data()
-    {
-      return _part2_data;
-    }
-
-    inline CWP_g_num_t **
-    get_filtered_gnum1_come_from()
-    {
-      return _filtered_gnum1_come_from;
-    }
-
-    inline void **
-    get_recv_buffer()
-    {
-      return _recv_buffer;
-    }
-
-    inline int
-    get_n_send_calls()
-    {
-      return _n_send_calls;
-    }
-
-    inline int
-    get_n_recv_calls()
-    {
-      return _n_recv_calls;
-    }
-
-    inline int
-    get_send_request()
-    {
-      return _send_request;
-    }
-
-    inline int
-    get_recv_request()
-    {
-      return _recv_request;
-    }
-
-    // Setters
-
     inline void
-    set_ptp
-    (
-     PDM_part_to_part_t *ptp
-    )
+    ptp_set(PDM_part_to_part_t *ptp)
     {
       _ptp = ptp;
     }
 
-    inline void
-    set_s_data
-    (
-     size_t s_data
-    )
+    inline CWP_g_num_t **
+    gnum_elt_get()
     {
-      _s_data = s_data;
+      return _gnum_elt;
     }
 
-    inline void
-    set_n_components
-    (
-     int n_components
-    )
+    inline int *
+    n_elt_get()
     {
-      _n_components = n_components;
+      return _n_elt;
     }
 
-    inline void
-    set_part1_to_part2_data
-    (
-     void ** part1_to_part2_data
-    )
+    inline int
+    n_part_get()
     {
-      _part1_to_part2_data = part1_to_part2_data;
+      return _n_part;
     }
 
-    inline void
-    set_part1_to_part2_idx
-    (
-     int ** part1_to_part2_idx
-    )
+    inline CWP_PartData_exch_t
+    exch_type_get()
     {
-      _part1_to_part2_idx = part1_to_part2_idx;
-    }
-
-    inline void
-    set_part2_data
-    (
-     void ** part2_data
-    )
-    {
-      _part2_data = part2_data;
-    }
-
-    inline void
-    set_filtered_gnum1_come_from
-    (
-     CWP_g_num_t ** filtered_gnum1_come_from
-    )
-    {
-      _filtered_gnum1_come_from = filtered_gnum1_come_from;
-    }
-
-    inline void
-    set_recv_buffer
-    (
-     void ** recv_buffer
-    )
-    {
-      _recv_buffer = recv_buffer;
-    }
-
-    inline void
-    incr_n_send_calls
-    (
-     void
-    )
-    {
-      _n_send_calls++;
-    }
-
-    inline void
-    incr_n_recv_calls
-    (
-     void
-    )
-    {
-      _n_recv_calls++;
-    }
-
-    inline void
-    set_send_request
-    (
-     int new_send_request
-    )
-    {
-      _send_request = new_send_request;
-    }
-
-    inline void
-    set_recv_request
-    (
-     int new_recv_request
-    )
-    {
-      _recv_request = new_recv_request;
+      return _exch_type;
     }
 
   private:
 
-    uint32_t _adler32
-    (
-     const void *buf,
-     size_t buflength
-    );
+    std::string              _part_data_id;
+    CWP_PartData_exch_t      _exch_type;
+    PDM_part_to_part_t      *_ptp;
 
-    // global
-    std::string         _part_data_id;
-    PDM_part_to_part_t *_ptp;
-    size_t              _s_data;
-    int                 _n_components;
+    CWP_g_num_t            **_gnum_elt;
+    int                     *_n_elt;
+    int                      _n_part;
+    std::map<int, void **>   _data;
 
-    // send
-    CWP_g_num_t  **_gnum_elt1;
-    int           *_n_elt1;
-    int            _n_part1;
-    void         **_part1_to_part2_data;
-    int          **_part1_to_part2_idx;
-    int           _send_request;
-    int           _n_send_calls;
-
-    // recv
-    CWP_g_num_t  **_gnum_elt2;
-    int           *_n_elt2;
-    int            _n_part2;
-    void         **_part2_data;
-    int            _recv_request;
-    int            _n_recv_calls;
-
-    // intern
-    void         **_recv_buffer;
-    CWP_g_num_t  **_filtered_gnum1_come_from;
-
+    /* Internal */
+    std::map<int, int>       _s_unit;
+    std::map<int, int>       _request;
   };
 
 }

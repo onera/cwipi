@@ -3504,8 +3504,7 @@ CWP_Part_data_del_cf
  const char           *f_cpl_id,
  const int             l_cpl_id,
  const char           *f_part_data_id,
- const int             l_part_data_id,
- CWP_PartData_exch_t   exch_type
+ const int             l_part_data_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3516,8 +3515,7 @@ CWP_Part_data_del_cf
 
   CWP_Part_data_del(c_local_code_name,
                     c_cpl_id,
-                    c_part_data_id,
-                    exch_type);
+                    c_part_data_id);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3533,7 +3531,7 @@ CWP_Part_data_del_cf
  * \param [in] part_data_id
  * \param [in] s_data
  * \param [in] n_components
- * \param [in] part1_to_part2_data
+ * \param [in] send_data
  *
  */
 
@@ -3546,9 +3544,10 @@ CWP_Part_data_issend_cf
  const int      l_cpl_id,
  const char    *f_part_data_id,
  const int      l_part_data_id,
+ const int      exch_id,
  size_t         s_data,
  int            n_components,
- void         **part1_to_part2_data
+ void         **send_data
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3560,9 +3559,10 @@ CWP_Part_data_issend_cf
   CWP_Part_data_issend(c_local_code_name,
                        c_cpl_id,
                        c_part_data_id,
+                       exch_id,
                        s_data,
                        n_components,
-                       part1_to_part2_data);
+                       send_data);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3577,7 +3577,7 @@ CWP_Part_data_issend_cf
  * \param [in] part_data_id
  * \param [in] s_data
  * \param [in] n_components
- * \param [in] part1_to_part2_data
+ * \param [in] recv_data
  *
  */
 
@@ -3590,9 +3590,10 @@ CWP_Part_data_irecv_cf
  const int      l_cpl_id,
  const char    *f_part_data_id,
  const int      l_part_data_id,
+ const int      exch_id,
  size_t         s_data,
  int            n_components,
- void         **part2_data
+ void         **recv_data
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3604,9 +3605,10 @@ CWP_Part_data_irecv_cf
   CWP_Part_data_irecv(c_local_code_name,
                       c_cpl_id,
                       c_part_data_id,
+                      exch_id,
                       s_data,
                       n_components,
-                      part2_data);
+                      recv_data);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3630,7 +3632,8 @@ CWP_Part_data_wait_issend_cf
  const char    *f_cpl_id,
  const int      l_cpl_id,
  const char    *f_part_data_id,
- const int      l_part_data_id
+ const int      l_part_data_id,
+ const int      exch_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3641,7 +3644,8 @@ CWP_Part_data_wait_issend_cf
 
   CWP_Part_data_wait_issend(c_local_code_name,
                             c_cpl_id,
-                            c_part_data_id);
+                            c_part_data_id,
+                            exch_id);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3665,7 +3669,8 @@ CWP_Part_data_wait_irecv_cf
  const char    *f_cpl_id,
  const int      l_cpl_id,
  const char    *f_part_data_id,
- const int      l_part_data_id
+ const int      l_part_data_id,
+ const int      exch_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_part_data_id;
@@ -3676,7 +3681,8 @@ CWP_Part_data_wait_irecv_cf
 
   CWP_Part_data_wait_irecv(c_local_code_name,
                            c_cpl_id,
-                           c_part_data_id);
+                           c_part_data_id,
+                           exch_id);
 
   free(c_local_code_name);
   free(c_cpl_id);

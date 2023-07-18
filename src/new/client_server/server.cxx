@@ -45,6 +45,7 @@
 #include <errno.h>
 #include <iostream>
 #include <map>
+#include <cassert>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1550,39 +1551,17 @@ CWP_server_Cpl_del
     std::map<std::string, t_part_data>::iterator it_pd = svr_cwp.coupling[s].part_data.begin();
     while (it_pd != svr_cwp.coupling[s].part_data.end()) {
 
-      // CWP_PARTDATA_SEND
-      if ((it_pd->second).n_send_elt != NULL) free((it_pd->second).n_send_elt);
-      (it_pd->second).n_send_elt = NULL;
-      if ((it_pd->second).gnum_send_elt != NULL) {
-        for (int i_part = 0; i_part < (it_pd->second).n_part_send; i_part++) {
-          if ((it_pd->second).gnum_send_elt[i_part] != NULL) free((it_pd->second).gnum_send_elt[i_part]);
-        }
-        free((it_pd->second).gnum_send_elt);
-        (it_pd->second).gnum_send_elt = NULL;
+      if ((it_pd->second).n_elt != NULL) {
+        free((it_pd->second).n_elt);
       }
-      if ((it_pd->second).send_to_recv_data != NULL) {
-        for (int i_part = 0; i_part < (it_pd->second).n_part_send; i_part++) {
-          if ((it_pd->second).send_to_recv_data[i_part] != NULL) free((it_pd->second).send_to_recv_data[i_part]);
+
+      if ((it_pd->second).gnum_elt != NULL) {
+        for (int i_part = 0; i_part < (it_pd->second).n_part; i_part++) {
+          if ((it_pd->second).gnum_elt[i_part] != NULL) {
+            free((it_pd->second).gnum_elt[i_part]);
+          }
         }
-        free((it_pd->second).send_to_recv_data);
-        (it_pd->second).send_to_recv_data = NULL;
-      }
-      // CWP_PARTDATA_RECV
-      if ((it_pd->second).n_recv_elt != NULL) free((it_pd->second).n_recv_elt);
-      (it_pd->second).n_recv_elt = NULL;
-      if ((it_pd->second).gnum_recv_elt != NULL) {
-        for (int i_part = 0; i_part < (it_pd->second).n_part_recv; i_part++) {
-          if ((it_pd->second).gnum_recv_elt[i_part] != NULL) free((it_pd->second).gnum_recv_elt[i_part]);
-        }
-        free((it_pd->second).gnum_recv_elt);
-        (it_pd->second).gnum_recv_elt = NULL;
-      }
-      if ((it_pd->second).recv_data != NULL) {
-        for (int i_part = 0; i_part < (it_pd->second).n_part_recv; i_part++) {
-          if ((it_pd->second).recv_data[i_part] != NULL) free((it_pd->second).recv_data[i_part]);
-        }
-        free((it_pd->second).recv_data);
-        (it_pd->second).recv_data = NULL;
+        free((it_pd->second).gnum_elt);
       }
 
       it_pd = svr_cwp.coupling[s].part_data.erase(it_pd);
@@ -6106,22 +6085,20 @@ CWP_server_Part_data_create
 
   // create occurence if part_data
   std::string s1(cpl_id);
-  t_coupling coupling = svr_cwp.coupling[s1];
   std::string s2(part_data_id);
+
+  t_coupling &coupling = svr_cwp.coupling[s1];
+
   t_part_data part_data = t_part_data();
-  coupling.part_data.insert(std::make_pair(s2, part_data));
+
+  part_data.exch_type = exch_type;
+  part_data.n_part    = n_part;
 
   // read n_elt
   int *n_elt = (int *) malloc(sizeof(int) * n_part);
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) n_elt, sizeof(int) * n_part);
 
-  if (exch_type == CWP_PARTDATA_SEND) {
-    svr_cwp.coupling[s1].part_data[s2].n_part_send = n_part;
-    svr_cwp.coupling[s1].part_data[s2].n_send_elt = n_elt;
-  } else if (exch_type == CWP_PARTDATA_RECV) {
-    svr_cwp.coupling[s1].part_data[s2].n_part_recv = n_part;
-    svr_cwp.coupling[s1].part_data[s2].n_recv_elt = n_elt;
-  }
+  part_data.n_elt = n_elt;
 
   // read gnum
   CWP_g_num_t **gnum_elt = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part);
@@ -6132,11 +6109,9 @@ CWP_server_Part_data_create
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) gnum_elt[i_part], sizeof(CWP_g_num_t) * n_elt[i_part]);
   }
 
-  if (exch_type == CWP_PARTDATA_SEND) {
-    svr_cwp.coupling[s1].part_data[s2].gnum_send_elt = gnum_elt;
-  } else if (exch_type == CWP_PARTDATA_RECV) {
-    svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt = gnum_elt;
-  }
+  part_data.gnum_elt = gnum_elt;
+
+  coupling.part_data.insert(std::make_pair(s2, part_data));
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6200,10 +6175,6 @@ CWP_server_Part_data_del
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
-  // read exch_type
-  CWP_PartData_exch_t exch_type;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_type, sizeof(int));
-
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -6215,8 +6186,7 @@ CWP_server_Part_data_del
 
   CWP_Part_data_del(local_code_name,
                     cpl_id,
-                    part_data_id,
-                    exch_type);
+                    part_data_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6231,45 +6201,21 @@ CWP_server_Part_data_del
   std::string s1(cpl_id);
   std::string s2(part_data_id);
 
-  if (exch_type == CWP_PARTDATA_SEND) {
-    if (svr_cwp.coupling[s1].part_data[s2].n_send_elt != NULL) free(svr_cwp.coupling[s1].part_data[s2].n_send_elt);
-    svr_cwp.coupling[s1].part_data[s2].n_send_elt = NULL;
+  t_part_data &part_data = svr_cwp.coupling[s1].part_data[s2];
 
-    if (svr_cwp.coupling[s1].part_data[s2].gnum_send_elt != NULL) {
-      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-        if (svr_cwp.coupling[s1].part_data[s2].gnum_send_elt[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].gnum_send_elt[i_part]);
+  if (part_data.gnum_elt != NULL) {
+    for (int i = 0; i < part_data.n_part; i++) {
+      if (part_data.gnum_elt[i] != NULL) {
+        free(part_data.gnum_elt[i]);
       }
-      free(svr_cwp.coupling[s1].part_data[s2].gnum_send_elt);
-      svr_cwp.coupling[s1].part_data[s2].gnum_send_elt = NULL;
     }
-
-    if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data != NULL) {
-      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-        if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part]);
-      }
-      free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
-      svr_cwp.coupling[s1].part_data[s2].send_to_recv_data = NULL;
-    }
-  } else if (exch_type == CWP_PARTDATA_RECV) {
-    if (svr_cwp.coupling[s1].part_data[s2].n_recv_elt != NULL) free(svr_cwp.coupling[s1].part_data[s2].n_recv_elt);
-    svr_cwp.coupling[s1].part_data[s2].n_recv_elt = NULL;
-
-    if (svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt != NULL) {
-      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-        if (svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt[i_part]);
-      }
-      free(svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt);
-      svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt = NULL;
-    }
-
-    if (svr_cwp.coupling[s1].part_data[s2].recv_data != NULL) {
-      for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-        if (svr_cwp.coupling[s1].part_data[s2].recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].recv_data[i_part]);
-      }
-      free(svr_cwp.coupling[s1].part_data[s2].recv_data);
-      svr_cwp.coupling[s1].part_data[s2].recv_data = NULL;
-    }
+    free(part_data.gnum_elt);
   }
+
+  if (part_data.n_elt != NULL) {
+    free(part_data.n_elt);
+  }
+
   svr_cwp.coupling[s1].part_data.erase(s2);
 
   // free
@@ -6308,6 +6254,10 @@ CWP_server_Part_data_issend
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
+  // read exch_id
+  int exch_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_id, sizeof(int));
+
   // read s_data
   size_t s_data;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_data, sizeof(size_t));
@@ -6319,22 +6269,20 @@ CWP_server_Part_data_issend
   // read part1_to_part2_data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  void **part1_to_part2_data = (void **) malloc(sizeof(void *) * svr_cwp.coupling[s1].part_data[s2].n_part_send);
-  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-    part1_to_part2_data[i_part] = malloc(s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+
+  t_part_data &part_data = svr_cwp.coupling[s1].part_data[s2];
+
+  assert(part_data.exch_type == CWP_PARTDATA_SEND);
+
+  void **send_data = (void **) malloc(sizeof(void *) * part_data.n_part);
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    send_data[i_part] = malloc(s_data * n_components * part_data.n_elt[i_part]);
   }
-  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) part1_to_part2_data[i_part], s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) send_data[i_part], s_data * n_components * part_data.n_elt[i_part]);
   }
 
-  if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data != NULL) {
-    for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-      if (svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part] != NULL) free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data[i_part]);
-    }
-    free(svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
-  }
-
-  svr_cwp.coupling[s1].part_data[s2].send_to_recv_data = part1_to_part2_data;
+  part_data.data.insert(std::make_pair(exch_id, send_data)); // necessary?
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6348,9 +6296,10 @@ CWP_server_Part_data_issend
   CWP_Part_data_issend(local_code_name,
                        cpl_id,
                        part_data_id,
+                       exch_id,
                        s_data,
                        n_components,
-                       svr_cwp.coupling[s1].part_data[s2].send_to_recv_data);
+                       send_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6397,6 +6346,10 @@ CWP_server_Part_data_irecv
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
+  // read exch_id
+  int exch_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_id, sizeof(int));
+
   // read s_data
   size_t s_data;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_data, sizeof(size_t));
@@ -6418,22 +6371,24 @@ CWP_server_Part_data_irecv
   std::string s1(cpl_id);
   std::string s2(part_data_id);
 
-  if (svr_cwp.coupling[s1].part_data[s2].recv_data == NULL) {
-    svr_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * svr_cwp.coupling[s1].part_data[s2].n_part_recv);
-    for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-      (svr_cwp.coupling[s1].part_data[s2].recv_data)[i_part] = malloc(s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
-    }
+  t_part_data &part_data = svr_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_RECV);
+
+  void **recv_data = (void **) malloc(sizeof(void *) * part_data.n_part);
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    recv_data[i_part] = malloc(s_data * n_components * part_data.n_elt[i_part]);
   }
 
-  svr_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
-  svr_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
+  part_data.s_unit.insert(std::make_pair(exch_id, (int) s_data * n_components));
+  part_data.data  .insert(std::make_pair(exch_id, recv_data));
 
   CWP_Part_data_irecv(local_code_name,
                       cpl_id,
                       part_data_id,
+                      exch_id,
                       s_data,
                       n_components,
-                      svr_cwp.coupling[s1].part_data[s2].recv_data);
+                      recv_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6480,6 +6435,10 @@ CWP_server_Part_data_wait_issend
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
+  // read exch_id
+  int exch_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_id, sizeof(int));
+
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -6489,9 +6448,17 @@ CWP_server_Part_data_wait_issend
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+
+  t_part_data &part_data = svr_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_SEND);
+
+
   CWP_Part_data_wait_issend(local_code_name,
                             cpl_id,
-                            part_data_id);
+                            part_data_id,
+                            exch_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6538,6 +6505,10 @@ CWP_server_Part_data_wait_irecv
   char *part_data_id = (char *) malloc(sizeof(char));
   read_name(&part_data_id, svr);
 
+  // read exch_id
+  int exch_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_id, sizeof(int));
+
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -6549,7 +6520,8 @@ CWP_server_Part_data_wait_irecv
 
   CWP_Part_data_wait_irecv(local_code_name,
                            cpl_id,
-                           part_data_id);
+                           part_data_id,
+                           exch_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6563,10 +6535,20 @@ CWP_server_Part_data_wait_irecv
   // send recv data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) (svr_cwp.coupling[s1].part_data[s2].recv_data)[i_part],
-                           svr_cwp.coupling[s1].part_data[s2].s_recv_data * svr_cwp.coupling[s1].part_data[s2].n_recv_components * svr_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+
+  t_part_data &part_data = svr_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_RECV);
+
+  void **data = part_data.data  [exch_id];
+  int  s_unit = part_data.s_unit[exch_id];
+
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, data[i_part],
+                           s_unit * part_data.n_elt[i_part]);
   }
+
+  part_data.s_unit.erase(exch_id);
+  part_data.data  .erase(exch_id);
 
   // free
   free(local_code_name);

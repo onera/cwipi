@@ -3505,13 +3505,13 @@ CWP_Part_data_create
                      n_part);
 }
 
+
 /**
  * \brief Delete partitioned data exchange object
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id     Part data identifier
- * \param [in] exch_type        Send or receive
  *
  */
 
@@ -3520,25 +3520,24 @@ CWP_Part_data_del
 (
  const char          *local_code_name,
  const char          *cpl_id,
- const char          *part_data_id,
- CWP_PartData_exch_t  exch_type
+ const char          *part_data_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.partDataDel(part_data_id,
-                  exch_type);
+  cpl.partDataDel(part_data_id);
 }
 
 
 /**
- * \brief Send a data array.
+ * \brief Initiate the sending of a partitioned data array.
  *
  * \param [in] local_code_name     Local code name
  * \param [in] cpl_id              Coupling identifier
- * \param [in] part_data_id        Part data identifier
+ * \param [in] part_data_id        Partitioned data identifier
+ * \param [in] exch_id             Exchange identifier
  * \param [in] s_data              Data size
  * \param [in] n_components        Number of components
- * \param [in] part1_to_part2_data Partition send to partition receive data link
+ * \param [in] send_data           Pointer to send data
  *
  */
 
@@ -3548,27 +3547,31 @@ CWP_Part_data_issend
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- size_t         s_data,
- int            n_components,
- void         **part1_to_part2_data
+ const int      exch_id,
+       size_t   s_data,
+       int      n_components,
+       void   **send_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.partDataIssend(part_data_id,
+                     exch_id,
                      s_data,
                      n_components,
-                     part1_to_part2_data);
+                     send_data);
 }
 
+
 /**
- * \brief Receive a data array.
+ * \brief Initiate the reception of a partitioned data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id     Part data identifier
- * \param [in] s_data           Data size
- * \param [in] n_components     Number of components
- * \param [in] part2_data       Received data from send
+ * \param [in] local_code_name     Local code name
+ * \param [in] cpl_id              Coupling identifier
+ * \param [in] part_data_id        Partitioned data identifier
+ * \param [in] exch_id             Exchange identifier
+ * \param [in] s_data              Data size
+ * \param [in] n_components        Number of components
+ * \param [in] recv_data           Pointer to received data
  *
  */
 
@@ -3578,24 +3581,28 @@ CWP_Part_data_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- size_t         s_data,
- int            n_components,
- void         **part2_data
+ const int      exch_id,
+       size_t   s_data,
+       int      n_components,
+       void   **recv_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.partDataIrecv(part_data_id,
+                    exch_id,
                     s_data,
                     n_components,
-                    part2_data);
+                    recv_data);
 }
 
+
 /**
- * \brief Wait of send a data array.
+ * \brief Finalize the sending of a partitioned data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id     Part data identifier
+ * \param [in] part_data_id     Partitioned data identifier
+ * \param [in] exch_id          Exchange identifier
  *
  */
 
@@ -3604,19 +3611,23 @@ CWP_Part_data_wait_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id
+ const char    *part_data_id,
+ const int      exch_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.partDataWaitIssend(part_data_id);
+  cpl.partDataWaitIssend(part_data_id,
+                         exch_id);
 }
 
+
 /**
- * \brief Wait of receive a data array.
+ * \brief Finalize the reception of a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] part_data_id     Part data identifier
+ * \param [in] part_data_id     Partitioned data identifier
+ * \param [in] exch_id          Exchange identifier
  *
  */
 
@@ -3625,11 +3636,13 @@ CWP_Part_data_wait_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id
+ const char    *part_data_id,
+ const int      exch_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.partDataWaitIrecv(part_data_id);
+  cpl.partDataWaitIrecv(part_data_id,
+                        exch_id);
 }
 
 

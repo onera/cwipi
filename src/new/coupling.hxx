@@ -31,11 +31,11 @@
 #include "mesh.hxx"
 
 #include "spatialInterp.hxx"
-// #include "visualization.hxx"
 #include "field.hxx"
 #include "globalData.hxx"
 #include "partData.hxx"
 #include "pdm_part_to_part.h"
+
 #include "pdm_writer.h"
 
 /**
@@ -117,19 +117,6 @@ namespace cwipi {
      const string &part_data_id
     );
 
-    /**
-     *
-     * \brief Filter come_from array
-     *
-     * \param [in] it
-     *
-     */
-
-    void
-    createFilteredComeFrom
-    (
-     map<string,PartData>::iterator it
-    );
 
     /**
      * \brief Create partitionned data exchange object
@@ -163,86 +150,79 @@ namespace cwipi {
     void
     partDataDel
     (
-     const string          &part_data_id,
-     CWP_PartData_exch_t   exch_type
+     const string          &part_data_id
     );
 
     /**
      * \brief Issend partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      * \param [in] s_data
      * \param [in] n_components
-     * \param [in] part1_to_part2_data
+     * \param [in] send_data
      *
      */
 
     void
     partDataIssend
     (
-     const string   &part_data_id,
-     size_t         s_data,
-     int            n_components,
-     void         **part1_to_part2_data
+     const string  &part_data_id,
+     const int      exch_id,
+           size_t   s_data,
+           int      n_components,
+           void   **send_data
     );
 
     /**
      * \brief Irecv partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      * \param [in] s_data
      * \param [in] n_components
-     * \param [in] part2_data
+     * \param [in] recv_data
      *
      */
 
     void
     partDataIrecv
     (
-     const string   &part_data_id,
-     size_t         s_data,
-     int            n_components,
-     void         **part2_data
+     const string  &part_data_id,
+     const int      exch_id,
+           size_t   s_data,
+           int      n_components,
+           void   **recv_data
     );
-
-    /**
-     *
-     * \brief Filter PartData receive buffer
-     *
-     * \param [in] it
-     *
-     */
-
-    void
-    partDatafilter
-    (
-     map<string,PartData>::iterator it
-     );
 
     /**
      * \brief Wait issend partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      *
      */
 
     void
     partDataWaitIssend
     (
-     const string   &part_data_id
+     const string   &part_data_id,
+     const int       exch_id
     );
 
     /**
      * \brief Wait irecv partitionned data
      *
      * \param [in] part_data_id
+     * \param [in] exch_id
      *
      */
 
     void
     partDataWaitIrecv
     (
-     const string   &part_data_id
+     const string   &part_data_id,
+     const int       exch_id
     );
 
     int

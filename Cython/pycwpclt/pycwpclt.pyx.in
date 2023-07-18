@@ -484,36 +484,39 @@ cdef extern from "client_server/client.h":
                                    char                 *cpl_id,
                                    char                 *part_data_id,
                                    CWP_PartData_exch_t   exch_type,
-                                   CWP_g_num_t                **gnum_elt,
+                                   CWP_g_num_t         **gnum_elt,
                                    int                  *n_elt,
                                    int                   n_part)
 
   void CWP_client_Part_data_del(char                 *local_code_name,
                                 char                 *cpl_id,
-                                char                 *part_data_id,
-                                CWP_PartData_exch_t   exch_type)
+                                char                 *part_data_id)
 
   void CWP_client_Part_data_issend(char          *local_code_name,
                                    char          *cpl_id,
                                    char          *part_data_id,
+                                   int            exch_id,
                                    size_t         s_data,
                                    int            n_components,
-                                   void         **part1_to_part2_data)
+                                   void         **send_data)
 
   void CWP_client_Part_data_irecv(char          *local_code_name,
                                   char          *cpl_id,
                                   char          *part_data_id,
+                                  int            exch_id,
                                   size_t         s_data,
                                   int            n_components,
-                                  void         **part2_data)
+                                  void         **recv_data)
 
   void CWP_client_Part_data_wait_issend(char          *local_code_name,
                                         char          *cpl_id,
-                                        char          *part_data_id)
+                                        char          *part_data_id,
+                                        int            exch_id)
 
   void CWP_client_Part_data_wait_irecv(char          *local_code_name,
                                        char          *cpl_id,
-                                       char          *part_data_id)
+                                       char          *part_data_id,
+                                       int            exch_id)
 
 #-----------------------------------------------------------------------------
 # ENUM
@@ -1350,11 +1353,11 @@ cdef class PartData (object):
 
         CWP_client_Part_data_del(self.local_code_name,
                                  self.cpl_id,
-                                 self.part_data_id,
-                                 self.exch_type)
+                                 self.part_data_id)
 
     # --> DATA
     def issend(self,
+               int                    exch_id,
                int                    n_components,
                list                   send_data):
         """
@@ -1362,6 +1365,7 @@ cdef class PartData (object):
         Initiate the sending of a partitioned data array.
 
         Parameters:
+          exch_id      (int)  : Exchange identifier
           n_components (int)  : Number of components
           send_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
         """
@@ -1372,15 +1376,15 @@ cdef class PartData (object):
         CWP_client_Part_data_issend(self.local_code_name,
                                     self.cpl_id,
                                     self.part_data_id,
+                                    exch_id,
                                     s_data,
                                     n_components,
                                     _send_data)
 
-        for i in range(self.n_part):
-          free(_send_data[i])
         free(_send_data)
 
     def irecv(self,
+              int                    exch_id,
               int                    n_components,
               list                   recv_data):
         """
@@ -1388,6 +1392,7 @@ cdef class PartData (object):
         Initiate the reception of a partitioned data array.
 
         Parameters:
+          exch_id      (int)  : Exchange identifier
           n_components (int)  : Number of components
           recv_data    (list) : List of partitioned data arrays, each being 1-dimensional and with same datatype
         """
@@ -1398,6 +1403,7 @@ cdef class PartData (object):
         CWP_client_Part_data_irecv(self.local_code_name,
                                    self.cpl_id,
                                    self.part_data_id,
+                                   exch_id,
                                    s_data,
                                    n_components,
                                    _recv_data)
@@ -1407,31 +1413,35 @@ cdef class PartData (object):
 
         self.n_recv = self.n_recv + 1
 
-    def wait_issend(self):
+    def wait_issend(self,
+                    int exch_id):
         """
         wait_issend()
         Finalize the sending of a partitioned data array.
 
         Parameters:
-          request (int) : Exchange request
+          exch_id (int) : Exchange identifier
         """
 
         CWP_client_Part_data_wait_issend(self.local_code_name,
                                          self.cpl_id,
-                                         self.part_data_id)
+                                         self.part_data_id,
+                                         exch_id)
 
-    def wait_irecv(self):
+    def wait_irecv(self,
+                   int exch_id):
         """
         wait_irecv()
         Finalize the reception of a data array.
 
         Parameters:
-          request (int) : Exchange request
+          exch_id (int) : Exchange identifier
         """
 
         CWP_client_Part_data_wait_irecv(self.local_code_name,
                                         self.cpl_id,
-                                        self.part_data_id)
+                                        self.part_data_id,
+                                        exch_id)
 
         cdef void *ptr = PyCapsule_GetPointer(self.recv_part_data[self.n_wait_recv], NULL)
         free(ptr)

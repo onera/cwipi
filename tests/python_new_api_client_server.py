@@ -252,55 +252,51 @@ def runTest():
 
     # FIRST exchange
 
-    send_data = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
+    send_data1 = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
     if (i_rank == 0):
-        part_data.issend(2,
-                         send_data)
+        part_data.issend(0,
+                         2,
+                         send_data1)
 
-    recv_data = [np.zeros(6, dtype=np.int32)]
+    recv_data1 = [np.zeros(6, dtype=np.int32)]
     if (i_rank == 1):
-        part_data.irecv(2,
-                        recv_data)
-
-    comm.Barrier()
-
-    if (i_rank == 0):
-        part_data.wait_issend()
-
-    if (i_rank == 1):
-        part_data.wait_irecv()
+        part_data.irecv(0,
+                        2,
+                        recv_data1)
 
     if (i_rank == 0):
-        print("send_part_data : {param}\n".format(param=send_data))
+        print("send_part_data1 : {param}\n".format(param=send_data1))
     if (i_rank == 1):
-        print("recv_part_data : {param}\n".format(param=recv_data))
+        print("recv_part_data1 : {param}\n".format(param=recv_data1))
 
     # SECOND exchange
 
-    comm.Barrier()
-
-    send_data2 = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
+    send_data2 = [np.array([10, 11, 12, 20, 21, 22, 30, 31, 32], dtype=np.int32)]
     if (i_rank == 0):
-        part_data.issend(2,
+        part_data.issend(1,
+                         3,
                          send_data2)
 
-    recv_data2 = [np.zeros(6, dtype=np.int32)]
+    recv_data2 = [np.zeros(9, dtype=np.int32)]
     if (i_rank == 1):
-        part_data.irecv(2,
+        part_data.irecv(1,
+                        3,
                         recv_data2)
 
     comm.Barrier()
 
     if (i_rank == 0):
-        part_data.wait_issend()
+        part_data.wait_issend(0)
+        part_data.wait_issend(1)
 
     if (i_rank == 1):
-        part_data.wait_irecv()
+        part_data.wait_irecv(0)
+        part_data.wait_irecv(1)
 
     if (i_rank == 0):
-        print("send_part_data : {param}\n".format(param=send_data2))
+        print("send_part_data2 : {param}\n".format(param=send_data2))
     if (i_rank == 1):
-        print("recv_part_data : {param}\n".format(param=recv_data2))
+        print("recv_part_data2 : {param}\n".format(param=recv_data2))
 
     del part_data
 

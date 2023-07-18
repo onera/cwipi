@@ -540,6 +540,7 @@ int main
       CWP_Part_data_issend(code_name[icode],
                            cpl_name,
                            part_data_name,
+                           0,
                            sizeof(double),
                            stride,
                  (void **) send_val);
@@ -548,6 +549,7 @@ int main
       CWP_Part_data_irecv(code_name[icode],
                           cpl_name,
                           part_data_name,
+                          0,
                           sizeof(double),
                           stride,
                 (void **) recv_val);
@@ -560,12 +562,14 @@ int main
     if (code_id[icode] == 1) {
       CWP_Part_data_wait_issend(code_name[icode],
                                 cpl_name,
-                                part_data_name);
+                                part_data_name,
+                                0);
     }
     else {
       CWP_Part_data_wait_irecv(code_name[icode],
                                cpl_name,
-                               part_data_name);
+                               part_data_name,
+                               0);
     }
   }
 
@@ -612,18 +616,9 @@ int main
 
 
   for (int icode = 0; icode < n_code; icode++) {
-    CWP_PartData_exch_t exch_type;
-    if (code_id[icode] == 1) {
-      exch_type = CWP_PARTDATA_SEND;
-    }
-    else {
-      exch_type = CWP_PARTDATA_RECV;
-    }
-
     CWP_Part_data_del(code_name[icode],
                       cpl_name,
-                      part_data_name,
-                      exch_type);
+                      part_data_name);
   }
 
 

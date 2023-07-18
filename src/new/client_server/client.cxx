@@ -44,6 +44,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <tuple>
+#include <cassert>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -2313,13 +2314,9 @@ CWP_client_Cpl_del
     std::map<std::string, t_part_data>::iterator it_pd = clt_cwp.coupling[s].part_data.begin();
     while (it_pd != clt_cwp.coupling[s].part_data.end()) {
 
-      // CWP_PARTDATA_SEND
-      if ((it_pd->second).n_send_elt != NULL) free((it_pd->second).n_send_elt);
-      (it_pd->second).n_send_elt = NULL;
-
-      // CWP_PARTDATA_RECV
-      if ((it_pd->second).n_recv_elt != NULL) free((it_pd->second).n_recv_elt);
-      (it_pd->second).n_recv_elt = NULL;
+      if ((it_pd->second).n_elt != NULL) {
+        free((it_pd->second).n_elt);
+      }
 
       it_pd = clt_cwp.coupling[s].part_data.erase(it_pd);
     }
@@ -7012,21 +7009,17 @@ CWP_client_Part_data_create
   std::string s1(cpl_id);
   std::string s2(part_data_id);
 
-  t_coupling coupling = clt_cwp.coupling[s1];
+  t_coupling &coupling = clt_cwp.coupling[s1];
+
   t_part_data part_data = t_part_data();
+
+  part_data.exch_type = exch_type;
+
+  part_data.n_elt = (int *) malloc(sizeof(int) * n_part);
+  memcpy(part_data.n_elt, n_elt, sizeof(int) * n_part);
+  part_data.n_part = n_part;
+
   coupling.part_data.insert(std::make_pair(s2, part_data));
-
-  // set sizes
-  if (exch_type == CWP_PARTDATA_SEND) {
-    clt_cwp.coupling[s1].part_data[s2].n_part_send = n_part;
-    clt_cwp.coupling[s1].part_data[s2].n_send_elt = (int *) malloc(sizeof(int) * n_part);
-    memcpy(clt_cwp.coupling[s1].part_data[s2].n_send_elt, n_elt, sizeof(int) * n_part);
-  } else if (exch_type == CWP_PARTDATA_RECV) {
-    clt_cwp.coupling[s1].part_data[s2].n_part_recv = n_part;
-    clt_cwp.coupling[s1].part_data[s2].n_recv_elt = (int *) malloc(sizeof(int) * n_part);
-    memcpy(clt_cwp.coupling[s1].part_data[s2].n_recv_elt, n_elt, sizeof(int) * n_part);
-  }
-
 }
 
 void
@@ -7034,8 +7027,7 @@ CWP_client_Part_data_del
 (
  const char          *local_code_name,
  const char          *cpl_id,
- const char          *part_data_id,
- CWP_PartData_exch_t  exch_type
+ const char          *part_data_id
 )
 {
   t_message msg;
@@ -7072,11 +7064,6 @@ CWP_client_Part_data_del
   // send part data identifier
   write_name(part_data_id);
 
-  // send exch_type
-  int endian_exch_type = (int) exch_type;
-  CWP_swap_endian_4bytes(&endian_exch_type, 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_type, sizeof(int));
-
   // receive status msg
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -7097,12 +7084,9 @@ CWP_client_Part_data_del
   std::string s1(cpl_id);
   std::string s2(part_data_id);
 
-  if (exch_type == CWP_PARTDATA_SEND) {
-    if (clt_cwp.coupling[s1].part_data[s2].n_send_elt != NULL) free(clt_cwp.coupling[s1].part_data[s2].n_send_elt);
-    clt_cwp.coupling[s1].part_data[s2].n_send_elt = NULL;
-  } else if (exch_type == CWP_PARTDATA_RECV) {
-    if (clt_cwp.coupling[s1].part_data[s2].n_recv_elt != NULL) free(clt_cwp.coupling[s1].part_data[s2].n_recv_elt);
-    clt_cwp.coupling[s1].part_data[s2].n_recv_elt = NULL;
+  t_part_data &part_data = clt_cwp.coupling[s1].part_data[s2];
+  if (part_data.n_elt != NULL) {
+    free(part_data.n_elt);
   }
 
   clt_cwp.coupling[s1].part_data.erase(s2);
@@ -7114,9 +7098,10 @@ CWP_client_Part_data_issend
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- size_t         s_data,
- int            n_components,
- void         **part1_to_part2_data
+ const int      exch_id,
+       size_t   s_data,
+       int      n_components,
+       void   **send_data
 )
 {
   t_message msg;
@@ -7153,25 +7138,34 @@ CWP_client_Part_data_issend
   // send part data identifier
   write_name(part_data_id);
 
+  // send exch_id
+  int endian_exch_id = exch_id;
+  CWP_swap_endian_4bytes(&endian_exch_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_id, sizeof(int));
+
   // send s_data
   size_t endian_s_data = s_data;
   CWP_swap_endian_8bytes((double *) &endian_s_data, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_data, sizeof(size_t));
 
   // send n_components
-  int endian_n_components = (int) n_components;
+  int endian_n_components = n_components;
   CWP_swap_endian_4bytes(&endian_n_components, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_components, sizeof(int));
 
-  // send part1_to_part2_data
+  // send send_data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
-    void *endian_part1_to_part2_data = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
-    memcpy(endian_part1_to_part2_data, part1_to_part2_data[i_part], s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
-    CWP_swap_endian_Nbytes(static_cast<char*>(endian_part1_to_part2_data), s_data, n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_part1_to_part2_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
-    free(endian_part1_to_part2_data);
+
+  t_part_data &part_data = clt_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_SEND);
+
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    void *endian_send_data = malloc(s_data * n_components * part_data.n_elt[i_part]);
+    memcpy(endian_send_data, send_data[i_part], s_data * n_components * part_data.n_elt[i_part]);
+    CWP_swap_endian_Nbytes(static_cast<char*>(endian_send_data), s_data, n_components * part_data.n_elt[i_part]);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_send_data, s_data * n_components * part_data.n_elt[i_part]);
+    free(endian_send_data);
   }
 
   // receive status msg
@@ -7197,9 +7191,10 @@ CWP_client_Part_data_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- size_t         s_data,
- int            n_components,
- void         **part2_data
+ const int      exch_id,
+       size_t   s_data,
+       int      n_components,
+       void   **recv_data
 )
 {
   t_message msg;
@@ -7236,13 +7231,18 @@ CWP_client_Part_data_irecv
   // send part data identifier
   write_name(part_data_id);
 
+  // send exch_id
+  int endian_exch_id = exch_id;
+  CWP_swap_endian_4bytes(&endian_exch_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_id, sizeof(int));
+
   // send s_data
   size_t endian_s_data = s_data;
   CWP_swap_endian_8bytes((double *) &endian_s_data, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_data, sizeof(size_t));
 
   // send n_components
-  int endian_n_components = (int) n_components;
+  int endian_n_components = n_components;
   CWP_swap_endian_4bytes(&endian_n_components, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_components, sizeof(int));
 
@@ -7265,9 +7265,12 @@ CWP_client_Part_data_irecv
   // read receive data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  clt_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
-  clt_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
-  clt_cwp.coupling[s1].part_data[s2].recv_data = part2_data;
+
+  t_part_data &part_data = clt_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_RECV);
+
+  part_data.s_unit.insert(std::make_pair(exch_id, (int) s_data * n_components));
+  part_data.data  .insert(std::make_pair(exch_id, recv_data));
 }
 
 void
@@ -7275,9 +7278,16 @@ CWP_client_Part_data_wait_issend
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id
+ const char    *part_data_id,
+ const int      exch_id
 )
 {
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+
+  t_part_data &part_data = clt_cwp.coupling[s1].part_data[s2];
+  assert(part_data.exch_type == CWP_PARTDATA_SEND);
+
   t_message msg;
 
   // verbose
@@ -7312,6 +7322,11 @@ CWP_client_Part_data_wait_issend
   // send part data identifier
   write_name(part_data_id);
 
+  // send exch_id
+  int endian_exch_id = exch_id;
+  CWP_swap_endian_4bytes(&endian_exch_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_id, sizeof(int));
+
   // receive status msg
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -7334,7 +7349,8 @@ CWP_client_Part_data_wait_irecv
 (
  const char    *local_code_name,
  const char    *cpl_id,
- const char    *part_data_id
+ const char    *part_data_id,
+ const int      exch_id
 )
 {
   t_message msg;
@@ -7371,6 +7387,11 @@ CWP_client_Part_data_wait_irecv
   // send part data identifier
   write_name(part_data_id);
 
+  // send exch_id
+  int endian_exch_id = exch_id;
+  CWP_swap_endian_4bytes(&endian_exch_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_id, sizeof(int));
+
   // receive status msg
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -7390,10 +7411,21 @@ CWP_client_Part_data_wait_irecv
   // read receive data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
-  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) (clt_cwp.coupling[s1].part_data[s2].recv_data)[i_part],
-                          clt_cwp.coupling[s1].part_data[s2].s_recv_data * clt_cwp.coupling[s1].part_data[s2].n_recv_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+
+  t_part_data &part_data = clt_cwp.coupling[s1].part_data[s2];
+
+  assert(part_data.exch_type == CWP_PARTDATA_RECV);
+
+  void **data = part_data.data  [exch_id];
+  int  s_unit = part_data.s_unit[exch_id];
+
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, data[i_part],
+                          s_unit * part_data.n_elt[i_part]);
   }
+
+  part_data.s_unit.erase(exch_id);
+  part_data.data  .erase(exch_id);
 }
 
 #ifdef __cplusplus
