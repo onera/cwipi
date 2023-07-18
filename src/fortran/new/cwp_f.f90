@@ -4876,7 +4876,7 @@ contains
   subroutine CWP_Param_list_get_(code_name, &
                                  data_type, &
                                  n_param,   &
-                                 f_param_names)
+                                 param_names)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -4886,13 +4886,13 @@ contains
     integer                           :: data_type
     type(c_ptr)                       :: c_param_names, c_param_sizes
     integer(c_int)                    :: n_param
-    character(256), allocatable       :: f_param_names(:)
+    character(256), allocatable       :: param_names(:)
 
     l_code_name  = len(code_name)
 
     call CWP_Param_list_get_cf(code_name, l_code_name, data_type, n_param, c_param_names, c_param_sizes)
 
-    call c_f_char_array(c_param_names, c_param_sizes, n_param, f_param_names, .true.)
+    call c_f_char_array(c_param_names, c_param_sizes, n_param, param_names, .true.)
 
   end subroutine CWP_Param_list_get_
 
@@ -4909,8 +4909,8 @@ contains
   !!
 
   function CWP_Param_is_(code_name,  &
-                        param_name, &
-                        data_type)  &
+                         param_name, &
+                         data_type)  &
     result (is_param)
 
     use, intrinsic :: iso_c_binding
@@ -5198,13 +5198,13 @@ contains
   !!
   !!
 
-  subroutine CWP_Global_data_issend_int(f_local_code_name, &
-                                        f_cpl_id,          &
-                                        f_global_data_id,  &
+  subroutine CWP_Global_data_issend_int(local_code_name, &
+                                        cpl_id,          &
+                                        global_data_id,  &
                                         send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     integer(c_int), pointer       :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5212,19 +5212,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 4
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5233,13 +5233,13 @@ contains
 
   end subroutine CWP_Global_data_issend_int
 
-  subroutine CWP_Global_data_issend_long(f_local_code_name, &
-                                         f_cpl_id,          &
-                                         f_global_data_id,  &
+  subroutine CWP_Global_data_issend_long(local_code_name, &
+                                         cpl_id,          &
+                                         global_data_id,  &
                                          send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     integer(c_long), pointer      :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5247,19 +5247,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 8
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5268,13 +5268,13 @@ contains
 
   end subroutine CWP_Global_data_issend_long
 
-  subroutine CWP_Global_data_issend_double(f_local_code_name, &
-                                           f_cpl_id,          &
-                                           f_global_data_id,  &
+  subroutine CWP_Global_data_issend_double(local_code_name, &
+                                           cpl_id,          &
+                                           global_data_id,  &
                                            send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     double precision, pointer     :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5282,19 +5282,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 8
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5303,13 +5303,13 @@ contains
 
   end subroutine CWP_Global_data_issend_double
 
-  subroutine CWP_Global_data_issend_complex4(f_local_code_name, &
-                                             f_cpl_id,          &
-                                             f_global_data_id,  &
+  subroutine CWP_Global_data_issend_complex4(local_code_name, &
+                                             cpl_id,          &
+                                             global_data_id,  &
                                              send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     complex(kind = 4), pointer    :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5317,19 +5317,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 8
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5338,13 +5338,13 @@ contains
 
   end subroutine CWP_Global_data_issend_complex4
 
-  subroutine CWP_Global_data_issend_complex8(f_local_code_name, &
-                                             f_cpl_id,          &
-                                             f_global_data_id,  &
+  subroutine CWP_Global_data_issend_complex8(local_code_name, &
+                                             cpl_id,          &
+                                             global_data_id,  &
                                              send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     complex(kind = 8), pointer    :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5352,19 +5352,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 16
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5373,13 +5373,13 @@ contains
 
   end subroutine CWP_Global_data_issend_complex8
 
-  subroutine CWP_Global_data_issend_real4(f_local_code_name, &
-                                          f_cpl_id,          &
-                                          f_global_data_id,  &
+  subroutine CWP_Global_data_issend_real4(local_code_name, &
+                                          cpl_id,          &
+                                          global_data_id,  &
                                           send_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     real(kind = 4), pointer       :: send_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5387,19 +5387,19 @@ contains
     integer(c_int)                :: send_stride
     integer(c_int)                :: n_send_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data        = 4
     send_stride   = size(send_data, 1)
     n_send_entity = size(send_data, 2)
 
-    call CWP_Global_data_issend_cf(f_local_code_name, &
+    call CWP_Global_data_issend_cf(local_code_name,   &
                                    l_local_code_name, &
-                                   f_cpl_id,          &
+                                   cpl_id,            &
                                    l_cpl_id,          &
-                                   f_global_data_id,  &
+                                   global_data_id,    &
                                    l_global_data_id,  &
                                    s_data,            &
                                    send_stride,       &
@@ -5418,13 +5418,13 @@ contains
   !!
   !!
 
-  subroutine CWP_Global_data_irecv_int(f_local_code_name, &
-                                       f_cpl_id,          &
-                                       f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_int(local_code_name, &
+                                       cpl_id,          &
+                                       global_data_id,  &
                                        recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     integer(c_int), pointer       :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5432,19 +5432,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 4
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name,   &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,            &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,    &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5453,13 +5453,13 @@ contains
 
   end subroutine CWP_Global_data_irecv_int
 
-  subroutine CWP_Global_data_irecv_long(f_local_code_name, &
-                                        f_cpl_id,          &
-                                        f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_long(local_code_name, &
+                                        cpl_id,          &
+                                        global_data_id,  &
                                         recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     integer(c_long), pointer      :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5467,19 +5467,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 8
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name,   &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,            &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,    &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5488,13 +5488,13 @@ contains
 
   end subroutine CWP_Global_data_irecv_long
 
-  subroutine CWP_Global_data_irecv_double(f_local_code_name, &
-                                          f_cpl_id,          &
-                                          f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_double(local_code_name, &
+                                          cpl_id,          &
+                                          global_data_id,  &
                                           recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     double precision, pointer     :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5502,19 +5502,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 8
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name,   &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,            &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,    &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5523,13 +5523,13 @@ contains
 
   end subroutine CWP_Global_data_irecv_double
 
-  subroutine CWP_Global_data_irecv_complex4(f_local_code_name, &
-                                            f_cpl_id,          &
-                                            f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_complex4(local_code_name, &
+                                            cpl_id,          &
+                                            global_data_id,  &
                                             recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     complex(kind=4), pointer      :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5537,19 +5537,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 8
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name, &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,          &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,  &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5558,13 +5558,13 @@ contains
 
   end subroutine CWP_Global_data_irecv_complex4
 
-  subroutine CWP_Global_data_irecv_complex8(f_local_code_name, &
-                                            f_cpl_id,          &
-                                            f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_complex8(local_code_name, &
+                                            cpl_id,          &
+                                            global_data_id,  &
                                             recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     complex(kind=8), pointer      :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5572,19 +5572,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 16
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name,   &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,            &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,    &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5593,13 +5593,13 @@ contains
 
   end subroutine CWP_Global_data_irecv_complex8
 
-  subroutine CWP_Global_data_irecv_real4(f_local_code_name, &
-                                         f_cpl_id,          &
-                                         f_global_data_id,  &
+  subroutine CWP_Global_data_irecv_real4(local_code_name, &
+                                         cpl_id,          &
+                                         global_data_id,  &
                                          recv_data)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
     real(kind=4), pointer         :: recv_data(:,:)
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
@@ -5607,19 +5607,19 @@ contains
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
     s_data = 8
     recv_stride   = size(recv_data, 1)
     n_recv_entity = size(recv_data, 2)
 
-    call CWP_Global_data_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_irecv_cf(local_code_name,   &
                                   l_local_code_name, &
-                                  f_cpl_id,          &
+                                  cpl_id,            &
                                   l_cpl_id,          &
-                                  f_global_data_id,  &
+                                  global_data_id,    &
                                   l_global_data_id,  &
                                   s_data,            &
                                   recv_stride,       &
@@ -5638,24 +5638,24 @@ contains
   !!
   !!
 
-  subroutine CWP_Global_data_wait_issend_(f_local_code_name, &
-                                          f_cpl_id,          &
-                                          f_global_data_id)
+  subroutine CWP_Global_data_wait_issend_(local_code_name, &
+                                          cpl_id,          &
+                                          global_data_id)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
-    call CWP_Global_data_wait_issend_cf(f_local_code_name, &
+    call CWP_Global_data_wait_issend_cf(local_code_name,   &
                                         l_local_code_name, &
-                                        f_cpl_id,          &
+                                        cpl_id,            &
                                         l_cpl_id,          &
-                                        f_global_data_id,  &
+                                        global_data_id,    &
                                         l_global_data_id)
 
   end subroutine CWP_Global_data_wait_issend_
@@ -5670,24 +5670,24 @@ contains
   !!
   !!
 
-  subroutine CWP_Global_data_wait_irecv_(f_local_code_name, &
-                                         f_cpl_id,          &
-                                         f_global_data_id)
+  subroutine CWP_Global_data_wait_irecv_(local_code_name, &
+                                         cpl_id,          &
+                                         global_data_id)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_global_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, global_data_id
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_global_data_id  = len(f_global_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_global_data_id  = len(global_data_id)
 
-    call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
+    call CWP_Global_data_wait_irecv_cf(local_code_name,   &
                                        l_local_code_name, &
-                                       f_cpl_id,          &
+                                       cpl_id,            &
                                        l_cpl_id,          &
-                                       f_global_data_id,  &
+                                       global_data_id,    &
                                        l_global_data_id)
 
   end subroutine CWP_Global_data_wait_irecv_
@@ -5706,17 +5706,17 @@ contains
   !!
   !!
 
-  subroutine CWP_Part_data_create_(f_local_code_name, &
-                                   f_cpl_id,          &
-                                   f_part_data_id,    &
-                                   exch_type,         &
-                                   gnum_elt,          &
-                                   n_elt,             &
+  subroutine CWP_Part_data_create_(local_code_name, &
+                                   cpl_id,          &
+                                   part_data_id,    &
+                                   exch_type,       &
+                                   gnum_elt,        &
+                                   n_elt,           &
                                    n_part)
     use, intrinsic :: iso_c_binding
     use pdm_pointer_array
     implicit none
-    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*)     :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)        :: exch_type
     type(PDM_pointer_array_t), target :: gnum_elt
     integer(c_int), pointer           :: n_elt(:)
@@ -5724,15 +5724,15 @@ contains
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
-    call CWP_Part_data_create_cf(f_local_code_name,    &
+    call CWP_Part_data_create_cf(local_code_name,      &
                                  l_local_code_name,    &
-                                 f_cpl_id,             &
+                                 cpl_id,               &
                                  l_cpl_id,             &
-                                 f_part_data_id,       &
+                                 part_data_id,         &
                                  l_part_data_id,       &
                                  exch_type,            &
                                  c_loc(gnum_elt%cptr), &
@@ -5752,26 +5752,26 @@ contains
   !!
   !!
 
-  subroutine CWP_Part_data_del_(f_local_code_name, &
-                                f_cpl_id,          &
-                                f_part_data_id,    &
+  subroutine CWP_Part_data_del_(local_code_name, &
+                                cpl_id,          &
+                                part_data_id,    &
                                 exch_type)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id, part_data_id
     integer(c_int), intent(in)    :: exch_type
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
-    l_part_data_id    = len(f_part_data_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_part_data_id    = len(part_data_id)
 
-    call CWP_Part_data_del_cf(f_local_code_name, &
+    call CWP_Part_data_del_cf(local_code_name,   &
                               l_local_code_name, &
-                              f_cpl_id,          &
+                              cpl_id,            &
                               l_cpl_id,          &
-                              f_part_data_id,    &
+                              part_data_id,      &
                               l_part_data_id,    &
                               exch_type)
 
@@ -5958,22 +5958,30 @@ contains
   end subroutine CWP_Part_data_wait_irecv_
 
 
+  !>
+  !!
+  !! \brief Get the coupling spatial interpolation algorithm.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !!
+  !! \return                      Spatial interpolation method
+  !!
 
-
-  function CWP_Cpl_spatial_interp_algo_get_(f_local_code_name, &
-                                            f_cpl_id) result(algo)
+  function CWP_Cpl_spatial_interp_algo_get_(local_code_name, &
+                                            cpl_id) result(algo)
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id
+    character(kind=c_char, len=*) :: local_code_name, cpl_id
     integer(c_int)                :: l_local_code_name, l_cpl_id
     integer(c_int)                :: algo
 
-    l_local_code_name = len(f_local_code_name)
-    l_cpl_id          = len(f_cpl_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
 
-    algo = CWP_Cpl_spatial_interp_algo_get_cf(f_local_code_name, &
+    algo = CWP_Cpl_spatial_interp_algo_get_cf(local_code_name,   &
                                               l_local_code_name, &
-                                              f_cpl_id,          &
+                                              cpl_id,            &
                                               l_cpl_id)
 
   end function CWP_Cpl_spatial_interp_algo_get_

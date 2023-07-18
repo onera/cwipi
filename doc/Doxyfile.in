@@ -764,7 +764,7 @@ WARN_LOGFILE           =
 
 INPUT                  = @CWP_SOURCE_DIR@/src/new/cwp.h \
                          @CWP_SOURCE_DIR@/src/cwipi.h \
-                         @CWP_SOURCE_DIR@/src/fortran/new/cwp_f.f90 \
+                         # @CWP_SOURCE_DIR@/src/fortran/new/cwp_f.f90 \
                          @CWP_SOURCE_DIR@/src/new/client_server/client.h
 
 # This tag can be used to specify the character encoding of the source files
