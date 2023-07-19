@@ -72,6 +72,9 @@ Fortran API documentation
 Python API documentation : pycwp
 ================================
 
+.. note::
+   All enumerators from the :ref:`C API <C API documentation>` are available in the Python API, except that the "`CWP_`" prefix is omitted (eg ``CWP_STATUS_ON`` becomes ``STATUS_ON``).
+
 .. currentmodule:: pycwp
 
 .. automodule:: pycwp
