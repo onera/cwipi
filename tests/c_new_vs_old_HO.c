@@ -845,6 +845,12 @@ main
     cwipi_locate(cpl_name);
   }
   else {
+    char str_tolerance[99];
+    sprintf(str_tolerance, "%f", tolerance);
+    for (int i_code = 0; i_code < n_code; i_code++) {
+      CWP_Spatial_interp_property_set(code_name[i_code], cpl_name, "tolerance", CWP_DOUBLE, str_tolerance);
+    }
+
     for (int i_code = 0; i_code < n_code; i_code++) {
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
