@@ -37,7 +37,7 @@ if(CWP_ENABLE_DOCUMENTATION)
     # Build sphinx documentation
     #------------------------------------------------------------------------------
 
-    set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source)
+    set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source)
     set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html)
     set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
@@ -58,31 +58,35 @@ if(CWP_ENABLE_DOCUMENTATION)
     # - Our doc files have been updated
     # - The Sphinx config has been updated
 
-    file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    #file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-    file(GLOB_RECURSE SOURCES_SPHINX
-     sphinx/source/*.rst
-    )
+    #file(GLOB_RECURSE SOURCES_SPHINX
+    # sphinx/source/*.rst
+    #)
 
-    foreach(_src IN ITEMS ${SOURCES_SPHINX})
-      file(RELATIVE_PATH F_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
-      configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME})
-    endforeach()
+    #foreach(_src IN ITEMS ${SOURCES_SPHINX})
+    #  file(RELATIVE_PATH F_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
+    #  configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME})
+    #endforeach()
 
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
-                       COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN}
+                       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source/conf.py ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                       COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN} 
                          ${SPHINX_EXECUTABLE} -Q -b html # -Q to suppress warning output
                          #-w sphinx_build_warnings.log
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
-                         ${SPHINX_SOURCE} ${SPHINX_BUILD}
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                         ${SPHINX_SOURCE} ${SPHINX_BUILD} 
+                       COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        DEPENDS
                        # Other docs files you want to track should go here (or in some variable)
                        ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/index.rst
                        ${DOXYGEN_INDEX_FILE} ${SOURCES_SPHINX}
                        MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
                        COMMENT "Generating documentation with Sphinx")
+
 
     add_custom_target(doc ALL DEPENDS ${SPHINX_INDEX_FILE})
 

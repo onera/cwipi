@@ -156,10 +156,10 @@ todo_include_todos = False
 
 breathe_projects_source = {
     "cwipi" : ( "@PROJECT_SOURCE_DIR@/src",
-               ["cwipi.h",
-               "new/cwp.h",
+               ["@PROJECT_SOURCE_DIR@/src/cwipi.h",
+               "@PROJECT_SOURCE_DIR@/src/new/cwp.h",
                # "fortran/new/cwp_f.f90",
-               "new/client_server/client.h",
+               "@PROJECT_SOURCE_DIR@/src/new/client_server/client.h",
                "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
                "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
                "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
@@ -210,7 +210,7 @@ html_short_title = project
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = "@CMAKE_CURRENT_SOURCE_DIR@/images/logo-cwipi.png"
+html_logo = "@CMAKE_CURRENT_SOURCE_DIR@/images/logo.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
