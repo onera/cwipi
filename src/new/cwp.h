@@ -928,11 +928,9 @@ CWP_Spatial_interp_property_set
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  freq             Output frequency
  * \param [in]  format           Output format to visualize exchanged fields
- *                               on the interface mesh. Choice between :
- *                               - "EnSight Gold"
- * \param [in]  format_option   Output options "opt1, opt2, ..."
- *                               - text : output text files
- *                               - binary : output binary files (default)
+ * \param [in]  format_option    Output options "opt1, opt2, ..."
+ *                                - text : output text files
+ *                                - binary : output binary files (default)
  */
 
 void

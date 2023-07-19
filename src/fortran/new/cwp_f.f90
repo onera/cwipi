@@ -619,6 +619,8 @@ module cwp
              CWP_Cpl_spatial_interp_algo_get_
 
     interface
+
+    !> \cond DOXYGEN_SHOULD_SKIP_THIS
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
         use, intrinsic :: iso_c_binding
@@ -1269,7 +1271,7 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, property_name, property_value
         integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_property_name, property_type, l_property_value
       end subroutine CWP_Spatial_interp_property_set_cf
-
+    !> (DOXYGEN_SHOULD_SKIP_THIS) \endcond
 
     !>
     !!
@@ -1324,7 +1326,7 @@ module cwp
       implicit none
     end subroutine CWP_Properties_dump
 
-
+    !> \cond DOXYGEN_SHOULD_SKIP_THIS
     subroutine CWP_Param_add_int_cf(local_code_name,   &
                                     l_local_code_name, &
                                     param_name,        &
@@ -1949,6 +1951,7 @@ module cwp
       integer(c_int), value         :: l_local_code_name, l_cpl_id
       integer(c_int)                :: algo
     end function CWP_Cpl_spatial_interp_algo_get_cf
+    !> (DOXYGEN_SHOULD_SKIP_THIS) \endcond
 
   end interface
 
@@ -2781,15 +2784,15 @@ contains
   end function CWP_Involved_srcs_get_
 
 
-  !>
-  !! \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
-  !!
-  !! \param [in]  local_code_name  Local code name
-  !! \param [in]  cpl_id           Coupling identifier
-  !!
-  !! \return               Distance
-  !!
-  !!
+!  !>
+!  !! \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
+!  !!
+!  !! \param [in]  local_code_name  Local code name
+!  !! \param [in]  cpl_id           Coupling identifier
+!  !!
+!  !! \return               Distance
+!  !!
+!  !!
 
 !   function CWP_Computed_tgts_dist_to_spatial_interp_get (local_code_name, &
 !                                                          cpl_id)          &
