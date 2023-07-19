@@ -582,7 +582,9 @@ main
     if (code_id[i_code] == 2) {
       xmin += 5e-2;
       ymin += 5e-2;
-      zmin += 5e-2;
+      if (elt_dim == 3) {
+        zmin += 5e-2;
+      }
       length *= 0.9;
     }
 
@@ -923,8 +925,9 @@ main
 
 
   if (version == CWP_VERSION_OLD ||
-      (spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
-      spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
+      (spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT ||
+       spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE         ||
+       spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     double max_err = 0.;
     PDM_g_num_t n_wrong = 0;
 
