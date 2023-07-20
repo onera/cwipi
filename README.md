@@ -21,7 +21,7 @@ Follow these steps to build CWIPI from the sources:
 
 ### CMake general options
 
-cmake -D<option1_name>=<option1_value> ... -D<optionn_name>=<optionn_value>
+cmake -D<option1_name>=<option1_value> ... -D<option_name>=<option_value>
 
 Prefix :
     CMAKE_INSTALL_PREFIX=<prefix>

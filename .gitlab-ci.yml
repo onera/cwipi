@@ -200,7 +200,7 @@ pages:
   before_script: 
     - ''
   script:
-    - mkdir public
+    - mkdir -p public
     - cp -r $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug/doc/sphinx/html public/$CI_COMMIT_BRANCH
     - |
       cat > public/index.html << EOF
