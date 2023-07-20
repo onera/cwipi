@@ -67,7 +67,8 @@ C API documentation
 Fortran API documentation
 =========================
 
-:download:`Fortran documentation <../doc_cwp_fortran.pdf>`
+:download:`Fortran documentation (pdf) <doc_cwp_fortran.pdf>`
+
 
 Python API documentation : pycwp
 ================================

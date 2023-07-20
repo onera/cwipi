@@ -158,7 +158,6 @@ breathe_projects_source = {
     "cwipi" : ( "@PROJECT_SOURCE_DIR@/src",
                ["@PROJECT_SOURCE_DIR@/src/cwipi.h",
                "@PROJECT_SOURCE_DIR@/src/new/cwp.h",
-               # "fortran/new/cwp_f.f90",
                "@PROJECT_SOURCE_DIR@/src/new/client_server/client.h",
                "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
                "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",

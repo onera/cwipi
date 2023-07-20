@@ -17,7 +17,7 @@ if(CWP_ENABLE_DOCUMENTATION)
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     set(SPHINX_IN ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py.in)
-    set(SPHINX_OUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source/conf.py)
+    set(SPHINX_OUT ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py)
 
     set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
@@ -70,15 +70,13 @@ if(CWP_ENABLE_DOCUMENTATION)
     #endforeach()
 
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
-                       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/sphinx/source/conf.py ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN} 
                          ${SPHINX_EXECUTABLE} -Q -b html # -Q to suppress warning output
                          #-w sphinx_build_warnings.log
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
                          ${SPHINX_SOURCE} ${SPHINX_BUILD} 
-                       COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
+                       COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py
                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        DEPENDS
                        # Other docs files you want to track should go here (or in some variable)
