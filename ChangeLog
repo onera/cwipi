@@ -1,0 +1,12 @@
+## [1.00.0] - 2023-07-20
+### Added
+- Complete rewriting of the library
+- New spatial interpolation methods (intersection algorithm, nearest neighbors algorithm)
+- (Partially)-joint MPI communicators
+- Client-Server mode
+### Changed
+- New location algorithm (more efficient)
+- Non-blocking control parameters access (beta version)
+### Deprecated
+### Removed
+### Fixed
