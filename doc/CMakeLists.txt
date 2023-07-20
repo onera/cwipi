@@ -5,6 +5,7 @@
 if(CWP_ENABLE_DOCUMENTATION)
     find_package(Doxygen 1.8.9 REQUIRED) 
     find_package(Sphinx 3 REQUIRED)
+    find_package(Breathe REQUIRED)
 
     #------------------------------------------------------------------------------
     # Build doxygen documentation
@@ -12,6 +13,10 @@ if(CWP_ENABLE_DOCUMENTATION)
 
     if(NOT DOXYGEN_FOUND)
         message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    endif()
+
+    if(NOT BREATHE_FOUND)
+        message(FATAL_ERROR "Breathe is needed to build the documentation.")
     endif()
 
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
@@ -76,6 +81,7 @@ if(CWP_ENABLE_DOCUMENTATION)
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
                          ${SPHINX_SOURCE} ${SPHINX_BUILD} 
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        DEPENDS
