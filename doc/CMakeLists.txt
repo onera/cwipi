@@ -76,7 +76,7 @@ if(CWP_ENABLE_DOCUMENTATION)
                          # Tell Breathe where to find the Doxygen output
                          -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
                          ${SPHINX_SOURCE} ${SPHINX_BUILD} 
-                       COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/conf.py
+                       COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/conf.py
                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                        DEPENDS
                        # Other docs files you want to track should go here (or in some variable)
