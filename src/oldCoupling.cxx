@@ -147,6 +147,7 @@ namespace cwipi {
     _tmpDistantField = NULL;
     _supportMesh = NULL;
     _couplingComm = MPI_COMM_NULL;
+    _rankList = NULL;
     _coupledApplicationNRankCouplingComm = -1;
     _coupledApplicationBeginningRankCouplingComm = -1;
     _mergeComm = MPI_COMM_NULL;
@@ -202,7 +203,7 @@ namespace cwipi {
 
     std::vector<double> &vertexField = *_tmpVertexField;
 
-    for (int i = 0; i < vertexField.size(); i++)
+    for (size_t i = 0; i < vertexField.size(); i++)
       vertexField[i] = 0.;
 
     // TODO: Faire l'allocation qu'une fois comme _tmpVertexField
@@ -247,11 +248,11 @@ namespace cwipi {
       for (int i = 0; i < nPoly; i++) {
         int nFacePolyhedra = polyhedraFaceIndex[i+1] - polyhedraFaceIndex[i];
         int faceIndex = polyhedraCellToFaceConnectivity[i];
-        int nVertexFace = 0;
+//        int nVertexFace = 0;
         for (int j = 0; j < nFacePolyhedra; j++) {
           int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
           int nVertexLocFace = polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
-          nVertexFace += nVertexLocFace;
+//          nVertexFace += nVertexLocFace;
           int vertexIndex = polyhedraFaceConnectivityIndex[iface];
           for (int k = 0; k < nVertexLocFace; k++) {
             if (vertexPoly.capacity() <= vertexPoly.size()) {
@@ -265,7 +266,7 @@ namespace cwipi {
 
           int ivertex = -1;
 
-          for (int j1 = 0; j1 < vertexPoly.size(); j1++) {
+          for (size_t j1 = 0; j1 < vertexPoly.size(); j1++) {
             if (ivertex < vertexPoly[j1]) {
               ivertex = vertexPoly[j1];
               volumeVertex[ivertex - 1] += cellVolume[i];
@@ -306,6 +307,8 @@ namespace cwipi {
         delete p->second;
     }
 
+    delete [] _rankList;
+
     _distance.clear();
 
     _tmpDistantFieldsIssend.clear();
@@ -337,12 +340,12 @@ namespace cwipi {
 
       delete _supportMesh;
 
-      for (int i = 0; i < _tablelocationToDistantMesh.size(); i++)
+      for (size_t i = 0; i < _tablelocationToDistantMesh.size(); i++)
         delete _tablelocationToDistantMesh[i]; // libère chaque _tablelocationToDistantMesh
       _tablelocationToDistantMesh.clear();     // vide le vecteur
       delete &_tablelocationToDistantMesh;     // pour libère le new std::vector du constructeur
 
-      for (int i = 0; i < _tablelocationToLocalMesh.size(); i++)
+      for (size_t i = 0; i < _tablelocationToLocalMesh.size(); i++)
         delete _tablelocationToLocalMesh[i];
       _tablelocationToLocalMesh.clear();
       delete &_tablelocationToLocalMesh;
@@ -734,7 +737,7 @@ namespace cwipi {
                               {0., 0., 0., 0.}};
             double b[4] = {0., 0., 0., 0.};
 
-            for (int j = 0; j < vertexPoly.size(); j++) {
+            for (size_t j = 0; j < vertexPoly.size(); j++) {
               if (iVertex < vertexPoly[j]) {
                 iVertex = vertexPoly[j];
                 v_x = coords[3*iVertex];
@@ -912,7 +915,7 @@ namespace cwipi {
   }
 
 
-  void oldCoupling::openLocationFile(char *file, const char *moderwa)
+  void oldCoupling::openLocationFile(const char *file, const char *moderwa)
   {
 
     int mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;
@@ -1069,7 +1072,7 @@ namespace cwipi {
       il_position = 0;
       int nLocPts;
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&nLocPts,sizeof(int));
-      if (_distance.size() != nLocPts)
+      if ((int) _distance.size() != nLocPts)
         _distance.resize(nLocPts);
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&(_distance[0]),nLocPts*sizeof(float));
 
@@ -1140,7 +1143,7 @@ namespace cwipi {
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
 
-        char *distantCouplingName = new char[lDistantName];
+        char *distantCouplingName =  (char *) malloc (sizeof(char) * (lDistantName));
 
         MPI_Sendrecv(const_cast <char*>(_name.c_str()),
                      lLocalName, MPI_CHAR,
@@ -1153,7 +1156,7 @@ namespace cwipi {
           bftc_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                      _name.c_str(),
                      distantCouplingName);
-        delete[] distantCouplingName;
+        free ( distantCouplingName);
 
         //
         // Check exchange name
@@ -1165,7 +1168,7 @@ namespace cwipi {
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
 
-        char *distantExchangeName = new char[lDistantName];
+        char *distantExchangeName =  (char *) malloc (sizeof(char) * (lDistantName));
 
         MPI_Sendrecv(const_cast <char*>(exchangeName),
                      lLocalName, MPI_CHAR,
@@ -1179,7 +1182,7 @@ namespace cwipi {
                      exchangeName,
                      distantExchangeName);
 
-        delete[] distantExchangeName;
+        free ( distantExchangeName);
       }
     }
 
@@ -1221,7 +1224,7 @@ namespace cwipi {
         _tmpDistantField = new std::vector<double> (lDistantField);
 
       std::vector<double>& tmpDistantField = *_tmpDistantField;
-      if (tmpDistantField.size() < lDistantField)
+      if ((int) tmpDistantField.size() < lDistantField)
         tmpDistantField.resize(lDistantField);
 
       //
@@ -2007,7 +2010,7 @@ namespace cwipi {
 
         const int nElts  = _supportMesh->getNElts();
 
-        int *domLoc = new int [nElts];
+        int *domLoc =  (int *) malloc (sizeof(int) * (nElts));
 
         for (int i = 0; i < nElts; i++)
           domLoc[i] = localRank+1;
@@ -2024,7 +2027,7 @@ namespace cwipi {
                                  -1,
                                  0.0,
                                  (const void *const *)  &domLoc);
-        delete[] domLoc;
+        free ( domLoc);
       }
 
       // TODO: A deplacer et a recreer en cas de maillage mobile
@@ -2039,7 +2042,7 @@ namespace cwipi {
         if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
           const int nElts  = _supportMesh->getNElts();
 
-          int *domLoc = new int [nElts];
+          int *domLoc =  (int *) malloc (sizeof(int) * (nElts));
 
           for (int i = 0; i < nElts; i++)
             domLoc[i] = 1;
@@ -2063,7 +2066,7 @@ namespace cwipi {
         else {
           const int nVertex = _supportMesh->getNVertex();
 
-          int *domLoc = new int [nVertex];
+          int *domLoc =  (int *) malloc (sizeof(int) * (nVertex));
 
           for (int i = 0; i < nVertex; i++)
             domLoc[i] = 1;
@@ -2083,7 +2086,7 @@ namespace cwipi {
                                    -1,
                                    0.0,
                                    (const void *const *)  &domLoc);
-          delete [] domLoc;
+          free ( domLoc);
         }
       }
 
@@ -2168,7 +2171,7 @@ namespace cwipi {
             ptField = const_cast <void **> (&sendingField);
             if (stride > 1) {
               if (cpSendingField == NULL)
-                cpSendingField = new double [fieldSize];
+                cpSendingField =  (double *) malloc (sizeof(double) * (fieldSize));
               for (int jj =0; jj < fieldSize; jj++) {
                 cpSendingField[jj] = ((double *) sendingField)[jj*stride+kk];
               }
@@ -2192,7 +2195,7 @@ namespace cwipi {
         }
 
         if (stride > 1 && cpSendingField != NULL)
-          delete [] cpSendingField;
+          free ( cpSendingField);
 
       }
 
@@ -2204,7 +2207,7 @@ namespace cwipi {
         if (receivingField != NULL && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
 
           int lReceivingField = _locationToDistantMesh->getNpointsToLocate();
-          double *cpReceivingField = new double [lReceivingField];
+          double *cpReceivingField =  (double *) malloc (sizeof(double) * (lReceivingField));
           const int nLocatedPoint = _locationToDistantMesh->getNpointsToLocate() - _locationToDistantMesh->getNUnlocatedPoint();
 
           for (int j = 0; j < stride; j++) {
@@ -2234,7 +2237,7 @@ namespace cwipi {
                                      timeValue,
                                      (const void *const *) &cpReceivingField);
           }
-          delete [] cpReceivingField;
+          free ( cpReceivingField);
         }
       }
     }
@@ -2272,7 +2275,7 @@ namespace cwipi {
 
     int nLocPts = getNLocatedPoint();
 
-    if (_distance.size() != nLocPts)
+    if ((int) _distance.size() !=  nLocPts)
       _distance.resize(nLocPts);
 
     if (_isCoupledRank) {
@@ -2365,7 +2368,7 @@ namespace cwipi {
       // Exchange coupling type
 
       cwipi_coupling_type_t* couplingTypes =
-        new cwipi_coupling_type_t[coupledApplicationCommSize];
+           (cwipi_coupling_type_t*) malloc (sizeof(cwipi_coupling_type_t) * coupledApplicationCommSize);
 
       MPI_Allgather((void*)& _couplingType,
                     1,
@@ -2409,7 +2412,7 @@ namespace cwipi {
       else
         distantCouplingType = couplingTypes[0];
 
-      delete [] couplingTypes;
+      free ( couplingTypes);
 
       //
       // Build coupling communicator
@@ -2417,58 +2420,58 @@ namespace cwipi {
       if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING ||
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
-        int *rankList = new int[coupledApplicationCommSize];
-        int nRankList = -1;
+        _rankList = new int[coupledApplicationCommSize];
+        _nRankList = -1;
 
         if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
             distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
-          nRankList = 2;
-          rankList[0] = 0;
+          _nRankList = 2;
+          _rankList[0] = 0;
 
           _coupledApplicationNRankCouplingComm = 1;
           if (localBeginningRank < distantBeginningRank) {
-            rankList[1] = nLocalRank;
+            _rankList[1] = nLocalRank;
             _coupledApplicationBeginningRankCouplingComm = 1;
           }
           else {
-            rankList[1] = nDistantRank;
+            _rankList[1] = nDistantRank;
             _coupledApplicationBeginningRankCouplingComm = 0;
           }
         }
 
         else if (distantCouplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
-          nRankList = 1 + nDistantRank;
+          _nRankList = 1 + nDistantRank;
           _coupledApplicationNRankCouplingComm = nDistantRank;
           if (localBeginningRank < distantBeginningRank) {
-            rankList[0] = 0;
+            _rankList[0] = 0;
             _coupledApplicationBeginningRankCouplingComm = 1;
             for (int i = 0; i < nDistantRank; i++)
-              rankList[i+1] = nLocalRank + i;
+              _rankList[i+1] = nLocalRank + i;
           }
           else {
             _coupledApplicationBeginningRankCouplingComm = 0;
             for (int i = 0; i < nDistantRank; i++)
-              rankList[i] = i;
-            rankList[nDistantRank] = nDistantRank;
+              _rankList[i] = i;
+            _rankList[nDistantRank] = nDistantRank;
           }
         }
 
         else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
-          nRankList = 1 + nLocalRank;
+          _nRankList = 1 + nLocalRank;
           _coupledApplicationNRankCouplingComm = 1;
           if (localBeginningRank < distantBeginningRank) {
             _coupledApplicationBeginningRankCouplingComm = nLocalRank;
             for (int i = 0; i < nLocalRank; i++)
-              rankList[i] = i;
-            rankList[nLocalRank] = nLocalRank;
+              _rankList[i] = i;
+            _rankList[nLocalRank] = nLocalRank;
           }
 
           else {
-            rankList[0] = 0;
+            _rankList[0] = 0;
             _coupledApplicationBeginningRankCouplingComm = 0;
             for (int i = 0; i < nLocalRank; i++)
-              rankList[i+1] = nDistantRank + i;
+              _rankList[i+1] = nDistantRank + i;
           }
         }
 
@@ -2483,18 +2486,24 @@ namespace cwipi {
 
         MPI_Comm_group(_mergeComm, &mergeGroup);
 
-        MPI_Group_incl(mergeGroup, nRankList, rankList, &couplingGroup);
+        MPI_Group_incl(mergeGroup, _nRankList, _rankList, &couplingGroup);
 
         MPI_Comm_create(_mergeComm, couplingGroup, &_couplingComm);
 
         MPI_Group_free(&couplingGroup);
         MPI_Group_free(&mergeGroup);
 
-        delete [] rankList;
-
       }
-      else
+      else {
+
+        // added for get communicator
+        _nRankList = endRank - begRank;
+        _rankList = new int[_nRankList];
+        for (int i = 0; i < _nRankList; i++) {
+          _rankList[i] = begRank + i;
+        }
         MPI_Comm_dup(_mergeComm, &_couplingComm);
+      }
     }
 
 

@@ -161,13 +161,13 @@ def runTest():
 
     # Constructor
 
-    cpl = cwipi.Coupling("cpl", 
-                         cwipi.COUPLING_PARALLEL_WITH_PARTITIONING, 
+    cpl = cwipi.Coupling("cpl",
+                         cwipi.COUPLING_PARALLEL_WITH_PARTITIONING,
                          applis[(rank + 1) % 2] , 
                          2, 
                          0.1,  
-                         cwipi.CYCLIC_MESH, 
-                         cwipi.SOLVER_CELL_VERTEX, 
+                         cwipi.CYCLIC_MESH,
+                         cwipi.SOLVER_CELL_VERTEX,
                          1, 
                          "Ensight", 
                          "txt")

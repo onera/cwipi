@@ -4080,8 +4080,18 @@ fvmc_to_med_export_field(void                            *this_writer,
 
 /*----------------------------------------------------------------------------*/
 
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* HAVE_MED */
+#else
+typedef struct {
+
+  int              index;      /* CGNS base index */
+
+} fvmc_to_med_fake_t;
+
+
+#endif

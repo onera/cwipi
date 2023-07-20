@@ -29,71 +29,82 @@ endif()
 # Sources list
 # ------------
 
-if (CWP_ENABLE_NEW_API)
- if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
-  file(GLOB SOURCES 
-       bft/*.[ch]
-       fvm/*.[ch]
-       new/*.[ch]
-       new/*.[ch]xx
-       *.[ch]
-       *.[ch]xx)
+file(GLOB SOURCES
+     CONFIGURE_DEPENDS
+     bft/*.[ch]
+     fvm/*.[ch]
+     new/*.[ch]
+     new/*.[ch]xx
+     *.[ch]
+     *.[ch]xx)
 
-  if (CWP_NEW_TO_OLD_API)
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.cxx")
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
-  else()
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.cxx")
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.h")
-  endif()
-
-  get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
- endif()
-else()
-  file(GLOB SOURCES 
-       bft/*.[ch]
-       fvm/*.[ch]
-       *.[ch]
-       *.[ch]xx)
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+  get_target_property(PDM_INC  pdm INCLUDE_DIRECTORIES)
 endif()
 
+if (CWP_ENABLE_CLIENT_SERVER)
+  list(APPEND SOURCES new/client_server/client.cxx)
+  list(APPEND SOURCES new/client_server/client.h)
+  list(APPEND SOURCES new/client_server/message.h)
+  list(APPEND SOURCES new/client_server/server.cxx)
+  list(APPEND SOURCES new/client_server/server.h)
+  list(APPEND SOURCES new/client_server/struct.hxx)
+  list(APPEND SOURCES new/client_server/transfer.c)
+  list(APPEND SOURCES new/client_server/transfer.h)
+endif()
 
+# why not SOURCESF ?
 if (CWP_ENABLE_Fortran)
    list(APPEND SOURCES fortran/callfortinterpfct.f90)
    list(APPEND SOURCES fortran/callforthointerpfct.f90)
+   list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
 endif()
 
+
 file(GLOB SOURCESF
-    fortran/cwipi_cf.cxx
-    fortran/cwipi_f.f90
-    fortran/cwipi_printfort_cf.cxx
-    fortran/cwipi_printfort.f90
-    fortran/cwipi_set_output_logical_unit.f90
-    fortran/cwp_output_fortran_unit_set.f90
-    fortran/cwp_printfort_cf.cxx
-    fortran/printfort.f90
-    fortran/mod_fvmc_ho_basis.f90)
+     CONFIGURE_DEPENDS
+     # --> old fortran
+     fortran/cwipi_cf.cxx
+     fortran/cwipi_f.f90
+     fortran/cwipi_printfort_cf.cxx
+     fortran/cwipi_printfort.f90
+     fortran/cwipi_set_output_logical_unit.f90
+     fortran/printfort.f90
+     fortran/mod_fvmc_ho_basis.f90
+     # --> new fortran
+     # fortran/cwp_output_fortran_unit_set.f90
+     # fortran/cwp_printfort_cf.cxx
+     # new/cwp_f.f90
+     fortran/new/cwp_cf.cxx
+     fortran/new/cwp_f.f90
+     fortran/new/cwp_printfort_cf.cxx
+     fortran/new/cwp_printfort.f90)
+
 
 add_library(cwp OBJECT ${SOURCES})
 
 target_include_directories(cwp
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE  ${CMAKE_BINARY_DIR}
-                           PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           PRIVATE  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                           PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                           PUBLIC  $<INSTALL_INTERFACE:include/>)
 
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+  add_dependencies(cwp pdm)
+  target_include_directories(cwp
+                             PRIVATE ${PDM_INC})
+endif() 
 
-if (CWP_ENABLE_NEW_API)
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
-    add_dependencies(cwp pdm)
-    target_include_directories(cwp
-                               PRIVATE ${PDM_INC}) 
-  endif ()
-endif ()
+if (CWP_ENABLE_SHARED)
+  target_link_libraries (cwp pdm::pdm_shared)
+else ()
+  target_link_libraries (cwp pdm::pdm_static)
+endif()                             
 
 #if (CWP_ENABLE_SPACE_NODAL_BASIS) 
 #  add_dependencies(cwp spaceBasis)
@@ -110,33 +121,38 @@ if (BLAS_FOUND)
 endif()
 
 if (CWP_ENABLE_Fortran)
- add_library(cwpf OBJECT ${SOURCESF})
+  add_library(cwpf OBJECT ${SOURCESF})
 
- target_include_directories(cwpf
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_BINARY_DIR}
-                           PUBLIC    ${CMAKE_SOURCE_DIR}
-                           PUBLIC    ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}
-                           PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft) 
+  target_include_directories(cwpf
+                             INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                             PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                             PUBLIC  $<INSTALL_INTERFACE:include/>)
 
-  add_dependencies(cwpf cwp)        
+  add_dependencies(cwpf cwp)
 
-if (CWP_ENABLE_SPACE_NODAL_BASIS)
-  add_dependencies(cwpf spaceBasis)        
-endif()
-
-if (CWP_ENABLE_NEW_API)
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-    add_dependencies(cwpf pdmf)
-    target_include_directories(cwpf PRIVATE ${PDM_INC}) 
-    target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis/src)
-    target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis)
+  if (CWP_ENABLE_SPACE_NODAL_BASIS)
+    add_dependencies(cwpf spaceBasis)
   endif()
-endif()
+
+  if (NOT CWP_ENABLE_EXTERNAL_PDM)
+    add_dependencies(cwpf pdmf)
+    target_include_directories(cwpf
+                               PRIVATE ${PDM_INC})
+  endif() 
+  if (CWP_ENABLE_SHARED)
+    target_link_libraries (cwpf pdm::pdmf_shared)
+  else ()
+    target_link_libraries (cwpf pdm::pdmf_static)
+  endif()                             
+
+
 endif()
 
 # Liste des header
@@ -151,7 +167,7 @@ if (CWP_ENABLE_Fortran)
   set (LIST_HEADERF "")
   list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
-
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
 endif ()
 
 # Options du link
@@ -159,6 +175,9 @@ endif ()
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  list(APPEND LINK_LIBRARIES "m")
+endif()
 
 # Add Fortran dependencies if Fortran is called in C 
 # --------------------------------------------------
@@ -174,13 +193,13 @@ endif ()
 if (MKL_FOUND)
   list(APPEND LINK_LIBRARIES ${MKL_LIBRARIES})
 else ()
-if (BLAS_FOUND)
-  list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
-endif()
+  if (BLAS_FOUND)
+    list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
+  endif()
 
-if (LAPACK_FOUND)
-  list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
-endif()
+  if (LAPACK_FOUND)
+    list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
+  endif()
 endif()
 
 
@@ -191,12 +210,6 @@ if (CWP_ENABLE_SHARED)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_shared PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_shared ${LINK_LIBRARIES}) 
-  if (CWP_ENABLE_NEW_API)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-      target_link_libraries(cwp_shared pdm_shared)
-      target_link_libraries(cwp_shared pdm_mpi_shared)
-    endif()
-  endif()
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
 
@@ -233,12 +246,6 @@ if (CWP_ENABLE_STATIC)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_static ${LINK_LIBRARIES}) 
-  if (CWP_ENABLE_NEW_API)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-      target_link_libraries(cwp_static pdm_static)
-      target_link_libraries(cwp_static pdm_mpi_static)
-    endif()
-  endif()  
   set_target_properties(cwp_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
@@ -287,8 +294,17 @@ if (CWP_ENABLE_STATIC)
   endif()
 endif()
 
-install(TARGETS ${_targets}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-        ARCHIVE DESTINATION lib)
+foreach(_target IN ITEMS ${_targets})
+  install(TARGETS ${_target} EXPORT ${_target}Targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
+    ARCHIVE DESTINATION lib
+  )
+  install(EXPORT ${_target}Targets
+    FILE ${_target}Targets.cmake
+    NAMESPACE cwp::
+    DESTINATION lib/cmake/${_target}
+  )
+  add_library(cwp::${_target} ALIAS ${_target})
+endforeach()

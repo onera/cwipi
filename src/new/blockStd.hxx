@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2013-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <cstdlib>
 
 /**
  * \cond
@@ -60,6 +61,18 @@ namespace cwipi {
 
       ~BlockStd();
 
+     /**
+       *
+       * \brief Block addition
+       *
+       * Add a block to the mesh.
+       *
+       * \param [in] blockType              Type of the block
+       * \param [in] mesh                   The Mesh object owning the block
+       */
+
+      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
+
       /**
        * \brief Set a CWIPI block in a partition
        *
@@ -72,30 +85,30 @@ namespace cwipi {
 
        void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* global_num);
 
+
       /**
-       * \brief Add and Set the CWIPI block from a Paradigm block
+       * \brief Get a CWIPI block
        *
-       * \param [in] pdm_id_block A block identifier from Paradigm
-       * \param [in] mesh         Pointer to the Mesh object owning the block.
-       *
+       * \param [in]  i_part     Partition identifier
+       * \param [out]  n_elts     Number of elements of the block in the partition.
+       * \param [out]  connec     Elements connectivity.
+       * \param [out]  global_num Mesh global numbering of the block
        *
        */
 
-       void FromPDMBlock(int pdm_id_block, void* mesh);
+       void blockGet(int i_part,int *n_elts,int** connec,CWP_g_num_t** global_num);
 
        /**
         *
-        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectiviy (Cells_POLY_3D)
+        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
         * for each partition.
         *
         *
         */
 
-        inline std::map<int,int*>  ConnecGet();
+        inline std::vector <int*>  ConnecGet();
 
         inline int*  ConnecGet(int i_part);
-
-        inline int*  ConnecIDXGet(int i_part);
 
         bool  gnumRequired(){
            for(int i_part = 0; i_part<_n_part; i_part++){
@@ -106,17 +119,11 @@ namespace cwipi {
            return false;
         }
 
-
-        void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
-           _global_num [i_part] = global_num;
-        }
-
-        void geomFinalize(int already_in_pdm);
+        void geomFinalize();
 
     private:
 
-      std::map<int,int*>          _connec;              /*!< Connectivity for each partition */
-      std::map<int,int*>          _connec_idx;           /*!< Connectivity index for each partition */
+      std::vector<int*>          _connec;              /*!< Connectivity for each partition */
 
   };
 
@@ -128,25 +135,7 @@ namespace cwipi {
   }
 
 
-  int*  BlockStd::ConnecIDXGet(int i_part) {
-     int n_vtx_per_cell = 0;
-     if (_blockType == CWP_BLOCK_FACE_TRIA3)
-       n_vtx_per_cell = 3;
-     else if (_blockType == CWP_BLOCK_FACE_QUAD4)
-       n_vtx_per_cell = 4;
-     else{
-       while(1==1);
-     }
-
-     _connec_idx[i_part] = (int*)malloc(sizeof(int)*(1 + _n_elt[i_part]));
-     for (int i=0; i<_n_elt[i_part]+1; i++)
-        _connec_idx[i_part][i] = n_vtx_per_cell * i;
-
-     return _connec_idx[i_part];
-  }
-
-
-  std::map<int,int*>  BlockStd::ConnecGet() {
+  std::vector<int*>  BlockStd::ConnecGet() {
 
     return _connec;
   }

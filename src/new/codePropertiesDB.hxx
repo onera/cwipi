@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@ namespace cwipi {
      *                              of all codes
      * \param [in]  n_codes         Number of codes on the current rank
      * \param [in]  code_names      Codes names on the current rank 
-     * \param [in]  is_coupled_rank Current rank is it a coupled rank 
+     * \param [in]  is_active_rank  Current rank is active
      * \param [in]  n_param_max     Maximum number of parameters
      * \param [in]  str_size_max    Maximum size for a string
      * \param [out] intra_comms     Current codes intra-communicators 
@@ -81,7 +81,7 @@ namespace cwipi {
      const MPI_Comm     globalComm,
      const int          n_codes,
      const char**       code_names, 
-     const CWP_Status_t *is_coupled_rank,
+     const CWP_Status_t is_active_rank,
      const int          n_param_max,
      const int          str_size_max,      
      MPI_Comm           *intra_comms
@@ -115,6 +115,37 @@ namespace cwipi {
      const string & localCodeName
     ) const;
 
+    inline const MPI_Comm &
+    connectableCommGet
+    (
+     const string & localCodeName
+    ) const;
+
+
+   /**
+     * \brief Set the user structure
+     *
+     */
+
+    inline void
+    userStructureSet 
+    (
+      const string & localCodeName,
+      void *userStruct
+    );
+
+
+   /**
+     * \brief Get the user structure
+     *
+     */
+
+    inline void * 
+    userStructureGet
+    (
+       const string & localCodeName
+    ) const;
+
      
     /**
      * \brief Return MPI communicator containing all processes of all codes.
@@ -136,7 +167,7 @@ namespace cwipi {
      *
      */
 
-    inline const CodeProperties &
+    inline CodeProperties &
     codePropertiesGet
     (
      const string &codeName
@@ -325,10 +356,10 @@ namespace cwipi {
      * \brief Reduce a parameter through a list of codes. The available processes
      *        are sum, max and min. 
      *
-     * \param [in]  op     Operator from \ref CWP_Op_t
-     * \param [in]  name   Parameter name
-     * \param [in]  nCode  Number of code
-     * \param       pa     Code names
+     * \param [in]  op          Operator from \ref CWP_Op_t
+     * \param [in]  name        Parameter name
+     * \param [in]  nCode       Number of code
+     * \param       code_names  Code names
      *
      * \return             Operation result
      *
@@ -342,7 +373,7 @@ namespace cwipi {
      const string    &name,
      T               *res,
      const int        nCode,
-     va_list         *pa                       
+     const char     **code_names
     );
 
     /**
@@ -352,6 +383,14 @@ namespace cwipi {
 
     void 
     dump();
+
+    /**
+     * \brief Dump string of properties
+     *
+     */
+
+    string
+    str_dump();
 
     /**
      * \brief Lock access to local parameters from a distant code  
@@ -365,6 +404,21 @@ namespace cwipi {
     (
     const string &codeName
     );
+
+
+    /**
+     * \brief Is locked param  
+     *
+     * \param [in]  codeName  Local code name to lock
+     *
+     */
+    
+    inline int 
+    isLocked
+    (
+     const string &codeName
+    );
+
 
     /**
      * \brief unlock access to local parameters from a distant code  
@@ -422,8 +476,6 @@ namespace cwipi {
                                                                     properties data base */
     map <string, CodeProperties * > & _locCodePropertiesDB;    /*!< Local code properties */
     
-    bool                               _isLocalCodeRootrank;   /*!< Current is it a local root rank 
-                                                                *   in the global communicator */ 
     int                                _n_param_max;           /*!< Maximum number of parameters */  
     int                                _str_size_max;          /*!< Maximum size for a string */
 

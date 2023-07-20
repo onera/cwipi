@@ -116,7 +116,7 @@ namespace cwipi {
     void updateLocation();
 
     void setLocationIndex(const int index);
-    void openLocationFile(char *file, const char *moderwa);
+    void openLocationFile(const char *file, const char *moderwa);
     void closeLocationFile();
     void saveLocation();
     void loadLocation();
@@ -279,6 +279,8 @@ namespace cwipi {
   private:
     fvmc_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
+    int                  *_rankList;
+    int                  _nRankList;
     MPI_Comm             _mergeComm;
     MPI_Comm             _fvmComm;
     int                  _coupledApplicationNRankCouplingComm;

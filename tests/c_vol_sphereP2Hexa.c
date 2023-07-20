@@ -27,6 +27,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "cwipi_config.h"
 #include "grid_mesh.h"
 
 
@@ -324,7 +325,7 @@ int main
   nElts = 1;
 
 
-  meshFile = fopen("meshes/sphereP2Hexa.mesh", "r");
+  meshFile = fopen(CWP_MESH_DIR"sphereP2Hexa.mesh", "r");
   assert (meshFile != NULL);
   
   int nConnecVertex;

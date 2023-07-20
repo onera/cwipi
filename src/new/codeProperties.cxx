@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,8 @@ namespace cwipi
   ): _name(name), _id(id), _isLocal(isLocal),
      _rootRankInGlobalComm(rootRank),
      _globalComm(globalComm),
-     _isCoupledRank(false),
+     _isActiveRank(false),
+     _userStruct(NULL),
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -89,7 +90,7 @@ namespace cwipi
     _intraConnectableComm = MPI_COMM_NULL;
     _intraGroup        = MPI_GROUP_NULL;
     _intraRanks        = NULL;
-    _connectableRanks      = NULL;
+    _connectableRanks  = NULL;
 
     _winGlobData[0] = 0; // Unlock parameters access
     _winGlobData[1] = 0; // 0 int param
@@ -112,7 +113,7 @@ namespace cwipi
      _rootRankInGlobalComm(other._rootRankInGlobalComm),
      _globalComm(other._globalComm),
      _intraComm(other._intraComm),
-     _isCoupledRank(other._isCoupledRank),
+     _isActiveRank(other._isActiveRank),
      _intraGroup(other._intraGroup),
      _intraRanks(other._intraRanks),
      _intraConnectableGroup(other._intraConnectableGroup),
@@ -160,7 +161,7 @@ namespace cwipi
     PDM_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
     PDM_printf ("  - Is it a local code : %d\n", _isLocal);
     if (_isLocal) {
-      PDM_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
+      PDM_printf ("  - Is it an active rank? : %d\n", _isActiveRank);
     }
     PDM_printf ("  - Ranks in global communicator :");
     for (size_t i = 0; i < _intraRanks->size(); i++) {
@@ -176,95 +177,259 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+
+    char tmpName [81];
+    char tmpValue[81];
+    unsigned int sParamMax;
+
+    /* Integer parameters */
     _updateIntValues ();
-    _updateDoubleValues ();
-    _updateStrValues ();
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
-    int sParamMax = -1;
+    sParamMax = 0;
     for (int i = 0; i < _winGlobData[1]; i++) {
-      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
-    for (int i = 0; i < _winGlobData[2]; i++) {
-      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
-      sParamMax = max(sParam, sParamMax);
-    }
-
-    int sValueMax = -1;
-    for (int i = 0; i < _winGlobData[3]; i++) {
-      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
-      sParamMax = max(sParam, sParamMax);
-      int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-      sValueMax = max(sValue, sValueMax);
-    }
-
 
     if (sParamMax > 80) sParamMax = 80;
 
     char fmtIntName[22];
-    sprintf(fmtIntName, "     * %%%d.%ds : %%d\n",sParamMax, sParamMax);
-
-    char fmtDoubleName[26];
-    sprintf(fmtDoubleName, "     * %%%d.%ds : %%12.5e\n",sParamMax, sParamMax);
-
-    char fmtStrName[27];
-    sprintf(fmtStrName, "     * %%%d.%ds : %%%d.%ds\n",
-            sParamMax, sParamMax,
-            sValueMax, sValueMax);
-
-    char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
-    char *tmpValue = (char *) malloc (sizeof(char) * (sValueMax + 1));
+    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
-      strncpy (tmpName,
-               _winIntParamNameData + _winIntParamIdxNameData[i],
-               min (sParam, sParamMax));
+
+      strncpy(tmpName,
+              _winIntParamNameData + _winIntParamIdxNameData[i],
+              min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
-
     }
+
+
+
+
+    /* Double parameters */
+    _updateDoubleValues ();
 
     PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
 
+    sParamMax = 0;
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtDoubleName[26];
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
+
     for (int i = 0; i < _winGlobData[2]; i++) {
       int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
-      strncpy (tmpName,
-               _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
-               min (sParam, sParamMax));
+
+      strncpy(tmpName,
+              _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
+              min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
-
     }
 
+
+
+    /* Char parameters */
+    _updateStrValues ();
+
     PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
+
+    sParamMax = 0;
+    unsigned int sValueMax = 0;
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+      unsigned int sValue = (unsigned int) (_winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i]);
+      sValueMax = max(sValue, sValueMax);
+    }
+
+    char fmtStrName[27];
+    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
+            sParamMax, sParamMax,
+            sValueMax, sValueMax);
 
     for (int i = 0; i < _winGlobData[3]; i++) {
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
       strncpy (tmpName,
                _winStrParamNameData + _winStrParamIdxNameData[i],
-               min (sParam, sParamMax));
+               min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
       strncpy (tmpValue,
                _winStrParamValueData + _winStrParamIdxValueData[i],
-               min (sValue, sValueMax));
+               min (sValue, (int) sValueMax));
+      tmpValue[sValue] = '\0';
 
       PDM_printf (fmtStrName, tmpName, tmpValue);
-
     }
-
-    free (tmpName);
-    free (tmpValue);
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
 
     PDM_printf_flush();
+  }
+
+
+  /**
+   * \brief Dump string of properties
+   *
+   */
+
+  string
+  CodeProperties::str_dump()
+  {
+    char buffer[1080];
+    sprintf(buffer, "'%s' properties\n",_name.c_str());
+    string properties = buffer;
+    sprintf(buffer, "  - Identifier : %d\n", _id);
+    properties.append(buffer);
+    sprintf(buffer, "  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
+    properties.append(buffer);
+    sprintf(buffer, "  - Is it a local code : %d\n", _isLocal);
+    properties.append(buffer);
+    if (_isLocal) {
+      sprintf(buffer, "  - Is it an active rank? : %d\n", _isActiveRank);
+      properties.append(buffer);
+    }
+    sprintf(buffer, "  - Ranks in global communicator :");
+    properties.append(buffer);
+    for (size_t i = 0; i < _intraRanks->size(); i++) {
+      sprintf(buffer, " %d", (*_intraRanks)[i]);
+      properties.append(buffer);
+    }
+    sprintf(buffer, "\n");
+    properties.append(buffer);
+
+    sprintf(buffer, "  - Coupled ranks in global communicator :");
+    properties.append(buffer);
+    for (size_t i = 0; i < _connectableRanks->size(); i++) {
+      sprintf(buffer, " %d", (*_connectableRanks)[i]);
+      properties.append(buffer);
+    }
+    sprintf(buffer, "\n");
+    properties.append(buffer);
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+
+    char tmpName [81];
+    char tmpValue[81];
+
+
+    // Update and print integer
+    _updateIntValues ();
+
+    sprintf(buffer, "  - %d integer control parameters \n", _winGlobData[1]);
+    properties.append(buffer);
+
+    unsigned int sParamMax = 0;
+    for (int i = 0; i < _winGlobData[1]; i++) {
+      unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtIntName[22];
+    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
+
+    for (int i = 0; i < _winGlobData[1]; i++) {
+      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      strncpy (tmpName,
+               _winIntParamNameData + _winIntParamIdxNameData[i],
+               min (sParam, (int) sParamMax));
+      tmpName[sParam] = '\0';
+
+      sprintf(buffer, fmtIntName, tmpName, _winIntParamValueData[i]);
+      properties.append(buffer);
+
+    }
+
+    // Update and print double
+    _updateDoubleValues ();
+
+    sParamMax = 0;
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+
+    char fmtDoubleName[26];
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
+
+    sprintf(buffer, "  - %d double control parameters \n", _winGlobData[2]);
+    properties.append(buffer);
+
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+      strncpy (tmpName,
+               _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
+               min (sParam, (int) sParamMax));
+      tmpName[sParam] = '\0';
+
+      sprintf(buffer, fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+      properties.append(buffer);
+
+    }
+
+    // Update and print string
+    _updateStrValues ();
+
+    sParamMax = 0;
+    unsigned int sValueMax = 0;
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
+      sParamMax = max(sParam, sParamMax);
+      unsigned int sValue = (unsigned int) (_winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i]);
+      sValueMax = max(sValue, sValueMax);
+    }
+
+    if (sParamMax > 80) sParamMax = 80;
+    if (sValueMax > 80) sValueMax = 80;
+
+    char fmtStrName[27];
+    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
+            sParamMax, sParamMax,
+            sValueMax, sValueMax);
+
+    sprintf(buffer, "  - %d string control parameters \n", _winGlobData[3]);
+    properties.append(buffer);
+
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+      strncpy (tmpName,
+               _winStrParamNameData + _winStrParamIdxNameData[i],
+               min (sParam, (int) sParamMax));
+      tmpName[sParam] = '\0';
+
+      int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+      strncpy (tmpValue,
+               _winStrParamValueData + _winStrParamIdxValueData[i],
+               min (sValue, (int) sValueMax));
+      tmpValue[sValue] = '\0';
+
+      sprintf(buffer, fmtStrName, tmpName, tmpValue);
+      properties.append(buffer);
+
+    }
+
+    MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
+
+    return properties;
   }
 
   /**

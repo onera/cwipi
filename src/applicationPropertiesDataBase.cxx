@@ -28,6 +28,7 @@
 #include <fvmc_parall.h>
 
 #include "cwipi_config.h"
+#include "cwipi_priv.h"
 #include "applicationPropertiesDataBase.hxx"
 #include "applicationPropertiesDataBase_i.hxx"
 
@@ -116,10 +117,10 @@ namespace cwipi {
                      globalComm);
 
 //       BFT::BFTC_MALLOC(mergeNames, totalLength, char) ;
-      char *mergeNames = new char[totalLength];
+      char *mergeNames =  (char *) malloc (sizeof(char) * (totalLength));
 
-      int *namesLength = new int[globalCommSize];
-      int *iproc = new int[globalCommSize];
+      int *namesLength =  (int *) malloc (sizeof(int) * (globalCommSize));
+      int *iproc =  (int *) malloc (sizeof(int) * (globalCommSize));
 
       MPI_Allgather(&nameLength,
                     1,
@@ -142,8 +143,8 @@ namespace cwipi {
                      MPI_CHAR,
                      globalComm);
 
-      delete[] iproc;
-      delete[] namesLength;
+      free ( iproc);
+      free ( namesLength);
 
       for (int irank = 0; irank < globalCommSize; irank++) {
 
@@ -197,7 +198,7 @@ namespace cwipi {
         assert(index <= totalLength);
       }
 
-      delete [] mergeNames;
+      free ( mergeNames);
 
       // Create current application communicator
       // ---------------------------------------
@@ -275,12 +276,12 @@ namespace cwipi {
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
-            distantParamName = new char[distantNameSize+1];
+            distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
-            delete[] distantParamName;
+            free ( distantParamName);
 
             MPI_Recv(&distantValue, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantValue != value)
@@ -332,14 +333,14 @@ namespace cwipi {
 
           MPI_Recv(&distantNameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm, &status);
 
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
           MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm, &status);
 
           MPI_Recv(&distantValue, 1, MPI_INT, distantBeginningRank, 0, globalComm, &status);
 
           distantControlParameters[std::string(distantParamName)] = distantValue;
 
-          delete[] distantParamName;
+          free ( distantParamName);
 
         }
 
@@ -357,7 +358,7 @@ namespace cwipi {
                        &distantNameSize, 1, MPI_INT, distantBeginningRank, 0,
                        globalComm, &status);
 
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
 
           MPI_Sendrecv(const_cast <char*> (paramName), nameSize+1,        MPI_CHAR, distantBeginningRank, 0,
                        distantParamName              , distantNameSize+1, MPI_CHAR, distantBeginningRank, 0,
@@ -369,7 +370,7 @@ namespace cwipi {
 
           distantControlParameters[std::string(distantParamName)] = distantValue;
 
-          delete[] distantParamName;
+          free ( distantParamName);
         }
 
         if (p1 != localControlParameters.end())
@@ -409,7 +410,7 @@ namespace cwipi {
 
 
         if (currentRank != 0)
-          paramName = new char[nameSize+1];
+          paramName =  (char *) malloc (sizeof(char) * (nameSize+1));
 
         MPI_Bcast(paramName, nameSize+1, MPI_CHAR, 0, localComm);
 
@@ -417,7 +418,7 @@ namespace cwipi {
 
         if (currentRank != 0) {
           distantControlParameters[std::string(paramName)] = value;
-          delete[] paramName;
+          free ( paramName);
         }
       }
     }
@@ -482,17 +483,20 @@ namespace cwipi {
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
-            distantParamName = new char[distantNameSize+1];
+            distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
-            delete[] distantParamName;
+            free ( distantParamName);
 
             MPI_Recv(&distantValue, 1, MPI_DOUBLE, irank, 0, localComm, &status);
+            
+            CWIPI_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
             if (distantValue != value)
               bftc_error(__FILE__, __LINE__, 0,
                         "Different values for '%s' parameter for the rank 0 and the rank '%i'\n", paramName, irank);
+            CWIPI_GCC_SUPPRESS_WARNING_POP
           }
         }
 
@@ -539,13 +543,13 @@ namespace cwipi {
 
           MPI_Recv(&distantNameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm, &status);
 
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
           MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm, &status);
 
           MPI_Recv(&distantValue, 1, MPI_DOUBLE, distantBeginningRank, 0, globalComm, &status);
 
           distantControlParameters[std::string(distantParamName)] = distantValue;
-          delete[] distantParamName;
+          free ( distantParamName);
 
         }
 
@@ -563,7 +567,7 @@ namespace cwipi {
                        &distantNameSize, 1, MPI_INT, distantBeginningRank, 0,
                        globalComm, &status);
 
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
           MPI_Sendrecv(const_cast <char*> (paramName), nameSize+1,        MPI_CHAR, distantBeginningRank, 0,
                        distantParamName              , distantNameSize+1, MPI_CHAR, distantBeginningRank, 0,
                        globalComm, &status);
@@ -573,7 +577,7 @@ namespace cwipi {
                        globalComm, &status);
 
           distantControlParameters[std::string(distantParamName)] = distantValue;
-          delete[] distantParamName;
+          free ( distantParamName);
 
         }
 
@@ -612,7 +616,7 @@ namespace cwipi {
         MPI_Bcast(&nameSize, 1, MPI_INT, 0, localComm);
 
         if (currentRank != 0)
-          paramName = new char[nameSize+1];
+          paramName =  (char *) malloc (sizeof(char) * (nameSize+1));
 
         MPI_Bcast(paramName, nameSize+1, MPI_CHAR, 0, localComm);
 
@@ -620,7 +624,7 @@ namespace cwipi {
 
         if (currentRank != 0) {
           distantControlParameters[std::string(paramName)] = value;
-          delete[] paramName;
+          free ( paramName);
         }
       }
     }
@@ -687,24 +691,24 @@ namespace cwipi {
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
-            distantParamName = new char[distantNameSize+1];
+            distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
-            delete[] distantParamName;
+            free ( distantParamName);
 
             MPI_Recv(&distantValueSize, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantValueSize != valueSize)
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
-            distantValueCStr = new char[distantValueSize+1];
+            distantValueCStr =  (char *) malloc (sizeof(char) * (distantValueSize+1));
             MPI_Recv(distantValueCStr, distantValueSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantValueCStr, valueCStr))
               bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
-            delete[] distantValueCStr;
+            free ( distantValueCStr);
           }
         }
 
@@ -759,17 +763,17 @@ namespace cwipi {
           char *distantValueCStr = NULL;
 
           MPI_Recv(&distantNameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm, &status);
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
           MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm, &status);
 
           MPI_Recv(&distantValueSize, 1, MPI_INT, distantBeginningRank, 0, globalComm, &status);
-          distantValueCStr = new char[distantValueSize+1];
+          distantValueCStr =  (char *) malloc (sizeof(char) * (distantValueSize+1));
           MPI_Recv(distantValueCStr, distantValueSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm, &status);
 
           distantControlParameters[std::string(distantParamName)] = std::string(distantValueCStr);
 
-          delete[] distantParamName;
-          delete[] distantValueCStr;
+          free ( distantParamName);
+          free ( distantValueCStr);
 
         }
 
@@ -789,7 +793,7 @@ namespace cwipi {
                        &distantNameSize, 1, MPI_INT, distantBeginningRank, 0,
                        globalComm, &status);
 
-          distantParamName = new char[distantNameSize+1];
+          distantParamName =  (char *) malloc (sizeof(char) * (distantNameSize+1));
           MPI_Sendrecv(const_cast <char*> (paramName), nameSize+1,        MPI_CHAR, distantBeginningRank, 0,
                        distantParamName              , distantNameSize+1, MPI_CHAR, distantBeginningRank, 0,
                        globalComm, &status);
@@ -798,14 +802,14 @@ namespace cwipi {
                        &distantValueSize, 1, MPI_INT, distantBeginningRank, 0,
                        globalComm, &status);
 
-          distantValueCStr = new char[distantValueSize+1];
+          distantValueCStr =  (char *) malloc (sizeof(char) * (distantValueSize+1));
           MPI_Sendrecv(const_cast <char*> (valueCStr), valueSize+1,        MPI_CHAR, distantBeginningRank, 0,
                        distantValueCStr              , distantValueSize+1, MPI_CHAR, distantBeginningRank, 0,
                        globalComm, &status);
 
           distantControlParameters[std::string(distantParamName)] = std::string(distantValueCStr);
-          delete[] distantValueCStr;
-          delete[] distantParamName;
+          free ( distantValueCStr);
+          free ( distantParamName);
 
         }
 
@@ -848,21 +852,21 @@ namespace cwipi {
         MPI_Bcast(&nameSize, 1, MPI_INT, 0, localComm);
 
         if (currentRank != 0)
-          paramName = new char[nameSize+1];
+          paramName =  (char *) malloc (sizeof(char) * (nameSize+1));
 
         MPI_Bcast(paramName, nameSize+1, MPI_CHAR, 0, localComm);
 
         MPI_Bcast(&valueSize, 1, MPI_INT, 0, localComm);
 
         if (currentRank != 0)
-          valueCStr = new char[valueSize+1];
+          valueCStr =  (char *) malloc (sizeof(char) * (valueSize+1));
 
         MPI_Bcast(valueCStr, valueSize+1, MPI_CHAR, 0, localComm);
 
         if (currentRank != 0) {
           distantControlParameters[std::string(paramName)] = std::string(valueCStr);
-          delete[] paramName;
-          delete[] valueCStr;
+          free ( paramName);
+          free ( valueCStr);
         }
       }
     }

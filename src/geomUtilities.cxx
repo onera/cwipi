@@ -52,7 +52,7 @@ namespace cwipi {
                              double       *characteristicLength,
                              int         *isDegenerated)
   {
-    int *connectivityIndex = new int [nQuadrangle + 1];
+    int *connectivityIndex =  (int *) malloc (sizeof(int) * (nQuadrangle + 1));
     int convergence;
 
     connectivityIndex[0] = 0;
@@ -69,7 +69,7 @@ namespace cwipi {
                                     characteristicLength,
                                     isDegenerated);
 
-    delete [] connectivityIndex;
+    free ( connectivityIndex);
 
     return convergence;
   }
@@ -110,6 +110,8 @@ namespace cwipi {
                          int          *isDegenerated)
 
   {
+    CWIPI_UNUSED (nVertices);
+
     int convergence = 1;
     
     const double dispMin = 1e-9; // Minimum displacement
@@ -309,10 +311,10 @@ namespace cwipi {
     const int nHexahedraFaces = nQuadrangle + nTriangle;
     const int nFaces = nHexahedraFaces * nHexahedra;
 
-    int *faceConnectivity          = new int [(nQuadrangle*4 + nTriangle*3) * nHexahedra];
-    int *faceConnectivityIdx       = new int [nFaces + 1];
-    int *cellToFaceConnectivityIdx = new int [nHexahedra + 1];
-    int *cellToFaceConnectivity    = new int [nFaces];
+    int *faceConnectivity          =  (int *) malloc (sizeof(int) * ((nQuadrangle*4 + nTriangle*3) * nHexahedra));
+    int *faceConnectivityIdx       =  (int *) malloc (sizeof(int) * (nFaces + 1));
+    int *cellToFaceConnectivityIdx =  (int *) malloc (sizeof(int) * (nHexahedra + 1));
+    int *cellToFaceConnectivity    =  (int *) malloc (sizeof(int) * (nFaces));
 
     //
     // Get hexahedra faces
@@ -353,10 +355,10 @@ namespace cwipi {
     //
     // Free
     
-    delete [] faceConnectivity;
-    delete [] faceConnectivityIdx;
-    delete [] cellToFaceConnectivity;
-    delete [] cellToFaceConnectivityIdx;
+    free ( faceConnectivity);
+    free ( faceConnectivityIdx);
+    free ( cellToFaceConnectivity);
+    free ( cellToFaceConnectivityIdx);
 
   }
 
@@ -393,10 +395,10 @@ namespace cwipi {
     const int nPrismFaces = nQuadrangle + nTriangle;
     const int nFaces = nPrismFaces * nPrism;
 
-    int *faceConnectivity          = new int [(nQuadrangle*4 + nTriangle*3) * nPrism];
-    int *faceConnectivityIdx       = new int [nFaces + 1];
-    int *cellToFaceConnectivityIdx = new int [nPrism + 1];
-    int *cellToFaceConnectivity    = new int [nFaces];
+    int *faceConnectivity          =  (int *) malloc (sizeof(int) * ((nQuadrangle*4 + nTriangle*3) * nPrism));
+    int *faceConnectivityIdx       =  (int *) malloc (sizeof(int) * (nFaces + 1));
+    int *cellToFaceConnectivityIdx =  (int *) malloc (sizeof(int) * (nPrism + 1));
+    int *cellToFaceConnectivity    =  (int *) malloc (sizeof(int) * (nFaces));
 
     //
     // Get prism faces
@@ -437,10 +439,10 @@ namespace cwipi {
     //
     // Free
     
-    delete [] faceConnectivity;
-    delete [] faceConnectivityIdx;
-    delete [] cellToFaceConnectivity;
-    delete [] cellToFaceConnectivityIdx;
+    free ( faceConnectivity);
+    free ( faceConnectivityIdx);
+    free ( cellToFaceConnectivity);
+    free ( cellToFaceConnectivityIdx);
     
   }
 
@@ -475,10 +477,10 @@ namespace cwipi {
     const int nPyramidFaces = nQuadrangle + nTriangle;
     const int nFaces = nPyramidFaces * nPyramid;
 
-    int *faceConnectivity          = new int [(nQuadrangle*4 + nTriangle*3) * nPyramid];
-    int *faceConnectivityIdx       = new int [nFaces + 1];
-    int *cellToFaceConnectivityIdx = new int [nPyramid + 1];
-    int *cellToFaceConnectivity    = new int [nFaces];
+    int *faceConnectivity          =  (int *) malloc (sizeof(int) * ((nQuadrangle*4 + nTriangle*3) * nPyramid));
+    int *faceConnectivityIdx       =  (int *) malloc (sizeof(int) * (nFaces + 1));
+    int *cellToFaceConnectivityIdx =  (int *) malloc (sizeof(int) * (nPyramid + 1));
+    int *cellToFaceConnectivity    =  (int *) malloc (sizeof(int) * (nFaces));
 
     //
     // Get pyramid faces
@@ -518,10 +520,10 @@ namespace cwipi {
     //
     // Free
     
-    delete [] faceConnectivity;
-    delete [] faceConnectivityIdx;
-    delete [] cellToFaceConnectivity;
-    delete [] cellToFaceConnectivityIdx;
+    free ( faceConnectivity);
+    free ( faceConnectivityIdx);
+    free ( cellToFaceConnectivity);
+    free ( cellToFaceConnectivityIdx);
     
   }
 
@@ -559,14 +561,14 @@ namespace cwipi {
   {
     const double big = 1e30;
     int convergence = 1;
-    int *colorVertice = new int[nVertices];
+    int *colorVertice =  (int *) malloc (sizeof(int) * (nVertices));
 
     int  lPolyhedraVertices = 24;
     std::vector <int>  polyhedraVertices(lPolyhedraVertices); // First
 
     // int *tmpCellToFaceConnectivity = NULL;
     // if (nPolyhedra > 0 )
-    //   tmpCellToFaceConnectivity = new int[cellToFaceConnectivityIdx[nPolyhedra]];
+    //   tmpCellToFaceConnectivity =  (int *) malloc (sizeof(int) * (cellToFaceConnectivityIdx[nPolyhedra]));
 
     for (int i = 0; i < nVertices; i++)
       colorVertice[i] = false;
@@ -574,8 +576,8 @@ namespace cwipi {
     //
     // Compute face properties
 
-    double *surfaceVector = new double[3 * nFace]; 
-    double *faceCenter    = new double[3 * nFace]; 
+    double *surfaceVector = (double *) malloc (sizeof(double) *(3 * nFace)); 
+    double *faceCenter    = (double *) malloc (sizeof(double) *(3 * nFace)); 
 
     int convergenceFace = polygonProperties (nFace,
                                              faceConnectivityIdx,
@@ -614,7 +616,7 @@ namespace cwipi {
     //
     // Loop on polyhedra
 
-    double volume_t =0;
+//    double volume_t =0;
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
 
       double *polyCenter = center + 3*ipoly;
@@ -643,7 +645,7 @@ namespace cwipi {
           if (!colorVertice[vertex]) {
             colorVertice[vertex] = 1;
 
-            if (nPolyhedraVertices >= polyhedraVertices.size())
+            if (nPolyhedraVertices >= (int) polyhedraVertices.size())
               polyhedraVertices.resize(2 * polyhedraVertices.size());
             polyhedraVertices[nPolyhedraVertices++] = vertex;
           }
@@ -777,7 +779,7 @@ namespace cwipi {
       for (int i = 0; i < 3; i++)
         polyCenter[i] =  polyCenter[i] + signeVol * denomVol * disp[i];
 
-      volume_t += volume[ipoly];
+//      volume_t += volume[ipoly];
 
       //
       // Check convergence
@@ -799,7 +801,7 @@ namespace cwipi {
     //   for (int i = 0; i < cellToFaceConnectivityIdx[nPolyhedra]; i++)
     //     bftc_printf("%i ", tmpCellToFaceConnectivity[i]);
     //   bftc_printf("\n");
-    //   delete [] tmpCellToFaceConnectivity;
+    //   free ( tmpCellToFaceConnectivity);
     // }
 
     if (0 == 1) {
@@ -842,9 +844,9 @@ namespace cwipi {
 
     }
 
-    delete [] surfaceVector; 
-    delete [] faceCenter;
-    delete [] colorVertice;
+    free (surfaceVector); 
+    free ( faceCenter);
+    free ( colorVertice);
 
     if (!convergence)
       bftc_printf("Warning polyhedraProperties : some polyhedra faces are not planar\n");

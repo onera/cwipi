@@ -35,7 +35,7 @@
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
-static double _random01()
+static double _random01(void)
 {
   int sign;
   int rsigna = rand();

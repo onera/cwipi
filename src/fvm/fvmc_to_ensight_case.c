@@ -451,6 +451,7 @@ _add_var(fvmc_to_ensight_case_t       *const this_case,
       case '$':
       case '/':
         var->file_name[i] = '_';
+        break;
       default:
         var->file_name[i] = (char) tolower(var->file_name[i]);
       }

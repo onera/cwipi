@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2012  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,11 +25,17 @@
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
-#include <bftc_error.h>
+#include <pdm_part_mesh_nodal.h>
+#include <pdm_printf.h>
 #include "pdm_error.h"
+#include "pdm_gnum.h"
 #include "block.hxx"
+#include "blockFP.hxx"
+#include "blockCP.hxx"
+#include "blockStd.hxx"
+#include "blockHO.hxx"
 #include "cwp.h"
-#include "visualization.hxx"
+// #include "visualization.hxx"
 
 
 /**
@@ -48,13 +54,12 @@ namespace cwipi {
    *  This class defines the interface mesh objects.
    *
    */
+
   class Coupling;
-  class Visu;
+  // class Visu;
   class Mesh {
 
   public:
-
-
 
     /**
      * \brief Mesh constructor
@@ -67,11 +72,13 @@ namespace cwipi {
      *
      */
 
-    Mesh(const MPI_Comm &localComm,
-              Visu* visu,
-              int npart,
-              CWP_Dynamic_mesh_t displacement,
-              Coupling           *cpl);
+    Mesh
+    (
+      const MPI_Comm    &localComm,
+      int                npart,
+      CWP_Dynamic_mesh_t displacement,
+      Coupling           *cpl
+    );
 
 
     /**
@@ -81,31 +88,37 @@ namespace cwipi {
      *
      */
 
-     virtual ~Mesh();
+    virtual ~Mesh();
 
-     /**
+    /**
      * \brief Set the mesh coordinates
      *
      * \param [in] i_part       Index of the mesh partition
      * \param [in] n_pts        Number of partition vertices
      * \param [in] coords       Array containing the verticies coordinates
-     * \param [in] global_num   Global numbering of the vertices
+     * \param [in] global_num   Global numbering of the vertices or NULL
      *
      */
 
-     void nodal_coord_set(const int   i_part,
-                          const int   n_pts,
-                          double      coords[],
-                          CWP_g_num_t global_num[]);
+    void 
+    coordSet 
+    (
+      const int   i_part,
+      const int   n_pts,
+      double      coords[],
+      CWP_g_num_t global_num[]
+    );
+
 
     /**
      * \brief Mesh deletion and free memory
      *
      */
 
-     void meshDel();
+    void 
+    meshDel();
 
-     /**
+    /**
      * \brief Addition of a block (set of cells) to the mesh partition
      *
      * This function add a block to the geometric mesh.
@@ -115,10 +128,14 @@ namespace cwipi {
      * \return block_id  Block Identifier
      */
 
-     int blockAdd(const CWP_Block_t  block_type);
+    int 
+    blockAdd 
+    (
+      const CWP_Block_t  block_type
+    );
 
 
-     /**
+    /**
      * \brief Set a standard block to the interface mesh
      *
      * \param [in] i_part      Partition identifier
@@ -129,14 +146,102 @@ namespace cwipi {
      *
      */
 
-     void stdBlockSet( const int              i_part,
-                       const int              block_id,
-                       const int              n_elts,
-                       int                    connec[],
-                       CWP_g_num_t            global_num[]
-                     );
+    void
+    stdBlockSet
+    (
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec[],
+      CWP_g_num_t  global_num[]
+    );
 
-     /**
+
+    /**
+     * \brief Set a high-order block to the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier
+     * \param [in] n_elts      Number of block elements
+     * \param [in] connec      Vertices to elements connectivity
+     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
+     * \param [in] order       Element order
+     * \param [in] ho_ordering HO ordering name
+     *
+     */
+
+    void
+    HOBlockSet
+    (
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec[],
+      CWP_g_num_t  global_num[],
+      const int    order,
+      const char  *ho_ordering
+    );
+
+    /**
+     * \brief Get a standard block from the interface mesh
+     *
+     * \param [in]  i_part      Partition identifier
+     * \param [in]  block_id    Block identifier
+     * \param [out] n_elts      Number of block elements
+     * \param [out] connec      Vertices to elements connectivity
+     * \param [out] global_num  Global numbering of the vertices in the block (or NULL)
+     *
+     */
+
+    void
+    stdBlockGet
+    (
+      const int     i_part,
+      const int     block_id,
+      int          *n_elts,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
+
+    /**
+     * \brief Get a high-order block from the interface mesh
+     *
+     * \param [in]  i_part      Partition identifier
+     * \param [in]  block_id    Block identifier
+     * \param [out] n_elts      Number of block elements
+     * \param [out] order       Element order
+     * \param [out] connec      Vertices to elements connectivity
+     * \param [out] global_num  Global numbering of the vertices in the block (or NULL)
+     *
+     */
+
+    void
+    HOBlockGet
+    (
+      const int     i_part,
+      const int     block_id,
+      int          *n_elts,
+      int          *order,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
+
+    /**
+     * \brief Get the standard block type
+     *
+     * \param [in] block_id    Block identifier
+     *
+     * \return block type
+     *
+     */
+
+    CWP_Block_t
+    stdBlockTypeGet
+    (
+     const int              block_id
+    );
+
+    /**
      * \brief Set a face polygon block to the interface mesh
      *
      * \param [in] i_part      Partition identifier
@@ -148,16 +253,42 @@ namespace cwipi {
      *
      */
 
-     void poly2DBlockSet( const int              i_part,
-                          const int              block_id,
-                          const int              n_elts,
-                          int                    connec_idx[],
-                          int                    connec[],
-                          CWP_g_num_t            global_num[]
-                        );
+    void 
+    poly2DBlockSet
+    ( 
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec_idx[],
+      int          connec[],
+      CWP_g_num_t  global_num[]
+    );
+
+    /**
+     * \brief Get a face polygon block from the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier
+     * \param [out] n_elts      Number of block elements
+     * \param [out] connec_idx  Vertices to elements connectivity index
+     * \param [out] connec      Vertices to elements connectivity
+     * \param [out] global_num  Global numbering of the vertices in the block (or NULL)
+     *
+     */
+
+    void 
+    poly2DBlockGet
+    ( 
+      const int    i_part,
+      const int    block_id,
+      int         *n_elts,
+      int         **connec_idx,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
 
 
-     /**
+    /**
      * \brief Set a face polhedron block to the interface mesh
      *
      * \param [in] i_part            Partition identifier
@@ -172,29 +303,50 @@ namespace cwipi {
      *
      */
 
-     void poly3DBlockSet( const int              i_part,
-                          const int              block_id,
-                          const int              n_elts,
-                          const int              n_faces,
-                          int                    connec_faces_idx[],
-                          int                    connec_faces[],
-                          int                    connec_cells_idx[],
-                          int                    connec_cells[],
-                          CWP_g_num_t            global_num[]
-                        );
+    void 
+    poly3DBlockSet
+    ( 
+      const int   i_part,
+      const int   block_id,
+      const int   n_elts,
+      const int   n_faces,
+      int         connec_faces_idx[],
+      int         connec_faces[],
+      int         connec_cells_idx[],
+      int         connec_cells[],
+      CWP_g_num_t global_num[]
+    );
 
-     /**
-     * \brief Get the Mesh Block Type
+
+    /**
+     * \brief get a face polhedron block 
      *
-     * This function gets the mesh block type.
-     *
-     * \param [in] id_block    Block identifier
-     * \return CWP_Block_t Mesh  Block Type
+     * \param [in] i_part            Partition identifier
+     * \param [in] block_id          Block identifier
+     * \param [out] n_elts            Number of block elements
+     * \param [out] n_faces           Number of faces elements (or NULL)
+     * \param [out] connec_faces_idx  Vertices to faces connectivity index
+     * \param [out] connec_faces      Vertices to faces connectivity
+     * \param [out] connec_cells_idx  Faces to cells connectivity index
+     * \param [out] connec_cells      Faces to cells connectivity
+     * \param [out] global_num        Global numbering of the vertices in the block (or NULL)
      *
      */
 
-     CWP_Block_t Mesh_nodal_block_type_get(const int   id_block
-                                          );
+    void 
+    poly3DBlockGet
+    ( 
+      const int    i_part,
+      const int    block_id,
+      int         *n_elts,
+      int         *n_faces,
+      int         **connec_faces_idx,
+      int         **connec_faces,
+      int         **connec_cells_idx,
+      int         **connec_cells,
+      CWP_g_num_t **global_num
+    );
+
 
     /**
      * \brief Adding a polyhedron block to the geometric mesh from
@@ -245,9 +397,6 @@ namespace cwipi {
      *                                (size = face_edge_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
      * \param [in]  n_edges           Number of edges
-     * \param [in]  edge_vtx_idx      Vertices to edges connectivity index
-     *                                (edge_vtx_idx[0] = 0 and
-     *                                size_idx = max(edge_vtx) + 1)
      * \param [in]  edge_vtx          Polygon vertices to edges connectivity
      *                                (size = edge_vtx_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
@@ -259,7 +408,6 @@ namespace cwipi {
                            int         face_edge_idx[],
                            int         face_edge[],
                            const int   n_edges,
-                           int         edge_vtx_idx[],
                            int         edge_vtx[],
                            CWP_g_num_t parent_num[]);
 
@@ -311,7 +459,7 @@ namespace cwipi {
     *
     */
 
-    inline PDM_Mesh_nodal_t& getPdmNodal() const;
+    inline PDM_part_mesh_nodal_t& getPdmNodal();
 
     /**
     * \brief Get the number of elements of the id_block block.
@@ -335,7 +483,7 @@ namespace cwipi {
     *
     */
 
-    inline int getPartNElts(int id_part) const;
+    int getPartNElts(int id_part) const;
 
     /**
     * \brief Get the number of polyhedra in a partition
@@ -359,7 +507,7 @@ namespace cwipi {
     *
     */
 
-    inline int* getEltConnectivityIndex(int id_block,int i_part);
+    inline int* getPoly2DConnectivityIndex(int id_block,int i_part);
 
     /**
     * \brief Get a block element connectivity
@@ -371,7 +519,20 @@ namespace cwipi {
     *
     */
 
-    inline int* getEltConnectivity     (int id_block,int i_part);
+    inline int* getPoly2DConnectivity     (int id_block,int i_part);
+
+
+    /**
+    * \brief Get a block element connectivity
+    *
+    * This function gets the element connectivity of the id_block block.
+    *
+    * \param [in] id_block Block identifier
+    * \return              Element connectivity of the id_block block
+    *
+    */
+
+    inline int* getStdConnectivity     (int id_block,int i_part);
 
     /**
     * \brief True if coordinates are defined on all partitions False otherwise.
@@ -390,7 +551,7 @@ namespace cwipi {
     *
     *
     */
-   inline int getPdmNodalIndex();
+    inline  PDM_part_mesh_nodal_t * getPdmNodalIndex();
 
    /**
     * \brief Return Coordinates of the i_part partition.
@@ -428,17 +589,27 @@ namespace cwipi {
    inline int getNPart();
 
     //-->>
+    inline int getNCell(int id_part) const;
+
     inline int getNFace(int id_part) const;
 
     inline int getNEdge(int id_part) const;
 
-    inline int* getFaceEdgeIndex(int i_part);
+    inline int *getCellFaceIndex(int i_part);
 
-    inline int* getFaceEdge(int i_part);
+    inline int *getCellFace(int i_part);
 
-    inline int* getEdgeVtxIndex(int i_part);
+    inline int *getFaceEdgeIndex(int i_part);
 
-    inline int* getEdgeVtx(int i_part);
+    inline int *getFaceEdge(int i_part);
+
+    inline int *getFaceVtxIndex(int i_part);
+
+    inline int *getFaceVtx(int i_part);
+
+    inline int *getEdgeVtxIndex(int i_part);
+
+    inline int *getEdgeVtx(int i_part);
     //<<--
 
    void geomFinalize();
@@ -455,21 +626,16 @@ namespace cwipi {
     *
     */
 
-   inline void setVisu(Visu* visu);
+   // inline void setVisu(Visu* visu);
 
    CWP_g_num_t* globalNumGet(int id_block,int i_part) {
       CWP_g_num_t* gnum = _blockDB[id_block] -> GNumMeshGet(i_part);
       return gnum;
    }
 
-   inline Visu* getVisu();
+   // inline Visu* getVisu();
 
-   void connecCompute(int i_part);
-   int* connecIdxGet(int i_part);
-   int* connecGet(int i_part);
 
-   int GNVerticeGet(int i_part);
-   int GNEltGet(int i_part);
    CWP_g_num_t* GNumEltsGet(int i_part);
    double* eltCentersGet(int i_part);
    void eltCentersCompute(int i_part);
@@ -486,59 +652,90 @@ namespace cwipi {
      return _blockDB[id_block] -> blockTypeGet();
    }
 
+   CWP_Block_t* blocksTypeGet() {
+     return _blocksType;
+   }
+
+
+   int* eltIdBlockGet(int i_part) {
+     return _elt_id_block[i_part];
+   }
+
+
+   int* eltInBlockGet(int i_part) {
+     return _elt_in_block[i_part];
+   }
+
+
    CWP_g_num_t* gnumMeshBlockGet(int id_block,int i_part) {
      return _blockDB[id_block] -> GNumMeshGet(i_part);
    }
 
-
-   CWP_g_num_t* gnumInsideBlockGet(int id_block,int i_part) {
-     return _blockDB[id_block] -> GNumBlockGet(i_part);
+   PDM_geometry_kind_t geomKindGet() {
+    return _geom_kind;
    }
 
+   PDM_MPI_Comm _pdm_localComm;
   private:
 
     int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
 
     const MPI_Comm                          &_localComm;              /*!< Communicator */
-    PDM_MPI_Comm                             _pdm_localComm;
-    int                                     _nDim;                   /*!< Entities dimensions */
+
+    int                                     _npart;                  /*!< Number of partition  */
     int                                     _nBlocks;                /*!< Number of blocks of the mesh */
     int*                                    _blocks_id;              /*!< List of block identifiers */
-    int                                     _order;                  /*!< Mesh order */
+    CWP_Block_t*                            _blocksType;              /*!< Blocks type  */
+    std::vector<cwipi::Block*>              _blockDB;                /*!< Blocks database  */
+
     std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
-    std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<double*>                    _coords;                 /*!< Vertices coordinate for each partition  */
-    std::vector<int*>                       _connec_idx;
-    std::vector<int*>                       _connec;
+
+    std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<CWP_g_num_t*>               _gnum_elt;
     std::vector<double*>                    _elt_centers;
+    std::vector<int*>                       _elt_id_block;            /*!< Number of elements for each partition  */
+    std::vector<int*>                       _elt_in_block;           /*!< Number of elements for each partition  */
 
-    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
-    std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
-    int                                     _npart;                  /*!< Number of partition  */
-    int                                     _pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
-    int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
-    int                                     _pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
-    PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
-    std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
-    Visu                                   *_visu;                   /*!< Pointer to the Visu object */
+    std::vector <CWP_g_num_t*>              _global_num_vtx;         /*!< Global vertices numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_elt;         /*!< Global elements numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_face;        /*!< Global faces numbering for each partition  */
+
+    std::vector<int*>                       _connec_idx;
+    std::vector<int*>                       _connec;
+
+    // Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
-    CWP_Dynamic_mesh_t                      _displacement;          /*!< Type of mesh displacement */
+    CWP_Dynamic_mesh_t                      _displacement;           /*!< Type of mesh displacement */
     Coupling                               *_cpl;
 
+    std::vector<int>                        _nCells;        
+    std::vector<int*>                       _cellFaceIdx;
+    std::vector<int*>                       _cellFace;
 
     std::vector<int>                        _nFace;
     std::vector<int*>                       _faceEdgeIdx;
     std::vector<int*>                       _faceEdge;
+    std::vector<int*>                       _faceVtxIdx;
+    std::vector<int*>                       _faceVtx;
+
     std::vector<int>                        _nEdge;
-    std::vector<int*>                       _edgeVtxIdx;
     std::vector<int*>                       _edgeVtx;
-    std::vector<int*>                       _edgeVtxNb;
-    std::vector<int*>                       _faceEdgeNb;
 
     std::vector<CWP_g_num_t*>               _faceLNToGN;
+    std::vector<CWP_g_num_t*>               _cellLNToGN;
 
     int                                     _faceEdgeMethod;
+    int                                     _cellFaceMethod;
+
+    PDM_part_mesh_nodal_t                  *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
+    PDM_geometry_kind_t                     _geom_kind;
+
+    bool                                    _isVtxGnumComputed;
+    bool                                    _isEltGnumComputed;
+    bool                                    _isFaceGnumComputed;
+
+
 
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
@@ -552,13 +749,13 @@ namespace cwipi {
     return _displacement;
   }
 
-  void Mesh::setVisu(Visu* visu) {
-    _visu = visu;
-  }
+  // void Mesh::setVisu(Visu* visu) {
+  //   // _visu = visu;
+  // }
 
-  Visu* Mesh::getVisu() {
-    return _visu;
-  }
+  // Visu* Mesh::getVisu() {
+  //   // return _visu;
+  // }
 
   int  Mesh::getIdVisu(int block_id) {
     return _id_visu[block_id];
@@ -572,7 +769,7 @@ namespace cwipi {
     return _coords[i_part];
   }
 
-  int Mesh::getPdmNodalIndex() {
+  PDM_part_mesh_nodal_t *Mesh::getPdmNodalIndex() {
     return _pdmNodal_handle_index;
   }
 
@@ -596,7 +793,7 @@ namespace cwipi {
 
   bool Mesh::gnumVtxRequired () {
     for(int i=0; i<_npart;i++){
-      if(_global_num_vtx[i] == NULL && _nVertex[i]>0)
+      if(_global_num_vtx[i] == NULL && _nVertex[i] > 0)
         return true;
     }
     return false;
@@ -618,21 +815,9 @@ namespace cwipi {
     return _global_num_vtx[i_part];
   }
 
-
-  PDM_Mesh_nodal_t& Mesh::getPdmNodal() const
-  {
-    return *_pdmNodal;
-  }
-
-
   int Mesh::getBlockNElts(int id_block,int i_part)
   {
     return _blockDB[id_block] -> NEltsGet()[i_part];
-  }
-
-  int Mesh::getPartNElts(int id_part) const
-  {
-    return _nElts[id_part];
   }
 
   /*int Mesh::getPartNPolyhedra(int i_part) const
@@ -641,45 +826,63 @@ namespace cwipi {
   }
   */
 
-  int* Mesh::getEltConnectivityIndex(int id_block,int i_part)
+  int* Mesh::getPoly2DConnectivityIndex(int id_block,int i_part)
   {
-    return _blockDB[id_block] -> ConnecIDXGet()[i_part];
+    BlockFP * block = dynamic_cast <BlockFP *> (_blockDB[id_block]);
+    return block-> ConnecIDXGet()[i_part];
   }
 
-  int* Mesh::getEltConnectivity(int id_block,int i_part)
+  int* Mesh::getPoly2DConnectivity(int id_block,int i_part)
   {
-    return _blockDB[id_block] -> ConnecGet()[i_part];
+    BlockFP * block = dynamic_cast <BlockFP *> (_blockDB[id_block]);
+    return block -> ConnecGet()[i_part];
+  }
+
+  int* Mesh::getStdConnectivity(int id_block,int i_part)
+  {
+    BlockStd * block = dynamic_cast <BlockStd *> (_blockDB[id_block]);
+    return block-> ConnecGet()[i_part];
   }
 
   //-->>
-  int Mesh::getNFace(int id_part) const
-  {
-    return _nFace[id_part];
+  int Mesh::getNCell(int id_part) const {
+      return _nCells[id_part];
   }
 
-  int Mesh::getNEdge(int id_part) const
-  {
-    return _nEdge[id_part];
+  int Mesh::getNFace(int id_part) const {
+      return _nFace[id_part];
   }
 
-  int* Mesh::getFaceEdgeIndex(int i_part)
-  {
-    return _faceEdgeIdx[i_part];
+  int Mesh::getNEdge(int id_part) const {
+      return _nEdge[id_part];
   }
 
-  int* Mesh::getFaceEdge(int i_part)
-  {
-    return _faceEdge[i_part];
+  int *Mesh::getCellFaceIndex(int i_part) {
+      return _cellFaceIdx[i_part];
   }
 
-  int* Mesh::getEdgeVtxIndex(int i_part)
-  {
-    return _edgeVtxIdx[i_part];
+  int *Mesh::getCellFace(int i_part) {
+      return _cellFace[i_part];
   }
 
-  int* Mesh::getEdgeVtx(int i_part)
-  {
-    return _edgeVtx[i_part];
+  int *Mesh::getFaceEdgeIndex(int i_part) {
+      return _faceEdgeIdx[i_part];
+  }
+
+  int *Mesh::getFaceEdge(int i_part) {
+      return _faceEdge[i_part];
+  }
+
+  int *Mesh::getFaceVtxIndex(int i_part) {
+      return _faceVtxIdx[i_part];
+  }
+
+  int *Mesh::getFaceVtx(int i_part) {
+      return _faceVtx[i_part];
+  }
+
+  int *Mesh::getEdgeVtx(int i_part) {
+      return _edgeVtx[i_part];
   }
   //<<--
 

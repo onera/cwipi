@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -66,9 +66,10 @@ namespace cwipi {
     void
     couplingCreate
     (
-     const CodeProperties        &localCodeProperties,
+           CodeProperties        &localCodeProperties,
      const string                &cplId,
-     const CodeProperties        &coupledCodeProperties,
+           CodeProperties        &coupledCodeProperties,
+     const CWP_Interface_t       entities_dim,
      const CWP_Comm_t           commType,
      const CWP_Spatial_interp_t           spatialInterpAlgo,
      const int                    nPart,
@@ -120,6 +121,30 @@ namespace cwipi {
     (
      const CodeProperties &localCodeProperties,
      const string &cplId
+    );
+
+    void
+    timeUpdate
+    (
+     const CodeProperties &localCodeProperties,
+     double                current_time
+    );
+
+    // Begin code time step
+
+    void
+    time_step_beg
+    (
+     const CodeProperties &localCodeProperties,
+     double                current_time
+    );
+
+    // End code time step
+
+    void
+    time_step_end
+    (
+     const CodeProperties &localCodeProperties
     );
 
   private:

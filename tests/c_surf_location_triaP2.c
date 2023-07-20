@@ -26,6 +26,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "cwipi_priv.h"
 #include "grid_mesh.h"
 
 
@@ -62,7 +63,9 @@
 
 static double _f(double x, double y, double z)
 {
+  CWIPI_UNUSED(y);
   return x*x + z*z - x*z + z - x + 2. + 3*z; 
+
 }
 
 
@@ -207,9 +210,9 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
+  const char *codeName;
   int codeId;
-  char *codeCoupledName;
+  const char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -458,8 +461,8 @@ int main
   /* Exchange */
 
   int nNotLocatedPoints = 0;
-  char *sendValuesName;
-  char *recvValuesName;
+  const char *sendValuesName;
+  const char *recvValuesName;
 
   sendValuesName = "_fs";
   recvValuesName = "_fr";
@@ -558,6 +561,9 @@ int main
   /* Free
    * ---- */
   
+  free(pts_to_locate);
+  free(res);
+  free(ijk);
   free(coords);
   free(eltsConnecPointer);
   free(eltsConnec);
