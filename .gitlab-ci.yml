@@ -101,6 +101,9 @@ job:build_coverage:
 job:doc:
   stage: build
   needs: ["job:init_repo", "job:build"] #job:init is needed to get dotenv artifacts
+  before_script:
+    - module purge
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "intel@2022" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
   rules:
     - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
   script:
