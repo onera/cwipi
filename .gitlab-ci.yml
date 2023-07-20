@@ -70,7 +70,7 @@ job:build:
   before_script:
     - module purge
     - echo "compilo = $COMPILER"
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021
   script:
     - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
     - cd $CUSTOM_CI_DIR
@@ -91,29 +91,29 @@ job:build_coverage:
   stage: build
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021
   script:
     - cd $CUSTOM_CI_DIR
     - mkdir -p build_coverage && cd build_coverage
     - cmake -DCMAKE_BUILD_TYPE="Coverage" -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON -DMPIEXEC_EXECUTABLE=/opt/tools/intel/oneapi/mpi/2021.6.0/bin/mpirun ../
     - make -j
 
-job:doc:
-  stage: build
-  needs: ["job:init_repo", "job:build"] #job:init is needed to get dotenv artifacts
-  before_script:
-    - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "intel@2022" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
-  script:
-    - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
-    - cd $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug
-    - make doc
-  artifacts:
-    paths:
-      - ./build/doc/*
-    expire_in: 24 hours
+#job:doc:
+# stage: build
+# needs: ["job:init_repo", "job:build"] #job:init is needed to get dotenv artifacts
+# before_script:
+#   - module purge
+#   - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "intel@2022" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021 
+# rules:
+#   - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
+# script:
+#   - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
+#   - cd $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug
+#   - make doc
+# artifacts:
+#   paths:
+#     - ./build/doc/*
+#   expire_in: 24 hours
 
 unit_test:
   parallel:
@@ -149,7 +149,7 @@ unit_test:
   stage: test
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler $COMPILER --mpi $MPI_LIB && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021
   script:
     - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
     - export SLURM_EXACT=1
@@ -178,7 +178,7 @@ job:coverage_report:
   stage: coverage
   before_script:
     - module purge
-    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg 
+    - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "gcc@12" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021
   script:
     - export SLURM_EXACT=1
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
