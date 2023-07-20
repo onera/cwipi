@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -28,9 +28,12 @@
  *
  */
 
+#include <unistd.h>
+
 #include <mpi.h>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 
 #include <map>
 #include <vector>
@@ -84,12 +87,12 @@ namespace cwipi {
     /**
      * \brief Return if the current rank is a coupled rank
      *
-     * \return  isCoupledRank
+     * \return  isActiveRank
      *
      */
 
     inline bool
-    isCoupledRank() const;
+    isActiveRank() const;
 
 
     /**
@@ -100,7 +103,7 @@ namespace cwipi {
      */
 
     inline void
-    isCoupledRankset
+    isActiveRankset
     (
     bool status
     );
@@ -489,12 +492,30 @@ namespace cwipi {
 
 
     /**
+     * \brief Dump string of properties
+     *
+     */
+
+    string
+    str_dump();
+
+
+    /**
      * \brief Lock access to the control parameters
      *
      */
 
     inline void
     paramLock();
+
+
+    /**
+     * \brief Is locked param
+     *
+     */
+
+    inline int
+    paramIsLocked();
 
 
     /**
@@ -512,10 +533,24 @@ namespace cwipi {
      */
 
     inline void
-    isLocalSet
-    (
-    bool status
-    );
+    isLocalSet (bool status);
+
+   /**
+     * \brief Set the user structure
+     *
+     */
+
+    inline void
+    userStructureSet (void *userStruct);
+
+
+   /**
+     * \brief Get the user structure
+     *
+     */
+
+    inline void * 
+    userStructureGet();
 
 
   private:
@@ -575,7 +610,9 @@ namespace cwipi {
                                          *   in MPI global communicator */
     MPI_Comm  _globalComm;    /*!< MPI global communicator */
     MPI_Comm  _intraComm;     /*!< MPI intra communicator */
-    bool      _isCoupledRank;  /*!< Is a coupled rank */
+    bool      _isActiveRank;  /*!< Is a coupled rank */
+
+    void     *_userStruct;    /*!< Generic pointer about a user structure associated to the code */
 
     MPI_Group _intraGroup;     /*!< MPI group in the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
@@ -645,6 +682,36 @@ namespace cwipi {
     _isLocal = status;
   }
 
+
+ /**
+   * \brief Set the user structure
+   *
+   */
+
+  void
+  CodeProperties::userStructureSet
+  (
+  void *userStruct
+  )
+  {
+    _userStruct = userStruct;
+  }
+
+
+ /**
+   * \brief Get the user structure
+   *
+   */
+
+  void * 
+  CodeProperties::userStructureGet
+  (
+  )
+  {
+    return _userStruct;
+  }
+
+
   /**
    * \brief Lock access to the control parameters
    *
@@ -654,6 +721,17 @@ namespace cwipi {
   CodeProperties::paramLock()
   {
     _winGlobData[0] = 1;
+  }
+
+  /**
+   * \brief Is locked param
+   *
+   */
+
+  int
+  CodeProperties::paramIsLocked()
+  {
+    return (_winGlobData[0] == 1);
   }
 
 
@@ -672,14 +750,14 @@ namespace cwipi {
   /**
    * \brief Return if the current rank is a coupled rank
    *
-   * \return  isCoupledRank
+   * \return  isActiveRank
    *
    */
 
   bool
-  CodeProperties::isCoupledRank() const
+  CodeProperties::isActiveRank() const
   {
-    return _isCoupledRank;
+    return _isActiveRank;
   }
 
 
@@ -691,12 +769,12 @@ namespace cwipi {
    */
 
   void
-  CodeProperties::isCoupledRankset
+  CodeProperties::isActiveRankset
   (
   bool status
   )
   {
-    _isCoupledRank = status;
+    _isActiveRank = status;
   }
 
 
@@ -882,6 +960,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -889,7 +968,6 @@ namespace cwipi {
       int nIntParam    = _winGlobData[1];
 
       if (nIntParam > 0) {
-
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamIdxName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamValue);
@@ -934,8 +1012,12 @@ namespace cwipi {
   (
    const string &name,
    int          *value
-  )
+  ) 
   {
+    // cout << "ctrlParamGet int " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
+
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
     _updateIntValues ();
@@ -992,6 +1074,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -999,7 +1082,6 @@ namespace cwipi {
       int nDoubleParam    = _winGlobData[2];
 
       if (nDoubleParam > 0) {
-
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamIdxName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamName);
         MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamValue);
@@ -1044,8 +1126,11 @@ namespace cwipi {
   (
    const string &name,
    double       *value
-  )
+  ) 
   {
+    // cout << "ctrlParamGet double " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -1102,6 +1187,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1161,6 +1247,9 @@ namespace cwipi {
    char        **value
   )
   {
+    // cout << "ctrlParamGet char " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -1252,7 +1341,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
   }
 
   /**
@@ -1310,7 +1399,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
   }
 
   /**
@@ -1391,7 +1480,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
   }
 
   /**
@@ -1481,7 +1570,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
   }
 
 
@@ -1571,7 +1660,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
   }
 
   /**
@@ -1677,7 +1766,7 @@ namespace cwipi {
 
     }
 
-    MPI_Barrier (_intraComm);
+    MPI_Barrier(_intraConnectableComm);
 
   }
 
@@ -1862,6 +1951,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1930,6 +2020,16 @@ namespace cwipi {
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+    if (typeid(T) == typeid(string)) {
+      _updateStrValues();
+    }
+    else if (typeid(T) == typeid(int)) {
+      _updateIntValues ();
+    }
+    else if (typeid(T) == typeid(double)) {
+      _updateDoubleValues();
+    }
+
     if (rank != _rootRankInGlobalComm) {
 
       do {
@@ -1940,6 +2040,7 @@ namespace cwipi {
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
           MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
         }
       }  while (lockStatus);
@@ -1991,9 +2092,9 @@ namespace cwipi {
                 "Type not taken into account \n");
     }
 
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamName);
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamIdxName);
 
     *names = (char **) malloc(sizeof(char *) * nTypeParam);
@@ -2036,106 +2137,158 @@ namespace cwipi {
    const string &name
   )
   {
-    int rank;
-    MPI_Comm_rank(_globalComm, &rank);
+    // Get MPI rank index
+    int i_rank;
+    MPI_Comm_rank(_globalComm, &i_rank);
 
-    int oldLockStatus   = _winGlobData[0];
-    int oldNIntParam    = _winGlobData[1];
-    int oldNDoubleParam = _winGlobData[2];
-    int oldNStrParam    = _winGlobData[3];
-    int lockStatus      = oldLockStatus;
-    int nIntParam       = oldNIntParam;
-    int nDoubleParam    = oldNDoubleParam;
-    int nStrParam       = oldNStrParam;
-
+    // Lock global window
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
-    if (rank != _rootRankInGlobalComm) {
+    // Variables to template
+    int nTypeParam = 0;
 
-      do {
-        MPI_Request rq1;
-        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
-                  0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
-        lockStatus = _winGlobData[0];
-        if (lockStatus) {
-          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
-          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
-        }
-      }  while (lockStatus);
-
-      nIntParam    = _winGlobData[1];
-      nDoubleParam = _winGlobData[2];
-      nStrParam    = _winGlobData[3];
-
-    }
-
-    else {
-      if (lockStatus) {
-        PDM_error(__FILE__, __LINE__, 0,
-                   "Unlock parameters before read its on the current rank\n");
-      }
-
-    }
+    int  *winTypeParamIdxNameData = NULL;
+    char *winTypeParamNameData    = NULL;
 
     MPI_Win  *winTypeParamIdxName = NULL;
     MPI_Win  *winTypeParamName = NULL;
 
-    int  *winTypeParamIdxNameData = NULL;
-    char *winTypeParamNameData = NULL;
+    // if not rank with window
+    if (i_rank != _rootRankInGlobalComm) {
 
-    int nTypeParam = 0;
+      int lockStatus = 1;
+      do {
+        MPI_Request rq1;
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4,
+                  MPI_INT, _winGlob, &rq1);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          usleep(1); // WARNING mandatory to allow ECLUSIVE to access
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus);
 
-    if (typeid(T) == typeid(string)) {
-      nTypeParam = nStrParam;
-      winTypeParamIdxName      = &_winStrParamIdxName;
-      winTypeParamName         = &_winStrParamName;
-      winTypeParamIdxNameData  = _winStrParamIdxNameData;
-      winTypeParamNameData     = _winStrParamNameData;
+      if (typeid(T) == typeid(string)) {
+
+        nTypeParam               = _winGlobData[3];
+        winTypeParamIdxNameData  = _winStrParamIdxNameData;
+        winTypeParamNameData     = _winStrParamNameData;
+        winTypeParamIdxName      = &_winStrParamIdxName;
+        winTypeParamName         = &_winStrParamName;
+
+      }
+      else if (typeid(T) == typeid(int)) {
+
+        nTypeParam               = _winGlobData[1];
+        winTypeParamIdxNameData  = _winIntParamIdxNameData;
+        winTypeParamNameData     = _winIntParamNameData;
+        winTypeParamIdxName     = &_winIntParamIdxName;
+        winTypeParamName        = &_winIntParamName;
+
+      }
+      else if (typeid(T) == typeid(double)) {
+
+        nTypeParam               = _winGlobData[2];
+        winTypeParamIdxNameData  = _winDoubleParamIdxNameData;
+        winTypeParamNameData     = _winDoubleParamNameData;
+        winTypeParamIdxName     = &_winDoubleParamIdxName;
+        winTypeParamName        = &_winDoubleParamName;
+
+      }
+      else {
+        PDM_error(__FILE__, __LINE__, 0,
+                  "Type not taken into account \n");
+      }
+
+      if (nTypeParam > 0) {
+        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
+                      *winTypeParamName);
+        MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
+                      *winTypeParamIdxName);
+
+        MPI_Get (winTypeParamIdxNameData, nTypeParam + 1,
+                 MPI_INT, _rootRankInGlobalComm, 0, nTypeParam + 1,
+                 MPI_INT, *winTypeParamIdxName);
+
+        MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
+
+        MPI_Get (winTypeParamNameData, winTypeParamIdxNameData[nTypeParam],
+                 MPI_CHAR, _rootRankInGlobalComm, 0, winTypeParamIdxNameData[nTypeParam],
+                 MPI_CHAR, *winTypeParamName);
+
+        MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
+      }
     }
-    else if (typeid(T) == typeid(int)) {
-      nTypeParam = nIntParam;
-      winTypeParamIdxName     = &_winIntParamIdxName;
-      winTypeParamName        = &_winIntParamName;
-      winTypeParamIdxNameData = _winIntParamIdxNameData;
-      winTypeParamNameData    = _winIntParamNameData;
-    }
-    else if (typeid(T) == typeid(double)) {
-      nTypeParam = nDoubleParam;
-      winTypeParamIdxName     = &_winDoubleParamIdxName;
-      winTypeParamName        = &_winDoubleParamName;
-      winTypeParamIdxNameData = _winDoubleParamIdxNameData;
-      winTypeParamNameData    = _winDoubleParamNameData;
-    }
+
     else {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Type not taken into account \n");
+
+      if (typeid(T) == typeid(string)) {
+
+        nTypeParam               = _winGlobData[3];
+        winTypeParamIdxNameData  = _winStrParamIdxNameData;
+        winTypeParamNameData     = _winStrParamNameData;
+        winTypeParamIdxName      = &_winStrParamIdxName;
+        winTypeParamName         = &_winStrParamName;
+
+      }
+      else if (typeid(T) == typeid(int)) {
+
+        nTypeParam               = _winGlobData[1];
+        winTypeParamIdxNameData  = _winIntParamIdxNameData;
+        winTypeParamNameData     = _winIntParamNameData;
+        winTypeParamIdxName     = &_winIntParamIdxName;
+        winTypeParamName        = &_winIntParamName;
+
+      }
+      else if (typeid(T) == typeid(double)) {
+
+        nTypeParam               = _winGlobData[2];
+        winTypeParamIdxNameData  = _winDoubleParamIdxNameData;
+        winTypeParamNameData     = _winDoubleParamNameData;
+        winTypeParamIdxName     = &_winDoubleParamIdxName;
+        winTypeParamName        = &_winDoubleParamName;
+
+      }
+      else {
+        PDM_error(__FILE__, __LINE__, 0,
+                  "Type not taken into account \n");
+      }
+
+      int lockStatus = _winGlobData[0];
+      if (lockStatus) {
+        PDM_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");
+      }
     }
 
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamName);
-    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0,
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0,
                   *winTypeParamIdxName);
 
-    int sName = name.size();
+    // check correct name if there are any parameters
     int found = 0;
-    for (int i = 0; i < nTypeParam; i++) {
-      int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
-      if (sName == sParam) {
-       found = !strncmp(name.c_str(),
-               winTypeParamNameData + winTypeParamIdxNameData[i],
-               sName);
+    if (nTypeParam > 0) {
+      int sName = name.size();
+      for (int i = 0; i < nTypeParam; i++) {
+        int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+        if (sName == sParam) {
+          found = !strncmp(name.c_str(),
+                           winTypeParamNameData + winTypeParamIdxNameData[i],
+                           sName);
+        }
+        if (found) break;
       }
-      if (found) break;
     }
-
     MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
     MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
+
     MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
 
     return found;
   }
-
 
   /**
    * \brief  Is a local code ?

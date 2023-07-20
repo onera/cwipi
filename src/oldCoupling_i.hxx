@@ -55,7 +55,7 @@ namespace cwipi {
   {
     if (!strcmp(option, "opt_bbox_step")) {
       sscanf(value, "%d", &_optBboxStep);
-      for (int i = 0; i<_tablelocationToLocalMesh.size(); i++) {
+      for (size_t i = 0; i<_tablelocationToLocalMesh.size(); i++) {
         _tablelocationToLocalMesh[i]->optBboxStep(_optBboxStep);
       }
     }
@@ -70,6 +70,7 @@ namespace cwipi {
   {
     _interpolationFct_f = fct;
   }
+  
   void  oldCoupling::set_ho_interpolation_function(cwipi_user_interp_ho_fct_t fct)
   {
     _ho_interpolationFct = fct;

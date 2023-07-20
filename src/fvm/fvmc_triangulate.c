@@ -1354,6 +1354,10 @@ fvmc_triangulate_prism(int                dim,
                        fvmc_lnum_t         tetrahedron_vertices[])
 {
 
+  FVMC_UNUSED(dim);
+  FVMC_UNUSED(coords);
+  FVMC_UNUSED(parent_vertex_num);
+
   tetrahedron_vertices[ 0] = prism_vertices[0]; // 1st tetrahedron
   tetrahedron_vertices[ 1] = prism_vertices[1];
   tetrahedron_vertices[ 2] = prism_vertices[2];
@@ -1401,6 +1405,10 @@ fvmc_triangulate_hexa(int                dim,
                       const fvmc_lnum_t   hexa_vertices[],
                       fvmc_lnum_t         tetrahedron_vertices[])
 {
+
+  FVMC_UNUSED(dim);
+  FVMC_UNUSED(coords);
+  FVMC_UNUSED(parent_vertex_num);
 
   tetrahedron_vertices[ 0] = hexa_vertices[0]; // 1st tetrahedron
   tetrahedron_vertices[ 1] = hexa_vertices[1];
@@ -1457,6 +1465,10 @@ fvmc_triangulate_pyra(int                dim,
                       const fvmc_lnum_t   pyra_vertices[],
                       fvmc_lnum_t         tetrahedron_vertices[])
 {
+
+  FVMC_UNUSED(dim);
+  FVMC_UNUSED(coords);
+  FVMC_UNUSED(parent_vertex_num);
 
   tetrahedron_vertices[0] = pyra_vertices[0]; // 1st tetrahedron
   tetrahedron_vertices[1] = pyra_vertices[1];

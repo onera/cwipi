@@ -139,13 +139,13 @@ void LocationToDistantMesh::synchronize()
       MPI_Bcast(&_nLocatedPoint, 1, MPI_INT, rootRank, localComm );
 
       if (_locatedPoint != NULL)
-        delete [] _locatedPoint;
+        free ( _locatedPoint);
 
       if (_unlocatedPoint != NULL)
-        delete [] _unlocatedPoint ;
+        free ( _unlocatedPoint );
 
-      _locatedPoint = new int[_nLocatedPoint];
-      _unlocatedPoint = new int[_nUnlocatedPoint];
+      _locatedPoint =  (int *) malloc (sizeof(int) * (_nLocatedPoint));
+      _unlocatedPoint =  (int *) malloc (sizeof(int) * (_nUnlocatedPoint));
 
       MPI_Bcast(_locatedPoint,
                 _nLocatedPoint,
@@ -157,22 +157,22 @@ void LocationToDistantMesh::synchronize()
       if (_locationInfo == CWIPI_DISTANT_MESH_INFO) {
 
         if (_elementContaining != NULL)
-          delete [] _elementContaining;
+          free ( _elementContaining);
 
         if (_elementContainingNVertex != NULL)
-          delete [] _elementContainingNVertex ;
+          free ( _elementContainingNVertex );
 
         if (_elementContainingBarycentricCoordinates != NULL)
-          delete [] _elementContainingBarycentricCoordinates ;
+          free ( _elementContainingBarycentricCoordinates );
 
         if (_elementContainingVertex != NULL)
-          delete [] _elementContainingVertex ;
+          free ( _elementContainingVertex );
 
         if (_elementContainingVertexCoords != NULL)
-          delete [] _elementContainingVertexCoords ;
+          free ( _elementContainingVertexCoords );
 
-        _elementContaining = new int [_nLocatedPoint];
-        _elementContainingNVertex = new int [_nLocatedPoint+1];
+        _elementContaining =  (int *) malloc (sizeof(int) * (_nLocatedPoint));
+        _elementContainingNVertex =  (int *) malloc (sizeof(int) * (_nLocatedPoint+1));
 
         MPI_Bcast(_elementContaining,
                   _nLocatedPoint,
@@ -186,9 +186,9 @@ void LocationToDistantMesh::synchronize()
                   rootRank,
                   localComm);
 
-        _elementContainingBarycentricCoordinates = new double [_elementContainingNVertex[_nLocatedPoint]];
-        _elementContainingVertex = new int [_elementContainingNVertex[_nLocatedPoint]];
-        _elementContainingVertexCoords = new double [3 * _elementContainingNVertex[_nLocatedPoint]];
+        _elementContainingBarycentricCoordinates =  (double *) malloc (sizeof(double) * (_elementContainingNVertex[_nLocatedPoint]));
+        _elementContainingVertex =  (int *) malloc (sizeof(int) * (_elementContainingNVertex[_nLocatedPoint]));
+        _elementContainingVertexCoords =  (double *) malloc (sizeof(double) * (3 * _elementContainingNVertex[_nLocatedPoint]));
 
         MPI_Bcast(_elementContainingBarycentricCoordinates,
                   _elementContainingNVertex[_nLocatedPoint],
@@ -400,43 +400,43 @@ void LocationToDistantMesh::unpackLocation(unsigned char *buff)
  
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if (_elementContainingNVertex != NULL) delete [] _elementContainingNVertex;
-    _elementContainingNVertex = new int[s];
+    if (_elementContainingNVertex != NULL) free ( _elementContainingNVertex);
+    _elementContainingNVertex =  (int *) malloc (sizeof(int) * (s));
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContainingNVertex,s*sizeof(int));
   }
     
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if (_elementContainingVertex != NULL) delete [] _elementContainingVertex;
-    _elementContainingVertex = new int[s];
+    if (_elementContainingVertex != NULL) free ( _elementContainingVertex);
+    _elementContainingVertex =  (int *) malloc (sizeof(int) * (s));
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingVertex,s*sizeof(int));
   }
 
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if (_elementContainingBarycentricCoordinates != NULL) delete [] _elementContainingBarycentricCoordinates;
-    _elementContainingBarycentricCoordinates = new double[s];
+    if (_elementContainingBarycentricCoordinates != NULL) free ( _elementContainingBarycentricCoordinates);
+    _elementContainingBarycentricCoordinates =  (double *) malloc (sizeof(double) * (s));
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingBarycentricCoordinates,s*sizeof(double));
   } 
 
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if(_elementContainingMPIrankContaining != NULL) delete [] _elementContainingMPIrankContaining;
-    _elementContainingMPIrankContaining = new int[s];
+    if(_elementContainingMPIrankContaining != NULL) free ( _elementContainingMPIrankContaining);
+    _elementContainingMPIrankContaining =  (int *) malloc (sizeof(int) * (s));
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingMPIrankContaining,s*sizeof(int));
   } 
  
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if (_elementContainingVertexCoords != NULL) delete [] _elementContainingVertexCoords;
-    _elementContainingVertexCoords = new double[s] ;
+    if (_elementContainingVertexCoords != NULL) free ( _elementContainingVertexCoords);
+    _elementContainingVertexCoords = (double *) malloc (sizeof(double) * s) ;
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContainingVertexCoords,s*sizeof(double));
   } 
   
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
-    if (_elementContaining != NULL) delete [] _elementContaining;
-    _elementContaining = new int[s];
+    if (_elementContaining != NULL) free ( _elementContaining);
+    _elementContaining =  (int *) malloc (sizeof(int) * (s));
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContaining,_nLocatedPoint*sizeof(int));
   } 
   _toLocate = false;
@@ -453,30 +453,30 @@ void LocationToDistantMesh::clear()
 {
   if (!_isCoupledRank && _couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
     if (_locatedPoint != NULL) {
-      delete []  _locatedPoint;
+      free (  _locatedPoint);
       _locatedPoint = NULL;
     }
     
 
     if (_unlocatedPoint != NULL) {
-      delete []  _unlocatedPoint;
+      free (  _unlocatedPoint);
       _unlocatedPoint = NULL;
     }
 
   }
 
   if (_elementContainingBarycentricCoordinates != NULL)
-    delete [] _elementContainingBarycentricCoordinates;
+    free ( _elementContainingBarycentricCoordinates);
   if (_elementContainingMPIrankContaining != NULL)
-    delete [] _elementContainingMPIrankContaining;
+    free ( _elementContainingMPIrankContaining);
   if (_elementContainingNVertex != NULL)
-    delete [] _elementContainingNVertex;
+    free ( _elementContainingNVertex);
   if (_elementContainingVertex != NULL)
-    delete [] _elementContainingVertex;
+    free ( _elementContainingVertex);
   if (_elementContainingVertexCoords != NULL)
-    delete [] _elementContainingVertexCoords;
+    free ( _elementContainingVertexCoords);
   if (_elementContaining != NULL)
-    delete [] _elementContaining;
+    free ( _elementContaining);
 
   _elementContainingBarycentricCoordinates = NULL;
   _elementContainingMPIrankContaining = NULL;

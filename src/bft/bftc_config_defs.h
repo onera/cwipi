@@ -46,6 +46,59 @@ extern "C" {
  * Basic macros
  *============================================================================*/
 
+
+/*============================================================================
+ * Suppress warning
+ *============================================================================*/
+
+#if defined(__INTEL_COMPILER)
+#define BFTC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define BFTC_INTEL_SUPPRESS_WARNING_PUSH _Pragma("warning(push)")
+#define BFTC_INTEL_SUPPRESS_WARNING(w) BFTC_PRAGMA_TO_STR(warning(disable:w))
+#define BFTC_INTEL_SUPPRESS_WARNING_POP _Pragma("warning(pop)")
+#define BFTC_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    BFTC_INTEL_SUPPRESS_WARNING_PUSH BFTC_INTEL_SUPPRESS_WARNING(w)
+#else // BFTC_INTEL
+#define BFTC_INTEL_SUPPRESS_WARNING_PUSH
+#define BFTC_INTEL_SUPPRESS_WARNING(w)
+#define BFTC_INTEL_SUPPRESS_WARNING_POP
+#define BFTC_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // BFTC_INTEL
+
+#if defined(__clang__)
+#define BFTC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define BFTC_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+#define BFTC_CLANG_SUPPRESS_WARNING(w) BFTC_PRAGMA_TO_STR(clang diagnostic ignored w)
+#define BFTC_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+#define BFTC_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    BFTC_CLANG_SUPPRESS_WARNING_PUSH BFTC_CLANG_SUPPRESS_WARNING(w)
+#else // BFTC_CLANG
+#define BFTC_CLANG_SUPPRESS_WARNING_PUSH
+#define BFTC_CLANG_SUPPRESS_WARNING(w)
+#define BFTC_CLANG_SUPPRESS_WARNING_POP
+#define BFTC_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // BFTC_CLANG
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#define BFTC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define BFTC_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define BFTC_GCC_SUPPRESS_WARNING(w) BFTC_PRAGMA_TO_STR(GCC diagnostic ignored w)
+#define BFTC_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+#define BFTC_GCC_SUPPRESS_WARNING_WITH_PUSH(w)                                                  \
+    BFTC_GCC_SUPPRESS_WARNING_PUSH BFTC_GCC_SUPPRESS_WARNING(w)
+#else // BFTC_GCC
+#define BFTC_GCC_SUPPRESS_WARNING_PUSH
+#define BFTC_GCC_SUPPRESS_WARNING(w)
+#define BFTC_GCC_SUPPRESS_WARNING_POP
+#define BFTC_GCC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // DOCTEST_GCC
+
+#define BFTC_UNUSED(x) (void)(x)
+
+BFTC_GCC_SUPPRESS_WARNING("-Wcast-qual")
+BFTC_GCC_SUPPRESS_WARNING("-Wunknown-pragmas")
+
+
 /*============================================================================
  * Internationalization (future)
  *============================================================================*/

@@ -561,7 +561,7 @@ int main
 
 
 
-  char* geofile = "meshes/sphere_palm.geo";
+  char* geofile = CWP_MESH_DIR"sphere_palm.geo";
   int order = 2;
 
   if(currentRank==0) {

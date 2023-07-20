@@ -19,8 +19,10 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "cwipi_priv.h"
+#include "vectorUtilities.hxx"
+
 #include <algorithm>
-#include <vectorUtilities.hxx>
 
 namespace cwipi {
 
@@ -674,6 +676,8 @@ namespace cwipi {
 
   {
 
+    CWIPI_UNUSED (nVertices);
+
     for (int iedge = 0; iedge < nEdges; iedge++) {
 
       const int *connectivityEdge = connectivity + 2*iedge;
@@ -727,7 +731,9 @@ namespace cwipi {
                                   int         *isDegenerated)
 
   {
-      
+   
+    CWIPI_UNUSED(nVertices);
+
     triangleSurfaceVector (nTriangle,
                            connectivity,
                            coords,
@@ -833,6 +839,8 @@ namespace cwipi {
                                     int         *isDegenerated)
 
   {
+
+    CWIPI_UNUSED(nVertices);
 
     tetrahedraOrientedVolume (nTetrahedra,
                               connectivity,

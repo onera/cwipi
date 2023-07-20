@@ -1008,7 +1008,7 @@ _insert_subedge
         (uPn_edge_current[0] + uPn_edge_current[1])/2;
 
 
-    FVMC_ho_basis (type,
+    FVMC_ho_basis ((fvmc_element_t) type,
                    order,
                    n_nodes,
                    1,
@@ -1217,8 +1217,8 @@ _compute_dist2_from_closest_edge_subdivision
               _closest_pt_uP1_current[0]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
 
-      printf("Weights : %12.5e %12.5e %12.5e\n",
-             weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("Weights : %12.5e %12.5e\n",
+             weightsP1[0], weightsP1[1]);
       printf("vtx_edge_current 1 : %12.5e %12.5e %12.5e\n",
              _vtx_edge_current[0], _vtx_edge_current[1], _vtx_edge_current[2]);
       printf("vtx_edge_current 2 : %12.5e %12.5e %12.5e\n",
@@ -2515,7 +2515,7 @@ _insert_subtria
       _uvPn_tria_children[6+2*i+j] =
         (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
     }
-    FVMC_ho_basis (type,
+    FVMC_ho_basis ((fvmc_element_t) type,
                    order,
                    n_nodes,
                    1,
@@ -5269,7 +5269,7 @@ _insert_subtetra
 
     }
 
-    FVMC_ho_basis (type,
+    FVMC_ho_basis ((fvmc_element_t) type,
                    order,
                    n_nodes,
                    1,
@@ -5294,7 +5294,7 @@ _insert_subtetra
 
 
 
-    FVMC_ho_basis (type,
+    FVMC_ho_basis ((fvmc_element_t) type,
                    order,
                    n_nodes,
                    1,

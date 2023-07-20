@@ -43,7 +43,7 @@ namespace cwipi
     _doubleControlParameters(*(new std::map <std::string, double>())),
     _stringControlParameters(*(new std::map <std::string, std::string>()))
   {
-    _localComm = NULL;
+    _localComm = MPI_COMM_NULL;
     _beginningRank = -999;
     _endRank = -999;
   }
@@ -95,7 +95,7 @@ namespace cwipi
     if (!_stringControlParameters.empty())
       _stringControlParameters.clear();
     delete &_stringControlParameters;
-    if (_localComm != NULL)
+    if (_localComm != MPI_COMM_NULL)
       MPI_Comm_free(&_localComm);
 
   }

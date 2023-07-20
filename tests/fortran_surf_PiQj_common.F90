@@ -181,7 +181,9 @@ module spaceMessages
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE 
   use mpi
+#endif
   use variablesCommunes
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
 
@@ -190,6 +192,9 @@ module spaceMessages
 contains
 
   subroutine msg0(msg)
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                :: msg
     !>
@@ -223,9 +228,12 @@ contains
   
   subroutine msg1(buffer)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
     character(*)                   :: buffer
     !>
-    integer                        :: length
+    integer                        :: length, j
     integer                        :: iRank,iErr
     character(len=:), allocatable  :: cTab0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -233,9 +241,16 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     length=len(buffer)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
+      
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+
     allocate( character(len=length) :: cTab0(1:sizeWorld) )
+
+    do iRank=1,sizeWorld
+      do j = 1, length 
+       cTab0(iRank)(j:j) = ' '
+      enddo 
+    enddo
 
     call mpi_gather(                      &
     &    buffer   , length, mpi_character,&
@@ -1451,6 +1466,9 @@ subroutine  userInterpolation                        ( &
   !---
   implicit none
   !---
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
   integer :: entitiesDim
   integer :: order
   integer :: nLocalVertex
@@ -1793,7 +1811,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   use iso_fortran_env
   use iso_c_binding, only: c_loc,c_f_pointer,c_ptr
   
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
   use mpi
+#endif
   use cwipi
   
   use variablesCommunes
@@ -1806,6 +1826,11 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   implicit none
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  !include "mpif.h"
+#endif  
+
   interface
 
     subroutine test_loc (entities_dim, &
@@ -1904,6 +1929,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !include 'libmeshb7.ins'
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
 
   integer, intent(in) :: tmaillage
   
@@ -2087,7 +2115,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     
     !>>>>>>>
-    write(meshName,'("./meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
+    write(meshName,'("meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
     !<<<<<<<
     
     
@@ -2096,7 +2124,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     !>>>>>>>
     !> Initialisation
     nVert=0 ; nQ4=0 ; nT3=0
-    open(newunit=meshUnit,file=trim(meshName),action='read',status='old')
+    open(newunit=meshUnit,file=trim(&
+CWP_MESH_DIR&
+//meshName),action='read',status='old')
     lecture1: do
       read(meshUnit,*)key
       select case(trim(key))

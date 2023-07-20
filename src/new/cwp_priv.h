@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2011-20  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,17 +19,72 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+/*=============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+/*============================================================================
+ * Suppress warning
+ *============================================================================*/
+
+#if defined(__INTEL_COMPILER)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_INTEL_SUPPRESS_WARNING_PUSH _Pragma("warning(push)")
+#define CWP_INTEL_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(warning(disable:w))
+#define CWP_INTEL_SUPPRESS_WARNING_POP _Pragma("warning(pop)")
+#define CWP_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    CWP_INTEL_SUPPRESS_WARNING_PUSH CWP_INTEL_SUPPRESS_WARNING(w)
+#else // CWP_INTEL
+#define CWP_INTEL_SUPPRESS_WARNING_PUSH
+#define CWP_INTEL_SUPPRESS_WARNING(w)
+#define CWP_INTEL_SUPPRESS_WARNING_POP
+#define CWP_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // CWP_INTEL
+
+#if defined(__clang__)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+#define CWP_CLANG_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(clang diagnostic ignored w)
+#define CWP_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+#define CWP_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    CWP_CLANG_SUPPRESS_WARNING_PUSH CWP_CLANG_SUPPRESS_WARNING(w)
+#else // CWP_CLANG
+#define CWP_CLANG_SUPPRESS_WARNING_PUSH
+#define CWP_CLANG_SUPPRESS_WARNING(w)
+#define CWP_CLANG_SUPPRESS_WARNING_POP
+#define CWP_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // CWP_CLANG
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define CWP_GCC_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(GCC diagnostic ignored w)
+#define CWP_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+#define CWP_GCC_SUPPRESS_WARNING_WITH_PUSH(w)                                                  \
+    CWP_GCC_SUPPRESS_WARNING_PUSH CWP_GCC_SUPPRESS_WARNING(w)
+#else // CWP_GCC
+#define CWP_GCC_SUPPRESS_WARNING_PUSH
+#define CWP_GCC_SUPPRESS_WARNING(w)
+#define CWP_GCC_SUPPRESS_WARNING_POP
+#define CWP_GCC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // DOCTEST_GCC
+
+#define CWP_UNUSED(x) (void)(x)  
+
+CWP_GCC_SUPPRESS_WARNING("-Wcast-qual")
+CWP_GCC_SUPPRESS_WARNING("-Wunknown-pragmas")
+
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
+#include "cwp.h" 
+CWP_GCC_SUPPRESS_WARNING_POP
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
 } /* Fake brace to force back Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
-
-
-/*=============================================================================
- * Macro definitions
- *============================================================================*/
 
 /*============================================================================
  * Type
@@ -56,6 +111,13 @@ typedef enum {
  * User interpolation type
  *============================================================================*/
 
+typedef void (*CWP_Interp_function_p_t)
+(
+ void   *python_field,
+ int     i_part,
+ double *buffer_in,
+ double *buffer_out
+);
 
 /*=============================================================================
  * Static global variables
@@ -65,76 +127,6 @@ typedef enum {
 /*=============================================================================
  * Public functions prototypes
  *============================================================================*/
-
-
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from location.
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
- *
- */
-
-void
-CWP_Interp_from_loc_set_f
-(
- const char *local_code_name,
- const char *cpl_id,
- void       *fct
-);
-
-
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from intersection.
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN .
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
- *
- */
-
-void
-CWP_Interp_from_inter_set_f
-(
- const char *local_code_name,
- const char *cpl_id,
- void       *fct
-);
-
-
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from closest points
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN .
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
- *
- */
-
-void
-CWP_Interp_from_closest_set_f
-(
- const char *local_code_name,
- const char *cpl_id,
- void       *fct
-);
-
-
-
-
 
 void
 CWP_surf_gen_init
@@ -209,6 +201,77 @@ CWP_Connectable_comm_get
 (
  char* local_code_name
  );
+
+
+int
+CWP_Part_data_n_part_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id
+);
+
+
+int
+CWP_Part_data_n_ref_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      i_part
+);
+
+
+
+void
+CWP_Field_interp_function_f_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id
+);
+
+
+void
+CWP_Field_interp_function_f_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id,
+ CWP_Interp_function_t       fct
+);
+
+
+
+/* Pass Python Field object to C++ Field object */
+void
+CWP_Field_python_object_set
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+       void *python_object
+ );
+
+
+
+void
+CWP_Field_interp_function_p_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id,
+ CWP_Interp_function_p_t     fct
+);
+
+
+void
+CWP_Field_interp_function_p_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *field_id
+);
 
 #ifdef __cplusplus
 }

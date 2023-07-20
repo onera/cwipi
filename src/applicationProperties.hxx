@@ -317,12 +317,12 @@ namespace cwipi {
 
   char** ApplicationProperties::getListIntControlParameter()
   {
-    char **names = new char * [getNIntControlParameter()];
+    char **names =  (char **) malloc (sizeof(char *) * (getNIntControlParameter()));
     int i = 0;
     for(std::map <std::string, int>::iterator p = _intControlParameters.begin(); 
         p !=_intControlParameters.end(); 
         ++p) {
-      names[i] = new char [p->first.size() + 1];
+      names[i] =  (char *) malloc (sizeof(char) * (p->first.size() + 1));
       strcpy(names[i], p->first.c_str());
       i += 1;
     } 
@@ -331,12 +331,12 @@ namespace cwipi {
 
   char** ApplicationProperties::getListDoubleControlParameter()
   {
-    char **names = new char * [getNDoubleControlParameter()];
+    char **names =  (char **) malloc (sizeof(char *) * (getNDoubleControlParameter()));
     int i = 0;
     for(std::map <std::string, double>::iterator p = _doubleControlParameters.begin(); 
         p !=_doubleControlParameters.end(); 
         ++p) {
-      names[i] = new char [p->first.size() + 1];
+      names[i] =  (char *) malloc (sizeof(char) * (p->first.size() + 1));
       strcpy(names[i], p->first.c_str());
       i += 1;
     } 
@@ -345,12 +345,12 @@ namespace cwipi {
 
   char** ApplicationProperties::getListStringControlParameter()
   {
-    char **names = new char * [getNStringControlParameter()];
+    char **names =  (char **) malloc (sizeof(char *) * (getNStringControlParameter()));
     int i = 0;
     for(std::map <std::string, std::string>::iterator p = _stringControlParameters.begin(); 
         p !=_stringControlParameters.end(); 
         ++p) {
-      names[i] = new char [p->first.size() + 1];
+      names[i] =  (char *) malloc (sizeof(char) * (p->first.size() + 1));
       strcpy(names[i], p->first.c_str());
       i += 1;
     } 

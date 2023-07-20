@@ -29,6 +29,7 @@
 /*----------------------------------------------------------------------------*/
 
 #include "fvmc_config.h"
+#include "fvmc_config_defs.h"
 #include "config_priv.h"
 
 /*----------------------------------------------------------------------------*/
@@ -3196,12 +3197,14 @@ fvmc_to_cgns_export_field(void                   *this_writer_p,
     BFTC_FREE(field_label);
 
 }
-
-/*----------------------------------------------------------------------------*/
+//
 #else
+typedef struct {
 
+  int              index;      /* CGNS base index */
 
-#endif /* defined(HAVE_CGNS) */
+} fvmc_to_cgns_fake_t;
+#endif
 
 #ifdef __cplusplus
 }

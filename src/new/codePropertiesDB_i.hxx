@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -64,6 +64,43 @@ namespace cwipi {
     return _locCodePropertiesDB[localCodeName]->intraCommGet();
   }
 
+  const MPI_Comm &
+  CodePropertiesDB::connectableCommGet(const string & localCodeName) const
+  {
+    return _locCodePropertiesDB[localCodeName]->connectableCommGet();
+  }
+
+ /**
+   * \brief Set the user structure
+   *
+   */
+
+   void
+  CodePropertiesDB::userStructureSet 
+  (
+    const string & localCodeName,
+    void *userStruct
+  )
+  {
+    _locCodePropertiesDB[localCodeName]->userStructureSet(userStruct);
+  }
+
+
+ /**
+   * \brief Get the user structure
+   *
+   */
+
+  void * 
+  CodePropertiesDB::userStructureGet
+  (
+     const string & localCodeName
+  ) const
+  {
+    return _locCodePropertiesDB[localCodeName]->userStructureGet();
+  }
+
+
   /**
    * \brief Return MPI communicator containing all processes of all codes.
    *
@@ -87,7 +124,7 @@ namespace cwipi {
    *
    */
 
-  inline const CodeProperties &
+  inline  CodeProperties &
   CodePropertiesDB::codePropertiesGet
   (
    const string &codeName
@@ -321,36 +358,36 @@ namespace cwipi {
 
   
   /**
-   * \brief Reduce a parameter.
-   *
-   * \param [in]  op     Operator from \ref CWP_Op_t
-   * \param [in]  name   Parameter name
-   * \param [out] res    Result          
-   * \param [in]  nCode  Number of code
-   * \param       ...    Code names
-   *
-   * \return             Operation result
-   *
-   */
+     * \brief Reduce a parameter through a list of codes. The available processes
+     *        are sum, max and min.
+     *
+     * \param [in]  op          Operator from \ref CWP_Op_t
+     * \param [in]  name        Parameter name
+     * \param [in]  nCode       Number of code
+     * \param       code_names  Code names
+     *
+     * \return             Operation result
+     *
+     */
 
   template < typename T > 
   void
   CodePropertiesDB::ctrlParamReduce
   (
-   const CWP_Op_t  op, 
-   const string    &name,
-   T               *res,
-   const int        nCode,
-   va_list         *pa
+    const CWP_Op_t  op,
+    const string    &name,
+    T               *res,
+    const int        nCode,
+    const char     **code_names
   )
   {
-    string codeName1 = string((char*)va_arg(*pa, char *));
+    string codeName1 = string((char*) code_names[0]);
 
     *res = this->ctrlParamGet < T > (codeName1, name);
 
     for (int k = 1; k < nCode; k++) {
 
-      string codeName = string((char*)va_arg(*pa, char *));
+      string codeName = string((char*) code_names[k]);
 
       const map <string, CodeProperties * >::iterator p = 
         _codePropertiesDB.find(codeName);
@@ -362,11 +399,11 @@ namespace cwipi {
       T distParam = this->ctrlParamGet < T > (codeName, name);
 
       switch (op) {
-      case CWP_OP_MIN:
+      case CWP_OP_MAX:
         *res = max(distParam, *res);
         break;
       
-      case CWP_OP_MAX:
+      case CWP_OP_MIN:
         *res = min(distParam, *res);
         break;
 
@@ -396,6 +433,27 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", codeName.c_str());
     p->second->paramLock();
+  }
+
+  /**
+   * \brief Is locked param  
+   *
+   * \param [in]  codeName  Local code name to lock
+   *
+   */
+  
+  int 
+  CodePropertiesDB::isLocked
+  (
+   const string &codeName
+  )
+  {
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end())
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' is not a local code \n", codeName.c_str());
+    return p->second->paramIsLocked();
   }
   
   /**

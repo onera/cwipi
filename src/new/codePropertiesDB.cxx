@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,7 @@ namespace cwipi {
    *                              of all codes
    * \param [in]  n_codes         Number of codes on the current rank
    * \param [in]  code_names      Codes names on the current rank  (n_codes)
-   * \param [in]  is_coupled_rank Current rank is it a coupled rank (n_codes)
+   * \param [in]  is_active_rank  Current rank is active
    * \param [in]  n_param_max     Maximum number of parameters
    * \param [in]  str_size_max    Maximum size for a string
    * \param [out] intra_comms      Current codes intra-communicators  (n_codes)
@@ -103,7 +103,7 @@ namespace cwipi {
   const MPI_Comm     globalComm,
   const int          n_codes,
   const char**       code_names, 
-  const CWP_Status_t *is_coupled_rank,
+  const CWP_Status_t is_active_rank,
   const int          n_param_max,
   const int          str_size_max,      
   MPI_Comm           *intra_comms       
@@ -144,9 +144,9 @@ namespace cwipi {
     for (int i = 0; i < n_codes; i++) {
       properties[1] += strlen(code_names[i]) + 1;
     }
-    //properties[2] = is_coupled_rank;
+    //properties[2] = is_active_rank;
 
-    int *allProperties = new int[2*globalCommSize];
+    int *allProperties =  (int *) malloc (sizeof(int) * (2*globalCommSize));
 
     MPI_Allgather(&properties,
                   2,
@@ -156,18 +156,18 @@ namespace cwipi {
                   MPI_INT,
                   globalComm);
 
-    char *concatenateNames = new char[properties[1]];
+    char *concatenateNames =  (char *) malloc (sizeof(char) * (properties[1]));
     char *_concatenateNames = concatenateNames;
     for (int i = 0; i < n_codes; i++) {
       strcpy(_concatenateNames, code_names[i]);
       _concatenateNames += strlen(code_names[i]) + 1;
     }
 
-    int *iproc = new int[globalCommSize + 1];
-    int *codesLengthName = new int[globalCommSize];
+    int *iproc =  (int *) malloc (sizeof(int) * (globalCommSize + 1));
+    int *codesLengthName =  (int *) malloc (sizeof(int) * (globalCommSize));
 
-    int *iproc2 = new int[globalCommSize + 1];
-    int *n_codes_rank = new int[globalCommSize];
+    int *iproc2 =  (int *) malloc (sizeof(int) * (globalCommSize + 1));
+    int *n_codes_rank =  (int *) malloc (sizeof(int) * (globalCommSize));
     
     iproc[0] = 0;
     iproc2[0] = 0;
@@ -179,10 +179,9 @@ namespace cwipi {
     }
 
     int totalLength = iproc[globalCommSize];
-    int totalCode = iproc2[globalCommSize];
-    
-    char *mergeNames = new char[totalLength];
-    int *mergeIsCoupled = new int[totalCode];
+
+    char *mergeNames     =  (char *) malloc (sizeof(char) * totalLength);
+    int  *mergeIsCoupled =  (int  *) malloc (sizeof(int ) * globalCommSize);
     
     MPI_Allgatherv((void*) concatenateNames,
                    properties[1],
@@ -193,17 +192,16 @@ namespace cwipi {
                    MPI_CHAR,
                    globalComm);
 
-    MPI_Allgatherv((void*) is_coupled_rank,
-                   properties[0],
+    MPI_Allgather((void*) &is_active_rank,
+                   1,
                    MPI_INT,
                    mergeIsCoupled,
-                   n_codes_rank,
-                   iproc2,
+                   1,
                    MPI_INT,
                    globalComm);
 
-    delete[] concatenateNames;
-    delete[] codesLengthName;
+    free ( concatenateNames);
+    free ( codesLengthName);
 
 
 
@@ -212,9 +210,6 @@ namespace cwipi {
     
     int id = 1;
      
-    _isLocalCodeRootrank = false;
-    
-    int icode = 0;
     for (int irank = 0; irank < globalCommSize; irank++) {   
       
       for (int k = 0; k < allProperties[2*irank]; k++) {
@@ -230,9 +225,6 @@ namespace cwipi {
 
         if (p == _codePropertiesDB.end()) {
 
-          if (!_isLocalCodeRootrank) {
-            _isLocalCodeRootrank = currentRank == irank;
-          }
           CodeProperties *currentCodeProperties =
             new CodeProperties(currentName, id++, irank, 
                                currentRank == irank, globalComm,
@@ -264,14 +256,14 @@ namespace cwipi {
         
         }
         
-        if (mergeIsCoupled[icode++]) {        
+        if (mergeIsCoupled[irank]) {
           coupledRankCode[currentName]->push_back(irank);
         }
       
         rankCode[currentName]->push_back(irank);
 
         if (currentRank == irank) {
-          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank[k]);
+          _codePropertiesDB[currentName]->isActiveRankset((bool) is_active_rank);
         }
 
         index += currentName.size() + 1;
@@ -293,6 +285,7 @@ namespace cwipi {
       const int *_ranks = &((*p->second)[0]);
       _codePropertiesDB[p->first]->_intraRanks = p->second;
       int _n_ranks = p->second->size();
+
       MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
                      &(_codePropertiesDB[p->first]->_intraGroup));
       MPI_Comm_create (globalComm, 
@@ -300,6 +293,7 @@ namespace cwipi {
                        &(_codePropertiesDB[p->first]->_intraComm));
 
       int rootIdx = 0;
+      std::vector<int> active_ranks = (*coupledRankCode[p->first]);
       /*std::vector<int> cplRankCode = (*coupledRankCode[p->first]);
       vector<int>::iterator it = std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
       
@@ -311,7 +305,7 @@ namespace cwipi {
       }
       if(rootIdx == _n_ranks)
       PDM_error(__FILE__, __LINE__, 0, "At least one MPI process per code must be monocode.\n");*/
-      _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[rootIdx];
+      _codePropertiesDB[p->first]->_rootRankInGlobalComm = active_ranks[rootIdx];
     }
 
     rankCode.clear();
@@ -528,12 +522,12 @@ namespace cwipi {
 
     }
          
-    delete [] allProperties;
-    delete [] iproc;
-    delete [] iproc2;
-    delete [] mergeNames;
-    delete [] mergeIsCoupled;
-    delete[] n_codes_rank;
+    free ( allProperties);
+    free ( iproc);
+    free ( iproc2);
+    free ( mergeNames);
+    free ( mergeIsCoupled);
+    free ( n_codes_rank);
     
     
     // Create intra coupled code group
@@ -578,6 +572,25 @@ namespace cwipi {
       if (p->second != NULL)
         p->second->dump();
     }
+  }
+
+  /**
+    * \brief Dump string of properties
+    *
+    */
+
+  string
+  CodePropertiesDB::str_dump()
+  {
+    string out;
+    typedef map <string, CodeProperties * >::iterator CI;
+    for (CI p = _codePropertiesDB.begin();
+         p != _codePropertiesDB.end(); p++) {
+      if (p->second != NULL) {
+        out.append(p->second->str_dump());
+      }
+    }
+    return out;
   }
 
 }

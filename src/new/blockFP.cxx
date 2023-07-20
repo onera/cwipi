@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2013-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,6 @@
 #include "cwp.h"
 #include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
-#include <bftc_error.h>
-#include <bftc_printf.h>
 #include <map>
 #include <vector>
 #include <mesh.hxx>
@@ -35,7 +33,7 @@
 
 namespace cwipi {
   BlockFP::BlockFP()
-     :Block::Block()
+      :Block::Block()
   {
 
   }
@@ -46,91 +44,70 @@ namespace cwipi {
 
   }
 
-  void BlockFP::FromPDMBlock(int pdm_id_block, void* mesh){
-
-     _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
-
-     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
-     _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type);
-     BlockAdd(_blockType, mesh);
-
-     for(int id_part=0;id_part < _n_part;id_part++){
-        int nElts = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
-                                                   pdm_id_block,
-                                                   id_part );
-        _block_id_pdm = pdm_id_block;
-        int* connec     = NULL;
-        int* connec_idx = NULL;
-        PDM_Mesh_nodal_block_poly2d_get  (_pdmNodal_handle_index,
-                                          _block_id_pdm,
-                                          id_part,
-                                          &connec_idx,
-                                          &connec);
-
-         blockSet(id_part,nElts,connec_idx,connec,NULL);
-       }
-
+  void BlockFP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  {
+    Block::BlockAdd(blockType, mesh);
+    _connec_idx.resize(_n_part, NULL); 
+    _connec.resize(_n_part, NULL); 
   }
-
 
   void BlockFP::blockSet(int i_part,
                          int n_elt,
                          int* connec_idx,
                          int* connec,
-                         CWP_g_num_t* mesh_global_num){
+                         CWP_g_num_t* mesh_global_num)
+  {
 
-     double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);
-
-     _global_num [i_part] = mesh_global_num;
-
-     _isSet[i_part] = true;
-     _n_elt[i_part] = n_elt;
-     _part_id.push_back(i_part);
-     _n_part_def++;
-     _cells_center[i_part] = _cells_center_part;
-     _connec     .insert    ( std::pair < int, int* > (i_part,connec));
-     _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
+    _global_num [i_part] = mesh_global_num;
+    
+    _n_elt[i_part] = n_elt;
+    _connec[i_part] = connec;
+    _connec_idx[i_part] = connec_idx;
 
   }
 
-  void BlockFP::geomFinalize(int already_in_pdm){
+  /**
+   * \brief Get a CWIPI block in a partition
+   *
+   * \param [in]  i_part     Partition identifier
+   * \param [in]  n_elts     Number of elements of the block in the partition.
+   * \param [in]  connec_idx Elements connectivity index
+   * \param [in]  connec     Elements connectivity
+   * \param [in]  global_num Mesh global numbering of the block
+   *
+   */
 
-     _pdmNodal_handle_index = static_cast<Mesh*>(_mesh) -> getPdmNodalIndex();
+  void BlockFP::blockGet(int          i_part,
+                         int         *n_elts,
+                         int         **connec_idx,
+                         int         **connec,
+                         CWP_g_num_t **mesh_global_num)
+  {
 
-     if(already_in_pdm ==0)
-      _block_id_pdm = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
-                                                PDM_FALSE,
-                                                PdmBlockTypeFromCwpBlockType(_blockType));
+    *mesh_global_num = _global_num [i_part];  
+    *n_elts          = _n_elt[i_part];       
+    *connec          = _connec[i_part];      
+    *connec_idx      = _connec_idx[i_part];  
 
-    for(int i_part = 0; i_part<_n_part; i_part++){
-
-
-       if(already_in_pdm ==0)
-         PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
-                                          _block_id_pdm,
-                                          i_part,
-                                          _n_elt     [i_part],
-                                          _connec_idx[i_part],
-                                          _connec    [i_part],
-                                          _global_num[i_part],
-                                          NULL);
-
-      Visu* visu = ((Mesh*)_mesh) -> getVisu();
-      if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-        visu -> GeomBlockPoly2D ( ((Mesh*)_mesh) -> getIdVisu( _block_id_cwipi ),
-                                  i_part,
-                                  _n_elt[i_part] ,
-                                  _connec_idx [i_part],
-                                  _connec     [i_part],
-                                  _global_num [i_part]);
+  }
 
 
-     }
-    } //end i_part
+  void BlockFP::geomFinalize(){
+
+    // for(int i_part = 0; i_part<_n_part; i_part++){
+
+    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
+    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
+    //     visu->GeomBlockPoly2D ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
+    //                               i_part,
+    //                               _n_elt[i_part] ,
+    //                               _connec_idx [i_part],
+    //                               _connec     [i_part],
+    //                               _global_num [i_part]);
 
 
+    //  }
+    // } //end i_part
   }
 }
 

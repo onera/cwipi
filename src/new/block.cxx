@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2013-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,9 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "pdm.h"
 #include "pdm_mesh_nodal.h"
+#include "pdm_part_mesh_nodal.h"
 #include "pdm_gnum.h"
 #include "block.hxx"
 #include <map>
@@ -33,58 +35,46 @@ using namespace std;
 namespace cwipi {
 
   Block::Block()
-         :_isGNumSet(false),
-          _inPDMDB(false)
+         :_owner_gnum(PDM_OWNERSHIP_USER)
   {
 
   }
 
 
-  void Block::BlockAdd(CWP_Block_t blockType,void* mesh)
+  void Block::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
   {
-     _mesh     = mesh;
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
+     _mesh        = mesh;
+     _localComm   = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
 
-     _blockType             = blockType;
-     _n_part                = static_cast<Mesh*>(mesh) -> getNPart();
+     _blockType   = blockType;
+     _n_part      = static_cast<Mesh*>(mesh)->getNPart();
 
-     _global_num         .resize(_n_part,NULL);
-     _global_num_computed.resize(_n_part,NULL);
-     _global_num_block   .resize(_n_part,NULL);
-     _n_elt              .resize(_n_part);
-     _cells_center       .resize(_n_part);
-     _isSet              .resize(_n_part);
-
-     PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
-     _pdmGNum_handle_index  = PDM_gnum_create           (3, _n_part, PDM_FALSE, 1e-3, pdm_localComm);
+     _global_num  .resize(_n_part,NULL);
+     _n_elt       .resize(_n_part);
+     _cells_center.resize(_n_part, NULL);
+     _parent_num  .resize(_n_part, NULL);
 
   }
 
 
   Block::~Block(){
+   for (int i = 0; i < _n_part; i++) {
+      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != NULL) {
+        free (_global_num[i]);
+      }
+
+    }
+
   }
 
 
-  const double* Block::eltCentersGet(int i_part){
-       int* connecBlock = ConnecGet(i_part);
-       int* connecIDXBlock = ConnecIDXGet(i_part);
-       double* surfaceVectorBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]*3);
-       double* characteristicLengthBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]);
-       _cells_center[i_part] = (double*)malloc(sizeof(double)*_n_elt[i_part]*3);
-       int* isDegeneratedBlock = (int*)malloc(sizeof(int)*_n_elt[i_part]);
-       PDM_geom_elem_polygon_properties(_n_elt[i_part]            ,
-                                        connecIDXBlock            ,
-                                        connecBlock               ,
-                                        static_cast<Mesh*>(_mesh) -> getCoordinates(i_part),
-                                        surfaceVectorBlock             ,
-                                        _cells_center[i_part]          ,
-                                        characteristicLengthBlock      ,
-                                        isDegeneratedBlock
-                                       );
-      return _cells_center[i_part];
- }
+  const double* Block::eltCentersGet(int i_part) {
 
-
+    if (_cells_center[i_part] == NULL) {
+      PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
+    }
+    return PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
+  }
 
   CWP_g_num_t*
   Block::GNumMeshGet(int i_part) {
@@ -92,111 +82,37 @@ namespace cwipi {
   }
 
   void
-  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum) {
+  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum, PDM_ownership_t owner) {
     _global_num[i_part] = gnum;
+
+    _owner_gnum = owner;
   }
 
-  CWP_g_num_t*
-  Block::GNumBlockGet(int i_part) {
-
-    _global_num_block[i_part] = PDM_Mesh_nodal_block_inside_g_num_get (_pdmNodal_handle_index,
-                                                                       _block_id_pdm,
-                                                                       i_part );
-    return _global_num_block[i_part];
-  }
-
-
-
-
-
-  PDM_Mesh_nodal_elt_t Block::PdmBlockTypeFromCwpBlockType(
-                                                           CWP_Block_t CWP_block_type
-                                                          )
-   {
-     PDM_Mesh_nodal_elt_t block_type;
-     switch (CWP_block_type) {
-
-       case CWP_BLOCK_NODE: block_type = PDM_MESH_NODAL_POINT;
-       break;
-
-       case CWP_BLOCK_EDGE2: block_type = PDM_MESH_NODAL_BAR2;
-       break;
-
-       case CWP_BLOCK_FACE_TRIA3: block_type =  PDM_MESH_NODAL_TRIA3;
-       break;
-
-       case CWP_BLOCK_FACE_QUAD4: block_type = PDM_MESH_NODAL_QUAD4;
-       break;
-
-       case CWP_BLOCK_CELL_TETRA4: block_type = PDM_MESH_NODAL_TETRA4;
-       break;
-
-       case CWP_BLOCK_FACE_POLY: block_type = PDM_MESH_NODAL_POLY_2D;
-       break;
-
-       case CWP_BLOCK_CELL_HEXA8: block_type = PDM_MESH_NODAL_HEXA8;
-       break;
-
-       case CWP_BLOCK_CELL_PYRAM5: block_type = PDM_MESH_NODAL_PYRAMID5;
-       break;
-
-       case CWP_BLOCK_CELL_PRISM6: block_type = PDM_MESH_NODAL_PRISM6;
-       break;
-
-       case CWP_BLOCK_CELL_POLY: block_type = PDM_MESH_NODAL_POLY_3D;
-       break;
-
-       default:block_type = PDM_MESH_NODAL_POINT;
-               PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+  void
+  Block::GNumMeshFree(int i_part) {
+    if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
+      if (_global_num[i_part] != NULL) {
+        free(_global_num[i_part]);
+        _global_num[i_part] = NULL;
       }
-    return block_type;
-
+    }
   }
 
-  CWP_Block_t Block::CwpBlockTypeFromPdmBlockType(PDM_Mesh_nodal_elt_t PDM_block_type)
-   {
-     CWP_Block_t block_type;
-     switch (PDM_block_type) {
 
-       case PDM_MESH_NODAL_POINT: block_type = CWP_BLOCK_NODE;
-       break;
+  void Block::blockSetParentNum(int i_part, int* parent_num, PDM_ownership_t owner){
+    _parent_num[i_part] = parent_num;
+    _owner_parent_num = owner;
+  }
 
-       case PDM_MESH_NODAL_BAR2: block_type = CWP_BLOCK_EDGE2;
-       break;
 
-       case PDM_MESH_NODAL_TRIA3: block_type = CWP_BLOCK_FACE_TRIA3;
-       break;
-
-       case PDM_MESH_NODAL_QUAD4: block_type = CWP_BLOCK_FACE_QUAD4;
-       break;
-
-       case PDM_MESH_NODAL_TETRA4: block_type = CWP_BLOCK_CELL_TETRA4;
-       break;
-
-       case PDM_MESH_NODAL_POLY_2D: block_type = CWP_BLOCK_FACE_POLY;
-       break;
-
-       case PDM_MESH_NODAL_HEXA8: block_type = CWP_BLOCK_CELL_HEXA8;
-       break;
-
-       case PDM_MESH_NODAL_PYRAMID5: block_type = CWP_BLOCK_CELL_PYRAM5;
-       break;
-
-       case PDM_MESH_NODAL_PRISM6: block_type = CWP_BLOCK_CELL_PRISM6;
-       break;
-
-       case PDM_MESH_NODAL_POLY_3D: block_type = CWP_BLOCK_CELL_POLY;
-       break;
-
-       default: block_type = CWP_BLOCK_NODE;
-                PDM_error(__FILE__, __LINE__, 0, "No referenced PDM_Mesh_nodal_elt_t.\n");
+  void Block::ParentNumFree(int i_part) {
+    if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
+      if (_parent_num[i_part] != NULL) {
+        free(_parent_num[i_part]);
+        _parent_num[i_part] = NULL;
       }
-    return block_type;
-
-   }
-
-
-
+    }
+  }
 
 }
 

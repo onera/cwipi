@@ -158,8 +158,8 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
-  char *codeCoupledName;
+  const char *codeName;
+  const char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";

@@ -1,3 +1,7 @@
+/*
+ * \file
+ */
+
 #ifndef __CWIPI_H__
 #define __CWIPI_H__
 /*
@@ -913,7 +917,7 @@ void cwipi_save_location(const char *coupling_name);
  *----------------------------------------------------------------------------*/
 
 void cwipi_open_location_file (const char *coupling_name,
-                               char *filename,
+                               const char *filename,
                                const char *mode);
 /*----------------------------------------------------------------------------
  *
@@ -1295,7 +1299,7 @@ cwipi_exchange_status_t cwipi_exchange
  const double                         time_value,
  const char                          *sending_field_name,
  const double                        *sending_field,
- char                                *receiving_field_name,
+ const char                          *receiving_field_name,
  double                              *receiving_field,
  int                                 *n_not_located_points);
 

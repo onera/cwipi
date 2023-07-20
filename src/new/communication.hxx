@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2013-2017  ONERA
+  Copyright (C) 2021-2023  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -93,6 +93,130 @@ namespace cwipi {
     );
 
 
+    /**
+     *
+     * \brief Exchange Data between two coupled code through Union Comminucator
+     *        All code ranks receive data (sendRecv between root rank then Bcast)
+     *
+     * \param [in]    s_data           Size of a data tot exchange
+     * \param [in]    n_send_data      Number of data to send
+     * \param [in]    send_data        Array of data to send
+     * \param [in]    n_send_data_cpl  Number of data to send (if current rank is shared betweenn code en coupled code)
+     * \param [in]    send_data_cpl    Array of data to send (if current rank is shared betweenn code en coupled code)
+     * \param [in]    n_recv_data      Number of data to receive
+     * \param [inout] recv_data        Array of data to receive
+     * \param [in]    n_recv_data_cpl  Number of data to receive (if current rank is shared betweenn code en coupled code)
+     * \param [inout] recv_data_cpl    Array of data to receive (if current rank is shared betweenn code en coupled code)
+     *
+     */
+
+    void
+    iexchGlobalDataBetweenCodesThroughUnionCom
+    (
+     size_t       s_data,
+     int          n_send_data,
+     void        *send_data,
+     int          n_send_data_cpl,
+     void        *send_data_cpl,
+     int          n_recv_data,
+     void        *recv_data,
+     int          n_recv_data_cpl,
+     void        *recv_data_cpl
+    );
+
+    /**
+     *
+     * \brief Non blocking send of global data array
+     *
+     * \param [in]  global_data_id
+     * \param [out] data_send_request
+     * \param [in]  s_send_entity
+     * \param [in]  send_stride
+     * \param [in]  n_send_entity
+     * \param [in]  send_data
+     */
+
+    void
+    issendGlobalDataBetweenCodesThroughUnionCom
+    (
+     const string    global_data_id,
+     MPI_Request    *data_send_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
+     void           *send_data
+     );
+
+    /**
+     *
+     * \brief Non blocking receive of global data array
+     *
+     * \param [in]  global_data_id
+     * \param [out] data_recv_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [out] recv_data
+     */
+
+    void
+    irecvGlobalDataBetweenCodesThroughUnionCom
+    (
+     const string    global_data_id,
+     MPI_Request    *data_recv_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
+     void           *recv_data
+     );
+
+    /**
+     *
+     * \brief Non blocking send wait of global data array
+     *
+     * \param [in]  data_send_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [in]  send_data
+     * \param [out] recv_data
+     */
+
+    void
+    waitIssendGlobalDataBetweenCodesThroughUnionCom
+    (
+     MPI_Request     data_send_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
+     void           *send_data,
+     void           *recv_data
+     );
+
+    /**
+     *
+     * \brief Non blocking receive wait of global data array
+     *
+     * \param [in]  data_recv_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [in]  send_data
+     * \param [out] recv_data
+     */
+
+    void
+    waitIrecvGlobalDataBetweenCodesThroughUnionCom
+    (
+     MPI_Request     data_recv_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
+     void           *send_data,
+     void           *recv_data
+     );
+
+
     MPI_Comm
     unionCommGet
     (
@@ -167,6 +291,20 @@ namespace cwipi {
      int tabSize
     ) = 0;
 */
+
+    /**
+     *
+     * \brief Get an adler code
+     *
+     */
+
+    uint32_t _get_tag
+    (
+     const string    name,
+     MPI_Comm        comm,
+     int             offset
+     );
+
   protected :
 
     /**
@@ -179,6 +317,19 @@ namespace cwipi {
 
 
   private :
+
+    /**
+     *
+     * \brief Adler code (taken from SpatialInterp)
+     *
+     */
+
+
+    uint32_t _adler32
+    (
+     const void *buf,
+     size_t buflength
+     );
 
     /**
      *

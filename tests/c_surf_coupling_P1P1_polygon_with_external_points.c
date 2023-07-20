@@ -122,8 +122,8 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
-  char *codeCoupledName;
+  const char *codeName;
+  const char *codeCoupledName;
 
   if (rank == 0) {
     codeName="code1";
@@ -134,7 +134,7 @@ int main
     codeCoupledName="code1";
   }
 
-  char* fileName = NULL;
+  const char* fileName = NULL;
   if (rank == 0) 
     fileName = "c_surf_coupling_P1P1_polygon_with_external_points_0000.txt";
   else
