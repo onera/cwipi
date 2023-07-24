@@ -34,13 +34,13 @@ program testf
 
   type my_mesh
     integer(c_int)                     :: n_part
-    integer(c_int),            pointer :: pn_vtx(:)  => null()
-    type(PDM_pointer_array_t), pointer :: pvtx_coord
-    type(PDM_pointer_array_t), pointer :: pvtx_ln_to_gn
-    integer(c_int),            pointer :: pn_face(:) => null()
-    type(PDM_pointer_array_t), pointer :: pface_vtx_idx
-    type(PDM_pointer_array_t), pointer :: pface_vtx
-    type(PDM_pointer_array_t), pointer :: pface_ln_to_gn
+    integer(c_int),            pointer :: pn_vtx(:)      => null()
+    type(PDM_pointer_array_t), pointer :: pvtx_coord     => null()
+    type(PDM_pointer_array_t), pointer :: pvtx_ln_to_gn  => null()
+    integer(c_int),            pointer :: pn_face(:)     => null()
+    type(PDM_pointer_array_t), pointer :: pface_vtx_idx  => null()
+    type(PDM_pointer_array_t), pointer :: pface_vtx      => null()
+    type(PDM_pointer_array_t), pointer :: pface_ln_to_gn => null()
   end type my_mesh
 
   ! --------------------------------------------------------------------
@@ -87,7 +87,7 @@ program testf
 
   integer(c_int)                     :: visu_status, map_type, exch_type
   double precision,          pointer :: field_data(:) => null(), ptr(:) => null()
-  type(PDM_pointer_array_t), pointer :: send_data, recv_data
+  type(PDM_pointer_array_t), pointer :: send_data => null(), recv_data => null()
   type(PDM_pointer_array_t), pointer :: data => null()
   integer(c_int)                     :: stride
   character(len=99)                  :: field_name
@@ -95,17 +95,17 @@ program testf
   character(len=99)                  :: part_data_name
 
   ! Global data
-  character(len=99)             :: global_data_name
-  integer(c_int)                :: global_stride, global_n_entity
-  integer(c_int), pointer       :: global_data(:,:) => null()
+  character(len=99)                  :: global_data_name
+  integer(c_int)                     :: global_stride, global_n_entity
+  integer(c_int),            pointer :: global_data(:,:) => null()
 
 
-  character                     :: strnum
-  integer                       :: i, j, k, l
-  integer                       :: iiunit = 13
-  character(len=99)             :: arg
-  double precision              :: expected
-  logical                       :: error
+  character                          :: strnum
+  integer                            :: i, j, k, l
+  integer                            :: iiunit = 13
+  character(len=99)                  :: arg
+  double precision                   :: expected
+  logical                            :: error
   ! --------------------------------------------------------------------
 
   ! Read command line arguments
@@ -352,7 +352,7 @@ program testf
                                         face_ln_to_gn)
 
         do k = 1, stride
-          ptr(k::stride) = k*face_ln_to_gn(:)
+          ptr(k::stride) = k*face_ln_to_gn(:mesh(i)%pn_face(j))
         enddo
 
         call PDM_pointer_array_part_set(send_data, &
@@ -778,11 +778,11 @@ contains
 
     call pdm_fortran_free_c(c_loc(mesh%pn_vtx))
     call pdm_fortran_free_c(c_loc(mesh%pn_face))
-    call my_free(mesh%pvtx_coord)
-    call my_free(mesh%pvtx_ln_to_gn)
-    call my_free(mesh%pface_vtx_idx)
-    call my_free(mesh%pface_vtx)
-    call my_free(mesh%pface_ln_to_gn)
+    ! call my_free(mesh%pvtx_coord)
+    ! call my_free(mesh%pvtx_ln_to_gn)
+    ! call my_free(mesh%pface_vtx_idx)
+    ! call my_free(mesh%pface_vtx)
+    ! call my_free(mesh%pface_ln_to_gn)
     call PDM_pointer_array_free(mesh%pvtx_coord)
     call PDM_pointer_array_free(mesh%pvtx_ln_to_gn)
     call PDM_pointer_array_free(mesh%pface_vtx_idx)

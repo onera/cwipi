@@ -65,6 +65,7 @@ Enable documentation mode :
 CC=<C compiler> CXX=<CXX compiler> FC=<Fortran compiler> cmake ...
 
 or use the following CMake options
+
     CMAKE_C_COMPILER=<C compiler>
     CMAKE_CXX_COMPILER=<CXX compiler>
     CMAKE_Fortran_COMPILER=<Fortran compiler>
@@ -76,8 +77,9 @@ or use the following CMake options
     MPI_Fortran_COMPILER=<Fortran mpi wrapper>
 
 If a simple autodetection fails, you can use these options to find MPI :
-    MPI_<lang>_LIBRARIES
-    MPI_<lang>_INCLUDE_PATH
+
+    MPI_<language>_LIBRARIES
+    MPI_<language>_INCLUDE_PATH
 
 Refere to FindMPI in the CMake documentation for more informations.
 
