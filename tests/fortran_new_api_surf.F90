@@ -164,89 +164,88 @@ program testf
   end type my_type
 
   !--------------------------------------------------------------------
-  integer                       :: ierr
-  integer                       :: i_rank, n_rank
+  integer                            :: ierr
+  integer                            :: i_rank, n_rank
 
-  integer,          parameter   :: n_vtx_seg  = 10
-  double precision, parameter   :: rand_level = 0.25
-  double precision              :: shift
+  integer,          parameter        :: n_vtx_seg  = 10
+  double precision, parameter        :: rand_level = 0.25
+  double precision                   :: shift
 
-  integer                       :: n_code, n_part
-  character(len = 5),   pointer :: code_names(:)         => null()
-  character(len = 5),   pointer :: coupled_code_names(:) => null()
-  integer                       :: is_active_rank = CWP_STATUS_ON
-  integer,              pointer :: intra_comms(:)        => null()
-  character(len = 99)           :: coupling_name
+  integer                            :: n_code, n_part
+  character(len = 5),        pointer :: code_names(:)         => null()
+  character(len = 5),        pointer :: coupled_code_names(:) => null()
+  integer                            :: is_active_rank = CWP_STATUS_ON
+  integer,                   pointer :: intra_comms(:)        => null()
+  character(len = 99)                :: coupling_name
 
-  integer(c_int)                :: n_vtx, n_elt
-  double precision,     pointer :: vtx_coord(:,:) => null()
-  integer(c_int),       pointer :: connec_idx(:)  => null()
-  integer(c_int),       pointer :: connec(:)      => null()
-  integer(c_long),      pointer :: vtx_g_num(:)   => null()
-  integer(c_long),      pointer :: elt_g_num(:)   => null()
-  integer(c_int)                :: id_block
+  integer(c_int)                     :: n_vtx, n_elt
+  double precision,          pointer :: vtx_coord(:,:) => null()
+  integer(c_int),            pointer :: connec_idx(:)  => null()
+  integer(c_int),            pointer :: connec(:)      => null()
+  integer(c_long),           pointer :: vtx_g_num(:)   => null()
+  integer(c_long),           pointer :: elt_g_num(:)   => null()
+  integer(c_int)                     :: id_block
 
-  character(len = 99)           :: field_name
-  integer(c_int)                :: map_type, exch_type, visu_status
-  double precision,     pointer :: field_data(:) => null()
+  character(len = 99)                :: field_name
+  integer(c_int)                     :: map_type, exch_type, visu_status
+  double precision,          pointer :: field_data(:) => null()
 
-  integer(c_int)                :: n_computed_tgts
-  integer(c_int),       pointer :: computed_tgts(:) => null()
+  integer(c_int)                     :: n_computed_tgts
+  integer(c_int),            pointer :: computed_tgts(:) => null()
 
-  integer(c_int)                :: toto
-  integer(c_int)                :: check_toto
-  integer(c_int)                :: n_param
-  type(c_ptr)                   :: param_value = C_NULL_PTR
+  integer(c_int)                     :: toto
+  integer(c_int)                     :: check_toto
+  integer(c_int)                     :: n_param
+  type(c_ptr)                        :: param_value = C_NULL_PTR
 
-  real(c_double)                :: tata
-  real(c_double)                :: check_tata
-  character(len = 99)           :: str_param
-  character(c_char), pointer    :: check_str_param(:) => null()
+  real(c_double)                     :: tata
+  real(c_double)                     :: check_tata
+  character(len = 99)                :: str_param
+  character(c_char),         pointer :: check_str_param(:) => null()
 
-  integer(c_int)                :: n_elt2
-  integer(c_int),       pointer :: connec_idx2(:) => null()
-  integer(c_int),       pointer :: connec2(:)     => null()
-  ! integer(c_long),      pointer :: vtx_g_num2(:)  => null()
-  integer(c_long),      pointer :: elt_g_num2(:)  => null()
+  integer(c_int)                     :: n_elt2
+  integer(c_int),            pointer :: connec_idx2(:) => null()
+  integer(c_int),            pointer :: connec2(:)     => null()
+  ! integer(c_long),           pointer :: vtx_g_num2(:)  => null()
+  integer(c_long),           pointer :: elt_g_num2(:)  => null()
 
-  integer                       :: i, ivtx, n_wrong
-  double precision              :: distance
+  integer                            :: i, ivtx, n_wrong
+  double precision                   :: distance
 
-  character                     :: strnum
-  logical                       :: debug = .true.
+  character                          :: strnum
+  logical                            :: debug = .true.
 
-  integer(c_int)                :: n_elt_src
-  integer(c_int), pointer       :: src_to_tgt_idx(:) => null()
-  double precision, pointer     :: interp_weights(:) => null()
-  integer(c_int)                :: n_elt_tgt
-  integer(c_int)                :: n_ref_tgt
-  integer(c_int), pointer       :: ref_tgt(:)        => null()
-  integer(c_int), pointer       :: tgt_to_src_idx(:) => null()
+  integer(c_int)                     :: n_elt_src
+  integer(c_int),            pointer :: src_to_tgt_idx(:) => null()
+  double precision,          pointer :: interp_weights(:) => null()
+  integer(c_int)                     :: n_elt_tgt
+  integer(c_int)                     :: n_ref_tgt
+  integer(c_int),            pointer :: ref_tgt(:)        => null()
+  integer(c_int),            pointer :: tgt_to_src_idx(:) => null()
 
   !--> list getters
-  character(256), allocatable :: code_list(:)
-  character(256), allocatable :: loc_code_list(:)
-  character(256), allocatable :: f_param_names(:)
+  character(256), allocatable        :: code_list(:)
+  character(256), allocatable        :: loc_code_list(:)
+  character(256), allocatable        :: f_param_names(:)
 
   !--> output file
-  ! character(len = 23),   pointer :: output_file(:)         => null()
-  integer :: iiunit = 9
+  integer                            :: iiunit = 9
 
   !--> reduce
-  integer(c_int),       pointer :: res => null()
-  character(len = 5),   pointer :: g_code_names(:)         => null()
+  integer(c_int),            pointer :: res => null()
+  character(len = 5),        pointer :: g_code_names(:)         => null()
 
   ! Global data
-  character(len=99)             :: global_data_name
-  integer(c_int), pointer       :: global_data(:,:) => null()
+  character(len=99)                  :: global_data_name
+  integer(c_int),            pointer :: global_data(:,:) => null()
 
   ! Part data
-  character(len=99)             :: part_data_name
-  integer(c_int), pointer       :: recv_data(:) => null()
-  type(PDM_pointer_array_t)     :: gnum_elt, part_data
-  integer(c_int), pointer       :: n_elt_part(:) => null()
-  type(my_type), allocatable    :: my_part(:)
-  integer(c_int)                :: n_comp, j
+  character(len=99)                  :: part_data_name
+  integer(c_int),            pointer :: recv_data(:) => null()
+  type(PDM_pointer_array_t), pointer :: gnum_elt, part_data
+  integer(c_int),            pointer :: n_elt_part(:) => null()
+  type(my_type), allocatable         :: my_part(:)
+  integer(c_int)                     :: n_comp, j
   !--------------------------------------------------------------------
 
   interface
