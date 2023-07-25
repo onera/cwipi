@@ -242,7 +242,7 @@ program testf
   ! Part data
   character(len=99)                  :: part_data_name
   integer(c_int),            pointer :: recv_data(:) => null()
-  type(PDM_pointer_array_t), pointer :: gnum_elt, part_data
+  type(PDM_pointer_array_t), pointer :: gnum_elt => null(), part_data => null()
   integer(c_int),            pointer :: n_elt_part(:) => null()
   type(my_type), allocatable         :: my_part(:)
   integer(c_int)                     :: n_comp, j
