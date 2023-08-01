@@ -3123,7 +3123,7 @@ cdef class Coupling (object):
                                       np.ndarray[np.int32_t, ndim=1, mode='c']     face_vtx not None,
                                       np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
-        mesh_interf_from_cellface_set(i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, global_num)
+        mesh_interf_from_cellface_set(i_part, cell_face_idx, cell_face, face_vtx_idx, face_vtx, global_num)
         Define the interface mesh from a cell to face connectivity.
 
         Parameters:
@@ -3167,7 +3167,7 @@ cdef class Coupling (object):
                                       np.ndarray[np.int32_t, ndim=1, mode='c'] edge_vtx not None,
                                       np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
         """
-        mesh_interf_from_faceedge_set(i_part, n_faces, face_edge_idx, face_edge, n_edges, edge_vtx, global_num)
+        mesh_interf_from_faceedge_set(i_part, face_edge_idx, face_edge, edge_vtx, global_num)
         Define the surface interface mesh from a face to edge connectivity.
 
         Parameters:
