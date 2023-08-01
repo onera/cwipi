@@ -246,8 +246,10 @@ def runTest():
         send_field1_data[i] = mesh["coords"][3*i]
     recv_field1_data = np.zeros(mesh["n_vtx"], dtype=np.double)
 
+    visu_status = pycwp.STATUS_ON
     if (proc0) :
         exchange_type = pycwp.FIELD_EXCH_SEND
+        visu_status = pycwp.STATUS_OFF
     else :
         exchange_type = pycwp.FIELD_EXCH_RECV
 
