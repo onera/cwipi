@@ -70,8 +70,8 @@ Fortran API documentation
 :download:`Fortran documentation (pdf) <doc_cwp_fortran.pdf>`
 
 
-Python API documentation : pycwp
-================================
+Python API documentation (:mod:`pycwp`)
+=======================================
 
 .. note::
    All enumerators from the :ref:`C API <C API documentation>` are available in the Python API, except that the "`CWP_`" prefix is omitted (eg ``CWP_STATUS_ON`` becomes ``STATUS_ON``).

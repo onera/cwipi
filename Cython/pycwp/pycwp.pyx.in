@@ -1486,9 +1486,9 @@ cdef class PartData (object):
                  list                gnum_elt):
         """
         __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
-        Initialize a PartData object.
+        Initialize a :py:class:`PartData` object.
 
-        .. warning:: PartData creation should be done using ``part_data_create``
+        .. warning:: PartData creation should be done using :py:meth:`Coupling.part_data_create`
 
         Parameters:
           local_code_name (str)                             : Local code name
@@ -1517,7 +1517,7 @@ cdef class PartData (object):
 
     def __del__(self):
         """
-        Delete a PartData object.
+        Delete a :py:class:`PartData` object.
         """
 
         CWP_Part_data_del(self.local_code_name,
@@ -1686,9 +1686,9 @@ cdef class Field (object):
                  CWP_Status_t           visu_status):
         """
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
-        Initialize a Field object.
+        Initialize a :py:class:`Field` object.
 
-        .. warning:: Field creation should be done using ``field_create``
+        .. warning:: Field creation should be done using :py:meth:`Coupling.field_create`
 
         Parameters:
           local_code_name (str)                 : Local code name
@@ -1725,7 +1725,7 @@ cdef class Field (object):
 
     def __del__(self):
         """
-        Delete a Field object.
+        Delete a :py:class:`Field` object.
         """
 
         CWP_Field_del(self.local_code_name,
@@ -1884,7 +1884,7 @@ cdef class Field (object):
 
     def computed_tgts_bcast_enable(self):
         """
-        Enable broadcast of the computed targets ids (in ``CWP_COMM_PAR_WITHOUT_PART`` mode).
+        Enable broadcast of the computed targets ids (in ``COMM_PAR_WITHOUT_PART`` mode).
 
         .. warning:: This function must be called in order for the computed targets to be accessible
                      on non-root ranks
@@ -1896,7 +1896,7 @@ cdef class Field (object):
 
     def involved_srcs_bcast_enable(self):
         """
-        Enable broadcast of the involved sources ids (in ``CWP_COMM_PAR_WITHOUT_PART`` mode).
+        Enable broadcast of the involved sources ids (in ``COMM_PAR_WITHOUT_PART`` mode).
 
         .. warning:: This function must be called in order for the involved sources to be accessible
                      on non-root ranks
@@ -2456,7 +2456,7 @@ cdef class Coupling (object):
                  CWP_Time_exch_t      recv_freq_type):
         """
         __init__(local_code_name, cpl_id, coupled_code_name, entities_dim, comm_type, spatial_interp, n_part, displacement, recv_freq_type)
-        Initialize coupling object.
+        Initialize a :py:class:`Coupling` object.
 
         Parameters:
           local_code_name   (str)                  : Local code name
@@ -2485,7 +2485,7 @@ cdef class Coupling (object):
 
     def __del__(self):
       """
-      Delete a coupling object.
+      Delete a :py:class:`Coupling` object.
       """
 
       CWP_Cpl_del(self.local_code_name,
@@ -2509,7 +2509,7 @@ cdef class Coupling (object):
                      CWP_Status_t           visu_status):
         """
         field_create(field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
-        Create field object associated to current Coupling object.
+        Create a :py:class:`Field` object associated to current :py:class:`Coupling` object.
 
         Parameters:
           field_id        (str)                 : Field id
@@ -2521,7 +2521,7 @@ cdef class Coupling (object):
           visu_status     (CWP_Status_t)        : Visualization status
 
         Returns:
-          Field object (Field)
+          Field object (:py:class:`Field`)
         """
 
         field = Field(self.local_code_name,
@@ -2562,7 +2562,7 @@ cdef class Coupling (object):
           exch_type       (CWP_PartData_exch_t) : Send or receive
           gnum_elt        (CWP_g_num_t)         : Global numbers of entities
         Returns:
-          Part Data object (PartData)
+          Part Data object (:py:class:`PartData`)
         """
 
         part_data = PartData(self.local_code_name,

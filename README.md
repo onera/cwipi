@@ -20,12 +20,14 @@ General dependencies for building **CWIPI** are:
 Follow these steps to build **CWIPI** from the sources:
 
 1. `git clone git@gitlab.onera.net:numerics/coupling/cwipi.git` (for ONERA users only)
-3. `mkdir cwipi/build`
-4. `cd cwipi/build`
-5. `cmake ..`
-6. `make`
-7. `make install`
-8. `./cwp_run` (if you want to run the test cases)
+1. `cd cwipi`
+1. `git submodule update --init` (needed for dependencies)
+1. `mkdir build`
+1. `cd build`
+1. `cmake ..`
+1. `make`
+1. `make install`
+1. `./cwp_run` (if you want to run the test cases)
 
 
 ### CMake general options
