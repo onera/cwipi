@@ -738,6 +738,7 @@ cdef class Coupling (object):
                        char *option, 
                        char *value): 
         """
+        ho_options_set(option, value)
         Set option for high order meshes
         """
         global current_cpl
@@ -753,6 +754,7 @@ cdef class Coupling (object):
                                  int n_nodes,
                                  np.ndarray[np.int32_t] ijk_grid not None):
         """
+        ho_ordering_from_IJK_set(t_elt, n_nodes, ijk_grid)
         Define ho element ordering from the location in the (I, J, K) grid.
         """
         global current_cpl
@@ -792,6 +794,7 @@ cdef class Coupling (object):
                       np.ndarray[np.int32_t] face_connectivity_index not None,
                       np.ndarray[np.int32_t] face_connectivity not None):
         """
+        add_polyhedra(n_element, face_index, cell_to_face_connectivity, n_face, face_connectivity_index, face_connectivity)
         Add polyhedra
         """
         global current_cpl
@@ -809,7 +812,7 @@ cdef class Coupling (object):
 
 
     def locate(self):
-        """locate()
+        """
         Start the localization process (this is a synchronization point).
         """
         global current_cpl
@@ -820,6 +823,7 @@ cdef class Coupling (object):
 
     def set_location_index(self, int index):
         """
+        set_location_index(index)
         Set location index.
         """
         global current_cpl
@@ -882,7 +886,7 @@ cdef class Coupling (object):
                  np.ndarray[np.double_t] sending_field, 
                  char* receiving_field_name, 
                  np.ndarray[np.double_t] receiving_field): 
-        """exchange(exchange_name, stride, time_step, time_value, sending_field_name, np.ndarray[np.double_t] sending_field, receiving_field_name, np.ndarray[np.double_t] receiving_field)
+        """exchange(exchange_name, stride, time_step, time_value, sending_field_name, sending_field, receiving_field_name, receiving_field)
         Exchange quantities.
         """
         global current_cpl
@@ -949,6 +953,7 @@ cdef class Coupling (object):
                char* sending_field_name, 
                np.ndarray[np.double_t] sending_field): 
         """
+        issend(exchange_name, tag, stride, time_step, time_value, sending_field_name, sending_field)
         Non blocking send. 
 
         Returns:
@@ -1237,6 +1242,7 @@ cdef class Coupling (object):
 
     def set_interpolation_function(self, f):
         """
+        set_interpolation_function(f)
         """
         global current_cpl
         global interp_f
@@ -1248,6 +1254,7 @@ cdef class Coupling (object):
 
     def set_ho_interpolation_function(self, f):
         """
+        set_ho_interpolation_function(f)
         """
         global current_cpl
         global interp_ho_f
@@ -1265,6 +1272,7 @@ cdef class Coupling (object):
 
 def ho_user_elt_set(elt_type, f_basis, f_loc):
     """
+    ho_user_elt_set(elt_type, f_basis, f_loc)
     """
     global interp_ho_loc_f
     global interp_ho_bas_f

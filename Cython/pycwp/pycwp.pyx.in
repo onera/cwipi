@@ -2659,7 +2659,7 @@ cdef class Coupling (object):
     def mesh_interf_finalize(self):
         """
         Finalize interface mesh.
-        This function computes the global numbers of mesh entities if they are
+        This function computes the global ids of mesh entities if they are
         not provided.
         """
 
@@ -3259,6 +3259,8 @@ cdef class Coupling (object):
                          np.ndarray[npy_cwp_gnum_t,  ndim=1, mode='c'] global_num):
         """
         user_tgt_pts_set(i_part, n_pts, coord, global_num)
+
+        Set a partition of the user target point cloud.
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
 
         Parameters:

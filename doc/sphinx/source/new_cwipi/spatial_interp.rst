@@ -1,6 +1,3 @@
-.. _spatial_interp:
-
-
 Since version 1.0, CWIPI offers multiple spatial interpolation methods.
 A specific spatial interpolation method can be affected to each Coupling object.
 

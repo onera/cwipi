@@ -40,6 +40,9 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.intersphinx',
     'breathe',
+    'sphinxfortran.fortran_domain',
+    'sphinxfortran.fortran_autodoc',
+    'sphinxcontrib.tikz'
 ]
 
 
@@ -209,7 +212,7 @@ html_short_title = project
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = "@CMAKE_CURRENT_SOURCE_DIR@/images/logo.png"
+html_logo = "@CMAKE_CURRENT_SOURCE_DIR@/images/cwipiNew.svg"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -403,3 +406,12 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+
+# Fortran Doc
+# https://sphinx-fortran.readthedocs.io/en/latest/user.autodoc.html
+fortran_src = [
+    "@PROJECT_SOURCE_DIR@/src/fortran/new/cwp_f.f90"
+]
+
+fortran_indent = 2
