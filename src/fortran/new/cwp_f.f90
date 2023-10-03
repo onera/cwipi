@@ -3820,12 +3820,12 @@ contains
   end subroutine CWP_Field_location_point_data_get_
 
 
-  subroutine CWP_Field_location_point_data_get_(local_code_name, &
-                                                        cpl_id, &
-                                                        field_id, &
-                                                        i_part, &
-                                                        cell_vtx_idx, &
-                                                        cell_vtx)
+  subroutine CWP_Field_location_internal_cell_vtx_get_(local_code_name, &
+                                                       cpl_id, &
+                                                       field_id, &
+                                                       i_part, &
+                                                       cell_vtx_idx, &
+                                                       cell_vtx)
     ! Get spatial interpolation internal cell->vertex connectivity (location algorithm).
     use, intrinsic :: iso_c_binding
     implicit none
