@@ -11,9 +11,28 @@ kernelspec:
   name: python3
 ---
 
-# Exercise 1 : Mesh partitioning
+# Exercise 1 : a basic coupling
 
-After having seen the building blocs to set up a coupling with CWIPI, we will discover the associated function calls in this very first simple coupling.
+After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
+
++++
+
+*(Load custom magics)*
+
+```{code-cell}
+import os, sys
+module_path = os.path.abspath(os.path.join('../../utils'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+```
+
+```{code-cell}
+%reload_ext visu_magics
+%reload_ext code_magics
+```
+
++++
+
 CWIPI has been written to function in a massivelly parallel distributed environement. Thus, the first thing to do, is the initialize the MPI environment:
 
 ```{code-cell}
@@ -35,7 +54,7 @@ In the Python interface of CWIPI, all physical and geometric data (fields, meshe
 
 import numpy as np
 ```
-The Python module of CWIPI since version 1.0 is called pycwp.
+The Python module of CWIPI since version 1.0 is called `pycwp`.
 Let us import it and assure it has been found, that will come handy later when we will be executing this code:
 
 ```{code-cell}
@@ -53,17 +72,12 @@ except:
 
 ### Initialization
 
+Now we will start using, CWIPI functions.
+Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
+
 The function to start a CWIPI coupling between two codes is **init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
-In this simple exemple, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1. Thus, CWIPI will get the MPI communicator composed of MPI rank 0 and 1. Why do we provide the name of the solver as an array? Well, because since version 1.0 CWIPI allows several solvers to run on the same MPI rank. In this simple case, we only have one code per MPI rank. In real life applications the solvers run on more than one MPI rank. Since all MPI ranks calling the **init** function are supposed to take part in the CWIPI computations, it could come handy to force CWIPI not to use certain MPI ranks. That is what the argument is_active_rank is for. At initialization, CWIPI provides each solver the MPI communicators giving the processors the communicator to communicate through the ranks of that solver.
-In our simple case, `code 1` gets a communicator with only MPI rank 0 and `code 2` get the communicator with only MPI rank 1.
-
-The signature of the **init** function is:
-
-```python
-def init(MPI.Comm global_comm,
-         list     code_names,
-         int      is_active_rank):
-```
+In this basic exemple, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1. Thus, CWIPI will get the MPI communicator composed of MPI rank 0 and 1. Why do we provide the name of the solver as an array? Well, because since version 1.0 CWIPI allows several solvers to run on the same MPI rank. In this basic case, we only have one code per MPI rank. In real life applications the solvers run on more than one MPI rank. Since all MPI ranks calling the **init** function are supposed to take part in the CWIPI computations, it could come handy to force CWIPI not to use certain MPI ranks. That is what the argument is_active_rank is for. At initialization, CWIPI provides each solver the MPI communicators giving the processors the communicator to communicate through the ranks of that solver.
+In our basic case, `code 1` gets a communicator with only MPI rank 0 and `code 2` get the communicator with only MPI rank 1.
 
 ```{code-cell}
 %%code_block -p exercise_1 -i 4
@@ -86,55 +100,6 @@ Since a solver can take part in several couplings, the Coupling object creation 
 
 In a similar way, at this step, we will introduce`code 1` and `code 2` to each other. On the MPI rank on which the solver is running, it will create a **Coupling** object telling which solver is running there, through which coupling it wants to communicate with which other solver. Then it describes itself in more detail.
 First it provides the dimension of the coupling interface, if it is partitionned, the spatial interpolation algorithm it wants to use, the number of paritions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
-
-The signature of the **__init__** function of the Coupling class of the **pycwp** module is:
-
-```python
-def __init__(self,
-             char *               local_code_name,
-             char *               cpl_id,
-             char *               coupled_code_name,
-             CWP_Interface_t      entities_dim,
-             CWP_Comm_t           comm_type,
-             CWP_Spatial_interp_t spatial_interp,
-             int                  n_part,
-             CWP_Dynamic_mesh_t   displacement,
-             CWP_Time_exch_t      recv_freq_type):
-
-```
-The enumerate variables as arguments take the following values:
-- CWP_Interface_t
-```python
-      CWP_INTERFACE_POINT
-      CWP_INTERFACE_LINEAR
-      CWP_INTERFACE_SURFACE
-      CWP_INTERFACE_VOLUME
-```
-- CWP_Comm_t
-```python
-      CWP_COMM_PAR_WITH_PART
-      CWP_COMM_PAR_WITHOUT_PART
-```
-- CWP_Spatial_interp_t
-```python
-      CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES
-      CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES
-      CWP_SPATIAL_INTERP_FROM_INTERSECTION
-      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT
-      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
-      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE
-      CWP_SPATIAL_INTERP_FROM_IDENTITY
-```
-- CWP_Dynamic_mesh_t
-```python
-      CWP_DYNAMIC_MESH_STATIC
-      CWP_DYNAMIC_MESH_DEFORMABLE
-      CWP_DYNAMIC_MESH_VARIABLE
-```
-- CWP_Time_exch_t
-```python
-      CWP_TIME_EXCH_USER_CONTROLLED
-```
 
 ```{code-cell}
 %%code_block -p exercise_1 -i 5
@@ -227,7 +192,7 @@ Now we know the mesh we work with. Let us define the fields of the solvers that 
 
 #### Create the field
 
-The first step is to create a Field object attached to the Coupling object associated to the coupling between `code 1` and `code 2`. The numerical method of both solvers use vertex centered fields (DOF_LOCATION_NODE). For `code 1` we tell that this `super fancy field` will be send (FIELD_EXCH_SEND) and that `code 2` will receive it (FIELD_EXCH_RECV). In this simple coupling the `super fancy field` that will be send has only one component which is the x coordinate of the mesh coordinates. For each field we tell that we want to visualize it in the Ensight ASCII output (STATUS_ON).
+The first step is to create a Field object attached to the Coupling object associated to the coupling between `code 1` and `code 2`. The numerical method of both solvers use vertex centered fields (DOF_LOCATION_NODE). For `code 1` we tell that this `super fancy field` will be send (FIELD_EXCH_SEND) and that `code 2` will receive it (FIELD_EXCH_RECV). In this basic coupling the `super fancy field` that will be send has only one component which is the x coordinate of the mesh coordinates. For each field we tell that we want to visualize it in the Ensight ASCII output (STATUS_ON).
 
 ```{code-cell}
 %%code_block -p exercise_1 -i 10
@@ -283,7 +248,7 @@ if(i_rank == 1):
 
 ### Begin time step
 
-In this simple exemple, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
+In this basic exemple, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
 Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
 
 ```{code-cell}
@@ -382,7 +347,15 @@ At the end of the code the MPI environment should be terminated.
 MPI.Finalize()
 ```
 
-## Run the exercice
+## Execution and visualization
 
-It is time to check if the function calls you filled in earlier are correct. The cell bellow load the environment and runs the exercice code.
-To make sure all cells were correctly concatenated, <span style="color:red">reexecute completly the whole notebook</span>.
+Run the following cells to execute to program you just wrote and visualize the basic coupling you implemented.
+
+```{code-cell}
+%merge_code_blocks -l python -p exercise_1 -n 2 -v -c
+```
+
+```{code-cell}
+%%visualize
+visu/CODE1_CODE2.case
+```
