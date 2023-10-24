@@ -8,7 +8,7 @@ from IPython.core.magic import cell_magic, line_magic, Magics, magics_class
 
 
 headers = {
-  "c"       : '#include <stdlib.h>\n#include <stdio.h>\n#include <string.h>\n#include <assert.h>\n#include <math.h>\n\n#include "pdm.h"\n#include "pdm_config.h"\n#include "pdm_mpi.h"\n#include "pdm_printf.h"\n#include "pdm_writer_priv.h"\n',
+  "c"       : '#include <stdlib.h>\n#include <stdio.h>\n#include <string.h>\n#include <assert.h>\n#include <math.h>\n\n',
   "fortran" : "",
   "python"  : ""
 }
@@ -21,36 +21,36 @@ language_extension = {
 }
 
 language_compiler_o = {
-  "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicc",
-  "fortran": "/opt/tools/openmpi/4.0.5-gnu831/bin/mpif90",
+  "c"      : "to doux",
+  "fortran": "to doux",
   "python" : None
 }
 
 language_compiler_e = {
-  "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicxx",
-  "fortran": "/opt/tools/openmpi/4.0.5-gnu831/bin/mpif90",
+  "c"      : "to doux",
+  "fortran": "to doux",
   "python" : None
 }
 
-user = "bandrieu"
-pdm_dir   = f"/stck/{user}/workspace/paradigm/paradigm"
-build_dir = f"/stck/{user}/workspace/trainings/build/paradigm"
+user = "khoogvel"
+cwp_dir   = f"/stck/{user}/workspace/cwipi/cwipi"
+build_dir = f"/stck/{user}/workspace/trainings/build/cwipi"
 
 language_linker_o = {
-  "c"      : f"-DDEBUG_CLASSE -I{pdm_dir} -I{build_dir} -I{pdm_dir}/test -I{build_dir}/extensions/paradigma/src -I{pdm_dir}/extensions/paradigma/src/../../.. -I{pdm_dir}/extensions/paradigma/src -I{pdm_dir}/extensions/paradigma/src/adapt -I{pdm_dir}/extensions/paradigma/src/mesh -I{pdm_dir}/extensions/paradigma/src/plugins -I{pdm_dir}/extensions/paradigma/src/plugins/coarse_mesh -I{pdm_dir}/extensions/paradigma/src/plugins/multicoloring -I{pdm_dir}/extensions/paradigma/src/plugins/renum -I{build_dir}/src -I{pdm_dir}/src/.. -I{pdm_dir}/src -I{pdm_dir}/src/pario -I{pdm_dir}/src/ppart -I{pdm_dir}/src/io -I{pdm_dir}/src/mpi_wrapper -I{pdm_dir}/src/ext_wrapper -I{pdm_dir}/src/mesh -I{pdm_dir}/src/meshgen -I{pdm_dir}/src/struct -I{pdm_dir}/src/util -I{pdm_dir}/src/../extensions/paradigma/src/plugins/renum -I{pdm_dir}/src/gpu -I{pdm_dir}/src/adapt -I/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/include -I/opt/tools/parmetis/4.0.3-gnu831-ompi405/include -I/opt/tools/metis/5.1.0-gnu831/include -I{build_dir}/src/io -I{build_dir}/src/mpi_wrapper/mpi -I{pdm_dir}/src/mpi_wrapper/mpi -I{pdm_dir}/src/mpi_wrapper/mpi/.. -I{pdm_dir}/src/mpi_wrapper/mpi/../.. -std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas -O0 -g -o",
-  "fortran": f"-DDEBUG_CLASSE -I{pdm_dir} -I{build_dir} -I{pdm_dir}/test -I{build_dir}/extensions/paradigma/src -I{pdm_dir}/extensions/paradigma/src/../../.. -I{pdm_dir}/extensions/paradigma/src/../../../src -I{pdm_dir}/extensions/paradigma/src/adapt -I{pdm_dir}/extensions/paradigma/src/mesh -I{pdm_dir}/extensions/paradigma/src/plugins -I{pdm_dir}/extensions/paradigma/src/plugins/coarse_mesh -I{pdm_dir}/extensions/paradigma/src/plugins/multicoloring -I{pdm_dir}/extensions/paradigma/src/plugins/renum -I{build_dir}/src -I{pdm_dir}/src/.. -I{pdm_dir}/src -I{pdm_dir}/src/pario -I{pdm_dir}/src/ppart -I{pdm_dir}/src/io -I{pdm_dir}/src/mpi_wrapper -I{pdm_dir}/src/ext_wrapper -I{pdm_dir}/src/mesh -I{pdm_dir}/src/meshgen -I{pdm_dir}/src/struct -I{pdm_dir}/src/util -I{pdm_dir}/src/../extensions/paradigma/src/plugins/renum -I{pdm_dir}/src/gpu -I{pdm_dir}/src/adapt -I/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/include -I/opt/tools/parmetis/4.0.3-gnu831-ompi405/include -I/opt/tools/metis/5.1.0-gnu831/include -I{build_dir}/src/io -I{build_dir}/src/mpi_wrapper/mpi -I{pdm_dir}/src/mpi_wrapper/mpi -I{pdm_dir}/src/mpi_wrapper/mpi/.. -I{pdm_dir}/src/mpi_wrapper/mpi/../.. -fallow-argument-mismatch -fPIC -cpp -Wall -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized -O0 -g -fcheck=bounds -fbacktrace -o",
+  "c"      : f"to doux",
+  "fortran": f"to doux",
   "python" : None
 }
 
 language_linker_e1 = {
-  "c"      : "-std=c++11 -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal  -Wno-unknown-pragmas -O0 -g",
-  "fortran": "-fallow-argument-mismatch -fPIC -cpp -Wall -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized -O0 -g -fcheck=bounds -fbacktrace",
+  "c"      : "to doux",
+  "fortran": "to doux",
   "python" : None
 }
 
 language_linker_e2 = {
-  "c"      : f"-L/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib  -Wl,-rpath,/opt/tools/parmetis/4.0.3-gnu831-ompi405/lib:/opt/tools/metis/5.1.0-gnu831/lib:/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib:::::::::::::::::::::::::::::::::::::::::::::::::::::::: -lm {build_dir}/extensions/paradigma/src/libpdmaf.a {build_dir}/src/libpdmf.a {build_dir}/extensions/paradigma/src/libpdmaf.a {build_dir}/extensions/paradigma/src/libpdma.a {build_dir}/src/libpdm.a {build_dir}/src/mpi_wrapper/mpi/libpdm_mpi.a {build_dir}/extensions/paradigma/src/libpdma.a {build_dir}/src/libpdmf.a {build_dir}/src/libpdm.a {build_dir}/src/mpi_wrapper/mpi/libpdm_mpi.a /opt/tools/parmetis/4.0.3-gnu831-ompi405/lib/libparmetis.so /opt/tools/metis/5.1.0-gnu831/lib/libmetis.so -lptscotch -lptscotcherr -lscotch -lscotcherr {build_dir}/src/io/libpdm_io.a -lm -lgfortran -lquadmath ",
-  "fortran": f"-L/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib  -Wl,-rpath,/opt/tools/parmetis/4.0.3-gnu831-ompi405/lib:/opt/tools/metis/5.1.0-gnu831/lib:/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib:::::::::::::::::::::::::::::::::::::::::::::::::::::::: -lm {build_dir}/extensions/paradigma/src/libpdmaf.a {build_dir}/src/libpdmf.a {build_dir}/extensions/paradigma/src/libpdmaf.a {build_dir}/extensions/paradigma/src/libpdma.a {build_dir}/src/libpdm.a {build_dir}/src/mpi_wrapper/mpi/libpdm_mpi.a {build_dir}/extensions/paradigma/src/libpdma.a {build_dir}/src/libpdmf.a {build_dir}/src/libpdm.a {build_dir}/src/mpi_wrapper/mpi/libpdm_mpi.a /opt/tools/parmetis/4.0.3-gnu831-ompi405/lib/libparmetis.so /opt/tools/metis/5.1.0-gnu831/lib/libmetis.so -lptscotch -lptscotcherr -lscotch -lscotcherr {build_dir}/src/io/libpdm_io.a -lm -lstdc++ ",
+  "c"      : f"to doux",
+  "fortran": f"to doux",
   "python" : None
 }
 
@@ -223,6 +223,10 @@ class CodeMagics(Magics):
       if args.language == "python":
         command.extend(["python3", "-u"])
       command.extend([exec_name])
+
+      # tmp for python
+      command.extend([": -np 1"])
+      command.extend(["python3", "-u", "./exercise_1_code2.py"])
 
       sys.stdout.write(" ".join(command)+"\n")
 
