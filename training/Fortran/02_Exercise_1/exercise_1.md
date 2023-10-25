@@ -11,4 +11,416 @@ kernelspec:
   name: python3
 ---
 
-# Exercise 1 : Mesh partitioning
+# Exercise 1 : a basic coupling
+
+After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
+
++++
+
+*(Load custom magics)*
+
+```{code-cell}
+import os, sys
+module_path = os.path.abspath(os.path.join('../../utils'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+```
+
+```{code-cell}
+%reload_ext visu_magics
+%reload_ext code_magics
+```
+
++++
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 1
+
+#include "cwipi_configf.h"
+
+program fortran_new_api_polygon_sol
+
+    use cwp
+
+    implicit none
+
+  !--------------------------------------------------------------------
+  integer, parameter                      :: n_vtx = 11, n_elts = 5
+
+  integer                                 :: ierr
+  integer                                 :: i_rank, n_rank
+
+  integer                                 :: n_code
+  character(len = 5),            pointer  :: code_names(:)         => null()
+  integer                                 :: is_active_rank = CWP_STATUS_ON
+  integer,                       pointer  :: intra_comms(:)        => null()
+
+  integer                                 :: n_part
+  character(len = 5),            pointer  :: coupled_code_names(:) => null()
+  character(len = 99)                     :: coupling_name
+
+  double precision, pointer, dimension(:,:) :: coords => null()
+  integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
+
+  integer, pointer, dimension(:)          :: connec_idx => null()
+  integer, pointer, dimension(:)          :: connec => null()
+  integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
+  integer(c_int)                          :: id_block
+
+  character(len = 99)                     :: field_name
+  integer(c_int)                          :: n_components
+
+  integer                                 :: i
+
+  double precision,              pointer  :: send_field_data(:) => null()
+  double precision,              pointer  :: recv_field_data(:) => null()
+
+  integer(c_int)                          :: n_uncomputed_tgts
+  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
+  !--------------------------------------------------------------------
+```
+
+CWIPI has been written to function in a massivelly parallel distributed environement.
+Thus, the first thing to do, is the initialize the MPI environment:
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 2
+
+  ! MPI Initialization
+  call MPI_Init(ierr)
+  call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
+  call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
+```
+
+### Initialization
+
+Now we will start using CWIPI functions !
+Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
+
+The function to start a CWIPI coupling between two codes is **init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
+In this basic exemple, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1.
+Thus, CWIPI will get the MPI communicator composed of MPI rank 0 and 1. Why do we provide the name of the solver as an array?
+Well, because since version 1.0 CWIPI allows several solvers to run on the same MPI rank.
+In this basic case, we only have one code per MPI rank. In real life applications the solvers run on more than one MPI rank.
+Since all MPI ranks calling the **CWP_Init** function are supposed to take part in the CWIPI computations, it could come handy
+to force CWIPI not to use certain MPI ranks. That is what the argument is_active_rank is for.
+At initialization, CWIPI provides each solver the MPI communicators giving the processors the communicator to communicate through
+the ranks of that solver.
+In our basic case, `code 1` gets a communicator with only MPI rank 0 and `code 2` get the communicator with only MPI rank 1.
+
+*Remark : In this exercise you will be doing the CWIPI calls only for `code 1`. We already implemented the calls for `code 2`
+in `exercise_1_code2.c` in this folder. There is no point in cheating, you are here to learn.*
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 3
+
+  n_code = 1
+
+  allocate(code_names(n_code), &
+           intra_comms(n_code))
+
+  code_names(1) = "code1"
+
+  call CWP_Init(mpi_comm_world, &
+                n_code,         &
+                code_names,     &
+                is_active_rank, &
+                intra_comms)
+```
+### Coupling definition
+
+Since a solver can take part in several couplings, the Coupling object creation allows to define the interaction between two fixed solvers. Let use a metafor to be more clear.
+
+<span style="color:blue">*Oscar and Marie are two engineers and their boss assigned then to the CWIPI project to work in pairs. They don't know each other. During the first work session, they are each assigned to a desk in the working room. It is time to introduce themselves. Oscar is on the yellow desk and says "I am Oscar working on the CWIPI project with Marie. I am 28 years old and I live in Châtillon". Marie is on the blue desk and says "I am Marie working on the CWIPI project with Oscar. I am 54 years old and I live in Palaiseau".*</span>
+
+In a similar way, at this step, we will introduce`code 1` and `code 2` to each other. On the MPI rank on which the solver is running, it will create a coupling structure telling which solver is running there, through which coupling it wants to communicate with which other solver. Then it describes itself in more detail.
+First it provides the dimension of the coupling interface, if it is partitionned, the spatial interpolation algorithm it wants to use, the number of paritions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 4
+
+  coupling_name = "code1_code2";
+
+  allocate(coupled_code_names(n_code))
+
+  coupled_code_names(1) = "code2"
+
+  n_part = 1
+  call CWP_Cpl_create(code_names(1),                                         &
+                      coupling_name,                                         &
+                      coupled_code_names(1),                                 &
+                      CWP_INTERFACE_SURFACE,                                 &
+                      CWP_COMM_PAR_WITH_PART,                                &
+                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
+                      n_part,                                                &
+                      CWP_DYNAMIC_MESH_STATIC,                               &
+                      CWP_TIME_EXCH_USER_CONTROLLED)
+```
+
+### Vizualisation
+
+Let us take a pause in our coupling definition, to talk about the **CWP_Visu_set** function. It allows to activate the Ensight ASCII output of the coupling interface with the exchanged fields and the partitionning. Those outputs can easily be read with Paraview.
+When setting up a coupling, you will certainly have some tunning work to do. To be able to visualize the what CWIPI does will come handy to debug.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 5
+
+  call CWP_Visu_set(code_names(1),           &
+                    coupling_name,           &
+                    1,                       &
+                    CWP_VISU_FORMAT_ENSIGHT, &
+                    "text")
+```
+
+### Coupling interface
+
+Let us go on with describing the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
+
+![alt text](mesh.png)
+
+It is composed of several types of elements. To start of easy, let's just say it is composed of polygons. To be more precise 5 elements. We can also see 11 vertices on this mesh.
+
+To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup. It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons. Finally, CWIPI has to digest the information we provided it. Well, how does this translate in termes of code?
+
+#### Set the mesh vertices coordinates
+
+We start defining our vertices soup using the **CWP_Mesh_interf_vtx_set** from the Coupling class. The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (11 here) to set the coordinates in. The coordinates are interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn). The None argument will be explained later.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 6
+
+  allocate(coords(3,n_vtx))
+  coords(:, 1) = [0,0,0]
+  coords(:, 2) = [1,0,0]
+  coords(:, 3) = [2,0,0]
+  coords(:, 4) = [3,0,0]
+  coords(:, 5) = [0,1,0]
+  coords(:, 6) = [2,1,0]
+  coords(:, 7) = [3,1,0]
+  coords(:, 8) = [1,2,0]
+  coords(:, 9) = [0,3,0]
+  coords(:,10) = [2,3,0]
+  coords(:,11) = [3,3,0]
+  call CWP_Mesh_interf_vtx_set(code_names(1), &
+                               coupling_name, &
+                               0,             &
+                               n_vtx,         &
+                               coords,        &
+                               vtx_g_num)
+```
+
+#### Set the mesh polygons connectivity
+
+Let us create sense in that vertices soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that soup vertices are connected as polygons (CWP_BLOCK_FACE_POLY). Then we use the function **mesh_interf_f_poly_block_set** which allows to describe the 5 polygons of our 2D mesh. An index array (connec_idx) of size n_elts+1 contains the information of the number of vertices per polygon. The first index is always 0, from there we add up the number of vertices per element. Here one triangle, 2 quadrangles and 2 pentagons.
+The connectivity between elements and vertices is an array of size connec_idx(n_elts+1) (here 21).
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 7
+
+  id_block = CWP_Mesh_interf_block_add(code_names(1),       &
+                                       coupling_name,       &
+                                       CWP_BLOCK_FACE_POLY)
+
+  allocate(connec_idx(n_elts+1))
+  connec_idx = [0,3,7,11,16,21]
+  allocate(connec(21))
+  connec = [1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8]
+  call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
+                                        coupling_name, &
+                                        0,             &
+                                        id_block,      &
+                                        n_elts,        &
+                                        connec_idx,    &
+                                        connec,        &
+                                        elt_g_num)
+```
+
+#### Finalize mesh
+
+This is when CWIPI digests the information we just provided it using the function **CWP_Mesh_interf_finalize**. Indeed, CWIPI hides the parallelism for users but inside the code it needs to know the global numbering of the mesh entities. The None arguments given earlier allow the user to provide this global numbering.
+If not given this numbering is generated by CWIPI, as well as the underlying mesh data structure
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 8
+
+  call CWP_Mesh_interf_finalize(code_names(1), &
+                                coupling_name)
+```
+
+### Field definition
+
+Now we know the mesh we work with. Let us define the fields of the solvers that are exchanged. As said earlier, here to simplify we will only send a field from `code 1` to `code 2`.
+
+#### Create the field
+
+The first step is to create a Field object attached to the Coupling object associated to the coupling between `code 1` and `code 2`. The numerical method of both solvers use vertex centered fields (DOF_LOCATION_NODE). For `code 1` we tell that this `super fancy field` will be send (FIELD_EXCH_SEND) and that `code 2` will receive it (FIELD_EXCH_RECV). In this basic coupling the `super fancy field` that will be send has only one component which is the x coordinate of the mesh coordinates. For each field we tell that we want to visualize it in the Ensight ASCII output (STATUS_ON).
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 9
+
+  field_name   = "a super fancy field"
+  n_components = 1
+
+  call CWP_Field_create(code_names(1),                &
+                        coupling_name,                &
+                        field_name,                   &
+                        CWP_DOUBLE,                   &
+                        CWP_FIELD_STORAGE_INTERLACED, &
+                        n_components,                 &
+                        CWP_DOF_LOCATION_NODE,        &
+                        CWP_FIELD_EXCH_SEND,          &
+                        CWP_STATUS_ON)
+```
+
+#### Set the field values
+
+The function **CWP_Field_data_set** of the Field class is used here to set the arrays associated to the fields. `code 1` fills an array with the data that it wants to send to `code 2`.
+`code 2` has to provide an array in which the field data from `code 1` will be stored.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 9
+
+  allocate(send_field_data(n_vtx * n_components))
+  do i=1,n_vtx
+    send_field_data(i) = coords(1,i)
+  end do
+
+  call CWP_Field_data_set(code_names(1),        &
+                          coupling_name,        &
+                          field_name,           &
+                          0,                    &
+                          CWP_FIELD_MAP_SOURCE, &
+                          send_field_data)
+```
+
+### Begin time step
+
+In this basic exemple, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
+Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 10
+
+  call CWP_Time_step_beg(code_names(1), &
+                         0.d0)
+```
+
+### Compute interpolation weights
+
+Since we use the spatial interpolation algorithm locating a set of points (vertices of `code 2`) in a mesh (coupling interface of `code 1`), to ensure all points are located a tolerence can be set using the function **spatial_interp_property_set** (optional).
+Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **CWP_Spatial_interp_weights_compute**.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 11
+
+  call CWP_Spatial_interp_property_set(code_names(1), &
+                                       coupling_name, &
+                                       "tolerance",   &
+                                       CWP_DOUBLE,    &
+                                       "0.1")
+
+  call CWP_Spatial_interp_weights_compute(code_names(1), &
+                                          coupling_name)
+```
+
+### Exchange field values between codes
+
+For `code 1` to send its Field data array to `code 2`, the non-blocking **CWP_Field_issend** should be called. Similarly, `code 2` should call **CWP_Field_irecv** to tell `code 1` that is wants to receive the Field data array. After that, the solvers can do other work while the exchange is being done. Once you want to be sure the send operation has completed in `code 1`, use **CWP_Field_wait_issend**.
+The interpolated Field data array has completely arrived for `code 2` once the call to **CWP_Field_wait_irecv** is completed.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 12
+
+  call CWP_Field_issend(code_names(1), &
+                        coupling_name, &
+                        field_name)
+
+  call CWP_Field_wait_issend(code_names(1), &
+                             coupling_name, &
+                             field_name)
+```
+
+### Check interpolation
+
+As said earlier, one can set a tolerence to ensure all points are located. To check if that tolerence was large enougth, the function **n_uncomputed_tgts_get** can be called to retreive the number of unlocated vertices of the coupling interface of `code 2`.
+To know which vertices were unlocated the **uncomputed_tgts_get** is called.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 13
+
+!   n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
+!                                                 coupling_name, &
+!                                                 field_name,    &
+!                                                 0)
+!
+!   allocate(send_field_data(n_uncomputed_tgts))
+!   uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
+!                                             coupling_name, &
+!                                             field_name,    &
+!                                             0)
+```
+
+### End time step and clean up
+
+At the end of each solver iteration **CWP_Time_step_end** is called to inform CWIPI that the time step has terminated.
+When there are no CWIPI exchanges left to be done, all field and coupling structures can be deleted (**CWP_Field_del** and **CWP_Cpl_del**).
+Still the coupling interface should be manually deleted calling **CWP_Mesh_interf_del** on the Coupling object.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 14
+
+  call CWP_Time_step_end(code_names(1))
+
+  call CWP_Field_Del(code_names(1),   &
+                     coupling_name,   &
+                     field_name)
+
+  call CWP_Mesh_interf_del(code_names(1), &
+                           coupling_name)
+
+  call CWP_Cpl_Del(code_names(1), &
+                   coupling_name)
+```
+
+### End CWIPI
+
+This call terminates the use of CWIPI by cleaning up the internal structures CWIPI created.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 15
+
+  deallocate(coords);
+  deallocate(connec);
+  deallocate(connec_idx);
+  deallocate(send_field_data);
+
+  ! Finalize CWIPI :
+  call CWP_Finalize()
+
+```
+
+### End MPI environment
+
+At the end of the code the MPI environment should be terminated.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 16
+
+  call MPI_Finalize(ierr)
+
+end program fortran_new_api_polygon_sol
+```
+
+## Execution and visualization
+
+Run the following cells to execute to program you just wrote and visualize the basic coupling you implemented.
+
+```{code-cell}
+%merge_code_blocks -l fortran -p exercise_1_code_1 -n 1 -v -c
+```
+
+```{code-cell}
+%%visualize
+cwipi_writer/code1_code2_code1_code2/CHR.case
+cwipi_writer/code1_code2_code2_code1/CHR.case
+```
