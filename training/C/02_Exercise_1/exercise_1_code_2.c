@@ -76,6 +76,9 @@ main(int argc, char *argv[]) {
                                    connec,
                                    NULL);
 
+  CWP_Mesh_interf_finalize(code_name[0],
+                           coupling_name);
+
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
 
@@ -100,6 +103,14 @@ main(int argc, char *argv[]) {
 
   CWP_Time_step_beg(code_name[0],
                     0.0);
+
+  CWP_Spatial_interp_property_set(code_name[0],
+                                  coupling_name,
+                                  "tolerance",
+                                  CWP_DOUBLE,
+                                  "0.1");
+  CWP_Spatial_interp_weights_compute(code_name[0],
+                                     coupling_name);
 
   CWP_Field_irecv(code_name[0],
                   coupling_name,
