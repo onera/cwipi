@@ -8,7 +8,7 @@ from IPython.core.magic import cell_magic, line_magic, Magics, magics_class
 
 
 headers = {
-  "c"       : '#include <stdlib.h>\n#include <stdio.h>\n#include <string.h>\n#include <assert.h>\n#include <math.h>\n\n',
+  "c"       : '#include <stdlib.h>\n#include <stdio.h>\n#include <assert.h>\n\n',
   "fortran" : "",
   "python"  : ""
 }
@@ -21,13 +21,13 @@ language_extension = {
 }
 
 language_compiler_o = {
-  "c"      : "to doux",
+  "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicc",
   "fortran": "to doux",
   "python" : None
 }
 
 language_compiler_e = {
-  "c"      : "to doux",
+  "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicc",
   "fortran": "to doux",
   "python" : None
 }
@@ -37,19 +37,19 @@ cwp_dir   = f"/stck/{user}/workspace/cwipi/cwipi"
 build_dir = f"/stck/{user}/workspace/trainings/build/cwipi"
 
 language_linker_o = {
-  "c"      : f"to doux",
+  "c"      : f"-DDEBUG_CLASSE -I{cwp_dir} -I{build_dir} -I{cwp_dir}/tests -I{build_dir}/src -I{cwp_dir}/src -I{cwp_dir}/src/new -I{cwp_dir}/src/fvm -I{cwp_dir}/src/bft -I{build_dir}/external/paradigm/src -I{build_dir}/external/paradigm -I{cwp_dir}/external/paradigm/src/.. -I{cwp_dir}/external/paradigm/src -I{cwp_dir}/external/paradigm/src/pario -I{cwp_dir}/external/paradigm/src/ppart -I{cwp_dir}/external/paradigm/src/io -I{cwp_dir}/external/paradigm/src/mpi_wrapper -I{cwp_dir}/external/paradigm/src/ext_wrapper -I{cwp_dir}/external/paradigm/src/mesh -I{cwp_dir}/external/paradigm/src/meshgen -I{cwp_dir}/external/paradigm/src/struct -I{cwp_dir}/external/paradigm/src/gpu -I{cwp_dir}/external/paradigm/src/adapt -I{cwp_dir}/external/paradigm/src/util -I/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/include -I/opt/tools/parmetis/4.0.3-gnu831-ompi405/include -I/opt/tools/metis/5.1.0-gnu831/include -I{build_dir}/external/paradigm/src/io -I{build_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/.. -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/../.. -std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas -O0 -g -o",
   "fortran": f"to doux",
   "python" : None
 }
 
 language_linker_e1 = {
-  "c"      : "to doux",
+  "c"      : "-std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas -O0 -g",
   "fortran": "to doux",
   "python" : None
 }
 
 language_linker_e2 = {
-  "c"      : f"to doux",
+  "c"      : f"-L/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib  -Wl,-rpath,{build_dir}/external/paradigm/src:{build_dir}/external/paradigm/src/mpi_wrapper/mpi:{build_dir}/src:/opt/tools/parmetis/4.0.3-gnu831-ompi405/lib:/opt/tools/metis/5.1.0-gnu831/lib:/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib:{build_dir}/external/paradigm/src/io: -lm -lm {build_dir}/external/paradigm/src/libpdmf.so.2.3.3 {build_dir}/external/paradigm/src/libpdm.so.2.3.3 {build_dir}/external/paradigm/src/mpi_wrapper/mpi/libpdm_mpi.so.2.3.3 {build_dir}/src/libcwpf.so.1.0.0 {build_dir}/src/libcwp.so.1.0.0 -lstdc++ /opt/tools/parmetis/4.0.3-gnu831-ompi405/lib/libparmetis.so /opt/tools/metis/5.1.0-gnu831/lib/libmetis.so -lptscotch -lptscotcherr -lscotch -lscotcherr {build_dir}/external/paradigm/src/io/libpdm_io.so.2.3.3 -lm",
   "fortran": f"to doux",
   "python" : None
 }
@@ -168,9 +168,13 @@ class CodeMagics(Magics):
     # Compile & run
     if run_code:
       # Compile
+      coupled_exec_name = f"./{args.prefix[:-1]}2"
       if args.language == "python":
         exec_name = source_name
+        coupled_exec_name = f"{coupled_exec_name}.{extension}"
       else:
+
+        # code 1
         exec_name = args.prefix
         o_name    = os.path.basename("{:s}.{:s}".format(args.prefix, "o"))
 
@@ -215,8 +219,56 @@ class CodeMagics(Magics):
           sys.stderr.write(e.stdout)
           return
 
+        # code 2
+        coupled_source_name    = f"{coupled_exec_name}.{extension}"
+        coupled_o_name = os.path.basename("{:s}.{:s}".format(coupled_exec_name, "o"))
+
+        command = []
+
+        command.extend([language_compiler_o[args.language]])
+        command.extend([language_linker_o[args.language]])
+        command.extend([coupled_o_name, '-c', coupled_source_name])
+
+        try:
+          proc = run(" ".join(command),
+                     capture_output=True,
+                     shell=True,
+                     check=True,
+                     env=self.env,
+                     encoding='utf8')
+          print_out_err(proc)
+        except CalledProcessError as e:
+          sys.stderr.write(" ".join(e.cmd))
+          sys.stderr.write(e.stderr)
+          sys.stderr.write(e.stdout)
+          return
+
+        command = []
+
+        command.extend([language_compiler_e[args.language]])
+        command.extend([language_linker_e1[args.language]])
+        command.extend([coupled_o_name, '-o', coupled_exec_name])
+        command.extend([language_linker_e2[args.language]])
+
+        try:
+          proc = run(" ".join(command),
+                     capture_output=True,
+                     shell=True, # access to /d/whoami/workspace if True else only /stck/workspace
+                     check=True,
+                     env=self.env,
+                     encoding='utf8')
+          print_out_err(proc)
+        except CalledProcessError as e:
+          sys.stderr.write(" ".join(e.cmd))
+          sys.stderr.write(e.stderr)
+          sys.stderr.write(e.stdout)
+          return
+
       # Run
-      command = ["mpirun -np {} python3 -u {} : -np 1 python3 -u ./exercise_1_code_2.py".format(args.n_rank, exec_name)]
+      python = " "
+      if args.language == "python":
+        python = " python3 -u "
+      command = ["mpirun -np {}{}{} : -np 1{}{}".format(args.n_rank, python, exec_name, python, coupled_exec_name)]
 
       sys.stdout.write(" ".join(command)+"\n")
 
