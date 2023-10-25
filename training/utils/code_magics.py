@@ -216,17 +216,7 @@ class CodeMagics(Magics):
           return
 
       # Run
-      command = []
-      command.extend(["mpirun"])
-      command.extend(["-np"])
-      command.extend(["%d" % args.n_rank])
-      if args.language == "python":
-        command.extend(["python3", "-u"])
-      command.extend([exec_name])
-
-      # tmp for python
-      command.extend([": -np 1"])
-      command.extend(["python3", "-u", "./exercise_1_code2.py"])
+      command = ["mpirun -np {} python3 -u {} : -np 1 python3 -u ./exercise_1_code_2.py".format(args.n_rank, exec_name)]
 
       sys.stdout.write(" ".join(command)+"\n")
 
@@ -234,7 +224,7 @@ class CodeMagics(Magics):
         try:
           proc = run(command,
                      capture_output=True,
-                     shell=False,
+                     shell=True,
                      check=True,
                      env=self.env,
                      encoding='utf8')
