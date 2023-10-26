@@ -20,15 +20,9 @@ language_extension = {
   "python" : "py"
 }
 
-language_compiler_o = {
+language_compiler = {
   "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicc",
-  "fortran": "to doux",
-  "python" : None
-}
-
-language_compiler_e = {
-  "c"      : "/opt/tools/openmpi/4.0.5-gnu831/bin/mpicc",
-  "fortran": "to doux",
+  "fortran": "/opt/tools/openmpi/4.0.5-gnu831/bin/mpif90",
   "python" : None
 }
 
@@ -38,19 +32,19 @@ build_dir = f"/stck/{user}/workspace/trainings/build/cwipi"
 
 language_linker_o = {
   "c"      : f"-DDEBUG_CLASSE -I{cwp_dir} -I{build_dir} -I{cwp_dir}/tests -I{build_dir}/src -I{cwp_dir}/src -I{cwp_dir}/src/new -I{cwp_dir}/src/fvm -I{cwp_dir}/src/bft -I{build_dir}/external/paradigm/src -I{build_dir}/external/paradigm -I{cwp_dir}/external/paradigm/src/.. -I{cwp_dir}/external/paradigm/src -I{cwp_dir}/external/paradigm/src/pario -I{cwp_dir}/external/paradigm/src/ppart -I{cwp_dir}/external/paradigm/src/io -I{cwp_dir}/external/paradigm/src/mpi_wrapper -I{cwp_dir}/external/paradigm/src/ext_wrapper -I{cwp_dir}/external/paradigm/src/mesh -I{cwp_dir}/external/paradigm/src/meshgen -I{cwp_dir}/external/paradigm/src/struct -I{cwp_dir}/external/paradigm/src/gpu -I{cwp_dir}/external/paradigm/src/adapt -I{cwp_dir}/external/paradigm/src/util -I/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/include -I/opt/tools/parmetis/4.0.3-gnu831-ompi405/include -I/opt/tools/metis/5.1.0-gnu831/include -I{build_dir}/external/paradigm/src/io -I{build_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/.. -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/../.. -std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas -O0 -g -o",
-  "fortran": f"to doux",
+  "fortran": f"-DDEBUG_CLASSE -I{cwp_dir} -I{build_dir} -I{cwp_dir}/tests -I{build_dir}/src -I{cwp_dir}/src -I{cwp_dir}/src/new -I{cwp_dir}/src/fvm -I{cwp_dir}/src/bft -I{build_dir}/external/paradigm/src -I{build_dir}/external/paradigm -I{cwp_dir}/external/paradigm/src/.. -I{cwp_dir}/external/paradigm/src -I{cwp_dir}/external/paradigm/src/pario -I{cwp_dir}/external/paradigm/src/ppart -I{cwp_dir}/external/paradigm/src/io -I{cwp_dir}/external/paradigm/src/mpi_wrapper -I{cwp_dir}/external/paradigm/src/ext_wrapper -I{cwp_dir}/external/paradigm/src/mesh -I{cwp_dir}/external/paradigm/src/meshgen -I{cwp_dir}/external/paradigm/src/struct -I{cwp_dir}/external/paradigm/src/gpu -I{cwp_dir}/external/paradigm/src/adapt -I{cwp_dir}/external/paradigm/src/util -I/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/include -I/opt/tools/parmetis/4.0.3-gnu831-ompi405/include -I/opt/tools/metis/5.1.0-gnu831/include -I{build_dir}/external/paradigm/src/io -I{build_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/.. -I{cwp_dir}/external/paradigm/src/mpi_wrapper/mpi/../.. -fallow-argument-mismatch -fPIC -cpp -Wall -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized -O0 -g -fcheck=bounds -fbacktrace -o",
   "python" : None
 }
 
 language_linker_e1 = {
   "c"      : "-std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas -O0 -g",
-  "fortran": "to doux",
+  "fortran": "-fallow-argument-mismatch -fPIC -cpp -Wall -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized -O0 -g -fcheck=bounds -fbacktrace",
   "python" : None
 }
 
 language_linker_e2 = {
   "c"      : f"-L/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib  -Wl,-rpath,{build_dir}/external/paradigm/src:{build_dir}/external/paradigm/src/mpi_wrapper/mpi:{build_dir}/src:/opt/tools/parmetis/4.0.3-gnu831-ompi405/lib:/opt/tools/metis/5.1.0-gnu831/lib:/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib:{build_dir}/external/paradigm/src/io: -lm -lm {build_dir}/external/paradigm/src/libpdmf.so.2.3.3 {build_dir}/external/paradigm/src/libpdm.so.2.3.3 {build_dir}/external/paradigm/src/mpi_wrapper/mpi/libpdm_mpi.so.2.3.3 {build_dir}/src/libcwpf.so.1.0.0 {build_dir}/src/libcwp.so.1.0.0 -lstdc++ /opt/tools/parmetis/4.0.3-gnu831-ompi405/lib/libparmetis.so /opt/tools/metis/5.1.0-gnu831/lib/libmetis.so -lptscotch -lptscotcherr -lscotch -lscotcherr {build_dir}/external/paradigm/src/io/libpdm_io.so.2.3.3 -lm",
-  "fortran": f"to doux",
+  "fortran": f"-L/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib  -Wl,-rpath,{build_dir}/external/paradigm/src:{build_dir}/external/paradigm/src/mpi_wrapper/mpi:{build_dir}/src:/opt/tools/parmetis/4.0.3-gnu831-ompi405/lib:/opt/tools/metis/5.1.0-gnu831/lib:/opt/tools/scotch/6.0.9-idx32-gnu831-ompi405/lib:{build_dir}/external/paradigm/src/io: -lm -lm {build_dir}/external/paradigm/src/libpdmf.so.2.3.3 {build_dir}/external/paradigm/src/libpdm.so.2.3.3 {build_dir}/external/paradigm/src/mpi_wrapper/mpi/libpdm_mpi.so.2.3.3 {build_dir}/src/libcwpf.so.1.0.0 {build_dir}/src/libcwp.so.1.0.0 -lstdc++ /opt/tools/parmetis/4.0.3-gnu831-ompi405/lib/libparmetis.so /opt/tools/metis/5.1.0-gnu831/lib/libmetis.so -lptscotch -lptscotcherr -lscotch -lscotcherr {build_dir}/external/paradigm/src/io/libpdm_io.so.2.3.3 -lm",
   "python" : None
 }
 
@@ -180,9 +174,11 @@ class CodeMagics(Magics):
 
         command = []
 
-        command.extend([language_compiler_o[args.language]])
+        command.extend([language_compiler[args.language]])
         command.extend([language_linker_o[args.language]])
         command.extend([o_name, '-c', source_name])
+
+        sys.stdout.write(" ".join(command)+"\n")
 
         try:
           proc = run(" ".join(command),
@@ -200,10 +196,12 @@ class CodeMagics(Magics):
 
         command = []
 
-        command.extend([language_compiler_e[args.language]])
+        command.extend([language_compiler[args.language]])
         command.extend([language_linker_e1[args.language]])
         command.extend([o_name, '-o', os.path.basename(exec_name)])
         command.extend([language_linker_e2[args.language]])
+
+        sys.stdout.write(" ".join(command)+"\n")
 
         try:
           proc = run(" ".join(command),
@@ -225,7 +223,7 @@ class CodeMagics(Magics):
 
         command = []
 
-        command.extend([language_compiler_o[args.language]])
+        command.extend([language_compiler[args.language]])
         command.extend([language_linker_o[args.language]])
         command.extend([coupled_o_name, '-c', coupled_source_name])
 
@@ -245,7 +243,7 @@ class CodeMagics(Magics):
 
         command = []
 
-        command.extend([language_compiler_e[args.language]])
+        command.extend([language_compiler[args.language]])
         command.extend([language_linker_e1[args.language]])
         command.extend([coupled_o_name, '-o', coupled_exec_name])
         command.extend([language_linker_e2[args.language]])
