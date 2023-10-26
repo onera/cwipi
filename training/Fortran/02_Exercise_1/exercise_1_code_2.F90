@@ -6,6 +6,8 @@ program fortran_new_api_polygon_sol
 
     implicit none
 
+    include "mpif.h"
+
   !--------------------------------------------------------------------
   integer, parameter                      :: n_vtx = 11, n_elts = 5
 
@@ -30,7 +32,7 @@ program fortran_new_api_polygon_sol
   integer(c_int)                          :: id_block
 
   character(len = 99)                     :: field_name
-  integer(c_int)                          :: n_components
+  integer(c_int)                          :: n_components = 1
 
   integer                                 :: i
 
@@ -131,7 +133,7 @@ program fortran_new_api_polygon_sol
                         CWP_FIELD_STORAGE_INTERLACED, &
                         n_components,                 &
                         CWP_DOF_LOCATION_NODE,        &
-                        CWP_FIELD_EXCH_SEND,          &
+                        CWP_FIELD_EXCH_RECV,          &
                         CWP_STATUS_ON)
 
   allocate(recv_field_data(n_vtx * n_components))

@@ -44,6 +44,8 @@ program fortran_new_api_polygon_sol
 
     implicit none
 
+    include "mpif.h"
+
   !--------------------------------------------------------------------
   integer, parameter                      :: n_vtx = 11, n_elts = 5
 
@@ -68,7 +70,7 @@ program fortran_new_api_polygon_sol
   integer(c_int)                          :: id_block
 
   character(len = 99)                     :: field_name
-  integer(c_int)                          :: n_components
+  integer(c_int)                          :: n_components = 1
 
   integer                                 :: i
 
@@ -278,7 +280,7 @@ The function **CWP_Field_data_set** of the Field class is used here to set the a
 `code 2` has to provide an array in which the field data from `code 1` will be stored.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 9
+%%code_block -p exercise_1_code_1 -i 10
 
   allocate(send_field_data(n_vtx * n_components))
   do i=1,n_vtx
@@ -299,7 +301,7 @@ In this basic exemple, only one solver iteration during which an exchange occurs
 Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 10
+%%code_block -p exercise_1_code_1 -i 11
 
   call CWP_Time_step_beg(code_names(1), &
                          0.d0)
@@ -311,7 +313,7 @@ Since we use the spatial interpolation algorithm locating a set of points (verti
 Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **CWP_Spatial_interp_weights_compute**.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 11
+%%code_block -p exercise_1_code_1 -i 12
 
   call CWP_Spatial_interp_property_set(code_names(1), &
                                        coupling_name, &
@@ -329,7 +331,7 @@ For `code 1` to send its Field data array to `code 2`, the non-blocking **CWP_Fi
 The interpolated Field data array has completely arrived for `code 2` once the call to **CWP_Field_wait_irecv** is completed.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 12
+%%code_block -p exercise_1_code_1 -i 13
 
   call CWP_Field_issend(code_names(1), &
                         coupling_name, &
@@ -346,7 +348,7 @@ As said earlier, one can set a tolerence to ensure all points are located. To ch
 To know which vertices were unlocated the **uncomputed_tgts_get** is called.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 13
+%%code_block -p exercise_1_code_1 -i 14
 
 !   n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
 !                                                 coupling_name, &
@@ -367,7 +369,7 @@ When there are no CWIPI exchanges left to be done, all field and coupling struct
 Still the coupling interface should be manually deleted calling **CWP_Mesh_interf_del** on the Coupling object.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 14
+%%code_block -p exercise_1_code_1 -i 15
 
   call CWP_Time_step_end(code_names(1))
 
@@ -387,7 +389,7 @@ Still the coupling interface should be manually deleted calling **CWP_Mesh_inter
 This call terminates the use of CWIPI by cleaning up the internal structures CWIPI created.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 15
+%%code_block -p exercise_1_code_1 -i 16
 
   deallocate(coords);
   deallocate(connec);
@@ -404,7 +406,7 @@ This call terminates the use of CWIPI by cleaning up the internal structures CWI
 At the end of the code the MPI environment should be terminated.
 
 ```{code-cell}
-%%code_block -p exercise_1_code_1 -i 16
+%%code_block -p exercise_1_code_1 -i 17
 
   call MPI_Finalize(ierr)
 
