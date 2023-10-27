@@ -48,6 +48,9 @@ Since the set up is roughly the same as in the previous exercise, it is not spli
 #include "cwp.h"
 #include "cwp_priv.h"
 
+#include "pdm.h"
+#include "pdm_generate_mesh.h"
+
 int
 main(int argc, char *argv[]) {
 
@@ -353,8 +356,8 @@ Run the following cells to execute to program you just wrote and visualize the b
 
 ```{code-cell}
 %%visualize
-cwipi_writer/coupling_code1_code2/CHR.case
-cwipi_writer/coupling_code2_code1/CHR.case
+cwipi_writer/coupling_code2_code1/CHR.case : r_a~super~fancy~field1
+cwipi_writer/coupling_code1_code2/CHR.case : s_a~super~fancy~field1
 ```
 
 
