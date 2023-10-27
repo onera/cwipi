@@ -124,13 +124,8 @@ main(int argc, char *argv[]) {
 
   const int    itdeb = 1;
   const int    itend = 10;
-  const double freq  = 0.20;
-  const double ampl  = 0.012;
-  const double phi   = 0.1;
   double       ttime = 0.0;
   double       dt    = 0.1;
-
-  double omega = 2.0*acos(-1.0)*freq;
 
   for (int it = itdeb; it <= itend; it ++) {
 
@@ -139,13 +134,6 @@ main(int argc, char *argv[]) {
     // Start time step
     CWP_Time_step_beg(code_name[0],
                       ttime);
-
-    if (it > itdeb) {
-      for (int i = 0; i < n_vtx; i++) {
-        coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
-        field_data[i] = coords[3 * i + 2];
-      }
-    }
 
     CWP_Spatial_interp_weights_compute(code_name[0],
                                        coupling_name);
