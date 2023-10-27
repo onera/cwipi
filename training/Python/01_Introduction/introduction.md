@@ -105,7 +105,7 @@ The basic coupling described above, reads in pseudo-code as:
 ```
 
 In exercise 1, we will focus on implementing this basic coupling.
-In exercise 2, we will adapt that code by answering the following question : what would you change if `$m2$` was modified at each `$code2$` iteration?
+In exercise 2, we will adapt that code for a coupling interface mesh that is deformed over time.
 
 # Exercise 0
 
