@@ -221,13 +221,16 @@ at the end of the iteration with `CWP_Time_step_end`.
 
   const int    itdeb = 1;
   const int    itend = 10;
-  const double freq  = 0.20;
-  const double ampl  = 0.012;
-  const double phi   = 0.1;
   double       ttime = 0.0;
   double       dt    = 0.1;
 
-  double omega = 2.0*acos(-1.0)*freq;
+  double degrad = acos(-1.0)/180.;
+  double x = 0.0;
+  double y = 0.0;
+  double alpha = 0.5;
+  alpha = alpha * degrad;
+  double sina = sin(alpha);
+  double cosa = cos(alpha);
 
   for (int it = itdeb; it <= itend; it ++) {
 
@@ -238,8 +241,6 @@ at the end of the iteration with `CWP_Time_step_end`.
                       ttime);
 ```
 
--> TO DO : ROTATE THE MESH
-
 Let's rotate the mesh of `code 1` with respect to `code 2`.
 
 ```{code-cell}
@@ -247,8 +248,11 @@ Let's rotate the mesh of `code 1` with respect to `code 2`.
 
     if (it > itdeb) {
       for (int i = 0; i < n_vtx; i++) {
-        coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
-        field_data[i] = coords[3 * i + 2];
+        x = coords[i * 3    ];
+        y = coords[i * 3 + 1];
+        coords[i * 3    ] = cosa*x - sina*y;
+        coords[i * 3 + 1] = sina*x + cosa*y;
+        field_data[i] = coords[3 * i];
       }
     }
 
