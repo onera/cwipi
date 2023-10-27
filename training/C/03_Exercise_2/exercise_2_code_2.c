@@ -1,5 +1,14 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <math.h>
+
 #include "cwp.h"
 #include "cwp_priv.h"
+
+#include "pdm.h"
+#include "pdm_generate_mesh.h"
 
 int
 main(int argc, char *argv[]) {
@@ -90,7 +99,7 @@ main(int argc, char *argv[]) {
 
   CWP_Field_create(code_name[0],
                    coupling_name,
-                   recv_field_name,
+                   field_name,
                    CWP_DOUBLE,
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
