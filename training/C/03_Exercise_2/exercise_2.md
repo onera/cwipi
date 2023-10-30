@@ -390,6 +390,3 @@ Run the following cells to execute to program you just wrote and visualize the b
 cwipi_writer/coupling_code1_code2/CHR.case : r_a~super~fancy~field1
 cwipi_writer/coupling_code2_code1/CHR.case : s_a~super~fancy~field1
 ```
-
-
-
