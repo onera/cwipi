@@ -115,8 +115,11 @@ Let's have a look again at the pseudo-code of the introduction.
 5. Finalize CWIPI
 ```
 
-*What would you change if `$m2$` was deformed at each `$code2$` iteration?
-What about the field that we choose to be the x-coordinate of the coupling interface mesh?*
+In this exercise `$code1$` receives a field send by `$code2$`.
+Here we decide to deforme `$m1$` at each `$code1$` iteration.
+
+*What does that change in our coupling code?
+What would happend if `$code1$` would send $sf1$?*
 
 ### Mesh
 
@@ -135,7 +138,7 @@ elt_vtx_idx = mesh["elt_vtx_idx"]
 elt_vtx     = mesh["elt_vtx"]
 ```
 
-The mesh will change at each iteration but only its coordinates since it is but deformed.
+The mesh will change at each iteration. Since it is deformed, only its coordinates change.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 3
@@ -157,7 +160,9 @@ cpl.mesh_interf_finalize()
 
 ### Field
 
-Actually, the mesh topology does not change. Thus, at each coupling iteration the number of vertices remains the same.
+Here we want `code 1` to receive a field from `code 2`.
+Even if `code 1` would send a field that is the x-coordinates of the deformed mesh, that wouldn't change a thing in the code as said for the mesh above.
+Indeed, the mesh topology does not change. Thus, at each coupling iteration the number of vertices remains the same.
 Thus, it suffices to provide the pointer to the field array and change the values inside it at each iteration.
 
 ```{code-cell}
@@ -227,7 +232,7 @@ Let's rotate the mesh of `code 1` with respect to `code 2`.
 
 ```
 
-The aim is to interpolate the field of `code 1` onto the mesh of `code 2`.
+The aim is to interpolate the field of `code 2` onto the mesh of `code 1`.
 *What happens to the interpolation weights when the mesh of `code 1` is deformed?
 Thus, what does that induce in your code?*
 
