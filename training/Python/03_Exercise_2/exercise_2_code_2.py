@@ -46,7 +46,7 @@ cpl.visu_set(1,
              "text")
 
 # Create mesh :
-mesh = PDM.generate_mesh_rectangle_simplified(comm, 10)
+mesh = PDM.generate_mesh_rectangle_simplified(intra_comm[0], 10)
 
 n_vtx       = mesh["n_vtx"]
 n_elt       = mesh["n_elt"]
