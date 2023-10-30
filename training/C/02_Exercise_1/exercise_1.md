@@ -14,6 +14,7 @@ kernelspec:
 # Exercise 1 : a basic coupling
 
 After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
+To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#c-api-documentation).
 
 +++
 
@@ -58,7 +59,7 @@ main(int argc, char *argv[]) {
 Now we will start using CWIPI functions !
 Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
 
-The function to start a CWIPI coupling between two codes is **init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
+The function to start a CWIPI coupling between two codes is **CWP_Init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
 In this basic exemple, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1.
 Thus, CWIPI will get the MPI communicator composed of MPI rank 0 and 1. Why do we provide the name of the solver as an array?
 Well, because since version 1.0 CWIPI allows several solvers to run on the same MPI rank.
@@ -119,7 +120,9 @@ First it provides the dimension of the coupling interface, if it is partitionned
 
 ### Vizualisation
 
-Let us take a pause in our coupling definition, to talk about the **CWP_Visu_set** function. It allows to activate the Ensight ASCII output of the coupling interface with the exchanged fields and the partitionning. Those outputs can easily be read with Paraview.
+Let us take a pause in our coupling definition, to talk about the **CWP_Visu_set** function.
+It allows to activate the Ensight ASCII output of the coupling interface with the exchanged fields and the partitionning.
+Those outputs can easily be read with Paraview.
 When setting up a coupling, you will certainly have some tunning work to do. To be able to visualize the what CWIPI does will come handy to debug.
 
 ```{code-cell}
@@ -134,24 +137,41 @@ When setting up a coupling, you will certainly have some tunning work to do. To 
 
 ### Coupling interface
 
-Let us go on with describing the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
+Let us go on with a description of the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
 
-![alt text](mesh.png)
+![alt text](mesh_code1.png)
 
-It is composed of several types of elements. To start of easy, let's just say it is composed of polygons. To be more precise 5 elements. We can also see 11 vertices on this mesh.
+It is a basic cartesian grid mesh composed of 9 squares and 16 vertices.
 
-To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup. It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons. Finally, CWIPI has to digest the information we provided it. Well, how does this translate in termes of code?
+The coupling interface mesh of `code 2` looks like this.
+
+![alt text](mesh_code1.png)
+
+It is composed of several types of elements.
+To start of easy, let's just say it is composed of polygons.
+To be more precise 5 elements.
+We can also see 11 vertices on this mesh.
+
+We would like to emphasise that the meshes do not have to be coincident in order to couple using CWIPI.
+
+To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup.
+It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons.
+Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code?
 
 #### Set the mesh vertices coordinates
 
-We start defining our vertices soup using the **CWP_Mesh_interf_vtx_set** from the Coupling class. The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (11 here) to set the coordinates in. The coordinates are interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn). The None argument will be explained later.
+We start defining our vertices soup using the **CWP_Mesh_interf_vtx_set** from the Coupling class.
+The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (16 here) to set the coordinates in.
+The coordinates are interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn). The None argument will be explained later.
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 5
 
-  int    n_vtx = 11;
-  double coords[33] = {0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
-                       3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0};
+  int    n_vtx = 16;
+  double coords[48] = {0,0,0,  1,0,0,  2,0,0,  3,0,0,
+                       0,1,0,  1,1,0,  2,1,0,  3,1,0,
+                       0,2,0,  1,2,0,  2,2,0,  3,2,0,
+                       0,3,0,  1,3,0,  2,3,0,  3,3,0};
   CWP_Mesh_interf_vtx_set(code_name[0],
                           coupling_name,
                           0,
@@ -162,8 +182,10 @@ We start defining our vertices soup using the **CWP_Mesh_interf_vtx_set** from t
 
 #### Set the mesh polygons connectivity
 
-Let us create sense in that vertices soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that soup vertices are connected as polygons (CWP_BLOCK_FACE_POLY). Then we use the function **mesh_interf_f_poly_block_set** which allows to describe the 5 polygons of our 2D mesh. An index array (connec_idx) of size n_elts+1 contains the information of the number of vertices per polygon. The first index is always 0, from there we add up the number of vertices per element. Here one triangle, 2 quadrangles and 2 pentagons.
-The connectivity between elements and vertices is an array of size connec_idx(n_elts+1) (here 21).
+Let us create sense in that vertices soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that soup vertices are connected as polygons (CWP_BLOCK_FACE_POLY).
+Then we use the function **CWP_Mesh_interf_f_poly_block_set** which allows to describe the 9 polygons of our 2D mesh. An index array (connec_idx) of size n_elts+1 contains the information of the number of vertices per polygon.
+The first index is always 0, from there we add up the number of vertices per element. Here the mesh is composed only of squares (4 vertices).
+The connectivity between elements and vertices is an array of size connec_idx(n_elts+1) (here 36).
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 6
@@ -172,9 +194,11 @@ The connectivity between elements and vertices is an array of size connec_idx(n_
                                            coupling_name,
                                            CWP_BLOCK_FACE_POLY);
 
-  int n_elts = 5;
-  int connec_idx[6] = {0,3,7,11,16,21};
-  int connec[21]    = {1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8};
+  int n_elts = 9;
+  int connec_idx[10] = {0,4,8,12,16,20,24,28,32,36};
+  int connec[36]     = {1,2,6,5,     2,3,7,6,      3,4,8,7,
+                        5,6,10,9,    6,7,11,10,    7,8,12,11,
+                        9,10,14,13,  10,11,15,14,  11,12,16,15};
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                    coupling_name,
                                    0,
@@ -245,7 +269,8 @@ The function **CWP_Field_data_set** of the Field class is used here to set the a
 
 ### Begin time step
 
-In this basic exemple, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
+In this basic exemple, only one solver iteration during which an exchange occurs will be done.
+The begin and the end of an iteration have to be marked for CWIPI using **CWP_Time_step_beg** and **CWP_Time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
 Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
 
 ```{code-cell}
@@ -257,7 +282,7 @@ Note, that is mandatory to create the coupling and the associated fields before 
 
 ### Compute interpolation weights
 
-Since we use the spatial interpolation algorithm locating a set of points (vertices of `code 2`) in a mesh (coupling interface of `code 1`), to ensure all points are located a tolerence can be set using the function **spatial_interp_property_set** (optional).
+Since we use the spatial interpolation algorithm locating a set of points (vertices of `code 2`) in a mesh (coupling interface of `code 1`), to ensure all points are located a tolerence can be set using the function **CWP_Spatial_interp_property_set** (optional).
 Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **CWP_Spatial_interp_weights_compute**.
 
 ```{code-cell}
@@ -267,7 +292,7 @@ Before doing any exchange, it is mandatory to compute the spatial interpolation 
                                   coupling_name,
                                   "tolerance",
                                   CWP_DOUBLE,
-                                  "0.1");
+                                  "0.001");
   CWP_Spatial_interp_weights_compute(code_name[0],
                                      coupling_name);
 ```
@@ -287,27 +312,6 @@ The interpolated Field data array has completely arrived for `code 2` once the c
   CWP_Field_wait_issend(code_name[0],
                         coupling_name,
                         field_name);
-```
-
-### Check interpolation
-
-As said earlier, one can set a tolerence to ensure all points are located. To check if that tolerence was large enougth, the function **n_uncomputed_tgts_get** can be called to retreive the number of unlocated vertices of the coupling interface of `code 2`.
-To know which vertices were unlocated the **uncomputed_tgts_get** is called.
-
-```{code-cell}
-%%code_block -p exercise_1_code_1 -i 13
-
-  // int        n_uncomputed_tgts = -1;
-  // const int *uncomputed_tgts   = NULL;
-  // n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-  //                                               coupling_name,
-  //                                               field_name,
-  //                                               0);
-
-  // uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-  //                                           coupling_name,
-  //                                           field_name,
-  //                                           0);
 ```
 
 ### End time step and clean up
@@ -371,6 +375,6 @@ Run the following cells to execute to program you just wrote and visualize the b
 
 ```{code-cell}
 %%visualize
-cwipi_writer/code1_code2_code1_code2/CHR.case
-cwipi_writer/code1_code2_code2_code1/CHR.case
+cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
+cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```

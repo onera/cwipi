@@ -34,13 +34,7 @@ program fortran_new_api_polygon_sol
   character(len = 99)                     :: field_name
   integer(c_int)                          :: n_components = 1
 
-  integer                                 :: i
-
-  double precision,              pointer  :: send_field_data(:) => null()
-  double precision,              pointer  :: recv_field_data(:) => null()
-
-  integer(c_int)                          :: n_uncomputed_tgts
-  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
+  double precision,              pointer  :: field_data(:) => null()
   !--------------------------------------------------------------------
 
   ! MPI Initialization
@@ -136,14 +130,14 @@ program fortran_new_api_polygon_sol
                         CWP_FIELD_EXCH_RECV,          &
                         CWP_STATUS_ON)
 
-  allocate(recv_field_data(n_vtx * n_components))
+  allocate(field_data(n_vtx * n_components))
 
   call CWP_Field_data_set(code_names(1),        &
                           coupling_name,        &
                           field_name,           &
                           0,                    &
                           CWP_FIELD_MAP_TARGET, &
-                          recv_field_data)
+                          field_data)
 
   call CWP_Time_step_beg(code_names(1), &
                          0.d0)
@@ -152,7 +146,7 @@ program fortran_new_api_polygon_sol
                                        coupling_name, &
                                        "tolerance",   &
                                        CWP_DOUBLE,    &
-                                       "0.1")
+                                       "0.001")
 
   call CWP_Spatial_interp_weights_compute(code_names(1), &
                                           coupling_name)
@@ -164,17 +158,6 @@ program fortran_new_api_polygon_sol
   call CWP_Field_wait_irecv(code_names(1), &
                             coupling_name, &
                             field_name)
-
-  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
-                                               coupling_name, &
-                                               field_name,    &
-                                               0)
-
- allocate(send_field_data(n_uncomputed_tgts))
- uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
-                                            coupling_name, &
-                                            field_name,    &
-                                            0)
 
  call CWP_Time_step_end(code_names(1))
 
@@ -191,7 +174,7 @@ program fortran_new_api_polygon_sol
  deallocate(coords);
  deallocate(connec);
  deallocate(connec_idx);
- deallocate(recv_field_data);
+ deallocate(field_data);
 
   ! Finalize CWIPI :
   call CWP_Finalize()

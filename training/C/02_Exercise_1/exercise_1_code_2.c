@@ -108,7 +108,7 @@ main(int argc, char *argv[]) {
                                   coupling_name,
                                   "tolerance",
                                   CWP_DOUBLE,
-                                  "0.1");
+                                  "0.001");
   CWP_Spatial_interp_weights_compute(code_name[0],
                                      coupling_name);
 
@@ -119,18 +119,6 @@ main(int argc, char *argv[]) {
   CWP_Field_wait_irecv(code_name[0],
                        coupling_name,
                        field_name);
-
-  int        n_uncomputed_tgts = -1;
-  const int *uncomputed_tgts   = NULL;
-  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-                                                coupling_name,
-                                                field_name,
-                                                0);
-
-  uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                            coupling_name,
-                                            field_name,
-                                            0);
 
   CWP_Time_step_end(code_name[0]);
 
@@ -144,8 +132,6 @@ main(int argc, char *argv[]) {
   CWP_Cpl_del(code_name[0],
               coupling_name);
 
-  CWP_UNUSED(n_uncomputed_tgts);
-  CWP_UNUSED(uncomputed_tgts);
   free(recv_field_data);
   free(code_name);
   free(intra_comm);
