@@ -30,6 +30,7 @@ if module_path not in sys.path:
 ```{code-cell}
 %reload_ext visu_magics
 %reload_ext code_magics
+%reload_ext figure_magics
 ```
 
 +++
@@ -192,19 +193,16 @@ Thus, it suffices to provide the pointer to the field array and change the value
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
                    CWP_DOF_LOCATION_NODE,
-                   CWP_FIELD_EXCH_SEND,
+                   CWP_FIELD_EXCH_RECV,
                    CWP_STATUS_ON);
 
   double *field_data = malloc(sizeof(double) * n_vtx);
-  for (int i = 0; i < n_vtx; i++) {
-    field_data[i] = coords[3 * i + 2];
-  }
 
   CWP_Field_data_set(code_name[0],
                      coupling_name,
                      field_name,
                      0,
-                     CWP_FIELD_MAP_SOURCE,
+                     CWP_FIELD_MAP_TARGET,
                      field_data);
 ```
 
@@ -227,7 +225,7 @@ at the end of the iteration with `CWP_Time_step_end`.
   double degrad = acos(-1.0)/180.;
   double x = 0.0;
   double y = 0.0;
-  double alpha = 0.5;
+  double alpha = 2;
   alpha = alpha * degrad;
   double sina = sin(alpha);
   double cosa = cos(alpha);
@@ -271,7 +269,7 @@ The chosen tolerance does not change here over time, so we set it before the ite
                                   coupling_name,
                                   "tolerance",
                                   CWP_DOUBLE,
-                                  "0.1");
+                                  "0.001");
 ```
 
 But the weights need to be computed at each iteration after the mesh has been deformed, so that is done in the iteration loop.
@@ -284,21 +282,50 @@ But the weights need to be computed at each iteration after the mesh has been de
 
 ```
 
-Now we send the field of `code 1` onto the interface coupling mesh of `code 2`.
+Now we receive the field send by `code 2`.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 9
 
-    CWP_Field_issend(code_name[0],
-                     coupling_name,
-                     field_name);
+    CWP_Field_irecv(code_name[0],
+                    coupling_name,
+                    field_name);
 
-    CWP_Field_wait_issend(code_name[0],
-                          coupling_name,
-                          field_name);
+    CWP_Field_wait_irecv(code_name[0],
+                         coupling_name,
+                         field_name);
 ```
 
--> TO DO : UNCOMPUTED TARGETS
+Earlier we set a tolerence for the localization algorithm.
+To check if that tolerence was large enougth, the function **CWP_N_uncomputed_tgts_get** can be called to retreive the number of unlocated vertices of the coupling interface of `code 1`.
+To know which vertices were unlocated the **CWP_Uncomputed_tgts_get** is called.
+
+```{code-cell}
+%%code_block -p exercise_1_code_1 -i 13
+
+  int        n_uncomputed_tgts = -1;
+  const int *uncomputed_tgts   = NULL;
+  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
+                                                coupling_name,
+                                                field_name,
+                                                0);
+
+  uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
+                                            coupling_name,
+                                            field_name,
+                                            0);
+```
+
+Let's have a sneak peek in this algorithm through this animation which will help you understand what we mean by unlocated points.
+
+```{code-cell}
+%%localization
+unlocated
+```
+
+*Spoiler : At the end of the exercise you will see that since the coupling interface mesh of `code 1` moves
+there are unlocated points with the tolerance set to 0.001. Increasing it will eventually let all points be located
+but at the cost of the time taken by the algorithm. You call play around with the tolerance once you finish the exercise.*
 
 Let's end the iteration.
 
@@ -360,8 +387,8 @@ Run the following cells to execute to program you just wrote and visualize the b
 
 ```{code-cell}
 %%visualize_dynamic
-cwipi_writer/coupling_code1_code2/CHR.case : s_a~super~fancy~field1
-cwipi_writer/coupling_code2_code1/CHR.case : r_a~super~fancy~field1
+cwipi_writer/coupling_code1_code2/CHR.case : r_a~super~fancy~field1
+cwipi_writer/coupling_code2_code1/CHR.case : s_a~super~fancy~field1
 ```
 
 

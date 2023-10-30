@@ -104,23 +104,26 @@ main(int argc, char *argv[]) {
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
                    CWP_DOF_LOCATION_NODE,
-                   CWP_FIELD_EXCH_RECV,
+                   CWP_FIELD_EXCH_SEND,
                    CWP_STATUS_ON);
 
   double *field_data = malloc(sizeof(double) * n_vtx);
+  for (int i = 0; i < n_vtx; i++) {
+    field_data[i] = coords[3 * i];
+  }
 
   CWP_Field_data_set(code_name[0],
                      coupling_name,
                      field_name,
                      0,
-                     CWP_FIELD_MAP_TARGET,
+                     CWP_FIELD_MAP_SOURCE,
                      field_data);
 
   CWP_Spatial_interp_property_set(code_name[0],
                                   coupling_name,
                                   "tolerance",
                                   CWP_DOUBLE,
-                                  "0.1");
+                                  "0.001");
 
   const int    itdeb = 1;
   const int    itend = 10;
@@ -138,13 +141,13 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_weights_compute(code_name[0],
                                        coupling_name);
 
-    CWP_Field_irecv(code_name[0],
-                    coupling_name,
-                    field_name);
+    CWP_Field_issend(code_name[0],
+                     coupling_name,
+                     field_name);
 
-    CWP_Field_wait_irecv(code_name[0],
-                         coupling_name,
-                         field_name);
+    CWP_Field_wait_issend(code_name[0],
+                          coupling_name,
+                          field_name);
 
     CWP_Time_step_end(code_name[0]);
 
