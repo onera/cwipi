@@ -1,7 +1,7 @@
 .. _part data:
 
-Exhange of Partitioned Data
-"""""""""""""""""""""""""""
+Exchange of Partitioned Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *à remplir + schéma*
 
