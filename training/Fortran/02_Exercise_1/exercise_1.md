@@ -428,3 +428,18 @@ Run the following cells to execute to program you just wrote and visualize the b
 cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
 cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```
+
+# Bonus : a coupling with conservative interpolation
+
+If you read this, it means that you quickly finished the first exercise. Congratulations !
+As you have seen in the introduction, from version 1.x on, CWIPI has several spatial interpolation algorithms.
+To go further, we invite you to repeat the exercise above but with a conservative interpolation algorithm (CWP_SPATIAL_INTERP_FROM_INTERSECTION).
+Copy paste the following code to have a field defined on the faces. Adapt the code accordingly to those two changes. Observe the output.
+
+```{prf:algorithm} basic couling algorithm
+
+allocate(send_field_data(n_elt * n_components))
+do i=1,n_elt
+  send_field_data(i) = i
+end do
+```
