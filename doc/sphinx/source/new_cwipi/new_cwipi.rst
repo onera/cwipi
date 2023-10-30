@@ -31,19 +31,19 @@ Each Field object can have a specific user-defined spatial interpolation.
 The following sections show how to retrieve all the information required to write such a function.
 
 Data getters for user interpolation functions in C
-""""""""""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: ../../../../pattern/user_interp_function_c_pattern.txt
    :language: c
 
 Data getters for user interpolation functions in Fortran
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: ../../../../pattern/user_interp_function_fortran_pattern.txt
    :language: fortran
 
 Data getters for user interpolation functions in Python
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: ../../../../pattern/user_interp_function_python_pattern.txt
    :language: python

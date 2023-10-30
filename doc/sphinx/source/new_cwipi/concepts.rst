@@ -275,7 +275,7 @@ Fields
 ------
 
 It is mandatory to define the interface mesh *before* creating field instances.
-The degrees-of-freedom (dof) of a Field can either be located at mesh nodes, cell centers or a user-defined points.
+The degrees-of-freedom (dof) of a Field can either be located at mesh nodes, cell centers or user-defined points.
 There can be no more than one user-defined point cloud per Coupling object.
 
 For `Solver1` a field instance for sending the temperature will be created and another instance for receiving the pressure.
