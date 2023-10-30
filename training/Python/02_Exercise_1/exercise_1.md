@@ -34,7 +34,7 @@ if module_path not in sys.path:
 
 +++
 
-CWIPI has been written to function in a massivelly parallel distributed environement. Thus, the first thing to do, is the initialize the MPI environment:
+CWIPI has been written to function in a massively parallel distributed environment. Thus, the first thing to do, is the initialize the MPI environment:
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 1
@@ -77,7 +77,7 @@ Now we will start using CWIPI functions !
 Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
 
 The function to start a CWIPI coupling between two codes is **init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
-In this basic exemple, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1.
+In this basic example, `code 1` will be running on the MPI rank 0 and `code 2` on the MPI rank 1.
 Thus, CWIPI will get the MPI communicator composed of MPI rank 0 and 1. Why do we provide the name of the solver as an array?
 Well, because since version 1.0 CWIPI allows several solvers to run on the same MPI rank.
 In this basic case, we only have one code per MPI rank. In real life applications the solvers run on more than one MPI rank.
@@ -102,12 +102,12 @@ intra_comm = pycwp.init(comm,
 ```
 ### Coupling definition
 
-Since a solver can take part in several couplings, the Coupling object creation allows to define the interaction between two fixed solvers. Let use a metafor to be more clear.
+Since a solver can take part in several couplings, the Coupling object creation allows to define the interaction between two fixed solvers. Let use a metaphor to be more clear.
 
 <span style="color:blue">*Oscar and Marie are two engineers and their boss assigned then to the CWIPI project to work in pairs. They don't know each other. During the first work session, they are each assigned to a desk in the working room. It is time to introduce themselves. Oscar is on the yellow desk and says "I am Oscar working on the CWIPI project with Marie. I am 28 years old and I live in Châtillon". Marie is on the blue desk and says "I am Marie working on the CWIPI project with Oscar. I am 54 years old and I live in Palaiseau".*</span>
 
 In a similar way, at this step, we will introduce`code 1` and `code 2` to each other. On the MPI rank on which the solver is running, it will create a **Coupling** object telling which solver is running there, through which coupling it wants to communicate with which other solver. Then it describes itself in more detail.
-First it provides the dimension of the coupling interface, if it is partitionned, the spatial interpolation algorithm it wants to use, the number of paritions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
+First it provides the dimension of the coupling interface, if it is partitioned, the spatial interpolation algorithm it wants to use, the number of partitions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 5
@@ -125,10 +125,10 @@ cpl = pycwp.Coupling(code_name[0],
                      pycwp.TIME_EXCH_USER_CONTROLLED)
 ```
 
-### Vizualisation
+### Visualization
 
-Let us take a pause in our coupling definition, to talk about the **visu_set** function. It allows to activate the Ensight ASCII output of the coupling interface with the exchanged fields and the partitionning. Those outputs can easily be read with Paraview.
-When setting up a coupling, you will certainly have some tunning work to do. To be able to visualize the what CWIPI does will come handy to debug.
+Let us take a pause in our coupling definition, to talk about the **visu_set** function. It allows to activate the Ensight ASCII output of the coupling interface with the exchanged fields and the partitioning. Those outputs can easily be read with Paraview.
+When setting up a coupling, you will certainly have some tuning work to do. To be able to visualize the what CWIPI does will come handy to debug.
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 6
@@ -140,7 +140,7 @@ cpl.visu_set(1,
 
 ### Coupling interface
 
-Let us go on with a description of the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
+Let us go on with a description of the coupling between `code 1` and `code 2`. What characterizes the mesh we work on?
 
 ![alt text](mesh_code1.png)
 
@@ -148,14 +148,14 @@ It is a basic cartesian grid mesh composed of 9 squares and 16 vertices.
 
 The coupling interface mesh of `code 2` looks like this.
 
-![alt text](mesh_code1.png)
+![alt text](mesh_code2.png)
 
 It is composed of several types of elements.
 To start of easy, let's just say it is composed of polygons.
 To be more precise 5 elements.
 We can also see 11 vertices on this mesh.
 
-We would like to emphasise that the meshes do not have to be coincident in order to couple using CWIPI.
+We would like to emphasize that the meshes do not have to be coincident in order to couple using CWIPI.
 
 To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup.
 It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons.
@@ -254,7 +254,7 @@ field.data_set(0,
 
 ### Begin time step
 
-In this basic exemple, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization ouput of the fields per iteration.
+In this basic example, only one solver iteration during which an exchange occurs will be done. The begin and the end of an iteration have to be marked for CWIPI using **time_step_beg** and **time_step_end** function for each solver. This information allows CWIPI for instance to sort the visualization output of the fields per iteration.
 Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
 
 ```{code-cell}
@@ -266,7 +266,7 @@ pycwp.time_step_beg(code_name[0],
 
 ### Compute interpolation weights
 
-Since we use the spatial interpolation algorithm locating a set of points (vertices of `code 2`) in a mesh (coupling interface of `code 1`), to ensure all points are located a tolerence can be set using the function **spatial_interp_property_set** (optional).
+Since we use the spatial interpolation algorithm locating a set of points (vertices of `code 2`) in a mesh (coupling interface of `code 1`), to ensure all points are located a tolerance can be set using the function **spatial_interp_property_set** (optional).
 Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **spatial_interp_weights_compute**.
 
 ```{code-cell}
@@ -294,7 +294,7 @@ field.wait_issend()
 
 ### End time step and clean up
 
-At the end of each solver iteration **time_step_end** is called to inform CWIPI that the time step has terminated. When there are no CWIPI exchanges left to be done, all Field and Coupling objects can be deleted (that is done automatically by the garabage collector once there are no references left on it).
+At the end of each solver iteration **time_step_end** is called to inform CWIPI that the time step has terminated. When there are no CWIPI exchanges left to be done, all Field and Coupling objects can be deleted (that is done automatically by the garbage collector once there are no references left on it).
 Still the coupling interface should be manually deleted calling **mesh_interf_del** on the Coupling object.
 
 ```{code-cell}
@@ -349,7 +349,7 @@ As you have seen in the introduction, from version 1.x on, CWIPI has several spa
 To go further, we invite you to repeat the exercise above but with a conservative interpolation algorithm (SPATIAL_INTERP_FROM_INTERSECTION).
 Copy paste the following code to have a field defined on the faces. Adapt the code accordingly to those two changes. Observe the output.
 
-```{prf:algorithm} basic couling algorithm
+```{prf:algorithm} basic coupling algorithm
 
 n_elt = len(connec_idx)-1
 send_field_data = np.arange(n_elt*n_components, dtype=np.double)

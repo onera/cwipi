@@ -14,7 +14,7 @@ kernelspec:
 # Exercise 2 : Coupling with a deformed mesh over time
 
 Now that you know how to set up a basic coupling, let's go further by doing several coupling iterations.
-At each interation, the coupling interface mesh of `code 1` is deformed.
+At each iteration, the coupling interface mesh of `code 1` is deformed.
 
 +++
 
@@ -68,7 +68,7 @@ main(int argc, char *argv[]) {
   CWP_Status_t  is_active_rank = CWP_STATUS_ON;
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
-  code_name[0]      = "code1";
+  code_name[0] = "code1";
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
@@ -103,7 +103,7 @@ main(int argc, char *argv[]) {
 
 Let's have a look again at the pseudo-code of the introduction.
 
-```{prf:algorithm} basic couling algorithm
+```{prf:algorithm} basic coupling algorithm
 
 **Inputs** Given $code1$ with a mesh $m1$ on which a field that will be sent is defined $sf1$. Given $code2$ with a mesh $m2$ on which a field that will be received is defined $rf2$.
 
@@ -145,7 +145,7 @@ First we use a simple mesh generation function from ParaDiGM to create our coupl
                                          &elt_vtx);
 ```
 
-The mesh will change at each iteration but only its coordiantes since it is but deformed.
+The mesh will change at each iteration but only its coordinates since it is but deformed.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 3
@@ -213,7 +213,7 @@ It is important to know that the field should still be created before starting t
 
 ## Time iterations
 
-At the begining of each coupling interation, we begin a new time step using `CWP_Time_step_beg` which we will terminate
+At the beginning of each coupling iteration, we begin a new time step using `CWP_Time_step_beg` which we will terminate
 at the end of the iteration with `CWP_Time_step_end`.
 
 ```{code-cell}
@@ -274,7 +274,7 @@ The chosen tolerance does not change here over time, so we set it before the ite
                                   "0.1");
 ```
 
-But the weights need to be computed at each iteration after the mesh has been deformerd, so that is done in the iteration loop.
+But the weights need to be computed at each iteration after the mesh has been deformed, so that is done in the iteration loop.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 8
@@ -307,7 +307,7 @@ Let's end the iteration.
 
     CWP_Time_step_end(code_name[0]);
 
-  } // end interations
+  } // end iterations
 ```
 
 ## Finalize
