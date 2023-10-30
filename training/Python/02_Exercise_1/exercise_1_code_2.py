@@ -79,16 +79,13 @@ pycwp.time_step_beg(code_name[0],
 
 cpl.spatial_interp_property_set("tolerance",
                                 pycwp.DOUBLE,
-                                "0.1")
+                                "0.001")
 
 cpl.spatial_interp_weights_compute()
 
 field.irecv()
 
 field.wait_irecv()
-
-n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
-uncomputed_tgts   = field.uncomputed_tgts_get(0);
 
 pycwp.time_step_end(code_name[0])
 

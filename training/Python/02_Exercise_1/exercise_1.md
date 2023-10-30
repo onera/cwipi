@@ -14,6 +14,7 @@ kernelspec:
 # Exercise 1 : a basic coupling
 
 After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
+To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#python-api-documentation-pycwp).
 
 +++
 
@@ -139,23 +140,40 @@ cpl.visu_set(1,
 
 ### Coupling interface
 
-Let us go on with describing the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
+Let us go on with a description of the coupling between `code 1` and `code 2`. What caracterizes the mesh we work on?
 
-![alt text](mesh.png)
+![alt text](mesh_code1.png)
 
-It is composed of several types of elements. To start of easy, let's just say it is composed of polygons. To be more precise 5 elements. We can also see 11 vertices on this mesh.
+It is a basic cartesian grid mesh composed of 9 squares and 16 vertices.
 
-To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup. It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons. Finally, CWIPI has to digest the information we provided it. Well, how does this translate in termes of code?
+The coupling interface mesh of `code 2` looks like this.
+
+![alt text](mesh_code1.png)
+
+It is composed of several types of elements.
+To start of easy, let's just say it is composed of polygons.
+To be more precise 5 elements.
+We can also see 11 vertices on this mesh.
+
+We would like to emphasise that the meshes do not have to be coincident in order to couple using CWIPI.
+
+To define the coupling interface mesh in CWIPI, we first tell that we have vertices soup.
+It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons.
+Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code?
 
 #### Set the mesh vertices coordinates
 
-We start defining our vertices soup using the **mesh_interf_vtx_set** from the Coupling class. The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (11 here) to set the coordinates in. The coordinates are interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn). The None argument will be explained later.
+We start defining our vertices soup using the **mesh_interf_vtx_set** from the Coupling class.
+The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (16 here) to set the coordinates in.
+The coordinates are interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn). The None argument will be explained later.
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 7
 
-coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
-          3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
+coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0, \
+                   0,1,0,  1,1,0,  2,1,0,  3,1,0, \
+                   0,2,0,  1,2,0,  2,2,0,  3,2,0, \
+                   0,3,0,  1,3,0,  2,3,0,  3,3,0], dtype=np.double)
 cpl.mesh_interf_vtx_set(0,
                         coords,
                         None)
@@ -163,15 +181,19 @@ cpl.mesh_interf_vtx_set(0,
 
 #### Set the mesh polygons connectivity
 
-Let us create sense in that vertices soup. The function **mesh_interf_block_add** allows us to tell that in that soup vertices are connected as polygons (CWP_BLOCK_FACE_POLY). Then we use the function **mesh_interf_f_poly_block_set** which allows to describe the 5 polygons of our 2D mesh. An index array (connec_idx) of size n_elts+1 contains the information of the number of vertices per polygon. The first index is always 0, from there we add up the number of vertices per element. Here one triangle, 2 quadrangles and 2 pentagons.
-The connectivity between elements and vertices is an array of size connec_idx(n_elts+1) (here 21).
+Let us create sense in that vertices soup. The function **mesh_interf_block_add** allows us to tell that in that soup vertices are connected as polygons (CWP_BLOCK_FACE_POLY).
+Then we use the function **mesh_interf_f_poly_block_set** which allows to describe the 9 polygons of our 2D mesh. An index array (connec_idx) of size n_elts+1 contains the information of the number of vertices per polygon.
+The first index is always 0, from there we add up the number of vertices per element. Here the mesh is composed only of squares (4 vertices).
+The connectivity between elements and vertices is an array of size connec_idx(n_elts+1) (here 36).
 
 ```{code-cell}
 %%code_block -p exercise_1_code_1 -i 8
 
 block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
-connec_idx = np.array([0,3,7,11,16,21], dtype=np.int32)
-connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
+connec_idx = np.array([0,4,8,12,16,20,24,28,32,36], dtype=np.int32)
+connec = np.array([1,2,6,5,     2,3,7,6,      3,4,8,7,   \
+                   5,6,10,9,    6,7,11,10,    7,8,12,11, \
+                   9,10,14,13,  10,11,15,14,  11,12,16,15], dtype=np.int32)
 cpl.mesh_interf_f_poly_block_set(0,
                                  block_id,
                                  connec_idx,
@@ -252,7 +274,7 @@ Before doing any exchange, it is mandatory to compute the spatial interpolation 
 
 cpl.spatial_interp_property_set("tolerance",
                                 pycwp.DOUBLE,
-                                "0.1")
+                                "0.001")
 
 cpl.spatial_interp_weights_compute()
 ```
@@ -268,18 +290,6 @@ The interpolated Field data array has completely arrived for `code 2` once the c
 field.issend()
 
 field.wait_issend()
-```
-
-### Check interpolation
-
-As said earlier, one can set a tolerence to ensure all points are located. To check if that tolerence was large enougth, the function **n_uncomputed_tgts_get** can be called to retreive the number of unlocated vertices of the coupling interface of `code 2`.
-To know which vertices were unlocated the **uncomputed_tgts_get** is called.
-
-```{code-cell}
-%%code_block -p exercise_1_code_1 -i 15
-
-# n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
-# uncomputed_tgts   = field.uncomputed_tgts_get(0);
 ```
 
 ### End time step and clean up
@@ -328,6 +338,6 @@ Run the following cells to execute to program you just wrote and visualize the b
 
 ```{code-cell}
 %%visualize
-cwipi_writer/code1_code2_code1_code2/CHR.case
-cwipi_writer/code1_code2_code2_code1/CHR.case
+cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
+cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```
