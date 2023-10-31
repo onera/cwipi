@@ -357,3 +357,5 @@ send_field_data = np.arange(n_elt*n_components, dtype=np.double)
 for i in range(n_elt):
   send_field_data[i] = i
 ```
+
+<span style="color:red">*You can now move on to the Exercise 2 Notebook in 03_Exercise_2 folder of the chosen language.*</span>

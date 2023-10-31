@@ -112,3 +112,5 @@ The line takes the following command line arguments:
 ```{code-cell}
 %merge_code_blocks -l python -p exercise_0 -n 2 -c -v
 ```
+
+<span style="color:red">*You can now move on to the Exercise 1 Notebook in 02_Exercise_1 folder of the chosen language.*</span>
