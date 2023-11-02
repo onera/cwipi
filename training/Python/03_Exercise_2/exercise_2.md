@@ -14,11 +14,11 @@ kernelspec:
 # Exercise 2 : Coupling with a deformed mesh over time
 
 Now that you know how to set up a basic coupling, let's go further by doing several coupling iterations.
-At each iteration, the coupling interface mesh of `code 1` is deformed.
+At each iteration, the coupling interface mesh of `code1` is deformed.
 
 +++
 
-*(Load custom magics)*
+As usual we start by loading the custom magic commands.
 
 ```{code-cell}
 import os, sys
@@ -39,8 +39,8 @@ if module_path not in sys.path:
 
 Since the set up is roughly the same as in the previous exercise, it is not split up in as many code cells. Here we ask you to:
   - Initialize MPI
-  - Initialize CWIPI for `code 1`
-  - Set up the coupling : What value should be chosen for `CWP_Dynamic_mesh_t` since the coupling interface mesh of code 1 is deformed over time?
+  - Initialize CWIPI for `code1`
+  - Set up the coupling : What value should be chosen for `CWP_Dynamic_mesh_t` since the coupling interface mesh of `code1` is deformed over time?
   - Ask for visualization outputs
 
 ```{code-cell}
@@ -98,7 +98,7 @@ cpl.visu_set(1,
 
 Let's have a look again at the pseudo-code of the introduction.
 
-```{prf:algorithm} basic coupling algorithm
+<!-- ```{prf:algorithm} basic coupling algorithm
 
 **Inputs** Given $code1$ with a mesh $m1$ on which a field that will be sent is defined $sf1$. Given $code2$ with a mesh $m2$ on which a field that will be received is defined $rf2$.
 
@@ -113,13 +113,27 @@ Let's have a look again at the pseudo-code of the introduction.
    1. $code1$ sends $sf1$
    2. $code2$ receives $rf2$
 5. Finalize CWIPI
-```
+``` -->
+**Inputs** Given `code1` with a mesh `m1` on which a field that will be sent is defined `sf1`. Given `code2` with a mesh `m2` on which a field that will be received is defined `rf2`.
 
-In this exercise `$code1$` receives a field send by `$code2$`.
-Here we decide to deforme `$m1$` at each `$code1$` iteration.
+**Output** `rf2`, which is `sf1` interpolated on `m2`
+
+1. Initialize CWIPI
+2. Set coupling between `code1` and `code2`
+3. Describe codes:
+   1. `code1` has a mesh `m1` on which we define a field `sf1`
+   2. `code2` has a mesh `m2` and a receive buffer field `rf2`
+4. Operate solver iterations:
+   1. `code1` sends `sf1`
+   2. `code2` receives `rf2`
+5. Finalize CWIPI
+
+
+In this exercise `code1` receives a field send by `code2`.
+Here we decide to deform `m1` at each `code1` iteration.
 
 *What does that change in our coupling code?
-What would happend if `$code1$` would send $sf1$?*
+What would happen if `code1` would send `sf1`?*
 
 ### Mesh
 
@@ -144,24 +158,24 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 %%code_block -p exercise_2_code_1 -i 3
 
 cpl.mesh_interf_vtx_set(0,
-                      coords,
-                      None)
+                        coords,
+                        None)
 
 block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
 cpl.mesh_interf_f_poly_block_set(0,
-                               block_id,
-                               elt_vtx_idx,
-                               elt_vtx,
-                               None)
+                                 block_id,
+                                 elt_vtx_idx,
+                                 elt_vtx,
+                                 None)
 
 cpl.mesh_interf_finalize()
 ```
 
 ### Field
 
-Here we want `code 1` to receive a field from `code 2`.
-Even if `code 1` would send a field that is the x-coordinates of the deformed mesh, that wouldn't change a thing in the code as said for the mesh above.
+Here we want `code1` to receive a field from `code2`.
+Even if `code1` would send a field that is the x-coordinates of the deformed mesh, that wouldn't change a thing in the code as said for the mesh above.
 Indeed, the mesh topology does not change. Thus, at each coupling iteration the number of vertices remains the same.
 Thus, it suffices to provide the pointer to the field array and change the values inside it at each iteration.
 
@@ -170,15 +184,15 @@ Thus, it suffices to provide the pointer to the field array and change the value
 
 n_components = 1
 field = cpl.field_create("a super fancy field",
-                           pycwp.DOUBLE,
-                           pycwp.FIELD_STORAGE_INTERLACED,
-                           n_components,
-                           pycwp.DOF_LOCATION_NODE,
-                           pycwp.FIELD_EXCH_RECV,
-                           pycwp.STATUS_ON)
+                         pycwp.DOUBLE,
+                         pycwp.FIELD_STORAGE_INTERLACED,
+                         n_components,
+                         pycwp.DOF_LOCATION_NODE,
+                         pycwp.FIELD_EXCH_RECV,
+                         pycwp.STATUS_ON)
 
 n_vtx = len(coords)//3
-field_data = np.arange(n_vtx*n_components, dtype=np.double)
+field_data = np.empty(n_vtx*n_components, dtype=np.double)
 
 field.data_set(0,
                pycwp.FIELD_MAP_TARGET,
@@ -200,24 +214,19 @@ itdeb = 1
 itend = 10
 ttime = 0.0
 dt    = 0.1
-
-degrad = math.acos(-1.0)/180.
-x = 0.0
-y = 0.0
-alpha = 2
-alpha = alpha * degrad
-sina = math.sin(alpha)
-cosa = math.cos(alpha)
+alpha = math.degrees(2.0)
+sina  = math.sin(alpha)
+cosa  = math.cos(alpha)
 
 for it in range(itdeb, itend+1):
 
-  ttime = (it-itdeb)*dt;
+  ttime = (it-itdeb)*dt
 
   pycwp.time_step_beg(code_name[0],
-                      ttime);
+                      ttime)
 ```
 
-Let's rotate the mesh of `code 1` with respect to `code 2`.
+Let's rotate the mesh of `code1` with respect to `code2`.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 7
@@ -232,8 +241,8 @@ Let's rotate the mesh of `code 1` with respect to `code 2`.
 
 ```
 
-The aim is to interpolate the field of `code 2` onto the mesh of `code 1`.
-*What happens to the interpolation weights when the mesh of `code 1` is deformed?
+The aim is to interpolate the field of `code2` onto the mesh of `code1`.
+*What happens to the interpolation weights when the mesh of `code1` is deformed?
 Thus, what does that induce in your code?*
 
 The chosen tolerance does not change here over time, so we set it before the iteration loop.
@@ -255,7 +264,7 @@ But the weights need to be computed at each iteration after the mesh has been de
 
 ```
 
-Now we receive the field send by `code 2`.
+Now we receive the field send by `code2`.
 
 ```{code-cell}
 %%code_block -p exercise_2_code_1 -i 9
@@ -265,8 +274,8 @@ Now we receive the field send by `code 2`.
   field.wait_irecv()
 ```
 
-Earlier we set a tolerence for the localization algorithm.
-To check if that tolerence was large enougth, the function **n_uncomputed_tgts_get** can be called to retreive the number of unlocated vertices of the coupling interface of `code 1`.
+Earlier we set a tolerance for the localization algorithm.
+To check if that tolerance was large enough, the function **n_uncomputed_tgts_get** can be called to retrieve the number of unlocated vertices of the coupling interface of `code1`.
 To know which vertices were unlocated the **uncomputed_tgts_get** is called.
 
 ```{code-cell}
@@ -283,7 +292,7 @@ Let's have a sneak peek in this algorithm through this animation which will help
 unlocated
 ```
 
-*Spoiler : At the end of the exercise you will see that since the coupling interface mesh of `code 1` moves
+*Spoiler : At the end of the exercise you will see that since the coupling interface mesh of `code1` moves
 there are unlocated points with the tolerance set to 0.001. Increasing it will eventually let all points be located
 but at the cost of the time taken by the algorithm. You call play around with the tolerance once you finish the exercise.*
 
@@ -328,4 +337,4 @@ cwipi_writer/coupling_code1_code2/CHR.case : r_a~super~fancy~field1
 cwipi_writer/coupling_code2_code1/CHR.case : s_a~super~fancy~field1
 ```
 
-<span style="color:red">*You arrived at the end of this training. Congratulations ! Feel free to give us feedback.*</span>
+<span style="color:red">*You reached the end of this training. Congratulations ! Feel free to give us feedback.*</span>
