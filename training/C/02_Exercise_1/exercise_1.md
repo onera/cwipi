@@ -11,16 +11,26 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": false, "deletable": false}
+
 # Exercise 1 : a basic coupling
+
++++ {"editable": false, "deletable": false}
 
 After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
 To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#c-api-documentation).
 
-+++
++++ {"editable": false, "deletable": false}
+
+## Load magic commands
 
 We start by loading the custom magic commands.
 
 ```{code-cell}
+---
+"editable": false
+"deletable": false
+---
 import os, sys
 module_path = os.path.abspath(os.path.join('../../utils'))
 if module_path not in sys.path:
@@ -28,16 +38,23 @@ if module_path not in sys.path:
 ```
 
 ```{code-cell}
+---
+"editable": false
+"deletable": false
+---
 %reload_ext visu_magics
 %reload_ext code_magics
 ```
 
-+++
++++ {"editable": false, "deletable": false}
 
 CWIPI has been written to function in a massively parallel distributed environment.
 Thus, the first thing to do, is the initialize the MPI environment:
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 1
 
 #include "cwp.h"
@@ -53,6 +70,8 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 ```
+
++++ {"editable": false, "deletable": false}
 
 ### Initialization
 
@@ -73,6 +92,9 @@ In our basic case, `code1` gets a communicator with only MPI rank 0 and `code2` 
 in `exercise_1_code2.c` in this folder. There is no point in cheating, you are here to learn.*
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 2
 
   int n_code = 1;
@@ -88,6 +110,9 @@ in `exercise_1_code2.c` in this folder. There is no point in cheating, you are h
            is_active_rank,
            intra_comm);
 ```
+
++++ {"editable": false, "deletable": false}
+
 ### Coupling definition
 
 Since a solver can take part in several couplings, the Coupling object creation allows to define the interaction between two fixed solvers. Let use a metaphor to be more clear.
@@ -98,6 +123,9 @@ In a similar way, at this step, we will introduce `code1` and `code2` to each ot
 First it provides the dimension of the coupling interface, if it is partitioned, the spatial interpolation algorithm it wants to use, the number of partitions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 3
 
   int n_part = 1;
@@ -117,6 +145,8 @@ First it provides the dimension of the coupling interface, if it is partitioned,
                  CWP_TIME_EXCH_USER_CONTROLLED);
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### Visualization
 
 Let us take a pause in our coupling definition, to talk about the **CWP_Visu_set** function.
@@ -125,6 +155,9 @@ Those outputs can easily be read with Paraview.
 When setting up a coupling, you will certainly have some tuning work to do. To be able to visualize what CWIPI does will come handy to debug.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 4
 
   CWP_Visu_set(code_name[0],
@@ -133,6 +166,8 @@ When setting up a coupling, you will certainly have some tuning work to do. To b
                CWP_VISU_FORMAT_ENSIGHT,
                "text");
 ```
+
++++ {"editable": false, "deletable": false}
 
 ### Coupling interface
 
@@ -164,6 +199,9 @@ The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times 
 The coordinates are interlaced: $(x_0, y_0, z_0, x_1, y_1, z_1, \ldots)$. The last argument (`vtx_g_num`) will be explained later.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 5
 
   int    n_vtx = 16;
@@ -180,6 +218,8 @@ The coordinates are interlaced: $(x_0, y_0, z_0, x_1, y_1, z_1, \ldots)$. The la
                           vtx_g_num);
 ```
 
++++ {"editable": false, "deletable": false}
+
 #### Set the mesh polygons connectivity
 
 Let us create sense in that vertex soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that vertex soup are connected as polygons (CWP_BLOCK_FACE_POLY).
@@ -188,6 +228,9 @@ The first index is always 0, from there we add up the number of vertices per ele
 The connectivity between elements and vertices is an array of size `connec_idx[n_elts]` (here 36).
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 6
 
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
@@ -211,17 +254,24 @@ The connectivity between elements and vertices is an array of size `connec_idx[n
                                    elt_g_num);
 ```
 
++++ {"editable": false, "deletable": false}
+
 #### Finalize mesh
 
 This is when CWIPI digests the information we just provided it using the function **CWP_Mesh_interf_finalize**. Indeed, CWIPI hides the parallelism for users but inside the code it needs to know the global numbering of the mesh entities. The `vtx_g_num` and `elt_g_num` arguments given earlier allow the user to provide these global numberings.
 If not given this numbering is generated by CWIPI, as well as the underlying mesh data structure.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 7
 
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
 ```
+
++++ {"editable": false, "deletable": false}
 
 ### Field definition
 
@@ -232,6 +282,9 @@ Now we know the mesh we work with. Let us define the fields of the solvers that 
 The first step is to create a Field object attached to the Coupling object associated to the coupling between `code1` and `code2`. The numerical method of both solvers use node-centered fields (DOF_LOCATION_NODE). For `code1` we tell that this `super fancy field` will be sent (FIELD_EXCH_SEND) and that `code2` will receive it (FIELD_EXCH_RECV). In this basic coupling the `super fancy field` that will be sent has only one component which is the $x$ component of the mesh coordinates. For each field we tell that we want to visualize it in the Ensight ASCII output (STATUS_ON).
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 8
 
   const char *field_name      = "a super fancy field";
@@ -248,12 +301,17 @@ The first step is to create a Field object attached to the Coupling object assoc
                    CWP_STATUS_ON);
 ```
 
++++ {"editable": false, "deletable": false}
+
 #### Set the field values
 
 The function **CWP_Field_data_set** is used here to set the arrays associated to the fields. `code1` fills an array with the data that it wants to send to `code2`.
 `code2` has to provide an array in which the field data from `code1` will be stored.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 9
 
   double *send_field_data = malloc(sizeof(double) * n_vtx * n_components);
@@ -269,6 +327,8 @@ The function **CWP_Field_data_set** is used here to set the arrays associated to
                      send_field_data);
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### Begin time step
 
 In this basic example, only one solver iteration during which an exchange occurs will be done.
@@ -276,11 +336,16 @@ The beginning and the end of an iteration have to be marked for CWIPI using the 
 Note, that is mandatory to create the coupling and the associated fields before starting the first time step.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 10
 
   CWP_Time_step_beg(code_name[0],
                     0.0);
 ```
+
++++ {"editable": false, "deletable": false}
 
 ### Compute interpolation weights
 
@@ -288,6 +353,9 @@ Since we use the spatial interpolation algorithm locating a set of points (verti
 Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **CWP_Spatial_interp_weights_compute**.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 11
 
   CWP_Spatial_interp_property_set(code_name[0],
@@ -299,12 +367,17 @@ Before doing any exchange, it is mandatory to compute the spatial interpolation 
                                      coupling_name);
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### Exchange field values between codes
 
 For `code1` to send its Field data array to `code2`, the non-blocking **CWP_Field_issend** should be called. Similarly, `code2` should call **CWP_Field_irecv** to tell `code1` that is wants to receive the Field data array. After that, the solvers can overlap the communication by some computations. Once you want to be sure the send operation has completed in `code1`, use **CWP_Field_wait_issend**.
 The interpolated Field data array has completely arrived for `code2` once the call to **CWP_Field_wait_irecv** is completed.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 12
 
   CWP_Field_issend(code_name[0],
@@ -316,12 +389,17 @@ The interpolated Field data array has completely arrived for `code2` once the ca
                         field_name);
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### End time step and clean up
 
 At the end of each solver iteration **CWP_Time_step_end** is called to inform CWIPI that the time step has terminated.
 When there are no CWIPI exchanges left to be done, all field, interface mesh and coupling structures can be deleted (**CWP_Field_del**, **CWP_Mesh_interf_del** and **CWP_Cpl_del**).
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 14
 
   CWP_Time_step_end(code_name[0]);
@@ -337,11 +415,16 @@ When there are no CWIPI exchanges left to be done, all field, interface mesh and
               coupling_name);
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### End CWIPI
 
 This call terminates the use of CWIPI by cleaning up the internal structures CWIPI created.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 15
 
   free(send_field_data);
@@ -353,11 +436,16 @@ This call terminates the use of CWIPI by cleaning up the internal structures CWI
 
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### End MPI environment
 
 At the end of the code the MPI environment should be terminated.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 16
 
   MPI_Finalize();
@@ -366,19 +454,29 @@ At the end of the code the MPI environment should be terminated.
 }
 ```
 
++++ {"editable": false, "deletable": false}
+
 ## Execution and visualization
 
 Run the following cells to execute to program you just wrote and visualize the basic coupling you implemented.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %merge_code_blocks -l c -p exercise_1_code_1 -n 1 -v -c
 ```
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%visualize
 cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
 cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```
+
++++ {"editable": false, "deletable": false}
 
 # Bonus : a coupling with conservative interpolation
 
