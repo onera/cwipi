@@ -134,10 +134,11 @@ The main attraction is the performance, which is mentioned in articles of simila
 ## How do I install **CWIPI**?
 
 Start by getting the sources of **CWIPI** (by cloning the GitLab repository for instance).
-Building the library in done through CMake.
+The library builds with [CMake](https://cmake.org/).
 If you wish another interface than the native C, use the `CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)` or `CWP_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)` option.
 
-Since version 1.x of the library is linked to **ParaDiGM**, if your application already uses that library you can link that install with **CWIPI** using the `CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)` option.
+Version 1.0 has a dependency to [**ParaDiGM**](https://gitlab.onera.net/numerics/mesh/paradigm).
+If your application already uses this library, you can link **CWIPI** to your own **ParaDiGM** instance using the `CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)` option.
 
 For further details about the install process of **CWIPI**, please refer to the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/installation.html).
 
@@ -276,9 +277,9 @@ Before starting the hands-on exercise, let's take a moment to establish **CWIPI*
 ## Coupling environment
 
 The aim of this training is to learn how to set up a basic coupling between two codes.
-Those codes, which we will refer to as `code1` and `code2`, will exchnage data necessary to fuel the numerical methods they implement.
-As a start, one needs to define those two codes and provide the information to **CWIPI** that they are linked in a coupling.
-On the figure bellow, you can see the two codes joined in a coupling instance.
+Those codes, which we will refer to as `code1` and `code2`, will exchange data necessary to fuel the numerical methods they implement.
+As a start, one needs to define those two codes and provide the information to **CWIPI** that they are linked in a *Coupling* environment.
+On the figure below, you can see the two codes joined in a coupling instance.
 
 <img src="schema_concept_coupling.svg" width="400">
 
@@ -368,7 +369,7 @@ Indeed, the two interface meshes generally do not match.
 
 <img src="schema_concept_mesh.svg" width="400">
 
-The interface mesh can be defined either in "nodal" connectivity (eg. for Finite Element solvers), by providing blocks of elements of the same type, or in "descending" connectivity (eg. for Finite Volume solvers), by providing the cell$\to$face and face$\to$vtx connectivities for volume coupling interfaces, or face$\to$edge and edge$\to$vtx for surface coupling interfaces.
+The interface mesh can be defined either in "nodal" connectivity (e.g. for Finite Element solvers), by providing blocks of elements of the same type, or in "descending" connectivity (e.g. for Finite Volume solvers), by providing the cell$\to$face and face$\to$vtx connectivities for volume coupling interfaces, or face$\to$edge and edge$\to$vtx for surface coupling interfaces.
 
 Note that **CWIPI** does not copy the interface mesh data.
 Also, if a code is involved in more than one coupling environment, it may have multiple interface meshes, or reuse the same in multiple couplings.
@@ -650,7 +651,7 @@ To make such couplings possible, we developed a client-server mode of **CWIPI** 
 These exchanges are performed between codes with their specific MPI (client) and a common MPI environment on which **CWIPI** runs (server).
 
 <!-- <span style="color:red">
-supposons cette fois au contraire que je ne l'ai pas la main sur un des deux codes, eg. commercial, qui a son propre MPI => mode client-serveur avec TCP/IP
+supposons cette fois au contraire que je ne l'ai pas la main sur un des deux codes, e.g. commercial, qui a son propre MPI => mode client-serveur avec TCP/IP
 </span> -->
 
 <img src="client_server.png" width="400">
