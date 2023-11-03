@@ -437,8 +437,8 @@ For node-based source fields, each target point gets assigned a linear combinati
 
 **CWIPI** 1.0 introduces two additional spatial interpolation methods :
 
- - Interpolation from nearest neighbors : <span style="color:red">brief description?</span>
- - Interpolation from mesh intersection : <span style="color:red">brief description?</span>
+ - Interpolation from nearest neighbors : for the points of a target mesh, the k closest points of the source mesh are determined;
+ - Interpolation from mesh intersection : for the elements of a target mesh, the volume of intersection with the elements of the source mesh is determined.
 
 The table below gives the admissible dof locations for each spatial interpolation method:
 
