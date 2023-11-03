@@ -270,8 +270,6 @@ Before starting the hands-on exercise, let's take a moment to establish **CWIPI*
 
 <span style="color:red">*on pose le pb: on veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)*</span>
 
-
-
 <img src="schema_concept_coupling.svg" width="400">
 
 ## Mesh
@@ -392,7 +390,7 @@ With the notions we just introduced, you should be able to write in pseudo-code 
 
 Solution:
 
-  The lines in <span style="color:crimson;">red</span> are only executed by `code1`, the one in <span style="color:dodgerblue;">blue</span> are only executed by `code2`.
+  The lines in <span style="color:crimson;">red</span> are only executed by `code1`, the ones in <span style="color:dodgerblue;">blue</span> are only executed by `code2`.
 
   * Initialize CWIPI
   * Create a Coupling environment
@@ -553,6 +551,9 @@ Let's imagine that each code in our example is partitioned on two MPI ranks as i
 
 When computing the geometric mapping for spatial interpolation, **CWIPI** establishes the point-to-point communication graph between the processes of the two coupled codes.
 Interpolated fields are therefore exchanged via direct MPI messages, thus limiting the communication overhead, which is essential for achieving good scalability.
+The figure below illustrates the point-to-point communication graph corresponding to our little example.
+The mesh partition of `code1`'s rank 0 overlap the mesh partitions of both ranks of `code2`.
+However, the mesh partition of `code1`'s rank 1 only overlap the mesh partition of `code2`'s rank 1.
 
 <img src="pap.svg" width="400">
 
@@ -632,6 +633,8 @@ Solution:
 
 ## MPI Communicators
 
+<span style="color:red">on a pas parlé des différents comms (comm world, intra comm, coupling comm) ... maybe mettre ce paragraphe au début?</span>
+
 Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
 
 Versions 0.x impose that the coupled codes be run on different processes, as illustrated below, so it cannot satisfy our demand.
@@ -655,11 +658,19 @@ supposons que j'ai la main sur les 2 codes et je veux pouvoir tout chapeauter da
 
 ## Client-server mode
 
-<span style="color:red">
-supposons cette fois au contraire que je ne l'ai pas la main sur un des deux codes, eg. commercial, qui a son propre MPI => mode client-serveur avec TCP/IP
-</span>
+Now suppose on the contrary that one of the coupled code is a commercial software with a fixed MPI implementation.
 
-<img src="client_server.png" width="400" height="200">
+To make such couplings possible, we developed a client-server mode of **CWIPI** relying on TCP/IP exchanges.
+These exchanges are performed between codes with their specific MPI (client) and a common MPI environment on which **CWIPI** runs (server).
+
+<!-- <span style="color:red">
+supposons cette fois au contraire que je ne l'ai pas la main sur un des deux codes, eg. commercial, qui a son propre MPI => mode client-serveur avec TCP/IP
+</span> -->
+
+<img src="client_server.png" width="400">
+
+This is based on work done by CERFACS for the OpenPALM client/server mode.
+Note that this mode provides greater flexibility, at the expense of performance.
 
 ## New API
 
