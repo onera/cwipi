@@ -128,6 +128,9 @@ class CodeMagics(Magics):
   @magic_arguments.argument('--verbose', '-v',
                             help='Print merged source code',
                             action="store_true")
+  @magic_arguments.argument('--bonus', '-b',
+                            help='Activate bonus',
+                            action="store_true")
   def merge_code_blocks(self, line):
     # get current environment
     self.env = os.environ.copy() # ?
@@ -266,7 +269,12 @@ class CodeMagics(Magics):
       python = " "
       if args.language == "python":
         python = " python3 -u "
-      command = ["mpirun -np {}{}{} : -np 1{}{}".format(args.n_rank, python, exec_name, python, coupled_exec_name)]
+
+      bonus = ""
+      if (args.bonus):
+        bonus = " -b"
+
+      command = ["mpirun -np {}{}{} : -np 1{}{}{}".format(args.n_rank, python, exec_name, python, coupled_exec_name, bonus)]
 
       sys.stdout.write(" ".join(command)+"\n")
 

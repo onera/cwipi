@@ -18,6 +18,21 @@ except:
     if i_rank == 0:
         print("Oh no, couldn't find the module :'(")
 
+# parse command line arguments to know wether to activate the bonus
+
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-b",
+                    "--bonus",
+                    help="Activate bonus",
+                    action="store_true")
+
+args = parser.parse_args()
+
+bonus = args.bonus
+
 n_code = 1
 code_name = ["code2"]
 is_active_rank = True
@@ -27,12 +42,17 @@ intra_comm = pycwp.init(comm,
 
 coupled_code_name = ["code1"]
 n_part = 1
+
+spatial_interp_algorithm = pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
+if (bonus):
+    spatial_interp_algorithm = pycwp.SPATIAL_INTERP_FROM_INTERSECTION
+
 cpl = pycwp.Coupling(code_name[0],
                      "code1_code2",
                      coupled_code_name[0],
                      pycwp.INTERFACE_SURFACE,
                      pycwp.COMM_PAR_WITH_PART,
-                     pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                     spatial_interp_algorithm,
                      n_part,
                      pycwp.DYNAMIC_MESH_STATIC,
                      pycwp.TIME_EXCH_USER_CONTROLLED)
@@ -59,16 +79,26 @@ cpl.mesh_interf_f_poly_block_set(0,
 cpl.mesh_interf_finalize()
 
 n_components = 1
+
+location = pycwp.DOF_LOCATION_NODE
+if (bonus):
+  location = pycwp.DOF_LOCATION_CELL_CENTER
+
 field = cpl.field_create("a super fancy field",
                            pycwp.DOUBLE,
                            pycwp.FIELD_STORAGE_INTERLACED,
                            n_components,
-                           pycwp.DOF_LOCATION_NODE,
+                           location,
                            pycwp.FIELD_EXCH_RECV,
                            pycwp.STATUS_ON)
 
 n_vtx = len(coords)//3
-recv_field_data = np.arange(n_vtx*n_components, dtype=np.double)
+size = n_vtx*n_components
+if (bonus):
+  n_elt = len(connec_idx)-1
+  size = n_elt*n_components
+
+recv_field_data = np.arange(size, dtype=np.double)
 
 field.data_set(0,
                pycwp.FIELD_MAP_TARGET,

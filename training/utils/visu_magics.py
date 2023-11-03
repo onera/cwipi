@@ -299,21 +299,21 @@ class VisuMagics(Magics):
     # parse cell content
     params = parse_visu_cell(cell)
 
-    for l in cell_lines:
-      a = [k.rstrip().lstrip() for k in l.split(":")]
+    # for l in cell_lines:
+    #   a = [k.rstrip().lstrip() for k in l.split(":")]
 
-      if len(a[0]) > 0:
-        files.append(a[0])
+    #   if len(a[0]) > 0:
+    #     files.append(a[0])
 
-        if len(a) > 1:
-          fields.append(a[1])
-        else:
-          fields.append("")
+    #     if len(a) > 1:
+    #       fields.append(a[1])
+    #     else:
+    #       fields.append("")
 
-        if len(a) > 2:
-          styles.append(a[2])
-        else:
-          styles.append("")
+    #     if len(a) > 2:
+    #       styles.append(a[2])
+    #     else:
+    #       styles.append("")
 
     visu_n_files(files     = params["files"],
                  fields    = params["fields"],
