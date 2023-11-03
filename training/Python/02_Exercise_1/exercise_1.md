@@ -462,7 +462,8 @@ cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 If you read this, it means that you quickly finished the first exercise. Congratulations !
 As you have seen in the introduction, from version 1.x on, CWIPI has several spatial interpolation algorithms.
 To go further, we invite you to repeat the exercise above but with a conservative interpolation algorithm (SPATIAL_INTERP_FROM_INTERSECTION).
-Copy-paste the following code to have a field defined on the faces. Adapt the code accordingly to those two changes. Observe the output.
+Copy-paste the following code to have a field defined on the faces. Adapt the code accordingly to those two changes.
+To adapt the coupled code as well, use the option `-b` at the end of the `%merge_code_blocks` command. Then observe the output.
 
 ```{prf:algorithm} basic coupling algorithm
 
