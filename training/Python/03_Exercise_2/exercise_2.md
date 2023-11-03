@@ -11,16 +11,26 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": false, "deletable": false}
+
 # Exercise 2 : Coupling with a deformed mesh over time
+
++++ {"editable": false, "deletable": false}
 
 Now that you know how to set up a basic coupling, let's go further by doing several coupling iterations.
 At each iteration, the coupling interface mesh of `code1` is deformed.
 
-+++
++++ {"editable": false, "deletable": false}
+
+## Load magic commands
 
 As usual we start by loading the custom magic commands.
 
 ```{code-cell}
+---
+"editable": false
+"deletable": false
+---
 import os, sys
 module_path = os.path.abspath(os.path.join('../../utils'))
 if module_path not in sys.path:
@@ -28,12 +38,16 @@ if module_path not in sys.path:
 ```
 
 ```{code-cell}
+---
+"editable": false
+"deletable": false
+---
 %reload_ext visu_magics
 %reload_ext code_magics
 %reload_ext figure_magics
 ```
 
-+++
++++ {"editable": false, "deletable": false}
 
 ## Initialization
 
@@ -44,6 +58,9 @@ Since the set up is roughly the same as in the previous exercise, it is not spli
   - Ask for visualization outputs
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 1
 
 #!/usr/bin/env python
@@ -94,6 +111,8 @@ cpl.visu_set(1,
              "text")
 ```
 
++++ {"editable": false, "deletable": false}
+
 ## What changes when the mesh is deformed over time?
 
 Let's have a look again at the pseudo-code of the introduction.
@@ -140,6 +159,9 @@ What would happen if `code1` would send `sf1`?*
 First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square (nothing to do).
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 2
 
 # Create mesh :
@@ -152,9 +174,14 @@ elt_vtx_idx = mesh["elt_vtx_idx"]
 elt_vtx     = mesh["elt_vtx"]
 ```
 
++++ {"editable": false, "deletable": false}
+
 The mesh will change at each iteration. Since it is deformed, only its coordinates change.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 3
 
 cpl.mesh_interf_vtx_set(0,
@@ -172,6 +199,8 @@ cpl.mesh_interf_f_poly_block_set(0,
 cpl.mesh_interf_finalize()
 ```
 
++++ {"editable": false, "deletable": false}
+
 ### Field
 
 Here we want `code1` to receive a field from `code2`.
@@ -180,6 +209,9 @@ Indeed, the mesh topology does not change. Thus, at each coupling iteration the 
 Thus, it suffices to provide the pointer to the field array and change the values inside it at each iteration.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 4
 
 n_components = 1
@@ -199,6 +231,8 @@ field.data_set(0,
                field_data)
 ```
 
++++ {"editable": false, "deletable": false}
+
 In the case the topology of your mesh changes at each iteration, the new field array will be set at each iteration.
 It is important to know that the field should still be created before starting the first time step.
 
@@ -208,6 +242,9 @@ At the beginning of each coupling iteration, we begin a new time step using `CWP
 at the end of the iteration with `CWP_Time_step_end`.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 6
 
 itdeb = 1
@@ -226,9 +263,14 @@ for it in range(itdeb, itend+1):
                       ttime)
 ```
 
++++ {"editable": false, "deletable": false}
+
 Let's rotate the mesh of `code1` with respect to `code2`.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 7
 
   if (it > itdeb):
@@ -241,6 +283,8 @@ Let's rotate the mesh of `code1` with respect to `code2`.
 
 ```
 
++++ {"editable": false, "deletable": false}
+
 The aim is to interpolate the field of `code2` onto the mesh of `code1`.
 *What happens to the interpolation weights when the mesh of `code1` is deformed?
 Thus, what does that induce in your code?*
@@ -248,6 +292,9 @@ Thus, what does that induce in your code?*
 The chosen tolerance does not change here over time, so we set it before the iteration loop.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 5
 
 cpl.spatial_interp_property_set("tolerance",
@@ -255,18 +302,28 @@ cpl.spatial_interp_property_set("tolerance",
                                 "0.001")
 ```
 
++++ {"editable": false, "deletable": false}
+
 But the weights need to be computed at each iteration after the mesh has been deformed, so that is done in the iteration loop.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 8
 
   cpl.spatial_interp_weights_compute()
 
 ```
 
++++ {"editable": false, "deletable": false}
+
 Now we receive the field send by `code2`.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 9
 
   field.irecv()
@@ -274,23 +331,36 @@ Now we receive the field send by `code2`.
   field.wait_irecv()
 ```
 
++++ {"editable": false, "deletable": false}
+
 Earlier we set a tolerance for the localization algorithm.
 To check if that tolerance was large enough, the function **n_uncomputed_tgts_get** can be called to retrieve the number of unlocated vertices of the coupling interface of `code1`.
 To know which vertices were unlocated the **uncomputed_tgts_get** is called.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_1_code_1 -i 13
 
   n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
   uncomputed_tgts   = field.uncomputed_tgts_get(0);
 ```
 
++++ {"editable": false, "deletable": false}
+
 Let's have a sneak peek in this algorithm through this animation which will help you understand what we mean by unlocated points.
 
 ```{code-cell}
+---
+"editable": false
+"deletable": false
+---
 %%localization
 unlocated
 ```
+
++++ {"editable": false, "deletable": false}
 
 *Spoiler : At the end of the exercise you will see that since the coupling interface mesh of `code1` moves
 there are unlocated points with the tolerance set to 0.001. Increasing it will eventually let all points be located
@@ -299,16 +369,24 @@ but at the cost of the time taken by the algorithm. You call play around with th
 Let's end the iteration.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 10
 
   pycwp.time_step_end(code_name[0])
 ```
+
++++ {"editable": false, "deletable": false}
 
 ## Finalize
 
 Let us finish the coupling by freeing the memory allocated for it and ending this program.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%code_block -p exercise_2_code_1 -i 11
 
 # Delete field
@@ -323,18 +401,28 @@ MPI.Finalize()
 
 ```
 
++++ {"editable": false, "deletable": false}
+
 ## Execution and visualization
 
 Run the following cells to execute to program you just wrote and visualize the basic coupling you implemented.
 
 ```{code-cell}
+---
+"deletable": false
+---
 %merge_code_blocks -l python -p exercise_2_code_1 -n 1 -v -c
 ```
 
 ```{code-cell}
+---
+"deletable": false
+---
 %%visualize_dynamic
 cwipi_writer/coupling_code1_code2/CHR.case : r_a~super~fancy~field1
 cwipi_writer/coupling_code2_code1/CHR.case : s_a~super~fancy~field1
 ```
+
++++ {"editable": false, "deletable": false}
 
 <span style="color:red">*You reached the end of this training. Congratulations ! Feel free to give us feedback.*</span>
