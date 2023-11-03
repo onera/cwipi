@@ -133,9 +133,13 @@ The main attraction is the performance, which is mentioned in articles of simila
 
 ## How do I install **CWIPI**?
 
-<span style="color:red">*(-> CMake, README + lien doc)*</span>
+Start by getting the sources of **CWIPI** (by cloning the GitLab repository for instance).
+Building the library in done through CMake.
+If you wish another interface than the native C, use the `CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)` or `CWP_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)` option.
 
+Since version 1.x of the library is linked to **ParaDiGM**, if your application already uses that library you can link that install with **CWIPI** using the `CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)` option.
 
+For further details about the install process of **CWIPI**, please refer to the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/installation.html).
 
 <!-- ## What is CWIPI ?
 
@@ -271,7 +275,10 @@ Before starting the hands-on exercise, let's take a moment to establish **CWIPI*
 
 ## Coupling environment
 
-<span style="color:red">*on pose le pb: on veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)*</span>
+The aim of this training is to learn how to set up a basic coupling between two codes.
+Those codes, which we will refer to as `code1` and `code2`, will exchnage data necessary to fuel the numerical methods they implement.
+As a start, one needs to define those two codes and provide the information that they are linked in a coupling.
+On the figure bellow, you can see the two codes joined in a coupling instance.
 
 <img src="schema_concept_coupling.svg" width="400">
 
