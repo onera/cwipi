@@ -30,64 +30,111 @@ The training will take place in three stages:
   - Exercise 2 : an extension on time step management with a deforming mesh
 
 
-<!-- ===== DEBUT SLIDES F.DUCHAINE (CWIPI training 2022)
-* En un mot, c'est quoi CWIPI: an open-source library for coupling scientific codes in a massively parallel distributed environment
 
-* En un mot, pourquoi le couplage? : to achieve complex, multi-physics, multi-components simulations, ...
+# What is **CWIPI**?
 
-* Objectifs
-* Motivation/choix de design (pourquoi pas approche monolithique, ...)
-* Philosophie (les codes instrumentent CWIPI, pas de structure de donnée complexe, ...) (ici ou après historique?)
-=====
+**CWIPI** is an open-source library for coupling scientific codes in a massively parallel distributed environment.
+
+## Why coupling codes?
+
+Coupling scientific codes allows to achieve complex, multi-physics, multi-components simulations in a modular fashion.
+
+## What are the implications?
+
+In order to couple multiple codes, we need to be able to
+ - manage the execution of the coupled codes ;
+ - manage the transfer of information between these codes.
+
+## Objectives
+
+Most scientific codes target large-scale simulations, therefore the coupling tool must be **efficient** and suited to massively parallel computing in order not to degrade performance.
+To enable increasingly complex multi-components simulations, the coupling tool must be **easy to use**.
+To accommodate the wide variety of numerical methods used in the different scientific domains, the coupling tool must finally be **flexible** and **generic**.
+
+<!-- Portability: standard techniques for developments, -->
+
+## Motivations/Design choices/Philosophy
+
+<span style="color:red">*(pourquoi pas approche monolithique, ...)*</span>
+
+<span style="color:red">*(les codes instrumentent CWIPI, pas de structure de donnée complexe, ...)*</span>
 
 
-* Historique de CWIPI, licence, contributeurs
+## History
 
-* Exemples d'utilisation
-
-* Où ça se trouve? (site web, GitLab, git externe)
-* Comment ça s'installe -> README + lien doc
-
-* Concepts fondamentaux
-  * notion de maillage (comme PDM), préciser que CWIPI only deals with unstructured meshes
-  * principe du couplage : les codes s'échangent des informations au niveau de l'interface entre leurs maillages respectifs
-  -> CWIPI only deals with this interface, which can be of dimension 0, 1, 2 or 3.
-
-  * exercice/jeu participatif
-    But: introduire - les notions fondamentales (Coupling, Mesh, Field)
-                    - les "features" (spatial interpolation, ctrl params, communicateurs MPI, TCP)
-                    - les améliorations/nouveautés ont motivé la réécriture complète de CWIPI, d'où New API
-
-    1. on pose le pb: on a veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)
-    2. on a dit que les codes devaient s'échanger des infos à travers une interface de couplage géométrique, discrétisée dans chaque code par une portion de son maillage => chaque code doit donc définir SA discrétisation (Interface Mesh) (pas de copie du maillage et si un code intervient dans plusieurs Couplings il peut avoir plusieurs Interface meshes)
-    3. quelles sont les informations que les codes doivent s'échanger? Principalement des variables physiques (faire écho aux exemples d'utilisation?) (Field) (les dofs de ces Fields sont associés au Interface mesh et puisque on l'échange, la définition des Fields par les 2 codes couplés doit être cohérente)
-    4. On a maintenant toutes les notions nécessaires pour commencer à esquisser le pseudo-code d'un cas de couplage basique : code1 envoie un champ F1 à code2(, code2 envoie un champ F2 à code1)
-      -> les participants doivent obtenir un truc du genre:
-          0 - (Init CWIPI)
-          1 - Create a Coupling envrionment
-          2 - Each code describes its Interface mesh
-          3 - Definition of Field F1
-          4 - code1 sends F1
-          5 - code2 receives F1
-          (6 - code2 sends F2
-           7 - code1 receives F2)
-          (8 - repeat 4 to 7 over N iterations)
-          9 - Finalize CWIPI
-    5. Ok mais en général les Interface meshes de code1 et code2 ne match pas => Spatial interpolation -> méthodes, PDM, perfo, user-defined interpolation
-      -> voir comment ça s'insère dans le pseudo-code
-    6. Ok on sait faire un ping-pong basique mais en pratique les applications nécessitent des schémas de couplages bien plus complexes (fig. JDG) => les codes doivent pouvoir communiquer autre chose que des champs, ils doivent partager les paramètres qui définissent le schéma de couplage => Control Parameters -> old/new
-      -> voir comment ça s'insère dans le pseudo-code
-    7. comms (dis)joints (script Python qui instrumente les deux codes)
-    8. contraintes MPI (codes commerciaux, ...) => alternative client-serveur TCP/IP
-    9. => Réécriture complète, nouvelle API, documentation upgrade 0.x -> 1.0
-
-*** Il faut intercaler le "Behind the scenes" (parallèle massif caché, comms p2p avec illustration des partitions qui se recouvrent)
-     -->
+<span style="color:red">*Historique de CWIPI, licence, contributeurs?*</span>
 
 
 
+# Examples of use
 
-## What is CWIPI ?
+## At ONERA
+
+### Noise prediction at launcher lift-off
+
+- Coupled codes : [CEDRE](https://cedre.onera.fr/) (aerodynamic near-field, Finite Volume method (FV)) - SPACE (acoustic far-field, Discontinuous Galerkin method)
+- *Surface* coupling interface, high-order mesh
+- Contributors : A. Langenais, F. Vuillot, C. Peyret, G. Chaineray, C. Bailly
+
+<img src="cedre.png" width="400">
+
+### Modeling high-altitude jets
+
+- Coupled codes : [CEDRE](https://cedre.onera.fr/) (dense jet, FV) - SPARTA (rarefied gas, Direct Simulation Monte Carlo)
+- *Volume* coupling interface
+- Contributors : Y. Dauvois
+
+<img src="jet.png" width="600">
+
+### Plasma in a flow
+
+- Coupled codes : [CEDRE](https://cedre.onera.fr/) (CFD, FV) - TARANIS (plasma, FV)
+- *Volume* coupling interface
+- Contributors : A. Bourlet, F. Tholin, A. Vincent, J. Labaune
+
+<img src="cedre_taranis.png" width="400">
+
+### Thermal degradation of composite materials
+
+- Coupled codes : [CEDRE](https://cedre.onera.fr/) (convection, FV) - TARANIS (plasma, FV) - [MoDeTheC](https://gitlab.onera.net/numerics/solver/modethec) (heat transfer and material degradation, FV)
+- *Surface* and *volume* coupling interfaces
+- Contributors : X. Lamboley, B.Khiar
+
+<img src="modethec_taranis.png" width="500">
+
+## Elsewhere
+
+### 360-degrees Large-Eddy Simulation of a full engine
+
+- Coupled codes : [AVBP](https://www.cerfacs.fr/avbp7x/) - [AVBP](https://www.cerfacs.fr/avbp7x/) (FV)
+- *Volume* coupling interface, dynamic mesh
+- Contributors : C. Pérez Arroyo, J. Dombard, F. Duchaine,L. Gicquel, B. Martin, N. Odier, G. Staffelbach
+
+<img src="cerfacs.png" width="500">
+
+### Fluid - Structure interaction
+
+- Coupled codes : [YALES2](https://www.coria-cfd.fr/index.php/YALES2) - [YALES2](https://www.coria-cfd.fr/index.php/YALES2) (FV)
+- *Surface* coupling interface, dynamic mesh
+- Contributors : T. Fabbri, G. Balarac, P. Bénard, V. Moureau
+
+<img src="t_fabbri.png" width="500">
+
+
+## Where can I find **CWIPI**?
+
+**CWIPI** can be accessed in multiple ways:
+  - https://gitlab.onera.net/numerics/coupling/cwipi (ONERA users only)
+  - https://w3.onera.fr/cwipi/bibliotheque-couplage-cwipi (in French)
+  - on GitHub (coming soon!)
+
+## How do I install **CWIPI**?
+
+<span style="color:red">*(-> CMake, README + lien doc)*</span>
+
+
+
+<!-- ## What is CWIPI ?
 
 #### LGPL code coupling library in a massively parallel distributed setting:
 - Provides tools to define code coupling algorithms to control each exchange between the codes
@@ -174,343 +221,273 @@ If a simple autodetection fails, you can use these options to find MPI :
     MPI_<language>_LIBRARIES
     MPI_<language>_INCLUDE_PATH
 
-Refer to [FindMPI](https://cmake.org/cmake/help/latest/module/FindMPI.html) in the CMake documentation for more information.
+Refer to [FindMPI](https://cmake.org/cmake/help/latest/module/FindMPI.html) in the CMake documentation for more information. -->
 
-# Examples of uses
++++
 
-## At ONERA
+<!--
+* Concepts fondamentaux
+  * notion de maillage (comme PDM)
+  * principe du couplage : les codes s'échangent des informations au niveau de l'interface entre leurs maillages respectifs
+  -> CWIPI only deals with this interface, which can be of dimension 0, 1, 2 or 3.
 
-### Noise prediction at launcher lift-off
+  * exercice/jeu participatif
+    But: introduire - les notions fondamentales (Coupling, Mesh, Field)
+                    - les "features" (spatial interpolation, ctrl params, communicateurs MPI, TCP)
+                    - les améliorations/nouveautés ont motivé la réécriture complète de CWIPI, d'où New API
 
-- Coupled codes : CEDRE (aerodynamic near-field, Finite Volume (FV) method) - SPACE (acoustic far-field, Discontinuous Galerkin method)
-- *Surface* coupling interface
-- Contributors : A. Langenais, F. Vuillot, C. Peyret, G. Chaineray, C. Bailly
+    1. on pose le pb: on a veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)
+    2. on a dit que les codes devaient s'échanger des infos à travers une interface de couplage géométrique, discrétisée dans chaque code par une portion de son maillage => chaque code doit donc définir SA discrétisation (Interface Mesh) (pas de copie du maillage et si un code intervient dans plusieurs Couplings il peut avoir plusieurs Interface meshes)
+    3. quelles sont les informations que les codes doivent s'échanger? Principalement des variables physiques (faire écho aux exemples d'utilisation?) (Field) (les dofs de ces Fields sont associés au Interface mesh et puisque on l'échange, la définition des Fields par les 2 codes couplés doit être cohérente)
+    4. On a maintenant toutes les notions nécessaires pour commencer à esquisser le pseudo-code d'un cas de couplage basique : code1 envoie un champ F1 à code2(, code2 envoie un champ F2 à code1)
+      -> les participants doivent obtenir un truc du genre:
+          0 - (Init CWIPI)
+          1 - Create a Coupling environment
+          2 - Each code describes its Interface mesh
+          3 - Definition of Field F1
+          4 - code1 sends F1
+          5 - code2 receives F1
+          (6 - code2 sends F2
+           7 - code1 receives F2)
+          (8 - repeat 4 to 7 over N iterations)
+          9 - Finalize CWIPI
+    5. Ok mais en général les Interface meshes de code1 et code2 ne match pas => Spatial interpolation -> méthodes, PDM, perfo, user-defined interpolation
+      -> voir comment ça s'insère dans le pseudo-code
+    6. Ok on sait faire un ping-pong basique mais en pratique les applications nécessitent des schémas de couplages bien plus complexes (fig. JDG) => les codes doivent pouvoir communiquer autre chose que des champs, ils doivent partager les paramètres qui définissent le schéma de couplage => Control Parameters -> old/new
+      -> voir comment ça s'insère dans le pseudo-code
+    7. comms (dis)joints (script Python qui instrumente les deux codes)
+    8. contraintes MPI (codes commerciaux, ...) => alternative client-serveur TCP/IP
+    9. => Réécriture complète, nouvelle API, documentation upgrade 0.x -> 1.0
 
-<img src="cedre.png" width="400">
-
-### Modeling high-altitude jets
-
-- Coupled codes : CEDRE (dense jet, FV method) - SPARTA (rarefied gas, Direct Simulation Monte Carlo)
-- *Surface* coupling interface
-- Contributors : <span style="color:red">??????</span>
-
-<img src="jet.png" width="600">
-
-### Plasma in a flow
-
-- Coupled codes : CEDRE (CFD, FV method) - TARANIS (plasma, <span style="color:red">method?</span>)
-- *Volume* coupling interface
-- Contributors : A. Bourlet, F. Tholin, A. Vincent, J. Labaune
-
-<img src="cedre_taranis.png" width="400">
-
-### Thermal degradation of composite materials
-
-- Coupled codes : CEDRE (convection, FV method) - TARANIS (plasma, <span style="color:red">method?</span>) - MODETHEC (?)
-- *Surface* and *volume* coupling interface
-- Contributors : X. Lamboley, B.Khiar
-
-<img src="modethec_taranis.png" width="500">
-
-## Elsewhere
-
-### 360-degrees Large-Eddy Simulation of a full engine
-
-- Coupled codes : AVBP - AVBP (FV method)
-- *Volume* coupling interface
-- Contributors : C. Pérez Arroyo, J. Dombard, F. Duchaine,L. Gicquel, B. Martin, N. Odier, G. Staffelbach
-
-<img src="cerfacs.png" width="500">
-
-### Fluid - Structure interaction
-
-- Coupled codes : Yales2 - Yales2 (FV method)
-- *Surface* coupling interface
-- Contributors : T. Fabbri, G. Balarac, P. Bénard, V. Moureau
-
-<img src="t_fabbri.png" width="500">
+*** Il faut intercaler le "Behind the scenes" (parallèle massif caché, comms p2p avec illustration des partitions qui se recouvrent)
+ -->
 
 # Core concepts
 
-Before starting the hands-on exercise, we will spend some time on the philosophy to build a coupling using the CWIPI library. To do so, we will work with the following basic coupling example:
+Before starting the hands-on exercise, let's take a moment to establish **CWIPI**'s core concepts, and give an overview of the recent progress that lead to the release of version 1.0.
 
-## A basic coupling
+## Coupling environment
 
-Let `code 1` and `code 2` be two solvers. We want to send a field of `code 1` defined on the nodes of the associated mesh to `code 2`. Let the coupling interface for `code 1` be:
+<span style="color:red">*on pose le pb: on veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)*</span>
 
-<img src="mesh_code1.png" width="200">
 
-and for `code 2` be:
-
-<img src="mesh_code2.png" width="200">
-
-As you can see, the meshes do not have to be coincident in order to couple using **CWIPI**.
-
-### Coupling definition
-
-As seen in the text above, to define a coupling one has first to tell which codes are going to communicate together.
- In our case of this basic coupling, that gives us:
 
 <img src="schema_concept_coupling.svg" width="400">
 
-### Coupling interface
+## Mesh
 
-If we want to couple those two solvers, it means that there is an area in which the physical phenomenon of `code 2` acts on `code 1` and vise versa.
-In this area of the mesh, the numerical scheme takes account of the influence of the physical phenomenon of the coupled code.
-It is this portion of the mesh that we call coupling interface. Thus for each code participating in the coupling, we need to define this mesh portion:
+Most computational methods rely on a *mesh* for the spatial discretization of partial differential equations.
+If you are not familiar with this notion, here's a quick recap.
+
+A mesh is composed of entities of different dimensions. The following terminology is used in **CWIPI** :
+- **cells**: 3D entities such as tetrahedra, pyramids, prisms, hexahedra or arbitrary polyhedra ;
+- **faces**: 2D entities such as triangles, quadrangles or arbitrary (simply connected) polygons ;
+- **edges**: 1D entities (segment between two points) ;
+- **vertices** (*shortened as "**vtx**"*): points defined by their Cartesian coordinates $(x, y, z)$.
+
+A mesh can either be *structured* or *unstructured*.
+
+| Structured mesh | Unstructured mesh |
+|:---------------:|:-----------------:|
+|<img align="center" width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_struct.svg">|<img align="center" width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_unstruct.svg">|
+
+
+
+In a structured mesh, all entities are arranged in a regular grid.
+Adjacency relations between these entities are therefore implicit : face $F_{i,j}$ is adjacent to faces $F_{i-1,j}$, $F_{i+1,j}$, $F_{i,j-1}$, and $F_{i,j+1}$.
+
+Unstructured meshes, however, require an explicit description of the connectivity between mesh entities.
+
+**CWIPI** deals essentially with *unstructured* meshes.
+
+The entities and connectivities of interest depend on the numerical method.
+For example, Finite Element methods typically only require the cell$\to$vertex connectivity (and face$\to$vtx for boundary faces).
+On the other hand, cell-centered Finite Volume methods generally require the cell$\to$face and face$\to$vtx connectivities.
+Other method, such as node-centered Finite Volume methods may also require the connectivities relative to the edges.
+
+In **CWIPI** all connectivities are stored as *1-based*, possibly signed, *flat* arrays.
+Because each entity $A$ may be connected to a variable number of entities $B$, an **index** is necessary to access the array $\texttt{connect}$ representing the connectivity $A \to B$.
+This index is an array $\texttt{connect\_idx}$ of length $n_A + 1$ which contains the ranges, i.e. the entities $B$ connected to $A_i$ are given by $ \texttt{connect}[j]$, for $j \in \left[ \texttt{connect\_idx}[i], \texttt{connect\_idx}[i+1] \right)$.
+The first element in the index array is always zero, and the last element is the length of the connectivity array.
+
+*Note that edges can only have two endpoints, so the index for the edge$\to$vtx is useless.*
+
+
+##### **<span style="color:SlateBlue">Note to Fortran users</span>**
+*<span style="color:SlateBlue">
+Because arrays are usually indexed starting from one, you should instead read :
+the entities $B$ connected to $A_i$ are given by $ \texttt{connect}[j]$, for $j \in \left( \texttt{connect\_idx}[i], \texttt{connect\_idx}[i+1] \right]$.
+</span>*
+
+Let's take a look at a simple example to illustrate the notion we just introduced:
+
+<img width="120" height="120" style="margin: 0px 30px 20px 30px;" src="house.svg">
+
+
+Here we have a simple mesh composed of 3 faces and 9 vertices.
+Let's see if you can guess what the face$\to$vtx connectivity and index arrays look like...
+
++++ {"jupyter": {"source_hidden": true}}
+
+Solution:
+The face$\to$vtx connectivity and its index are
+\begin{flalign}
+  \texttt{face\_vtx\_idx} & =  [0, 4, 12, 15]&&\\\nonumber
+  \texttt{face\_vtx}      & =  [{\color{red}2, 3, 6, 5}, {\color{green}1, 2, 5, 6, 3, 4, 8, 7}, {\color{blue}7, 8, 9}]&&
+\end{flalign}
+
++++
+
+Vertices are described by the $3 \cdot n_\mathrm{vtx}$ *flat* array of the Cartesian coordinates. The coordinates are stored in an *interlaced* fashion:
+$\left(x_0, y_0, z_0, x_1, y_1, z_1, \ldots \right)$.
+
+*Note that in **CWIPI** coordinates are always assumed to be three-dimensional, even for 2D, planar meshes.*
+
+##### **<span style="color:SlateBlue">Note to Fortran users</span>**
+*<span style="color:SlateBlue">
+Coordinates are stored as rank-2 arrays with shape $[3, n_\mathrm{vtx}]$.
+</span>*
+
+
+### Interface mesh
+
+In the context of coupling, the codes need to exchange information across the interface between their respective meshes.
+**CWIPI** only deals with this *interface mesh*, which can be of dimension 0, 1, 2 or 3.
+**CWIPI** supports all types of mesh elements listed above, as well as high-order, curved elements.
+
+Each coupled code must then define its own discretization of the coupling interface.
+Indeed, the two interface meshes generally do not match.
 
 <img src="schema_concept_mesh.svg" width="400">
 
-In version 0.x a single function ``cwipi_define_mesh`` was used to define the mesh in an element$\to$vertex fashion.
-Version 1.x, gives more flexibility in the way the mesh is provided so several functions must be called to define the mesh.
-In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given below.
+The interface mesh can be defined either in "nodal" connectivity (eg. for Finite Element solvers), by providing blocks of elements of the same type, or in "descending" connectivity (eg. for Finite Volume solvers), by providing the cell$\to$face and face$\to$vtx connectivities for volume coupling interfaces, or face$\to$edge and edge$\to$vtx for surface coupling interfaces.
 
-#### Mesh vertices coordinates
+Note that **CWIPI** does not copy the interface mesh data.
+Also, if a code is involved in more than one coupling environment, it may have multiple interface meshes, or reuse the same in multiple couplings.
 
-The coordinates of the mesh vertices should be provided in the following way:
 
-```{prf:algorithm} c
-  CWP_Mesh_interf_vtx_set("code_name",
-                          "coupling_name",
-                          partition_identifier,
-                          number_of_vertices,
-                          coordinates,
-                          NULL);
-```
+## Fields
 
-The different ways to provide the mesh to CWIPI are explained below with C code. Note that all functions with the ``partition_identifier``
-argument must be called for all partitions on the given MPI rank.
+We said earlier that coupling two codes involved exchanging data through a coupling interface.
+But what exactly is this data?
+It consists essentially in a set of physical variables.
+For instance, in simulations of fluid-structure interaction phenomena, the fluid code will transfer aerodynamic forces to the structure code, that will in return send a deformation field.
 
-#### Polygonal/Polyhedral Mesh
+In **CWIPI**, these variables are called *Fields*.
+A Field is identified by its name and is described by its degrees-of-freedom (dofs), which are associated to the interface mesh (nodes or cell centers), or to an arbitrary user-defined set of points.
+For a given code, a Field can be sent (source), received (target) or both, in which case the dofs must be specified for both the source and target (they don't have to be identical).
 
-This way of defining the mesh is the most similar to the way the mesh where defined in version 0.x.
-If you want to provide a polygonal (2D) mesh in an element$\to$vertex fashion, you should do:
+In any case, in each Coupling the two coupled codes must specify the same field identifiers, with compatible source/target status.
 
-```{prf:algorithm} c
-  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
-                                                   "coupling_name",
-                                                   polygonal_block_type);
-
-  CWP_Mesh_interf_f_poly_block_set("code_name",
-                                   "coupling_name",
-                                   partition_identifier,
-                                   block_idendifier,
-                                   number_of_faces,
-                                   face_vertex_index,
-                                   face_vertex_connectivity,
-                                   NULL);
-```
-
-If you want to provide a polyhedral (3D) mesh in an element$\to$vertex fashion, you should do:
-
-```{prf:algorithm} c
-  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
-                                                   "coupling_name",
-                                                   polyhedral_block_type);
-
-  CWP_Mesh_interf_c_poly_block_set("code_name",
-                                   "coupling_name",
-                                   partition_identifier,
-                                   block_idendifier,
-                                   number_of_cells,
-                                   face_edge_index,
-                                   face_edge_connectivity,
-                                   cell_vertex_index,
-                                   cell_vertex_connectivity,
-                                   NULL);
-```
-
-#### Standard element Mesh
-
-If you want to provide your mesh per standard element type (eg for Finite Element codes) but still in element$\to$vertex fashion, you should do for each element type:
-
-```{prf:algorithm} c
-  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
-                                                   "coupling_name",
-                                                   standard_block_type);
-
-  CWP_Mesh_interf_block_std_set("code_name",
-                                "coupling_name",
-                                partition_identifier,
-                                block_idendifier,
-                                number_of_elements,
-                                element_vertex_connectivity,
-                                NULL);
-```
-
-#### Standard high-order element Mesh
-
-CWIPI is compatible with the use of meshes with high order elements for the localization algorithm.
-
-<img src="ho.png" width="500">
-
-Since the order of the vertices in the element is different depending on chosen standard, in CWIPI you can provide your own ordering.
-It is the same logic as for a standard element, only you need to use the high-order specific functions as you can see bellow:
-
-```{prf:algorithm} c
-  int block_idendifier = CWP_Mesh_interf_block_add("code_name",
-                                                   "coupling_name",
-                                                   high_order_standard_block_type);
-
-  CWP_Mesh_interf_block_ho_set("code_name",
-                               "coupling_name",
-                               partition_identifier,
-                               block_idendifier,
-                               number_of_elements,
-                               order,
-                               element_vertex_connectivity,
-                               NULL);
-
-   CWP_Mesh_interf_ho_ordering_from_IJK_set("code_name",
-                                            "coupling_name",
-                                            high_order_standard_block_type,
-                                            order,
-                                            number_of_vertices_per_element,
-                                            high_element_vertex_ordering_per_element);
-```
-
-#### Downward topological connections Mesh
-
-By downward topological connection we mean in 3D cell$\to$face and face$\to$vtx and face$\to$edge plus edge$\to$vtx in 2D.
-
-If you want to provide a polygonal (2D) mesh in a downward topological connection fashion (eg for Finite Volume codes), you should do:
-
-```{prf:algorithm} c
-  CWP_Mesh_interf_from_faceedge_set("code_name",
-                                    "coupling_name",
-                                    partition_identifier,
-                                    number_of_faces,
-                                    face_edge_index,
-                                    face_edge_connectivity,
-                                    number_of_edges,
-                                    edge_vertex_connectivity,
-                                    NULL);
-```
-
-If you want to provide a polyhedral (3D) mesh in a downward topological connection fashion, you should do:
-
-```{prf:algorithm} c
-  CWP_Mesh_interf_from_cellface_set("code_name",
-                                    "coupling_name",
-                                    partition_identifier,
-                                    number_of_cells,
-                                    cell_face_index,
-                                    cell_face_connectivity,
-                                    number_of_faces,
-                                    face_vertex_index,
-                                    face_vertex_connectivity,
-                                    NULL);
-```
-
-### Field definition
-
-The point of the whole coupling is to let the physical phenomenon in the common area interact.
-This means that the field describing the phenomenon in `code 1` has to be shared with `code 2` (and vise versa but in this basic example we leave that aside).
-Each solver has its own numerical method, thus location of the field (cell centered, node centered or other) on its mesh.
-To set what will be exchanged we define for each code its fields. Here `code 1` will send a field to `code 2` and `code 2` will create a buffer to receive what `code 1` sends it (again, and vise versa).
-This leaves us with:
+In the following illustration `code1` sends `field1` and receives `field2`.
+On the other hand, `code2` receives `field1` and sends `field2`.
 
 <img src="schema_concept_field.svg" width="400">
 
-### Behind the scenes
+## Exercise
 
-We have highlighted the fact that CWIPI has been developed for coupling in a massively parallel environment.
-What about parallelism in this set-up? The key point in the development of CWIPI is the transparency of parallelism to the user. That's why you can't see it!
+With the notions we just introduced, you should be able to write in pseudo-code the main steps for implementing the coupling case illustrated above.
 
-<img src="pap.png" width="400">
++++ {"jupyter": {"source_hidden": true}}
 
-| Code 1 partitioning  | ?   |  Code 2 partitioning |
-|:--------------------:|:---:|:--------------------:|
-| <img src="01_code1.svg" width="200"> | <img src="03_overlap.svg" width="200"> | <img src="02_code2.svg" width="200"> |
+Solution:
 
-The figure above illustrates the construction of the point-to-point communication graph between the processes of the two coupled codes and
-the fact that the interpolated field are exchanged through direct MPI messages.
+  The lines in <span style="color:crimson;">red</span> are only executed by `code1`, the one in <span style="color:dodgerblue;">blue</span> are only executed by `code2`.
 
-# CWIPI 1.x
+  * Initialize CWIPI
+  * Create a Coupling environment
+  * Each code defines its Interface mesh
+  * Each code defines the Fields `field1` and `field2`
+  * Repeat over $n$ iterations:
+    * <span style="color:crimson;">`code1` sends `field1`</span>
+    * <span style="color:dodgerblue;">`code2` receives `field1`</span>
+    * <span style="color:dodgerblue;">`code2` sends `field2`</span>
+    * <span style="color:crimson;">`code1` receives `field2`</span>
+  * Finalize CWIPI
++++
 
-This leads us to talk about the version of CWIPI this training focuses on : 1.0.
-For those who have worked with the previous version of CWIPI, you will be able to see how your requests have been taken into account.
-For those new to CWIPI, this section allows you to discover the special features of this version.
+<!-- <span style="color:red">
+On a maintenant toutes les notions nécessaires pour commencer à esquisser le pseudo-code d'un cas de couplage basique : code1 envoie un champ F1 à code2(, code2 envoie un champ F2 à code1)
 
-## Client-Server mode
+on donne les 2 interface meshes (remettre les images)
 
-In the previous section, we highlighted the fact that performance comes from the use of point-to-point communications.
-To answer the request of using CWIPI with commercial codes (Fluent, MARC, NASTRAN, etc.) with fixed integrated MPI, we developed a client-server mode of CWIPI relying on TCP/IP exchanges.
-Those are done between codes with their specific MPI (client) and a common MPI environment on which CWIPI runs (server).
-This is based on work done by CERFACS for the OpenPALM client/server mode.
-Obviously, this degrades the performance but it increases flexibility.
+-> les participants doivent obtenir un truc du genre:
 
-<img src="client_server.png" width="400" height="200">
+          0. (Init CWIPI)
+          1. Create a Coupling environment
+          2. Each code describes its Interface mesh
+          3. Definition of Field F1
+          4. code1 sends F1
+          5. code2 receives F1
+          (6. code2 sends F2
+           7. code1 receives F2)
+          (8. repeat 4 to 7 over N iterations)
+          9. Finalize CWIPI
+</span> -->
 
-## Distribution of code ranks
+## Spatial interpolation
 
-- Mode 1: Disjoint code MPI communicators (CWIPI-0.x mode)
+The pseudo-code we just wrote works just fine, as long as the interface meshes of the two code match exactly.
+This, in general, is not the case.
+The transferred Field must then be interpolated from the source dofs to the target dofs.
 
-<img src="separated.png" width="140">
+<!-- (en // distribué car les partitionnements ne match pas non plus) -->
 
-In the following modes, the coupled codes run (partially of totally) on the same MPI ranks.
+**CWIPI** 0.x versions featured a single spatial interpolation method, based on locating the target dofs (treated as a point cloud) inside the source mesh elements.
+For cell-centered source fields, each target point gets assigned the value of the element in which it is located.
+For node-based source fields, each target point gets assigned a linear combination of the values at the element's vertices.
 
-- Mode 2: Sharing MPI ranks between codes
+**CWIPI** 1.0 introduces two additional spatial interpolation methods :
 
-<img src="half.png" width="140">
+ - Interpolation from nearest neighbors : <span style="color:red">brief description?</span>
+ - Interpolation from mesh intersection : <span style="color:red">brief description?</span>
 
-- Mode 3: Sharing of all MPI ranks
+The table below gives the admissible dof locations for each spatial interpolation method:
 
-<img src="joint.png" width="110">
-
-This last mode can be used, for instance, in Python when both codes are imported in the same script and they will then run on the same MPI ranks.
-
-## Non-blocking control parameters
-
-Control parameters are variables defined by each code available to the coupled code.
-This comes handy when you need to implement a complicated coupling scheme. Here are a few examples of coupling schemes provides by Jean-Didier Garaud.
-
-<img src="coupling_schemes.png" width="400">
-
-Using CWIPI 0.x this was tricky since the was a synchronization point before being able to get the parameters value.
-
-<img src="old_control_param.svg" height="300">
-
-This drawback has been removed in the version we work with using one-sided communications.
-
-<img src="new_control_param.svg" height="300">
-
-## User spatial interpolation function
-
-Talking about more complicated coupling schemes, a handy feature is the callbacks.
-Those are a way to provide to CWIPI your own local spatial interpolation function.
-CWIPI will still do all the parallel work, you will only have to specify the local data processing.
-
-The pattern to write those functions is available [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#user-defined-spatial-interpolation).
-Note that it has been simplified compared to CWIPI 0.x because instead of a long list of arguments you will only call the getters you need within the function.
-
-## Spatial interpolation methods
-
-### New methods...
-
-<!-- CWIPI 0.x features a single spatial interpolation method, based on the location of the target degrees-of-freedom (dofs) in the source mesh. -->
-The table below lists the available families of [spatial interpolation methods](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#spatial-interpolation-methods), along with the admissible dof locations:
-
-<!-- <img src="tableau.png" width="500"> -->
-
-| Method            | Source field dofs                        | Target field dofs                        |
+ | Method            | Source field dofs                        | Target field dofs                        |
 |:-----------------:|:----------------------------------------:|:----------------------------------------:|
-| *Nearest neighbors* | nodes <br> cell centers <br> user-defined points | nodes <br> cell centers <br> user-defined points |
-| *Intersection*      | <span style="color:gray">nodes</span> <br> cell centers | <span style="color:gray">nodes</span> <br> cell centers |
 | *Location*          | nodes <br> cell centers | nodes <br> cell centers <br> user-defined points |
+| *Nearest neighbors* | nodes <br> cell centers <br> user-defined points | nodes <br> cell centers <br> user-defined points |
+| *Intersection*      | <span style="color:gray">nodes$^*$</span> <br> cell centers | <span style="color:gray">nodes$^*$</span> <br> cell centers |
 
-### ... which rely on ParaDiGM ...
+<span style="color:gray">$^*$*: not available in version 1.0, but will be in a near future.*</span>
 
-Those methods rely on algorithms written in the **ParaDiGM** library, which is the new geometric core of CWIPI.
-On the figure below you can see how ParaDiGM features can be integrated in a solver workflow further than just for coupling.
+If you want more detailed information, take a look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#spatial-interpolation-methods).
 
-<img src="paradigm.png" width="1000">
 
-### ... lead to performance
+Each method relies on some geometric mapping to perform spatial interpolation.
+Spatial interpolation thus consists in two steps:
+1. compute the mapping between source dofs and target dofs, as well as interpolation weights
+2. use this mapping and interpolation weights to compute the interpolated target field
 
-CWIPI 0.x used the localization algorithm, which is still available in CWIPI 1.x.
+For step 2, each method comes with a default interpolation.
+However, the data computed at step 1 can also be accessed to design customized interpolation functions.
+These [user-defined interpolation functions](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#user-defined-spatial-interpolation) are passed to **CWIPI** as function pointers.
 
-This algorithm has, though, been completely rewritten. Let us focus on the example bellow to explain the difference :
+The geometric algorithms underlying step 1 are implemented in the library **ParaDiGM**, which replaces **FVM** as the geometric core of **CWIPI** from version 1.0 onwards.
+**CWIPI** also uses the generic partition-to-partition communication capacities of **ParaDiGM**.
+
+*Here's an overview of other **ParaDiGM** features that can be integrated in a numerical simulation workflow beyond the scope of coupling:*
+
+<img align=center src="paradigm.png" width="1000">
+
+Though the location method is still available in version 1.0, the underlying geometric algorithm has been completely rewritten to improve performance.
+<!-- Here's a brief ... -->
+
+### Comparison 0.x vs 1.0
+
+<span style="color:red">
+  TODO:
+
+  - réécriture de l'algo de localisation, perfo
+
+  <!-- - chaque méthode a une interpolation par défaut, mais user-defined functions -->
+
+  <!-- - voir comment ça s'insère dans le pseudo-code : on rajoute une étape Spatial Interpolation avant send ou après recv suivant la méthode) -->
+
+  <!-- - **Bilan intermédiaire:** on sait faire un ping-pong basique, un mot sur le "Behind the scenes" (//isme caché, communications p2p) -->
+</span>
+<!-- This algorithm has, though, been completely rewritten. Let us focus on the example bellow to explain the difference :
 
 <img src="overlap.png" width="400">
 
@@ -524,55 +501,182 @@ Thus no load balancing. On the figure bellow you can see that for our example (i
 <img src="performances.png" width="400">
 
 The localization algorithm in 0.x has a parallel context but is also parallel.
-Now, the workload generated by the overlapping region is dispatched over all available MPI ranks. This actually defines load balancing !
+Now, the workload generated by the overlapping region is dispatched over all available MPI ranks. This actually defines load balancing ! -->
 
-## A new API
 
-To integrate all these new features and use ParaDiGM as a geometric core, the library has been completely rewritten, which means changing the API.
-For users of the previous version of CWIPI, you will probably have recognized the general philosophy you already know during the presentation of the core concepts.
-We started a documentation on how to port your coupling with CWIPI 0.x to 1.x. Feel free to suggest changes to improve it !
+### Back to the exercise
 
-<img src="old_tot_new.png" width="600">
+How would you integrate the spatial interpolation steps in your pseudo-code?
 
-# Pseudo-code coupling algorithm
++++ {"jupyter": {"source_hidden": true}}
 
-Let's go back to the basic coupling described earlier, reads in pseudo-code as:
+Solution:
 
-```{prf:algorithm} basic coupling algorithm
+  The computation of interpolation weights should always come before the sending/reception of the fields.
+  If both meshes are static, it only needs to be performed once, even if the field values change over time.
 
-**Inputs** Given $code1$ with a mesh $m1$ on which a field that will be sent is defined $sf1$. Given $code2$ with a mesh $m2$ on which a field that will be received is defined $rf2$.
+  As for the computation of the interpolated fields, it depends on the method used.
+  Indeed, for the location method, it is more convenient to perform the interpolation on the source side, that is just before the sending.
+  For the two other methods it is actually more convenient to send the source field first and then interpolate the received source field on the target side.
 
-**Output** $rf2$, which is $sf1$ interpolated on $m2$
+  Let's say that in our example `field1` is interpolated on the source side and `field2` is interpolated on the target side.
 
-1. Initialize CWIPI
-2. Set coupling between $code1$ and $code2$
-3. Describe codes:
-   1. $code1$ has a mesh $m1$ on which we define a field $sf1$
-   2. $code2$ has a mesh $m2$ and a receive buffer field $rf2$
-4. Operate solver iterations:
-   1. $code1$ sends $sf1$
-   2. $code2$ receives $rf2$
-5. Finalize CWIPI
-```
+  <span style="color:red">je me demande si il ne vaut pas mieux "cacher" le step2 de l'interpolation à ce stade</span>
 
-In exercise 1, we will focus on implementing this basic coupling.
-In exercise 2, we will adapt that code for a coupling interface mesh that is deformed over time.
-
-But first, let's introduce the code notebooks by moving on to [Exercise 0](./exercice_0.ipynb).
-
+  * Initialize CWIPI
+  * Create a Coupling environment
+  * Each code defines its Interface mesh
+  * Each code defines the Fields `field1` and `field2`
+  * Compute the spatial interpolation mapping for both fields
+  * Repeat over $n$ iterations:
+    * <span style="color:crimson;"> `code1` interpolates `field1` at `code2`'s dofs</span>
+    * <span style="color:crimson;"> `code1` sends the interpolated `field1`</span>
+    * <span style="color:dodgerblue;">`code2` receives the interpolated `field1`</span>
+    * <span style="color:dodgerblue;">`code2` sends the raw `field2` values</span>
+    * <span style="color:crimson;"> `code1` receives the raw `field2` values</span>
+    * <span style="color:crimson;"> `code1` interpolates the received `field2` at `code1`'s dofs</span>
+  * Finalize CWIPI
 +++
 
-#### Basic coupling algorithm
-**Inputs** Given `code1` with a mesh `m1` on which a field that will be sent is defined `sf1`. Given `code2` with a mesh `m2` on which a field that will be received is defined `rf2`.
 
-**Output** `rf2`, which is `sf1` interpolated on `m2`
+### Behind the scenes
 
-1. Initialize CWIPI
-2. Set coupling between `code1` and `code2`
-3. Describe codes:
-   1. `code1` has a mesh `m1` on which we define a field `sf1`
-   2. `code2` has a mesh `m2` and a receive buffer field `rf2`
-4. Operate solver iterations:
-   1. `code1` sends `sf1`
-   2. `code2` receives `rf2`
-5. Finalize CWIPI
+We have highlighted the fact that **CWIPI** has been developed for coupling in a massively parallel environment.
+What about parallelism in this set-up?
+The key point in the development of **CWIPI** is the transparency of parallelism to the user. That's why you can't see it!
+
+Let's imagine that each code in our example is partitioned on two MPI ranks as illustrated below.
+
+| Code 1 partitioning  |  Code 2 partitioning |  Partitions overlap  |
+|:--------------------:|:--------------------:|:---:|
+| <img src="01_code1.svg" width="200"> | <img src="02_code2.svg" width="200"> | <img src="03_overlap.svg" width="200"> |
+
+When computing the geometric mapping for spatial interpolation, **CWIPI** establishes the point-to-point communication graph between the processes of the two coupled codes.
+Interpolated fields are therefore exchanged via direct MPI messages, thus limiting the communication overhead, which is essential for achieving good scalability.
+
+<img src="pap.svg" width="400">
+
+
+## Control parameters
+
+Okay, at this point your pseudo-code defines a valid coupling between two non-matching grids, with basic ping-pong exchanges.
+In real applications, much more complex coupling schemes are required for the numerical simulation to behave and converge properly.
+
+Here's a non-exhaustive overview of some of these coupling schemes:
+
+<img src="coupling_schemes.png" width="400">
+
+In order to implement such complex schemes, the coupled codes must be able to share additional information, other than physical fields.
+In **CWIPI**, this can be achieved using *control parameters*.
+These are scalar variables or character strings shared by the coupled codes.
+
+In versions 0.x, the control parameters required *blocking* synchronizations.
+
+<span style="color:red">limitations, deadlocks...</span>
+
+<img src="old_control_param.svg" height="300">
+
+To alleviate this constraint, the management of control parameters has been completely rewritten in version 1.0.
+The control parameters are now shared via one-sided communications, allowing each code to access the parameters defined by the other code in a non-blocking fashion.
+
+A code can define a new control parameter (methods **param_add_*** of the Coupling class), update the parameter values (**param_set_***) or delete a parameter (**param_del**).
+A lock system ensures no read/write concurrent access occur (**param_lock**/**param_unlock**).
+The control parameters of the coupled codes can be accessed without the need for explicit synchronization (**param_get**) if the read authorization has been granted.
+Additional operations can be performed on the control parameters: reduction (min/max/sum), existence check, listing of all existing parameters.
+
+<!-- <span style="color:red">
+  expliquer mécanique: add, (set), (un)lock, get...
+</span> -->
+<!-- on dit que c'est pas encore tout à fait stable? -->
+
+<img src="new_control_param.svg" height="300">
+
+
+<!-- <span style="color:red">
+Ok on sait faire un ping-pong basique, mais en pratique les applications nécessitent des schémas de couplages bien plus complexes (fig. JDG) => les codes doivent pouvoir communiquer autre chose que des champs, ils doivent partager les paramètres qui définissent le schéma de couplage => Control Parameters -> old/new
+
+-> voir comment ça s'insère dans le pseudo-code
+</span> -->
+
+### Back to the exercise
+
+Let's now spice up our coupling toy case.
+Now suppose we only want to exchange `field1` under some specific condition.
+Only `code1` is able to determine if this condition is satisfied.
+A simple flag can be used to inform `code2` whether the exchange of `field1` should occur.
+This flag can be materialized by a control parameter defined by `code1`.
+
++++ {"jupyter": {"source_hidden": true}}
+
+Solution:
+
+  * Initialize CWIPI
+  * Create a Coupling environment
+  * Each code defines its Interface mesh
+  * Each code defines the Fields `field1` and `field2`
+  * Compute the spatial interpolation mapping for both fields
+  * <span style="color:crimson;"> `code1` defines a control parameter `do_exchange_field1`</span>
+  * Repeat over $n$ iterations:
+    * <span style="color:crimson;"> if the condition is met:</span>
+      * <span style="color:crimson;"> set `do_exchange_field1` to 1</span>
+      * `code1` interpolates `field1` at `code2`'s dofs
+      * `code1` sends the interpolated `field1`
+    * <span style="color:dodgerblue;"> `code2` gets the value of `do_exchange_field1`</span>
+    * <span style="color:dodgerblue;"> if `code2`'s copy of `do_exchange_field1` is equal to 1:</span>
+      * `code2` receives the interpolated `field1`
+    * `code2` sends the raw `field2` values
+    * `code1` receives the raw `field2` values
+    * `code1` interpolates the received `field2` at `code1`'s dofs
+  * Finalize CWIPI
++++
+
+## MPI Communicators
+
+Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
+
+Versions 0.x impose that the coupled codes be run on different processes, as illustrated below, so it cannot satisfy our demand.
+
+<img src="separated.png" width="140">
+
+Version 1.0 overcomes this limitation and allows arbitrary distributions of the codes on the processes.
+Most notably, all processes can now execute the two coupled codes:
+
+<img src="joint.png" width="110">
+
+Alternatively, the coupled codes can share only some of the processes:
+
+<img src="half.png" width="140">
+
+You will see in Exercise 1 how to specify which of these configurations you choose to adopt.
+
+<!-- <span style="color:red">
+supposons que j'ai la main sur les 2 codes et je veux pouvoir tout chapeauter dans un seul script (typiquement Python) => je dois pouvoir répartir les 2 codes comme je veux sur les processus...
+</span> -->
+
+## Client-server mode
+
+<span style="color:red">
+supposons cette fois au contraire que je ne l'ai pas la main sur un des deux codes, eg. commercial, qui a son propre MPI => mode client-serveur avec TCP/IP
+</span>
+
+<img src="client_server.png" width="400" height="200">
+
+## New API
+
+All the improvements and new features we mentioned required a complete rewriting of the library.
+Version 1.0 thus features a brand new API.
+The rest of this training course focuses essentially on this new API.
+<!-- *Note: Current API is still present though, and ?* -->
+
+Hopefully, users of previous versions will still recognize the general philosophy.
+We started a [documentation page](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/old_to_new/old_to_new.html) designed to help you upgrading your coupling from **CWIPI** 0.x to version 1.0.
+Feel free to suggest changes to improve it!
+
+<img src="old_to_new.png" width="600">
+
+
+
+
+# Exercise 0
+
+You can now move on to [Exercise 0](./exercice_0.ipynb).
