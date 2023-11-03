@@ -53,18 +53,21 @@ To accommodate the wide variety of numerical methods used in the different scien
 
 <!-- Portability: standard techniques for developments, -->
 
-## Motivations/Design choices/Philosophy
+## Motivations and design philosophy
 
-<span style="color:red">*(pourquoi pas approche monolithique, ...)*</span>
-
-<span style="color:red">*(les codes instrumentent CWIPI, pas de structure de donnée complexe, ...)*</span>
-
+The demand for multi-physics studies has increased over the years, as a result of the sharp increase in computing resources, which now make it possible to study several physical phenomena simultaneously.
+The monolithic approach is discarded since it becomes unmanageable when handling a variety of physics with different characteristic times.
+Handling multi-physics by coupling specialized solver is the answer.
+To facilitate the coupling of codes with different data structures and software architectures, the development philosophy of **CWIPI** is to guarantee a high degree of genericity.
+This is achieved by not having any specific data structure but by working with simple arrays as in- and output.
 
 ## History
 
-<span style="color:red">*Historique de CWIPI, licence, contributeurs?*</span>
-
-
+**CWIPI** has been created in 2009 upon the initiative of Eric Quémerais.
+It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...).
+CERFACS is a main contributer and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controled by the OpenPALM process.
+This helped increasing the use of **CWIPI**.
+The main attraction is the performance, which is mentioned in articles of similar coupling tools and which prompted the invitation to the ExCALIBUR workshop.
 
 # Examples of use
 
