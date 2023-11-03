@@ -5,8 +5,38 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
+static void
+_read_args
+(
+  int                    argc,
+  char                 **argv,
+  int                   *bonus
+)
+{
+  int i = 1;
+
+  // Parse and check command line
+  while (i < argc) {
+    if (strcmp(argv[i], "-h") == 0) {
+      _usage(EXIT_SUCCESS);
+    }
+    else if (strcmp(argv[i], "-b") == 0) {
+      *bonus = 1;
+    }
+    else
+      _usage(EXIT_FAILURE);
+    i++;
+  }
+}
+
 int
 main(int argc, char *argv[]) {
+
+  int bonus = 0;
+
+  _read_args (argc,
+              argv,
+              &bonus);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -34,12 +64,17 @@ main(int argc, char *argv[]) {
 
   coupled_code_name[0] = "code1";
 
+  CWP_Spatial_interp_t spatial_interp_algorithm = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  if (bonus == 1) {
+    spatial_interp_algorithm = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
+  }
+
   CWP_Cpl_create(code_name[0],
                  coupling_name,
                  coupled_code_name[0],
                  CWP_INTERFACE_SURFACE,
                  CWP_COMM_PAR_WITH_PART,
-                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                 spatial_interp_algorithm,
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
@@ -82,17 +117,27 @@ main(int argc, char *argv[]) {
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
 
+  CWP_Dof_location_t location = CCWP_DOF_LOCATION_NODE;
+  if (bonus == 1) {
+    location = CWP_DOF_LOCATION_CELL_CENTER;
+  }
+
   CWP_Field_create(code_name[0],
                    coupling_name,
                    field_name,
                    CWP_DOUBLE,
                    CWP_FIELD_STORAGE_INTERLACED,
                    n_components,
-                   CWP_DOF_LOCATION_NODE,
+                   location,
                    CWP_FIELD_EXCH_RECV,
                    CWP_STATUS_ON);
 
-  double *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);
+  int size = n_vtx * n_components;
+  if (bonus == 1) {
+    size = n_elts * n_components;
+  }
+
+  double *recv_field_data = malloc(sizeof(double) * size);
 
   CWP_Field_data_set(code_name[0],
                      coupling_name,

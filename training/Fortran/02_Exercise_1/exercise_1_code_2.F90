@@ -9,6 +9,13 @@ program fortran_new_api_polygon_sol
     include "mpif.h"
 
   !--------------------------------------------------------------------
+  logical                                 :: bonus = .false.
+  integer                                 :: i
+
+  integer(c_int)                          :: spatial_interp_algorithm
+  integer(c_int)                          :: location
+  integer                                 :: array_size
+
   integer, parameter                      :: n_vtx = 11, n_elts = 5
 
   integer                                 :: ierr
@@ -37,6 +44,20 @@ program fortran_new_api_polygon_sol
   double precision,              pointer  :: field_data(:) => null()
   !--------------------------------------------------------------------
 
+  ! Read command line arguments
+  i = 1
+  do while (i <= command_argument_count())
+    call get_command_argument(i, arg)
+    select case(arg)
+      case ("-b")
+        bonus = .true.
+      case default
+        print *, "Invalid command argument ", arg
+        stop
+    end select
+    i = i + 1
+  enddo
+
   ! MPI Initialization
   call MPI_Init(ierr)
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
@@ -62,12 +83,18 @@ program fortran_new_api_polygon_sol
   coupled_code_names(1) = "code1"
 
   n_part = 1
+
+  spatial_interp_algorithm = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
+  if (verbose) then
+    spatial_interp_algorithm = CWP_SPATIAL_INTERP_FROM_INTERSECTION
+  endif
+
   call CWP_Cpl_create(code_names(1),                                         &
                       coupling_name,                                         &
                       coupled_code_names(1),                                 &
                       CWP_INTERFACE_SURFACE,                                 &
                       CWP_COMM_PAR_WITH_PART,                                &
-                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
+                      spatial_interp_algorithm, &
                       n_part,                                                &
                       CWP_DYNAMIC_MESH_STATIC,                               &
                       CWP_TIME_EXCH_USER_CONTROLLED)
@@ -120,17 +147,27 @@ program fortran_new_api_polygon_sol
   field_name   = "a super fancy field"
   n_components = 1
 
+  location = CWP_DOF_LOCATION_NODE
+  if (verbose) then
+    location = CWP_DOF_LOCATION_CELL_CENTER
+  endif
+
   call CWP_Field_create(code_names(1),                &
                         coupling_name,                &
                         field_name,                   &
                         CWP_DOUBLE,                   &
                         CWP_FIELD_STORAGE_INTERLACED, &
                         n_components,                 &
-                        CWP_DOF_LOCATION_NODE,        &
+                        location,        &
                         CWP_FIELD_EXCH_RECV,          &
                         CWP_STATUS_ON)
 
-  allocate(field_data(n_vtx * n_components))
+  array_size = n_vtx * n_components
+  if (verbose) then
+    array_size = n_elts * n_components
+  endif
+
+  allocate(field_data(array_size))
 
   call CWP_Field_data_set(code_names(1),        &
                           coupling_name,        &
