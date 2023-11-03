@@ -574,7 +574,7 @@ These are scalar variables or character strings shared by the coupled codes.
 In versions 0.x, the control parameters required *blocking* synchronizations.
 
 It was not easy to set up coupling schemes requiring the exchange of control parameters.
-Indeed, the developers of the coupled codes had to agree on the placement of the synchronisation point in such a way as to avoid deadlocks and to ensure that the right variable was exchanged.
+Indeed, the developers of the coupled codes had to agree on the placement of the synchronisation point in such a way as to avoid deadlocks and to ensure that the right variable was accessed.
 
 <img src="old_control_param.svg" height="300">
 
@@ -634,9 +634,13 @@ Solution:
 
 ## MPI Communicators
 
-<span style="color:red">on a pas parlé des différents comms (comm world, intra comm, coupling comm) ... maybe mettre ce paragraphe au début?</span>
+We haven't yet explained how to launch the coupled codes. Indeed, in a code coupling application multiple codes will be executed with a common world communicator.
+This is done using the following command : `mpirun -n <n1> code1 : -n <n2>  code2`. It is this common world communicator that is provided to **CWIPI** upon initialization.
+**CWIPI** then determines through a split operation on the common world communicator the communicators a each specific code.
+Those are provided as an output of the initialization function of **CWIPI** and refered to as intra-communicators.
 
 Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
+This time we launch multiples codes within the one unique program. The command to used then is : `mpirun -n <n3> common_script_code1_code2`. This means that both codes run on the same processes.
 
 Versions 0.x impose that the coupled codes be run on different processes, as illustrated below, so it cannot satisfy our demand.
 
