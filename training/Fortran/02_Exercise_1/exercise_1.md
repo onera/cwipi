@@ -560,4 +560,6 @@ do i=1,n_elt
 end do
 ```
 
++++ {"editable": false, "deletable": false}
+
 <span style="color:red">*You can now move on to the Exercise 2 Notebook in 03_Exercise_2 folder of the chosen language.*</span>
