@@ -297,7 +297,7 @@ A mesh can either be *structured* or *unstructured*.
 
 | Structured mesh | Unstructured mesh |
 |:---------------:|:-----------------:|
-|<img align="center" width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_struct.svg">|<img align="center" width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_unstruct.svg">|
+|<img width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_struct.svg">|<img width="300" height="300" style="margin: 0px 0px 0px 0px;" src="mesh_unstruct.svg">|
 
 
 
@@ -459,7 +459,7 @@ The geometric algorithms underlying step 1 are implemented in the library **Para
 
 *Here's an overview of other **ParaDiGM** features that can be integrated in a numerical simulation workflow beyond the scope of coupling:*
 
-<img align=center src="paradigm.png" width="1000">
+<img src="paradigm.png" width="1000">
 
 
 <!-- Here's a brief ... -->
@@ -470,7 +470,7 @@ Though the location method is still available in version 1.0, the underlying geo
 
 In typical coupling applications, the interface mesh represents only a small fraction of the whole computational mesh, as shown on the figure below.
 
-<img src="overlap.png" width="400">
+<img src="overlap.png" width="300">
 
 As a consequence, only a few processes might actually be involved in the geometric computation of the spatial interpolation weights.
 This load imbalance leaves most processes idle, which causes the CPU time spent on this computation to skyrocket (left side of the red curve on the graph below).
