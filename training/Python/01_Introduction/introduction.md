@@ -573,7 +573,8 @@ These are scalar variables or character strings shared by the coupled codes.
 
 In versions 0.x, the control parameters required *blocking* synchronizations.
 
-<span style="color:red">limitations, deadlocks...</span>
+It was not easy to set up coupling schemes requiring the exchange of control parameters.
+Indeed, the developers of the coupled codes had to agree on the placement of the synchronisation point in such a way as to avoid deadlocks and to ensure that the right variable was exchanged.
 
 <img src="old_control_param.svg" height="300">
 
