@@ -277,7 +277,7 @@ Before starting the hands-on exercise, let's take a moment to establish **CWIPI*
 
 The aim of this training is to learn how to set up a basic coupling between two codes.
 Those codes, which we will refer to as `code1` and `code2`, will exchnage data necessary to fuel the numerical methods they implement.
-As a start, one needs to define those two codes and provide the information that they are linked in a coupling.
+As a start, one needs to define those two codes and provide the information to **CWIPI** that they are linked in a coupling.
 On the figure bellow, you can see the two codes joined in a coupling instance.
 
 <img src="schema_concept_coupling.svg" width="400">
