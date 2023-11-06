@@ -624,18 +624,19 @@ Those are provided as an output of the initialization function of **CWIPI** and 
 Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
 This time we launch multiples codes within the one unique program. The command to used then is : `mpirun -n <n3> common_script_code1_code2`. This means that both codes run on the same processes.
 
-Versions 0.x impose that the coupled codes be run on different processes, as illustrated below, so it cannot satisfy our demand.
+Versions 0.x impose that the coupled codes be run on different processes so it cannot satisfy our demand.
+This situation is depicted in the figure below, where each cross represents a process.
 
-<img src="separated.png" width="140">
+<img src="separated.svg" width="216">
 
 Version 1.0 overcomes this limitation and allows arbitrary distributions of the codes on the processes.
 Most notably, all processes can now execute the two coupled codes:
 
-<img src="joint.png" width="110">
+<img src="joint.svg" width="110">
 
 Alternatively, the coupled codes can share only some of the processes:
 
-<img src="half.png" width="140">
+<img src="half.svg" width="140">
 
 You will see in Exercise 1 how to specify which of these configurations you choose to adopt.
 
