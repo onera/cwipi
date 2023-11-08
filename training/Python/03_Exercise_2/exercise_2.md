@@ -343,8 +343,8 @@ To know which vertices were unlocated the **uncomputed_tgts_get** is called.
 ---
 %%code_block -p exercise_1_code_1 -i 13
 
-  n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
-  uncomputed_tgts   = field.uncomputed_tgts_get(0);
+  n_uncomputed_tgts = field.n_uncomputed_tgts_get(0)
+  uncomputed_tgts   = field.uncomputed_tgts_get(0)
 ```
 
 +++ {"editable": false, "deletable": false}

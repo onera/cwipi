@@ -190,7 +190,7 @@ Let us go on with a description of the coupling between `code1` and `code2`. Wha
 
 ![alt text](mesh_code1.png)
 
-It is a basic cartesian grid mesh composed of 9 squares and 16 vertices.
+It is a basic cartesian grid mesh composed of 9 quadrangles and 16 vertices.
 
 The coupling interface mesh of `code2` looks like this.
 
@@ -203,13 +203,13 @@ We can also see 11 vertices on this mesh.
 
 We would like to emphasize that the meshes do not have to be coincident in order to couple using CWIPI.
 
-To define the coupling interface mesh in CWIPI, we first tell that we have a vertex soup.
+<!-- To define the coupling interface mesh in CWIPI, we first tell that we have a vertex soup.
 It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons.
-Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code?
+Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code? -->
 
 #### Set the mesh vertices coordinates
 
-We start defining our vertex soup using the method **mesh_interf_vtx_set** from the Coupling class.
+We start by defining a vertex soup using the method **mesh_interf_vtx_set** from the Coupling class.
 The coordinate system in CWIPI is always 3D, so we allocate an array of 3 times the number of vertices (16 here) to set the coordinates in.
 The coordinates are interlaced $(x_0, y_0, z_0, x_1, y_1, z_1, \ldots)$. The last argument (`vtx_g_num`) will be explained later.
 
@@ -231,15 +231,19 @@ cpl.mesh_interf_vtx_set(0,
 
 +++ {"editable": false, "deletable": false}
 
-#### Set the mesh polygons connectivity
+#### Set the mesh connectivity
 
-Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
+<!-- Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
 Our mesh is only composed of quadrangles but for the sake of ?? we will treat them as polygons.
 
 Let us create sense in that vertex soup. The method **mesh_interf_block_add** allows us to tell that in that vertex soup are connected as polygons (CWP_BLOCK_FACE_POLY).
 Then we use the method **mesh_interf_f_poly_block_set** which allows to describe the 9 polygons of our 2D mesh. An index array (`connec_idx`) of size `n_elts+1` contains the information of the number of vertices per polygon.
 The first index is always 0, from there we add up the number of vertices per element. Here the mesh is composed only of elements with 4 vertices.
-The connectivity between elements and vertices is an array of size `connec_idx[n_elts]` (here 36).
+The connectivity between elements and vertices is an array of size `connec_idx[n_elts]` (here 36). -->
+Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
+
+Our mesh is composed of only quadrangles, so we just need to define a block of type `BLOCK_FACE_POLY` (**mesh_interf_block_add** method of the Coupling class).
+We then set the connectivity table for this block (**mesh_interf_block_std_set**).
 
 ```{code-cell}
 ---
@@ -247,17 +251,15 @@ The connectivity between elements and vertices is an array of size `connec_idx[n
 ---
 %%code_block -p exercise_1_code_1 -i 8
 
-block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
-connec_idx = np.array([0,4,8,12,16,20,24,28,32,36], dtype=np.int32)
+block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_QUAD4)
 connec = np.array([1,2,6,5,     2,3,7,6,      3,4,8,7,   \
                    5,6,10,9,    6,7,11,10,    7,8,12,11, \
                    9,10,14,13,  10,11,15,14,  11,12,16,15], dtype=np.int32)
 elt_g_num = None
-cpl.mesh_interf_f_poly_block_set(0,
-                                 block_id,
-                                 connec_idx,
-                                 connec,
-                                 elt_g_num)
+cpl.mesh_interf_block_std_set(0,
+                              block_id,
+                              connec,
+                              elt_g_num)
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -450,7 +452,7 @@ Run the following cells to execute to program you just wrote and visualize the b
 ---
 "deletable": false
 ---
-%%visualize
+%%visualize -nl
 cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
 cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```
@@ -476,4 +478,7 @@ for i in range(n_elt):
 
 +++ {"editable": false, "deletable": false}
 
-<span style="color:red">*You can now move on to the Exercise 2 Notebook in 03_Exercise_2 folder of the chosen language.*</span>
+
+# Exercise 2
+
+You can now move on to [Exercise 2](./../03_Exercise_2/exercise_2.ipynb).

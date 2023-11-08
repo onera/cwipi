@@ -181,7 +181,7 @@ class CodeMagics(Magics):
         command.extend([language_linker_o[args.language]])
         command.extend([o_name, '-c', source_name])
 
-        sys.stdout.write(" ".join(command)+"\n")
+        # sys.stdout.write(" ".join(command)+"\n")
 
         try:
           proc = run(" ".join(command),
@@ -204,7 +204,7 @@ class CodeMagics(Magics):
         command.extend([o_name, '-o', os.path.basename(exec_name)])
         command.extend([language_linker_e2[args.language]])
 
-        sys.stdout.write(" ".join(command)+"\n")
+        # sys.stdout.write(" ".join(command)+"\n")
 
         try:
           proc = run(" ".join(command),
@@ -276,7 +276,7 @@ class CodeMagics(Magics):
 
       command = ["mpirun -np {}{}{} : -np 1{}{}{}".format(args.n_rank, python, exec_name, python, coupled_exec_name, bonus)]
 
-      sys.stdout.write(" ".join(command)+"\n")
+      # sys.stdout.write(" ".join(command)+"\n")
 
       if os.path.isfile(exec_name):
         try:

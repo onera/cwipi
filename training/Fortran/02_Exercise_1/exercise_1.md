@@ -83,9 +83,8 @@ program exercise_2
   double precision, pointer, dimension(:,:) :: coords    => null()
   integer(c_long),  pointer, dimension(:)   :: vtx_g_num => null()
 
-  integer, pointer, dimension(:)            :: connec_idx => null()
-  integer, pointer, dimension(:)            :: connec     => null()
-  integer(c_long), pointer, dimension(:)    :: elt_g_num  => null()
+  integer, pointer, dimension(:)            :: connec    => null()
+  integer(c_long), pointer, dimension(:)    :: elt_g_num => null()
   integer(c_int)                            :: id_block
 
   character(len = 99)                       :: field_name
@@ -171,7 +170,7 @@ First it provides the dimension of the coupling interface, if it is partitioned,
 ---
 %%code_block -p exercise_1_code_1 -i 4
 
-  coupling_name = "code1_code2";
+  coupling_name = "code1_code2"
 
   allocate(coupled_code_names(n_code))
 
@@ -217,7 +216,7 @@ Let us go on with a description of the coupling between `code1` and `code2`. Wha
 
 ![alt text](mesh_code1.png)
 
-It is a basic cartesian grid mesh composed of 9 squares and 16 vertices.
+It is a basic cartesian grid mesh composed of 9 quadrangles and 16 vertices.
 
 The coupling interface mesh of `code2` looks like this.
 
@@ -230,13 +229,13 @@ We can also see 11 vertices on this mesh.
 
 We would like to emphasize that the meshes do not have to be coincident in order to couple using CWIPI.
 
-To define the coupling interface mesh in CWIPI, we first tell that we have a vertex soup.
+<!-- To define the coupling interface mesh in CWIPI, we first tell that we have a vertex soup.
 It is just a set of coordinates of which we can make no sense. Then we create sense why telling CWIPI how to connect these vertices to form our polygons.
-Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code?
+Finally, CWIPI has to digest the information we provided it. Well, how does this translate in terms of code? -->
 
 #### Set the mesh vertices coordinates
 
-We start defining our vertex soup using the subroutine **CWP_Mesh_interf_vtx_set**.
+We start by defining a vertex soup using the subroutine **CWP_Mesh_interf_vtx_set**.
 The coordinate system in CWIPI is always 3D, so we allocate a rank-2 array to set the coordinates in. 
 Each vertex is stored as a column, so the coordinates array looks like 
 $$
@@ -284,10 +283,16 @@ The last argument (`vtx_g_num`) will be explained later.
 
 #### Set the mesh polygons connectivity
 
-Let us create sense in that vertex soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that vertex soup are connected as polygons (CWP_BLOCK_FACE_POLY).
+<!-- Let us create sense in that vertex soup. The function **CWP_Mesh_interf_block_add** allows us to tell that in that vertex soup are connected as polygons (CWP_BLOCK_FACE_POLY).
 Then we use the subroutine **CWP_Mesh_interf_f_poly_block_set** which allows to describe the 9 polygons of our 2D mesh. An index array (`connec_idx`) of size `n_elts+1` contains the information of the number of vertices per polygon.
 The first index is always 0, from there we add up the number of vertices per element. Here the mesh is composed only of elements with 4 vertices.
 The connectivity between elements and vertices is an array of size `connec_idx(n_elts+1)` (here 36).
+ -->
+
+Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
+
+Our mesh is composed of only quadrangles, so we just need to define a block of type `CWP_BLOCK_FACE_POLY` (**CWP_Mesh_interf_f_poly_block_set**).
+We then set the connectivity table for this block (**CWP_Mesh_interf_block_std_set**).
 
 ```{code-cell}
 ---
@@ -297,22 +302,19 @@ The connectivity between elements and vertices is an array of size `connec_idx(n
 
   id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                        coupling_name,       &
-                                       CWP_BLOCK_FACE_POLY)
+                                       CWP_BLOCK_FACE_QUAD4)
 
-  allocate(connec_idx(n_elts+1))
-  connec_idx = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36]
   allocate(connec(36))
   connec = [1,2,6,5,     2,3,7,6,      3,4,8,7,   &
             5,6,10,9,    6,7,11,10,    7,8,12,11, &
             9,10,14,13,  10,11,15,14,  11,12,16,15]
-  call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
-                                        coupling_name, &
-                                        0,             &
-                                        id_block,      &
-                                        n_elts,        &
-                                        connec_idx,    &
-                                        connec,        &
-                                        elt_g_num)
+  call CWP_Mesh_interf_block_std_set(code_names(1), &
+                                     coupling_name, &
+                                     0,             &
+                                     id_block,      &
+                                     n_elts,        &
+                                     connec,        &
+                                     elt_g_num)
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -494,10 +496,9 @@ This call terminates the use of CWIPI by cleaning up the internal structures CWI
 ---
 %%code_block -p exercise_1_code_1 -i 16
 
-  deallocate(coords);
-  deallocate(connec);
-  deallocate(connec_idx);
-  deallocate(send_field_data);
+  deallocate(coords)
+  deallocate(connec)
+  deallocate(send_field_data)
 
   ! Finalize CWIPI :
   call CWP_Finalize()
@@ -538,7 +539,7 @@ Run the following cells to execute to program you just wrote and visualize the b
 ---
 "deletable": false
 ---
-%%visualize
+%%visualize -nl
 cwipi_writer/code1_code2_code1_code2/CHR.case : s_a~super~fancy~field1
 cwipi_writer/code1_code2_code2_code1/CHR.case : r_a~super~fancy~field1
 ```
@@ -563,4 +564,6 @@ end do
 
 +++ {"editable": false, "deletable": false}
 
-<span style="color:red">*You can now move on to the Exercise 2 Notebook in 03_Exercise_2 folder of the chosen language.*</span>
+# Exercise 2
+
+You can now move on to [Exercise 2](./../03_Exercise_2/exercise_2.ipynb).

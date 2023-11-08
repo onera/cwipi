@@ -9,8 +9,10 @@ program fortran_new_api_polygon_sol
     include "mpif.h"
 
   !--------------------------------------------------------------------
+  logical, parameter                      :: verbose = .false.
   logical                                 :: bonus = .false.
   integer                                 :: i
+  character(999)                          :: arg
 
   integer(c_int)                          :: spatial_interp_algorithm
   integer(c_int)                          :: location
@@ -208,14 +210,19 @@ program fortran_new_api_polygon_sol
  call CWP_Cpl_Del(code_names(1), &
                   coupling_name)
 
- deallocate(coords);
- deallocate(connec);
- deallocate(connec_idx);
- deallocate(field_data);
+ deallocate(coords)
+ deallocate(connec)
+ deallocate(connec_idx)
+ deallocate(field_data)
 
   ! Finalize CWIPI :
   call CWP_Finalize()
 
   call MPI_Finalize(ierr)
+
+
+contains
+
+
 
 end program fortran_new_api_polygon_sol

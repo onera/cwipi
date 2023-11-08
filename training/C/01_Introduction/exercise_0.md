@@ -112,3 +112,7 @@ The line takes the following command line arguments:
 ```{code-cell}
 %merge_code_blocks -l python -p exercise_0 -n 2 -c -v
 ```
+
+# Exercise 1
+
+You can now move on to [Exercise 1](./../02_Exercise_1/exercise_1.ipynb).
