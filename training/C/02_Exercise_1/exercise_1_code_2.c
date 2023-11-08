@@ -1,9 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "cwp.h"
 #include "cwp_priv.h"
+
+static void
+_usage(int exit_code) {
+  printf("\n"
+         "  Usage: \n\n"
+         "  -b           Enable bonu \n\n"
+         "  -h           This message.\n\n");
+
+  exit(exit_code);
+}
 
 static void
 _read_args
@@ -117,7 +128,7 @@ main(int argc, char *argv[]) {
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
 
-  CWP_Dof_location_t location = CCWP_DOF_LOCATION_NODE;
+  CWP_Dof_location_t location = CWP_DOF_LOCATION_NODE;
   if (bonus == 1) {
     location = CWP_DOF_LOCATION_CELL_CENTER;
   }

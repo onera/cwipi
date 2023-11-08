@@ -503,7 +503,7 @@ Solution:
   * Create a Coupling environment
   * Each code defines its Interface mesh
   * Each code defines the Fields `field1` and `field2`
-  * Compute the spatial interpolation mapping for both fields
+  * *Compute the spatial interpolation mapping for both fields*
   * Repeat over $n$ iterations:
     * <span style="color:crimson;"   >`code1` sends `field1`   </span>
     * <span style="color:dodgerblue;">`code2` receives `field1`</span>
@@ -556,7 +556,7 @@ These are scalar variables or character strings shared by the coupled codes.
 In versions 0.x, the control parameters required *blocking* synchronizations.
 
 It was not easy to set up coupling schemes requiring the exchange of control parameters.
-Indeed, the developers of the coupled codes had to agree on the placement of the synchronisation point in such a way as to avoid deadlocks and to ensure that the right variable was accessed.
+Indeed, the developers of the coupled codes had to agree on the placement of the synchronization point in such a way as to avoid deadlocks and to ensure that the right variable was accessed.
 
 <img src="old_control_param.svg" height="300">
 
@@ -599,18 +599,16 @@ Solution:
   * Each code defines its Interface mesh
   * Each code defines the Fields `field1` and `field2`
   * Compute the spatial interpolation mapping for both fields
-  * <span style="color:crimson;"> `code1` defines a control parameter `do_exchange_field1`</span>
+  * *<span style="color:crimson;"> `code1` defines a control parameter `do_exchange_field1`</span>*
   * Repeat over $n$ iterations:
-    * <span style="color:crimson;"> if the condition is met:</span>
-      * <span style="color:crimson;"> set `do_exchange_field1` to 1</span>
-      * `code1` interpolates `field1` at `code2`'s dofs
-      * `code1` sends the interpolated `field1`
-    * <span style="color:dodgerblue;"> `code2` gets the value of `do_exchange_field1`</span>
-    * <span style="color:dodgerblue;"> if `code2`'s copy of `do_exchange_field1` is equal to 1:</span>
-      * `code2` receives the interpolated `field1`
-    * `code2` sends the raw `field2` values
-    * `code1` receives the raw `field2` values
-    * `code1` interpolates the received `field2` at `code1`'s dofs
+    * *<span style="color:crimson;"> if the condition is met:</span>*
+      * *<span style="color:crimson;"> set `do_exchange_field1` to 1</span>*
+      * <span style="color:crimson;"   >`code1` sends `field1`   </span>
+    * *<span style="color:dodgerblue;"> `code2` gets the value of `do_exchange_field1`</span>*
+    * *<span style="color:dodgerblue;"> if `code2`'s copy of `do_exchange_field1` is equal to 1:</span>*
+      * <span style="color:dodgerblue;">`code2` receives `field1`</span>
+    * <span style="color:dodgerblue;">`code2` sends `field2`   </span>
+    * <span style="color:crimson;"   >`code1` receives `field2`</span>
   * Finalize CWIPI
 +++
 
@@ -678,4 +676,4 @@ Feel free to suggest changes to improve it!
 
 # Exercise 0
 
-You can now move on to [Exercise 0](./exercice_0.ipynb).
+You can now move on to [Exercise 0](./exercise_0.ipynb).

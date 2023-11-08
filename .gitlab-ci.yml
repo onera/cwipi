@@ -218,6 +218,7 @@ pages:
   artifacts:
     paths:
       - public
+    expire_in: never
 
 # $CI_COMMIT_TAG
 # non_regression:
