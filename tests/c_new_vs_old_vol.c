@@ -1201,11 +1201,11 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
 
-    CWP_Visu_set (code_name[0],
-                  coupling_name,
-                  1,
-                  CWP_VISU_FORMAT_ENSIGHT,
-                  "text");
+    // CWP_Visu_set (code_name[0],
+    //               coupling_name,
+    //               1,
+    //               CWP_VISU_FORMAT_ENSIGHT,
+    //               "text");
 
   }
 
