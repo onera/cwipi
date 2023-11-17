@@ -281,6 +281,10 @@ There can be no more than one user-defined point cloud per Coupling object.
 For `Solver1` a field instance for sending the temperature will be created and another instance for receiving the pressure.
 For `Solver2` the opposite will be done.
 
+There are ways to store field components:
+- CWP_FIELD_STORAGE_INTERLACED   : The number of components is constant for each element. The field is stored according to this pattern :math:` \left(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n}\right)` , where :math:`s` is the number of components and :math:`n` the number of field elements ;
+- CWP_FIELD_STORAGE_INTERLEAVED  : The number of components is constant for each element. The field is stored according to this pattern :math:` \left(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n}\right)` , where :math:`s` is the number of components and :math:`n` the number of field elements. In this mode,
+
 
 Control Parameters
 ------------------
