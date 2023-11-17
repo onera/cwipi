@@ -90,25 +90,16 @@ import Pypdm.Pypdm as PDM
 n_code = 1
 code_name = ["code1"]
 is_active_rank = True
-intra_comm = pycwp.init(comm,
-                        code_name,
-                        is_active_rank)
+intra_comm = pycwp.init() # ??
 
 coupled_code_name = ["code2"]
 n_part = 1
-cpl = pycwp.Coupling(code_name[0],
-                     "coupling",
-                     coupled_code_name[0],
-                     pycwp.INTERFACE_SURFACE,
-                     pycwp.COMM_PAR_WITH_PART,
-                     pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                     n_part,
-                     pycwp.DYNAMIC_MESH_DEFORMABLE,
-                     pycwp.TIME_EXCH_USER_CONTROLLED)
+oupling_name = "coupling"
+recv_freq_type = pycwp.TIME_EXCH_USER_CONTROLLED
+cpl = pycwp.Coupling() # ??
 
-cpl.visu_set(1,
-             pycwp.VISU_FORMAT_ENSIGHT,
-             "text")
+format_option = "text"
+cpl.visu_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -156,7 +147,7 @@ What would happen if `code1` would send `sf1`?*
 
 ### Mesh
 
-First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square (nothing to do).
+First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square **(nothing to do)**.
 It is composed of triangle elements (i.e. `BLOCK_FACE_TRIA3`).
 
 ```{code-cell}
@@ -185,19 +176,13 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 ---
 %%code_block -p exercise_2_code_1 -i 3
 
-cpl.mesh_interf_vtx_set(0,
-                        coords,
-                        None)
+cpl.mesh_interf_vtx_set() # ??
 
-block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_TRIA3)
+block_id = cpl.mesh_interf_block_add() # ??
 
-cpl.mesh_interf_f_poly_block_set(0,
-                                 block_id,
-                                 elt_vtx_idx,
-                                 elt_vtx,
-                                 None)
+cpl.mesh_interf_block_std_set() # ??
 
-cpl.mesh_interf_finalize()
+# coupling interface finalization ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -216,20 +201,13 @@ Since the mesh topology does not change, the coupling code would be the same sin
 %%code_block -p exercise_2_code_1 -i 4
 
 n_components = 1
-field = cpl.field_create("a super fancy field",
-                         pycwp.DOUBLE,
-                         pycwp.FIELD_STORAGE_INTERLACED,
-                         n_components,
-                         pycwp.DOF_LOCATION_NODE,
-                         pycwp.FIELD_EXCH_RECV,
-                         pycwp.STATUS_ON)
+field_name = "a super fancy field" # ??
+field = cpl.field_create() # ??
 
 n_vtx = len(coords)//3
 field_data = np.empty(n_vtx*n_components, dtype=np.double)
 
-field.data_set(0,
-               pycwp.FIELD_MAP_TARGET,
-               field_data)
+field.data_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -260,8 +238,7 @@ for it in range(itdeb, itend+1):
 
   ttime = (it-itdeb)*dt
 
-  pycwp.time_step_beg(code_name[0],
-                      ttime)
+  pycwp.time_step_beg() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -298,9 +275,8 @@ The chosen tolerance does not change here over time, so we set it before the ite
 ---
 %%code_block -p exercise_2_code_1 -i 5
 
-cpl.spatial_interp_property_set("tolerance",
-                                pycwp.DOUBLE,
-                                "0.001")
+property_name = "tolerance"
+cpl.spatial_interp_property_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -313,7 +289,7 @@ But the weights need to be computed at each iteration after the mesh has been de
 ---
 %%code_block -p exercise_2_code_1 -i 8
 
-  cpl.spatial_interp_weights_compute()
+  cpl. # spatial interpolation weights ??
 
 ```
 
@@ -327,9 +303,9 @@ Now we receive the field send by `code2`.
 ---
 %%code_block -p exercise_2_code_1 -i 9
 
-  field.irecv()
+  field. # receive field ??
 
-  field.wait_irecv()
+  field. # wait receive field ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -344,8 +320,8 @@ To know which vertices were unlocated the **uncomputed_tgts_get** is called.
 ---
 %%code_block -p exercise_1_code_1 -i 13
 
-  n_uncomputed_tgts = field.n_uncomputed_tgts_get(0)
-  uncomputed_tgts   = field.uncomputed_tgts_get(0)
+  n_uncomputed_tgts = field. # number of uncomputed targets ??
+  uncomputed_tgts   = field. # array of uncomputed targets ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -375,7 +351,7 @@ Let's end the iteration.
 ---
 %%code_block -p exercise_2_code_1 -i 10
 
-  pycwp.time_step_end(code_name[0])
+  pycwp.time_step_end() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -392,11 +368,11 @@ Let us finish the coupling by freeing the memory allocated for it and ending thi
 
 # Delete field
 
-cpl.mesh_interf_del()
+# delete mesh interface ??
 
 # Delete the coupling
 
-pycwp.finalize()
+# finalize pycwp ??
 
 MPI.Finalize()
 

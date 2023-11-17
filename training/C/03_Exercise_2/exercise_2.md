@@ -88,33 +88,19 @@ main(int argc, char *argv[]) {
 
   code_name[0] = "code1";
 
-  CWP_Init(MPI_COMM_WORLD,
-           n_code,
-           (const char **) code_name,
-           is_active_rank,
-           intra_comm);
+  CWP_Init(); // ??
 
   // Create the coupling :
   int n_part = 1;
   const char  *coupling_name     = "coupling";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   coupled_code_name[0] = "code2";
-  CWP_Cpl_create(code_name[0],
-                 coupling_name,
-                 coupled_code_name[0],
-                 CWP_INTERFACE_SURFACE,
-                 CWP_COMM_PAR_WITH_PART,
-                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                 n_part,
-                 CWP_DYNAMIC_MESH_DEFORMABLE,
-                 CWP_TIME_EXCH_USER_CONTROLLED);
+  // time receive frequency : CWP_TIME_EXCH_USER_CONTROLLED
+  CWP_Cpl_create(); // ??
 
   // Set coupling visualisation:
-  CWP_Visu_set(code_name[0],
-               coupling_name,
-               1,
-               CWP_VISU_FORMAT_ENSIGHT,
-               "text");
+  // format option : "text"
+  CWP_Visu_set(); // ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -161,7 +147,7 @@ What would happen if `$code1$` would send `sf1`?*
 
 ### Mesh
 
-First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square (nothing to do).
+First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square **(nothing to do)**.
 It is composed of triangle elements (i.e. `CWP_BLOCK_FACE_TRIA3`).
 
 ```{code-cell}
@@ -195,28 +181,13 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 ---
 %%code_block -p exercise_2_code_1 -i 3
 
-  CWP_Mesh_interf_vtx_set(code_name[0],
-                              coupling_name,
-                              0,
-                              n_vtx,
-                              coords,
-                              NULL);
+  CWP_Mesh_interf_vtx_set(); // ??
 
-  int block_id = CWP_Mesh_interf_block_add(code_name[0],
-                                           coupling_name,
-                                           CWP_BLOCK_FACE_TRIA3);
+  int block_id = CWP_Mesh_interf_block_add(); // ??
 
-  CWP_Mesh_interf_f_poly_block_set(code_name[0],
-                                   coupling_name,
-                                   0,
-                                   block_id,
-                                   n_elt,
-                                   elt_vtx_idx,
-                                   elt_vtx,
-                                   NULL);
+  CWP_Mesh_interf_block_std_set(); // ??
 
-  CWP_Mesh_interf_finalize(code_name[0],
-                           coupling_name);
+  // coupling interface finalization ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -237,24 +208,11 @@ Since the mesh topology does not change, the coupling code would be the same sin
   const char *field_name      = "a super fancy field";
   int         n_components    = 1;
 
-  CWP_Field_create(code_name[0],
-                   coupling_name,
-                   field_name,
-                   CWP_DOUBLE,
-                   CWP_FIELD_STORAGE_INTERLACED,
-                   n_components,
-                   CWP_DOF_LOCATION_NODE,
-                   CWP_FIELD_EXCH_RECV,
-                   CWP_STATUS_ON);
+  CWP_Field_create(); // ??
 
   double *field_data = malloc(sizeof(double) * n_vtx);
 
-  CWP_Field_data_set(code_name[0],
-                     coupling_name,
-                     field_name,
-                     0,
-                     CWP_FIELD_MAP_TARGET,
-                     field_data);
+  CWP_Field_data_set(); // ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -290,8 +248,7 @@ at the end of the iteration with `CWP_Time_step_end`.
     ttime = (it-itdeb)*dt;
 
     // Start time step
-    CWP_Time_step_beg(code_name[0],
-                      ttime);
+    CWP_Time_step_beg(); // ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -330,11 +287,8 @@ The chosen tolerance does not change here over time, so we set it before the ite
 ---
 %%code_block -p exercise_2_code_1 -i 5
 
-  CWP_Spatial_interp_property_set(code_name[0],
-                                  coupling_name,
-                                  "tolerance",
-                                  CWP_DOUBLE,
-                                  "0.001");
+  // property name : "tolerance"
+  CWP_Spatial_interp_property_set(); // ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -347,8 +301,7 @@ But the weights need to be computed at each iteration after the mesh has been de
 ---
 %%code_block -p exercise_2_code_1 -i 8
 
-    CWP_Spatial_interp_weights_compute(code_name[0],
-                                       coupling_name);
+    CWP_ // spatial interpolation weights ??
 
 ```
 
@@ -362,13 +315,9 @@ Now we receive the field send by `code2`.
 ---
 %%code_block -p exercise_2_code_1 -i 9
 
-    CWP_Field_irecv(code_name[0],
-                    coupling_name,
-                    field_name);
+    CWP_ // receive field ??
 
-    CWP_Field_wait_irecv(code_name[0],
-                         coupling_name,
-                         field_name);
+    CWP_ // wait receive field ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -385,15 +334,9 @@ To know which vertices were unlocated the **CWP_Uncomputed_tgts_get** is called.
 
   int        n_uncomputed_tgts = -1;
   const int *uncomputed_tgts   = NULL;
-  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-                                                coupling_name,
-                                                field_name,
-                                                0);
+  n_uncomputed_tgts = // number of uncomputed targets ??
 
-  uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                            coupling_name,
-                                            field_name,
-                                            0);
+  uncomputed_tgts = // array of uncomputed targets ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -423,7 +366,7 @@ Let's end the iteration.
 ---
 %%code_block -p exercise_2_code_1 -i 10
 
-    CWP_Time_step_end(code_name[0]);
+    CWP_Time_step_end() // ??
 
   } // end iterations
 ```
@@ -440,18 +383,11 @@ Let us finish the coupling by freeing the memory allocated for it and ending thi
 ---
 %%code_block -p exercise_2_code_1 -i 11
 
-  // Delete field :
-  CWP_Field_del(code_name[0],
-                coupling_name,
-                field_name);
+  // delete field ??
 
-  // Delete Mesh :
-  CWP_Mesh_interf_del(code_name[0],
-                      coupling_name);
+  // delete mesh interface ??
 
-  // Delete the coupling :
-  CWP_Cpl_del(code_name[0],
-              coupling_name);
+  // delete the coupling ??
 
   // free
   free(intra_comm);
@@ -462,8 +398,7 @@ Let us finish the coupling by freeing the memory allocated for it and ending thi
   free(elt_vtx);
   free(field_data);
 
-  // Finalize CWIPI :
-  CWP_Finalize();
+  // finalize CWIPI ??
 
   // Finalize MPI :
   MPI_Finalize();
