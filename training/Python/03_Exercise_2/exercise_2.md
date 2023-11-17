@@ -189,7 +189,7 @@ cpl.mesh_interf_vtx_set(0,
                         coords,
                         None)
 
-block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_TRIA3)
 
 cpl.mesh_interf_f_poly_block_set(0,
                                  block_id,

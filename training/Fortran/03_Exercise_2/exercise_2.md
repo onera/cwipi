@@ -240,7 +240,7 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 
   id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                        coupling_name,       &
-                                       CWP_BLOCK_FACE_POLY)
+                                       CWP_BLOCK_FACE_TRIA3)
 
   call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
                                         coupling_name, &
