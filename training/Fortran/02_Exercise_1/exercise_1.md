@@ -146,11 +146,7 @@ in `exercise_1_code2.F90` in this folder. There is no point in cheating, you are
 
   code_names(1) = "code1"
 
-  call CWP_Init(mpi_comm_world, &
-                n_code,         &
-                code_names,     &
-                is_active_rank, &
-                intra_comms)
+  call CWP_Init() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -184,15 +180,8 @@ In this exercise we use the location algorithm (`CWP_SPATIAL_INTERP_FROM_LOCATIO
   coupled_code_names(1) = "code2"
 
   n_part = 1
-  call CWP_Cpl_create(code_names(1),                                         &
-                      coupling_name,                                         &
-                      coupled_code_names(1),                                 &
-                      CWP_INTERFACE_SURFACE,                                 &
-                      CWP_COMM_PAR_WITH_PART,                                &
-                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
-                      n_part,                                                &
-                      CWP_DYNAMIC_MESH_STATIC,                               &
-                      CWP_TIME_EXCH_USER_CONTROLLED)
+  ! time receive frequency : CWP_TIME_EXCH_USER_CONTROLLED
+  call CWP_Cpl_create() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -208,11 +197,8 @@ When setting up a coupling, you will certainly have some tuning work to do. To b
 ---
 %%code_block -p exercise_1_code_1 -i 5
 
-  call CWP_Visu_set(code_names(1),           &
-                    coupling_name,           &
-                    1,                       &
-                    CWP_VISU_FORMAT_ENSIGHT, &
-                    "text")
+  ! format option : "text"
+  call CWP_Visu_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -279,12 +265,8 @@ Here it is `null` to underline that it is an optional argument.
   coords(:,14) = [1,3,0]
   coords(:,15) = [2,3,0]
   coords(:,16) = [3,3,0]
-  call CWP_Mesh_interf_vtx_set(code_names(1), &
-                               coupling_name, &
-                               0,             &
-                               n_vtx,         &
-                               coords,        &
-                               vtx_g_num)
+  ! vtx_g_num is initialized to null()
+  call CWP_Mesh_interf_vtx_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -309,21 +291,15 @@ As for `vtx_g_num`, `elt_g_num` represents the global identifiers of the mesh el
 ---
 %%code_block -p exercise_1_code_1 -i 7
 
-  id_block = CWP_Mesh_interf_block_add(code_names(1),       &
-                                       coupling_name,       &
-                                       CWP_BLOCK_FACE_QUAD4)
+  id_block = CWP_Mesh_interf_block_add() ! ??
 
   allocate(connec(36))
   connec = [1,2,6,5,     2,3,7,6,      3,4,8,7,   &
             5,6,10,9,    6,7,11,10,    7,8,12,11, &
             9,10,14,13,  10,11,15,14,  11,12,16,15]
-  call CWP_Mesh_interf_block_std_set(code_names(1), &
-                                     coupling_name, &
-                                     0,             &
-                                     id_block,      &
-                                     n_elts,        &
-                                     connec,        &
-                                     elt_g_num)
+
+  ! elt_g_num is initialized to null()
+  call CWP_Mesh_interf_block_std_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -340,8 +316,7 @@ Since those are optional arguments, if not provided by the user, CWIPI will gene
 ---
 %%code_block -p exercise_1_code_1 -i 8
 
-  call CWP_Mesh_interf_finalize(code_names(1), &
-                                coupling_name)
+  ! coupling interface finalization ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -363,15 +338,7 @@ The first step is to create a Field object attached to the Coupling object assoc
   field_name   = "a super fancy field"
   n_components = 1
 
-  call CWP_Field_create(code_names(1),                &
-                        coupling_name,                &
-                        field_name,                   &
-                        CWP_DOUBLE,                   &
-                        CWP_FIELD_STORAGE_INTERLACED, &
-                        n_components,                 &
-                        CWP_DOF_LOCATION_NODE,        &
-                        CWP_FIELD_EXCH_SEND,          &
-                        CWP_STATUS_ON)
+  call CWP_Field_create() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -392,12 +359,7 @@ The subroutine **CWP_Field_data_set** is used here to set the arrays associated 
     send_field_data(i) = coords(1,i)
   end do
 
-  call CWP_Field_data_set(code_names(1),        &
-                          coupling_name,        &
-                          field_name,           &
-                          0,                    &
-                          CWP_FIELD_MAP_SOURCE, &
-                          send_field_data)
+  call CWP_Field_data_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -414,8 +376,7 @@ Note, that is mandatory to create the coupling and the associated fields before 
 ---
 %%code_block -p exercise_1_code_1 -i 11
 
-  call CWP_Time_step_beg(code_names(1), &
-                         0.d0)
+  call CWP_Time_step_beg() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -436,14 +397,10 @@ Before doing any exchange, it is mandatory to compute the spatial interpolation 
 ---
 %%code_block -p exercise_1_code_1 -i 12
 
-  call CWP_Spatial_interp_property_set(code_names(1), &
-                                       coupling_name, &
-                                       "tolerance",   &
-                                       CWP_DOUBLE,    &
-                                       "0.001")
+  ! property name : "tolerance"
+  call CWP_Spatial_interp_property_set() ! ??
 
-  call CWP_Spatial_interp_weights_compute(code_names(1), &
-                                          coupling_name)
+  ! spatial interpolation weights ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -459,13 +416,9 @@ The interpolated Field data array has completely arrived for `code2` once the ca
 ---
 %%code_block -p exercise_1_code_1 -i 13
 
-  call CWP_Field_issend(code_names(1), &
-                        coupling_name, &
-                        field_name)
+  ! field send ??
 
-  call CWP_Field_wait_issend(code_names(1), &
-                             coupling_name, &
-                             field_name)
+  ! field send wait ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -481,17 +434,13 @@ When there are no CWIPI exchanges left to be done, all field, interface mesh and
 ---
 %%code_block -p exercise_1_code_1 -i 15
 
-  call CWP_Time_step_end(code_names(1))
+  call CWP_Time_step_end() ! ??
 
-  call CWP_Field_Del(code_names(1),   &
-                     coupling_name,   &
-                     field_name)
+  ! delete field ??
 
-  call CWP_Mesh_interf_del(code_names(1), &
-                           coupling_name)
+  ! delete mesh interface ??
 
-  call CWP_Cpl_Del(code_names(1), &
-                   coupling_name)
+  ! delete the coupling ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -510,8 +459,7 @@ This call terminates the use of CWIPI by cleaning up the internal structures CWI
   deallocate(connec)
   deallocate(send_field_data)
 
-  ! Finalize CWIPI :
-  call CWP_Finalize()
+  ! finalize CWIPI ??
 
 ```
 
