@@ -129,9 +129,7 @@ in `exercise_1_code2.py` in this folder. There is no point in cheating, you are 
 n_code = 1
 code_name = ["code1"]
 is_active_rank = True
-intra_comm = pycwp.init(comm,
-                        code_name,
-                        is_active_rank)
+intra_comm = pycwp.init() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -160,15 +158,9 @@ In this exercise we use the location algorithm (`SPATIAL_INTERP_FROM_LOCATION_ME
 
 coupled_code_name = ["code2"]
 n_part = 1
-cpl = pycwp.Coupling(code_name[0],
-                     "code1_code2",
-                     coupled_code_name[0],
-                     pycwp.INTERFACE_SURFACE,
-                     pycwp.COMM_PAR_WITH_PART,
-                     pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                     n_part,
-                     pycwp.DYNAMIC_MESH_STATIC,
-                     pycwp.TIME_EXCH_USER_CONTROLLED)
+coupling_name = "code1_code2"
+recv_freq_type = pycwp.TIME_EXCH_USER_CONTROLLED
+cpl = pycwp.Coupling() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -184,9 +176,8 @@ When setting up a coupling, you will certainly have some tuning work to do. To b
 ---
 %%code_block -p exercise_1_code_1 -i 6
 
-cpl.visu_set(1,
-             pycwp.VISU_FORMAT_ENSIGHT,
-             "text")
+format_option = "text"
+cpl.visu_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -233,9 +224,7 @@ coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0, \
                    0,2,0,  1,2,0,  2,2,0,  3,2,0, \
                    0,3,0,  1,3,0,  2,3,0,  3,3,0], dtype=np.double)
 vtx_g_num = None
-cpl.mesh_interf_vtx_set(0,
-                        coords,
-                        vtx_g_num)
+cpl.mesh_interf_vtx_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -261,15 +250,12 @@ As for `vtx_g_num`, `elt_g_num` represents the global identifiers of the mesh el
 ---
 %%code_block -p exercise_1_code_1 -i 8
 
-block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_QUAD4)
+block_id = cpl.mesh_interf_block_add() # ??
 connec = np.array([1,2,6,5,     2,3,7,6,      3,4,8,7,   \
                    5,6,10,9,    6,7,11,10,    7,8,12,11, \
                    9,10,14,13,  10,11,15,14,  11,12,16,15], dtype=np.int32)
 elt_g_num = None
-cpl.mesh_interf_block_std_set(0,
-                              block_id,
-                              connec,
-                              elt_g_num)
+cpl.mesh_interf_block_std_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -286,7 +272,7 @@ Since those are optional arguments, if not provided by the user, CWIPI will gene
 ---
 %%code_block -p exercise_1_code_1 -i 9
 
-cpl.mesh_interf_finalize()
+# coupling interface finalization ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -306,13 +292,8 @@ The first step is to create a Field object attached to the Coupling object assoc
 %%code_block -p exercise_1_code_1 -i 10
 
 n_components = 1
-field = cpl.field_create("a super fancy field",
-                          pycwp.DOUBLE,
-                          pycwp.FIELD_STORAGE_INTERLACED,
-                          n_components,
-                          pycwp.DOF_LOCATION_NODE,
-                          pycwp.FIELD_EXCH_SEND,
-                          pycwp.STATUS_ON)
+field_name = "a super fancy field"
+field = cpl.field_create() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -334,9 +315,7 @@ send_field_data = np.empty(n_vtx*n_components, dtype=np.double)
 for i in range(n_vtx):
   send_field_data[i] = coords[3*i]
 
-field.data_set(0,
-               pycwp.FIELD_MAP_SOURCE,
-               send_field_data)
+field.data_set() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -352,8 +331,7 @@ Note, that is mandatory to create the coupling and the associated fields before 
 ---
 %%code_block -p exercise_1_code_1 -i 12
 
-pycwp.time_step_beg(code_name[0],
-                    0.0)
+pycwp.time_step_beg() # ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -369,11 +347,10 @@ Before doing any exchange, it is mandatory to compute the spatial interpolation 
 ---
 %%code_block -p exercise_1_code_1 -i 13
 
-cpl.spatial_interp_property_set("tolerance",
-                                pycwp.DOUBLE,
-                                "0.001")
+property_name = "tolerance"
+cpl.spatial_interp_property_set() # ??
 
-cpl.spatial_interp_weights_compute()
+# spatial interpolation weights ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -389,9 +366,9 @@ The interpolated Field data array has completely arrived for `code2` once the ca
 ---
 %%code_block -p exercise_1_code_1 -i 14
 
-field.issend()
+# field send ??
 
-field.wait_issend()
+# field send wait ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -407,11 +384,11 @@ Still, the coupling interface should be manually deleted calling **mesh_interf_d
 ---
 %%code_block -p exercise_1_code_1 -i 16
 
-pycwp.time_step_end(code_name[0])
+pycwp.time_step_end() # ??
 
 # Delete field
 
-cpl.mesh_interf_del()
+# delete mesh interface ??
 
 # Delete the coupling
 ```
@@ -428,7 +405,7 @@ This call terminates the use of CWIPI by cleaning up the internal structures CWI
 ---
 %%code_block -p exercise_1_code_1 -i 17
 
-pycwp.finalize()
+# finalize pycwp ??
 ```
 
 +++ {"editable": false, "deletable": false}
