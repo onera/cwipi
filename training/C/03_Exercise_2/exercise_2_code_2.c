@@ -80,7 +80,7 @@ main(int argc, char *argv[]) {
 
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                            coupling_name,
-                                           CWP_BLOCK_FACE_POLY);
+                                           CWP_BLOCK_FACE_TRIA3);
 
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                    coupling_name,
