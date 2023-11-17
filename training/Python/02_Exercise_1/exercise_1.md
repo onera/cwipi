@@ -143,7 +143,14 @@ Since a solver can take part in several couplings, the Coupling object creation 
 <span style="color:blue">*Oscar and Marie are two engineers and their boss assigned then to the CWIPI project to work in pairs. They don't know each other. During the first work session, they are each assigned to a desk in the working room. It is time to introduce themselves. Oscar is on the yellow desk and says "I am Oscar working on the CWIPI project with Marie. I am 28 years old and I live in Châtillon". Marie is on the blue desk and says "I am Marie working on the CWIPI project with Oscar. I am 54 years old and I live in Palaiseau".*</span>
 
 In a similar way, at this step, we will introduce `code1` and `code2` to each other. On the MPI rank on which the solver is running, it will create a **Coupling** object telling which solver is running there, through which coupling it wants to communicate with which other solver. Then it describes itself in more detail.
-First it provides the dimension of the coupling interface, if it is partitioned, the spatial interpolation algorithm it wants to use, the number of partitions on that MPI rank, if the coupling interface moves and that it is not an interpolation in time (temporal interpolation is not yet implemented in CWIPI).
+First it provides the dimension of the coupling interface.
+For instance, if the solver mesh is a 3D cube but the coupling happens only on a side of the cube, the dimension of the coupling interface is 2D.
+The coupling interface is thus a surface mesh (i.e. `INTERFACE_SURFACE` in CWIPI).
+In this exercise, the coupling interface is the whole input mesh. What is thus the dimension of the coupling interface?
+This input mesh is partitionned. This has to be mentionned to CWIPI using `COMM_PAR_WITH_PART`.
+Note that since we operate but one coupling step in this exercise, the mesh does not change (i.e. `DYNAMIC_MESH_STATIC`).
+As mentionned in the introduction of this training, from version 1.0 on CWIPI offers several spatial interpolation algorithms.
+In this exercise we use the location algorithm (`SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE`) similar to the one offered in version 0.x of CWIPI.
 
 ```{code-cell}
 ---
@@ -242,7 +249,7 @@ The first index is always 0, from there we add up the number of vertices per ele
 The connectivity between elements and vertices is an array of size `connec_idx[n_elts]` (here 36). -->
 Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
 
-Our mesh is composed of only quadrangles, so we just need to define a block of type `BLOCK_FACE_POLY` (**mesh_interf_block_add** method of the Coupling class).
+Our mesh is composed of only quadrangles, so we just need to define a block of type `BLOCK_FACE_QUAD4` (**mesh_interf_block_add** method of the Coupling class).
 We then set the connectivity table for this block (**mesh_interf_block_std_set**).
 
 ```{code-cell}
