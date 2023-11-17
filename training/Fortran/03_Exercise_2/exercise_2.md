@@ -127,35 +127,13 @@ program fortran_new_api_deformable_sol
 
   code_names(1) = "code1"
 
-  call CWP_Init(mpi_comm_world, &
-                n_code,         &
-                code_names,     &
-                is_active_rank, &
-                intra_comms)
+  call CWP_Init() ! ??
 
-  ! Create the coupling :
-  ! CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
-  ! to the mesh over the coupling steps.
-  coupling_name     = "coupling"
-  allocate(coupled_code_names(n_code))
-  coupled_code_names(1) = "code2"
-  n_part = 1;
-  call CWP_Cpl_create(code_names(1),                                         &
-                      coupling_name,                                         &
-                      coupled_code_names(1),                                 &
-                      CWP_INTERFACE_SURFACE,                                 &
-                      CWP_COMM_PAR_WITH_PART,                                &
-                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, &
-                      n_part,                                                &
-                      CWP_DYNAMIC_MESH_DEFORMABLE,                           &
-                      CWP_TIME_EXCH_USER_CONTROLLED)
+  ! time receive frequency : CWP_TIME_EXCH_USER_CONTROLLED
+  call CWP_Cpl_create() ! ??
 
-  ! Set coupling visualisation:
-  call CWP_Visu_set(code_names(1),           &
-                    coupling_name,           &
-                    1,                       &
-                    CWP_VISU_FORMAT_ENSIGHT, &
-                    "text")
+  ! format option : "text"
+  call CWP_Visu_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -202,7 +180,7 @@ What would happen if `$code1$` would send `sf1`?*
 
 ### Mesh
 
-First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square (nothing to do).
+First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square **(nothing to do)**.
 It is composed of triangle elements (i.e. `CWP_BLOCK_FACE_TRIA3`).
 
 ```{code-cell}
@@ -231,28 +209,15 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 ---
 %%code_block -p exercise_2_code_1 -i 3
 
-  call CWP_Mesh_interf_vtx_set(code_names(1), &
-                               coupling_name, &
-                               0,             &
-                               n_vtx,         &
-                               coords,        &
-                               vtx_g_num)
+  ! vtx_g_num is initialized to null()
+  call CWP_Mesh_interf_vtx_set() ! ??
 
-  id_block = CWP_Mesh_interf_block_add(code_names(1),       &
-                                       coupling_name,       &
-                                       CWP_BLOCK_FACE_TRIA3)
+  id_block = CWP_Mesh_interf_block_add() ! ??
 
-  call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
-                                        coupling_name, &
-                                        0,             &
-                                        id_block,      &
-                                        n_elt,         &
-                                        elt_vtx_idx,   &
-                                        elt_vtx,       &
-                                        elt_g_num)
+  ! elt_g_num is initialized to null()
+  call CWP_Mesh_interf_block_std_set() ! ??
 
-  call CWP_Mesh_interf_finalize(code_names(1), &
-                                coupling_name)
+  ! coupling interface finalization ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -273,24 +238,11 @@ Since the mesh topology does not change, the coupling code would be the same sin
   field_name   = "a super fancy field"
   n_components = 1
 
-  call CWP_Field_create(code_names(1),                &
-                        coupling_name,                &
-                        field_name,                   &
-                        CWP_DOUBLE,                   &
-                        CWP_FIELD_STORAGE_INTERLACED, &
-                        n_components,                 &
-                        CWP_DOF_LOCATION_NODE,        &
-                        CWP_FIELD_EXCH_RECV,          &
-                        CWP_STATUS_ON)
+  call CWP_Field_create() ! ??
 
   allocate(field_data(n_vtx*n_components))
 
-  call CWP_Field_data_set(code_names(1),        &
-                          coupling_name,        &
-                          field_name,           &
-                          0,                    &
-                          CWP_FIELD_MAP_TARGET, &
-                          field_data)
+  call CWP_Field_data_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -329,8 +281,7 @@ at the end of the iteration with `CWP_Time_step_end`.
     time = (it-itdeb)*dt
 
     ! Begin time step :
-    call CWP_Time_step_beg(code_names(1), &
-                           time)
+    call CWP_Time_step_beg() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -369,11 +320,8 @@ The chosen tolerance does not change here over time, so we set it before the ite
 ---
 %%code_block -p exercise_2_code_1 -i 5
 
-  call CWP_Spatial_interp_property_set(code_names(1), &
-                                       coupling_name, &
-                                       "tolerance",   &
-                                       CWP_DOUBLE,    &
-                                       "0.001")
+  ! property name : "tolerance"
+  call CWP_Spatial_interp_property_set() ! ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -386,8 +334,7 @@ But the weights need to be computed at each iteration after the mesh has been de
 ---
 %%code_block -p exercise_2_code_1 -i 8
 
-    call CWP_Spatial_interp_weights_compute(code_names(1), &
-                                            coupling_name)
+    call CWP_ ! spatial interpolation weights ??
 
 ```
 
@@ -401,13 +348,9 @@ Now we receive the field send by `code2`.
 ---
 %%code_block -p exercise_2_code_1 -i 9
 
-    call CWP_Field_irecv(code_names(1), &
-                         coupling_name, &
-                         field_name)
+    call CWP_ ! receive field ??
 
-    call CWP_Field_wait_irecv(code_names(1), &
-                              coupling_name, &
-                              field_name)
+    call CWP_ ! wait receive field ??
 ```
 
 +++ {"editable": false, "deletable": false}
@@ -422,16 +365,10 @@ To know which vertices were unlocated the **CWP_Uncomputed_tgts_get** is called.
 ---
 %%code_block -p exercise_1_code_1 -i 13
 
-  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1),   &
-                                                coupling_name,   &
-                                                field_name, &
-                                                0)
+  n_uncomputed_tgts = ! number of uncomputed targets ??
 
   if (n_uncomputed_tgts /= 0) then
-    uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1),   &
-                                               coupling_name,   &
-                                               field_name, &
-                                               0)
+    uncomputed_tgts => ! array of uncomputed targets ??
   endif
 ```
 
@@ -462,7 +399,7 @@ Let's end the iteration.
 ---
 %%code_block -p exercise_2_code_1 -i 10
 
-    call CWP_Time_step_end(code_names(1))
+    call CWP_Time_step_end() ! ??
 
   enddo
 ```
@@ -479,18 +416,11 @@ Let us finish the coupling by freeing the memory allocated for it and ending thi
 ---
 %%code_block -p exercise_2_code_1 -i 11
 
-  ! Delete field :
-  call CWP_Field_Del(code_names(1),   &
-                     coupling_name,   &
-                     field_name)
+  ! delete field ??
 
-  ! Delete Mesh :
-  call CWP_Mesh_interf_del(code_names(1), &
-                           coupling_name)
+  ! delete mesh interface ??
 
-  ! Delete the coupling :
-  call CWP_Cpl_Del(code_names(1), &
-                   coupling_name)
+  ! delete the coupling ??
 
   ! free
   deallocate(code_names)
@@ -503,8 +433,7 @@ Let us finish the coupling by freeing the memory allocated for it and ending thi
   call pdm_fortran_free_c(c_loc(elt_vtx_idx))
   call pdm_fortran_free_c(c_loc(elt_vtx))
 
-  ! Finalize CWIPI :
-  call CWP_Finalize()
+  ! finalize CWIPI ??
 
   ! Finalize MPI :
   call MPI_Finalize(ierr)
