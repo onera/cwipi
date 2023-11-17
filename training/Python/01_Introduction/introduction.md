@@ -382,7 +382,7 @@ But what exactly is this data?
 It consists essentially in a set of physical variables.
 For instance, in simulations of fluid-structure interaction phenomena, the fluid code will transfer aerodynamic forces to the structure code, that will in return send a deformation field.
 
-In **CWIPI**, these variables are called *Fields*.
+In **CWIPI**, these variables are called *Fields*. This is a concept introduced in version 1.0.
 A Field is identified by its name and is described by its degrees-of-freedom (dofs), which are associated to the interface mesh (nodes or cell centers), or to an arbitrary user-defined set of points.
 For a given code, a Field can be sent (source), received (target) or both, in which case the dofs must be specified for both the source and target (they don't have to be identical).
 
@@ -612,7 +612,7 @@ Solution:
   * Finalize CWIPI
 +++
 
-## MPI Communicators
+## Command line to launch a coupling and MPI Communicators
 
 We haven't yet explained how to launch the coupled codes. Indeed, in a code coupling application multiple codes will be executed with a common world communicator.
 This is done using the following command : `mpirun -n <n1> code1 : -n <n2>  code2`. It is this common world communicator that is provided to **CWIPI** upon initialization.
