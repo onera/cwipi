@@ -162,6 +162,7 @@ What would happen if `$code1$` would send `sf1`?*
 ### Mesh
 
 First we use a simple mesh generation function from ParaDiGM to create our coupling interface mesh : a square (nothing to do).
+It is composed of triangle elements (i.e. `CWP_BLOCK_FACE_TRIA3`).
 
 ```{code-cell}
 ---
@@ -222,10 +223,10 @@ The mesh will change at each iteration. Since it is deformed, only its coordinat
 
 ### Field
 
-Here we want `code1` to receive a field from `code2`.
-Even if `code1` would send a field that is the x-coordinates of the deformed mesh, that wouldn't change a thing in the code as said for the mesh above.
-Indeed, the mesh topology does not change. Thus, at each coupling iteration the number of vertices remains the same.
-Thus, it suffices to provide the pointer to the field array and change the values inside it at each iteration.
+In this exercise, `code1` receives a field from `code2`.
+The mesh changes at each iteration but here we decided that the field `code2` sends wouldn't.
+In a real case application, `code2` would send a different field a each iteration.
+Since the mesh topology does not change, the coupling code would be the same since a pointer on the field is provided and there are no internal copies of the provided fields inside CWIPI.
 
 ```{code-cell}
 ---
