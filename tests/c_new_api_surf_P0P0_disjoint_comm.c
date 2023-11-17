@@ -197,17 +197,12 @@ _gen_mesh
                                    &pedge_vtx,
                                    pface_vtx_idx,
                                    &pface_edge,
+                                   pface_vtx,
                                    pvtx_ln_to_gn,
                                    &pedge_ln_to_gn,
                                    pface_ln_to_gn);
 
-  *pface_vtx = malloc(sizeof(int *) * n_part);
   for (int i = 0; i < n_part; i++) {
-    PDM_compute_face_vtx_from_face_and_edge_unsigned((*pn_face)[i],
-                                                     (*pface_vtx_idx)[i],
-                                                     pface_edge[i],
-                                                     pedge_vtx[i],
-                                                     &(*pface_vtx)[i]);
     free(pface_edge    [i]);
     free(pedge_vtx     [i]);
     free(pedge_ln_to_gn[i]);

@@ -41,7 +41,7 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmUnionComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+      _id_pdm = PDM_mesh_location_create(1, _pdmUnionComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       // PDM_mesh_location_reverse_results_enable (_id_pdm);
 
@@ -80,7 +80,7 @@ namespace cwipi {
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmUnionComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+        _id_pdm = PDM_mesh_location_create(1, _pdmUnionComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         // PDM_mesh_location_reverse_results_enable (_id_pdm);
 
