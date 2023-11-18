@@ -1201,11 +1201,11 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
 
-    CWP_Visu_set (code_name[0],
-                  coupling_name,
-                  1,
-                  CWP_VISU_FORMAT_ENSIGHT,
-                  "text");
+    // CWP_Visu_set (code_name[0],
+    //               coupling_name,
+    //               1,
+    //               CWP_VISU_FORMAT_ENSIGHT,
+    //               "text");
 
   }
 
@@ -1380,10 +1380,10 @@ main(int argc, char *argv[]) {
         send_val[i] = pvtx_coord[0][i];
       }
 
-      for (int i = 0 ; i < pn_vtx[0]; i++) {
-        log_trace(PDM_FMT_G_NUM" : ", pvtx_ln_to_gn[0][i]);
-        PDM_log_trace_array_double(&send_val[3*i], 3, "");
-      }
+      // for (int i = 0 ; i < pn_vtx[0]; i++) {
+      //   log_trace(PDM_FMT_G_NUM" : ", pvtx_ln_to_gn[0][i]);
+      //   PDM_log_trace_array_double(&send_val[3*i], 3, "");
+      // }
     }
     else {
       for (int i = 0 ; i < pn_vtx[0]; i++) {
