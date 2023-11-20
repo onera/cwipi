@@ -11,41 +11,13 @@ kernelspec:
   name: python3
 ---
 
-# Inntroduction
-
-Welcome to the CWIPI library introductory day !
-
-The aim of the day is to give you : 
-
-
-This is an interactive course, so don't hesitate to interrupt us to ask your questions.
-
-The training will take place in three stages:
-- General presentation of CWIPI
-
-# Exercice 0
-
-cf autre .md
----
-jupytext:
-  text_representation:
-    extension: '.md'
-    format_name: myst
-    format_version: '0.7'
-    jupytext_version: 1.4.0+dev
-kernelspec:
-  display_name: Python 3
-  language: python
-  name: python3
----
-
 <img src="cwipiNew.svg" align=right style="margin: 0px 50px;" width="150">
 
 # Introduction
 
 Welcome to the **CWIPI** library introductory day !
 
-The aim of the day is to give you :
+The aim of the day is to give you : 
   - An overview of **CWIPI** 1.0 functionalities
   - An understanding on how **CWIPI** can be called to couple solvers written in C/C++, Fortran or Python.
 
@@ -56,8 +28,6 @@ The training will take place in three stages:
   - Exercise 0 : getting started with Jupyter Notebooks
   - Exercise 1 : a basic coupling
   - Exercise 2 : an extension on time step management with a deforming mesh
-
-
 
 # What is **CWIPI**?
 
@@ -92,10 +62,13 @@ This is achieved by not having any specific data structure but by working with s
 ## History
 
 **CWIPI** has been created in 2009 upon the initiative of Eric Quémerais.
-It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...).
+It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...). 
 CERFACS is a main contributer and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controled by the OpenPALM process.
 This helped increasing the use of **CWIPI**.
 The main attraction is the performance, which is mentioned in articles of similar coupling tools and which prompted the invitation to the ExCALIBUR workshop.
+A part of this work is derived from "Finite Volume Mesh" library (FVM) and its
+dependence "Base Functions and Types" (BFT). FVM and BFT are licensed under
+LGPL 2.1. They are mainly developed for the CFD software code_saturne (Copyright EDF)
 
 # Examples of use
 
@@ -414,6 +387,11 @@ In **CWIPI**, these variables are called *Fields*. This is a concept introduced 
 A Field is identified by its name and is described by its degrees-of-freedom (dofs), which are associated to the interface mesh (nodes or cell centers), or to an arbitrary user-defined set of points.
 For a given code, a Field can be sent (source), received (target) or both, in which case the dofs must be specified for both the source and target (they don't have to be identical).
 
+There are ways to store field components:
+- **CWP_FIELD_STORAGE_INTERLACED**   : The number of components is constant for each element. The field is stored according to this pattern $ \left(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n}\right)$ , where $s$ is the number of components and $n$ the number of field elements ;
+- **CWP_FIELD_STORAGE_INTERLEAVED**  : The number of components is constant for each element. The field is stored according to this pattern $ \left(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n}\right)$ , where $s$ is the number of components and $n$ the number of field elements. In this mode,
+
+
 In any case, in each Coupling the two coupled codes must specify the same field identifiers, with compatible source/target status.
 
 In the following illustration `code1` sends `field1` and receives `field2`.
@@ -700,6 +678,15 @@ Feel free to suggest changes to improve it!
 <img src="old_to_new.png" width="600">
 
 
+# Clone repository  
+
+Go to **exercise_clone_repo** in your working directory and clone https://gitlab.onera.net/numerics/coupling/cwipi.git
+
+In the **tests** directory**, you'll find a large number of validation tests. These tests are good examples of how to use the software to discover functionalities that will not be covered during this day.  
+
+- **c_new_api_user_interp_fct** : Implementation of an user interpolation
+- **c_client_server\*** : Using client/server mode 
+- ...
 
 
 # Exercise 0

@@ -18,7 +18,7 @@ kernelspec:
 +++ {"editable": false, "deletable": false}
 
 After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
-To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#fortran-api-documentation).
+To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
 
 +++ {"editable": false, "deletable": false}
 
@@ -118,7 +118,7 @@ Thus, the first thing to do, is the initialize the MPI environment:
 ### Initialization
 
 Now we will start using CWIPI functions !
-Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
+Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#fortran-api-documentation).
 
 The function to start a CWIPI coupling between two codes is **CWP_Init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
 In this basic example, `code1` will be running on the MPI rank 0 and `code2` on the MPI rank 1.
@@ -281,7 +281,7 @@ The connectivity between elements and vertices is an array of size `connec_idx(n
 
 Recall that CWIPI only deals with *unstructured* meshes, so even though our mesh looks like a structured grid, we need to provide a connectivity table.
 
-Our mesh is composed of only quadrangles, so we just need to define a block of type `CWP_BLOCK_FACE_QUAD4` (**CWP_Mesh_interf_f_poly_block_set**).
+Our mesh is composed of only quadrangles, so we just need to define a block of type `CWP_BLOCK_FACE_QUAD4` (**CWP_Mesh_interf_block_add**).
 We then set the connectivity table for this block (**CWP_Mesh_interf_block_std_set**).
 As for `vtx_g_num`, `elt_g_num` represents the global identifiers of the mesh elements and is an optional argument.
 
@@ -383,12 +383,7 @@ Note, that is mandatory to create the coupling and the associated fields before 
 
 ### Compute interpolation weights
 
-In this exercise we use the CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE spatial interpolation method.
-It consists in localizing a set of target points (the vertices of `code2`'s interface mesh) inside a source mesh (`code1`'s interface mesh).
-The location algorithm relies on efficient bounding box comparisons to find the candidate {source element, target point} pairs, before computing the exact location.  
-<!-- Since we use the spatial interpolation algorithm locating a set of points (vertices of `code2`) in a mesh (coupling interface of `code1`), to ensure all points are located a tolerance can be set using the subroutine **CWP_Spatial_interp_property_set** (optional). -->
-<span style="color:red">(déplacer ce paragraphe vers l'exo2?, virer CWP_Spatial_interp_property_set?)</span>
-
+Since we use the spatial interpolation algorithm locating a set of points (vertices of `code2`) in a mesh (coupling interface of `code1`), to ensure all points are located a tolerance can be set using the function **CWP_Spatial_interp_property_set** (optional).
 Before doing any exchange, it is mandatory to compute the spatial interpolation weights using **CWP_Spatial_interp_weights_compute**.
 
 ```{code-cell}

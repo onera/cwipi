@@ -139,11 +139,11 @@ Let's have a look again at the pseudo-code of the introduction.
    2. `code2` receives `rf2`
 5. Finalize CWIPI
 
-In this exercise `$code1$` receives a field send by `$code2$`.
-Here we decide to deform `$m1$` at each `$code1$` iteration.
+In this exercise `code1` receives a field send by `code2`.
+Here we decide to deform `m1` at each `code1` iteration.
 
 *What does that change in our coupling code?
-What would happen if `$code1$` would send `sf1`?*
+What would happen if `code1` would send `sf1`?*
 
 ### Mesh
 
@@ -222,8 +222,8 @@ It is important to know that the field should still be created before starting t
 
 ## Time iterations
 
-At the beginning of each coupling iteration, we begin a new time step using `CWP_Time_step_beg` which we will terminate
-at the end of the iteration with `CWP_Time_step_end`.
+At the beginning of each coupling iteration, we begin a new time step using **CWP_Time_step_beg** which we will terminate
+at the end of the iteration with **CWP_Time_step_end**.
 
 ```{code-cell}
 ---
