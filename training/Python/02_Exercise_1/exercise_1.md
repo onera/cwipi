@@ -18,7 +18,7 @@ kernelspec:
 +++ {"editable": false, "deletable": false}
 
 After having seen the core concepts to set up a coupling with CWIPI, we will discover the associated function calls in this very first basic coupling.
-To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#python-api-documentation-pycwp).
+To help you with this, you are encouraged to look at the [documentation](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
 
 +++ {"editable": false, "deletable": false}
 
@@ -105,7 +105,7 @@ except:
 ### Initialization
 
 Now we will start using CWIPI functions !
-Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/index.html).
+Please refer to the API referenced [here](https://numerics.gitlab-pages.onera.net/coupling/cwipi/dev/new_cwipi/new_cwipi.html#python-api-documentation-pycwp).
 
 The function to start a CWIPI coupling between two codes is **init**. It takes the MPI communicator that includes the MPI ranks of all the coupled codes.
 In this basic example, `code1` will be running on the MPI rank 0 and `code2` on the MPI rank 1.

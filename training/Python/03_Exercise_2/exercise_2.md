@@ -217,8 +217,8 @@ It is important to know that the field should still be created before starting t
 
 ## Time iterations
 
-At the beginning of each coupling iteration, we begin a new time step using `CWP_Time_step_beg` which we will terminate
-at the end of the iteration with `CWP_Time_step_end`.
+At the beginning of each coupling iteration, we begin a new time step using **time_step_beg** which we will terminate
+at the end of the iteration with **time_step_end**.
 
 ```{code-cell}
 ---

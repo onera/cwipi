@@ -172,11 +172,11 @@ Let's have a look again at the pseudo-code of the introduction.
    2. `code2` receives `rf2`
 5. Finalize CWIPI
 
-In this exercise `$code1$` receives a field send by `$code2$`.
-Here we decide to deform `$m1$` at each `$code1$` iteration.
+In this exercise `code1` receives a field send by `code2`.
+Here we decide to deform `m1` at each `code1` iteration.
 
 *What does that change in our coupling code?
-What would happen if `$code1$` would send `sf1`?*
+What would happen if `code1` would send `sf1`?*
 
 ### Mesh
 
