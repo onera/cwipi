@@ -213,7 +213,7 @@ It is a basic cartesian grid mesh composed of 9 quadrangles and 16 vertices.
 
 The coupling interface mesh of `code2` looks like this.
 
-![alt text](mesh_code1.png)
+![alt text](mesh_code2.png)
 
 It is composed of several types of elements.
 To start of easy, let's just say it is composed of polygons.
