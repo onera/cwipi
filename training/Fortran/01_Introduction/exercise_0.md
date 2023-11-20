@@ -75,11 +75,18 @@ Each `%%code_block` cell takes the following mandatory command line arguments:
 
 +++ {"editable": false, "deletable": false}
 
-In this first cell, we simply load the `mpi4py` module.
+In this first cell, we initialize MPI.
 
 ```{code-cell}
-%%code_block -p exercise_0 -i 1
-import mpi4py.MPI as MPI
+%%code_block -p exercise_0_code_1 -i 1
+program exercise_0
+
+  implicit none
+  include "mpif.h"
+
+  integer :: i_rank, err
+
+  call mpi_init(err)
 
 ```
 
@@ -88,18 +95,32 @@ import mpi4py.MPI as MPI
 In this second cell, each MPI rank will print a message.
 
 ```{code-cell}
-%%code_block -p exercise_0 -i 2
-comm = MPI.COMM_WORLD
-print(f"Hello from rank {comm.rank}!")
+%%code_block -p exercise_0_code_1 -i 2
+  call mpi_comm_rank(MPI_COMM_WORLD, i_rank, err)
+
+  print "(a15,1x,i0,a1)", "Hello from rank", i_rank, "!"
 
 ```
+
++++ {"editable": false, "deletable": false}
+
+In this last cell, we finalize MPI.
+
+```{code-cell}
+%%code_block -p exercise_0_code_1 -i 3
+  call mpi_finalize(err)
+
+end program exercise_0
+```
+
+
 
 ## Merge the code pieces, compile and run
 
 +++ {"editable": false, "deletable": false}
 
 Once all the code pieces have been written, it is time to run the program.
-The `%merge_code_blocks` line will merge the code pieces and execute the program with `mpirun`.
+The `%merge_code_blocks` line will merge the code pieces, compile and execute the program with `mpirun`.
 
 The line takes the following command line arguments:
 - `-l` (`--language`) `<language>`: programming language (c, fortran or python) (*mandatory*)
@@ -110,9 +131,8 @@ The line takes the following command line arguments:
 
 
 ```{code-cell}
-%merge_code_blocks -l python -p exercise_0 -n 2 -c -v
+%merge_code_blocks -l fortran -p exercise_0_code_1 -n 2 -c -v
 ```
-
 
 # Exercise 1
 

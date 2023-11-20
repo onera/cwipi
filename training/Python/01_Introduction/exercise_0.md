@@ -78,7 +78,7 @@ Each `%%code_block` cell takes the following mandatory command line arguments:
 In this first cell, we simply load the `mpi4py` module.
 
 ```{code-cell}
-%%code_block -p exercise_0 -i 1
+%%code_block -p exercise_0_code_1 -i 1
 import mpi4py.MPI as MPI
 
 ```
@@ -88,7 +88,7 @@ import mpi4py.MPI as MPI
 In this second cell, each MPI rank will print a message.
 
 ```{code-cell}
-%%code_block -p exercise_0 -i 2
+%%code_block -p exercise_0_code_1 -i 2
 comm = MPI.COMM_WORLD
 print(f"Hello from rank {comm.rank}!")
 
@@ -110,9 +110,8 @@ The line takes the following command line arguments:
 
 
 ```{code-cell}
-%merge_code_blocks -l python -p exercise_0 -n 2 -c -v
+%merge_code_blocks -l python -p exercise_0_code_1 -n 2 -c -v
 ```
-
 
 # Exercise 1
 
