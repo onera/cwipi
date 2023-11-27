@@ -27,7 +27,7 @@ main(int argc, char *argv[]) {
   CWP_Status_t  is_active_rank = CWP_STATUS_ON;
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
-  code_name[0]      = "code2";
+  code_name[0] = "code2";
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
@@ -80,7 +80,7 @@ main(int argc, char *argv[]) {
 
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                            coupling_name,
-                                           CWP_BLOCK_FACE_TRIA3);
+                                           CWP_BLOCK_FACE_POLY);
 
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                    coupling_name,
