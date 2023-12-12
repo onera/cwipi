@@ -212,7 +212,7 @@ if (CWP_ENABLE_SHARED)
   target_link_libraries(cwp_shared ${LINK_LIBRARIES}) 
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
-
+  target_link_libraries (cwp_shared pdm::pdm_shared)
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
   if (CWP_ENABLE_SPACE_NODAL_BASIS)
@@ -226,6 +226,7 @@ if (CWP_ENABLE_SHARED)
     add_dependencies(cwpf_shared cwpf)
     set_target_properties(cwpf_shared PROPERTIES OUTPUT_NAME "cwpf")
     set_target_properties(cwpf_shared PROPERTIES VERSION ${CWP_VERSION})
+    target_link_libraries(cwpf_shared pdm::pdm_shared)
     target_link_libraries(cwpf_shared cwp_shared ${CXX_LIBRARIES})
     set_target_properties(cwpf_shared PROPERTIES
                             PUBLIC_HEADER "${LIST_HEADERF}")
@@ -248,6 +249,7 @@ if (CWP_ENABLE_STATIC)
   target_link_libraries(cwp_static ${LINK_LIBRARIES}) 
   set_target_properties(cwp_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
+  target_link_libraries (cwp_static pdm::pdm_static)
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})
   if (CWP_ENABLE_SPACE_NODAL_BASIS)
@@ -262,6 +264,7 @@ if (CWP_ENABLE_STATIC)
     set_target_properties(cwpf_static PROPERTIES VERSION ${CWP_VERSION})
 
     target_link_libraries(cwpf_static cwp_static)
+    target_link_libraries(cwpf_static pdm::pdm_static)
     set_target_properties(cwpf_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADERF}")
 
