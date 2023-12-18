@@ -164,7 +164,14 @@ namespace cwipi {
      
         inline virtual std::vector<int >  NFacesGet();
 
+        inline virtual std::vector<CWP_g_num_t *>  FacesGNumGet();
+
+        inline virtual void FacesGNumSet(std::vector<CWP_g_num_t *> face_ln_to_gn);
+
+
         void geomFinalize();
+
+        void FacesGNumFree(int i_part);
 
     private:
       std::vector<int >          _n_faces;             /*!< Number of faces for each partition */
@@ -172,7 +179,8 @@ namespace cwipi {
       std::vector<int*>          _connec_faces;        /*!< Faces connectivity for each partition */
       std::vector<int*>          _connec_cells_idx;    /*!< Cells onnectivity Index for each partition */
       std::vector<int*>          _connec_cells;        /*!< Cells connectivity for each partition */    
-      
+      std::vector<CWP_g_num_t*>  _face_ln_to_gn;       /*!< Face global ids */
+
   }; //BlockCP Class
 
 
@@ -197,6 +205,13 @@ namespace cwipi {
     return _n_faces;
   }
 
+  std::vector<CWP_g_num_t *>  BlockCP::FacesGNumGet() {
+    return _face_ln_to_gn;
+  }
+
+  void BlockCP::FacesGNumSet(std::vector<CWP_g_num_t *> face_ln_to_gn) {
+    _face_ln_to_gn = face_ln_to_gn;
+  }
 
 
 } //namespace cwipi

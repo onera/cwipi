@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
                                        pn_face       [i_code][i],
                                        pface_vtx_idx [i_code][i],
                                        pface_vtx     [i_code][i],
-                                       pface_ln_to_gn[i_code][i]);
+                                       NULL);//pface_ln_to_gn[i_code][i]);
     }
 
     CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
