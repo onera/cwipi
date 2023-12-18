@@ -83,6 +83,7 @@ namespace cwipi {
     _displacement(displacement),
     _cpl(cpl),
     _faceEdgeMethod(0),
+    _faceVtxMethod(0),
     _cellFaceMethod(0),
     _pdmNodal_handle_index(),
     _isVtxGnumComputed(false),
@@ -457,27 +458,27 @@ namespace cwipi {
 
     _pdmNodal_handle_index = PDM_part_mesh_nodal_create(mesh_dimension, _npart,_pdm_localComm);
 
-    if(gnumVtxRequired () ){
+    if (gnumVtxRequired()) {
       _isVtxGnumComputed = true;
 
       PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-      for(int i_part=0;i_part<_npart;i_part++) {
-        PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
+      for (int i_part = 0; i_part < _npart ; i_part++) {
+        PDM_gnum_set_from_coords(pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
       }
 
-      PDM_gnum_compute (pdmGNum_handle_index);
+      PDM_gnum_compute(pdmGNum_handle_index);
 
-      for(int i_part=0;i_part<_npart;i_part++) {
-        _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+      for (int i_part=0; i_part < _npart; i_part++) {
+        _global_num_vtx[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get(pdmGNum_handle_index, i_part));
       }
 
-      PDM_gnum_free (pdmGNum_handle_index);
+      PDM_gnum_free(pdmGNum_handle_index);
     }
 
-    for(int i_part=0;i_part<_npart;i_part++) {
+    for (int i_part = 0; i_part < _npart; i_part++) {
 
-      PDM_part_mesh_nodal_coord_set(_pdmNodal_handle_index  ,
+      PDM_part_mesh_nodal_coord_set(_pdmNodal_handle_index ,
                                     i_part                 ,
                                     _nVertex       [i_part],
                                     _coords        [i_part],
@@ -557,7 +558,7 @@ namespace cwipi {
 
       }
 
-      for (int i_part=0; i_part < _npart; i_part++) {
+      for (int i_part = 0; i_part < _npart; i_part++) {
 
         PDM_part_mesh_nodal_face2d_faceedge_add(_pdmNodal_handle_index,
                                                 i_part,
@@ -575,7 +576,77 @@ namespace cwipi {
 
     }
 
-    else if(_cellFaceMethod == 1){
+    else if (_faceVtxMethod == 1) {
+
+      int compute_gnum = 0;
+      for (int i_part = 0; i_part < _npart; i_part++) {
+        if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
+          compute_gnum = 1;
+          break;
+        }
+      }
+
+      if (compute_gnum) {
+        _isEltGnumComputed = true;
+
+        PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+        double **face_center = (double **) malloc(sizeof(double *) * (_npart));
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          face_center[i_part] = (double *) malloc(sizeof(double) * (3*_nFace[i_part]));
+          for (int j = 0; j < 3*_nFace[i_part]; j++) {
+            face_center[i_part][j] = 0.;
+          }
+
+          for (int i_face = 0; i_face < _nFace[i_part]; i_face++) {
+            for (int i_vtx = _faceVtxIdx[i_part][i_face]; i_vtx < _faceVtxIdx[i_part][i_face+1]; i_vtx++) {
+              int vtx_id = _faceVtx[i_part][i_vtx] - 1;
+              for (int j = 0; j < 3; j++) {
+                face_center[i_part][3*i_face+j] += _coords[i_part][3*vtx_id+j];
+              }
+            }
+
+            double normalization = 1./(double) (_faceVtxIdx[i_part][i_face+1] - _faceVtxIdx[i_part][i_face]);
+            for (int j = 0; j < 3; j++) {
+              face_center[i_part][3*i_face+j] *= normalization;
+            }
+          }
+        }
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          PDM_gnum_set_from_coords(pdmGNum_handle_index, i_part, _nFace[i_part], face_center[i_part], NULL);
+        }
+
+        PDM_gnum_compute(pdmGNum_handle_index);
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+        }
+
+        PDM_gnum_free(pdmGNum_handle_index);
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          free(face_center[i_part]);
+        }
+
+        free(face_center);
+      }
+
+      for (int i_part = 0; i_part < _npart; i_part++) {
+        PDM_part_mesh_nodal_faces_facevtx_add(_pdmNodal_handle_index,
+                                              i_part,
+                                              _nFace     [i_part],
+                                              _faceVtxIdx[i_part],
+                                              _faceVtx   [i_part],
+                                              _faceLNToGN[i_part],
+                                              PDM_OWNERSHIP_KEEP);
+      }
+
+      updateBlockDB();
+    }
+
+    else if (_cellFaceMethod == 1) {
 
       int compute_face_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
@@ -712,7 +783,7 @@ namespace cwipi {
         PDM_part_mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
                                                 i_part,
                                                 _nCells[i_part],
-                                                _nFace[i_part]    ,
+                                                _nFace[i_part],
                                                 _faceVtxIdx[i_part],
                                                 _faceVtx[i_part],
                                                 _faceLNToGN[i_part],
@@ -1308,7 +1379,7 @@ namespace cwipi {
       }
 
       if (_isEltGnumComputed) {
-        if (_faceEdgeMethod == 1) {
+        if (_faceEdgeMethod == 1 || _faceVtxMethod == 1) {
           if (_faceLNToGN[i] != NULL) {
             free(_faceLNToGN[i]);
             _faceLNToGN[i] = NULL;
@@ -1401,6 +1472,25 @@ namespace cwipi {
     _faceEdge[i_part]    = face_edge;
     _nEdge[i_part]       = n_edges;
     _nFace[i_part]       = n_faces;
+  }
+
+
+  void
+  Mesh::fromFacesVtxSet
+  (
+    const int   i_part,
+    const int   n_faces,
+    int         face_vtx_idx[],
+    int         face_vtx[],
+    CWP_g_num_t global_num[]
+  )
+  {
+    _faceVtxMethod = 1;
+
+    _faceLNToGN[i_part] = global_num;
+    _faceVtxIdx[i_part] = face_vtx_idx;
+    _faceVtx[i_part]    = face_vtx;
+    _nFace[i_part]      = n_faces;
   }
 
 

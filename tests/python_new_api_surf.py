@@ -237,10 +237,14 @@ def runTest():
                                      mesh[icode]["pvtx_coord"]   [ipart],
                                      mesh[icode]["pvtx_ln_to_gn"][ipart])
 
-      id_block = cpl[icode].mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+      # id_block = cpl[icode].mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
-      cpl[icode].mesh_interf_f_poly_block_set(ipart,
-                                              id_block,
+      # cpl[icode].mesh_interf_f_poly_block_set(ipart,
+      #                                         id_block,
+      #                                         mesh[icode]["pface_vtx_idx"] [ipart],
+      #                                         mesh[icode]["pface_vtx"]     [ipart],
+      #                                         mesh[icode]["pface_ln_to_gn"][ipart])
+      cpl[icode].mesh_interf_from_facevtx_set(ipart,
                                               mesh[icode]["pface_vtx_idx"] [ipart],
                                               mesh[icode]["pface_vtx"]     [ipart],
                                               mesh[icode]["pface_ln_to_gn"][ipart])

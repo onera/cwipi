@@ -379,7 +379,7 @@ cdef extern from "cwp.h":
                                          int             n_faces,
                                          int            *face_vtx_idx,
                                          int            *face_vtx,
-                                         CWP_g_num_t           *global_num)
+                                         CWP_g_num_t    *global_num)
   void CWP_Mesh_interf_from_faceedge_set(char           *local_code_name,
                                          char           *cpl_id,
                                          int             i_part,
@@ -388,7 +388,15 @@ cdef extern from "cwp.h":
                                          int            *face_edge,
                                          int             n_edges,
                                          int            *edge_vtx,
-                                         CWP_g_num_t           *global_num)
+                                         CWP_g_num_t    *global_num)
+  void CWP_Mesh_interf_from_facevtx_set(char           *local_code_name,
+                                        char           *cpl_id,
+                                        int             i_part,
+                                        int             n_faces,
+                                        int            *face_vtx_idx,
+                                        int            *face_vtx,
+                                        CWP_g_num_t    *global_num)
+
 
   # --> functions about field
   void CWP_Field_create(char                  *local_code_name,
@@ -3200,6 +3208,40 @@ cdef class Coupling (object):
                                             n_edges,
                                             <int *> edge_vtx.data,
                                             <CWP_g_num_t *> global_num.data)
+
+    def mesh_interf_from_facevtx_set(self,
+                                     int                                          i_part,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c']     face_vtx_idx not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c']     face_vtx     not None,
+                                     np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
+        """
+        mesh_interf_from_facevtx_set(i_part, face_vtx_idx, face_vtx, global_num)
+        Define the surface interface mesh from a face to vertex connectivity.
+
+        Parameters:
+          i_part       (int)                        : Current partition
+          face_vtx_idx (np.ndarray[np.int32_t])     : Polygon to vertex index (``face_vtx_idx`` [0] = 0 and size =  *n_faces* + 1)
+          face_vtx     (np.ndarray[np.int32_t])     : Polygon to vertex connectivity (size = ``face_vtx_idx`` [*n_faces*])
+          global_num   (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_faces* or None)
+        """
+        cdef int n_faces = len(face_vtx_idx) - 1
+
+        if (global_num is None):
+          CWP_Mesh_interf_from_facevtx_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           n_faces,
+                                           <int *> face_vtx_idx.data,
+                                           <int *> face_vtx.data,
+                                           NULL)
+        else:
+          CWP_Mesh_interf_from_facevtx_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           n_faces,
+                                           <int *> face_vtx_idx.data,
+                                           <int *> face_vtx.data,
+                                           <CWP_g_num_t *> global_num.data)
 
     # --> SPATIAL INTERPOLATION
     def spatial_interp_weights_compute(self):

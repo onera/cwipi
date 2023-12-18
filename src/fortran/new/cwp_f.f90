@@ -328,6 +328,10 @@ module cwp
         CWP_Mesh_interf_from_faceedge_set_
     end interface CWP_Mesh_interf_from_faceedge_set
 
+    interface CWP_Mesh_interf_from_facevtx_set ; module procedure &
+        CWP_Mesh_interf_from_facevtx_set_
+    end interface CWP_Mesh_interf_from_facevtx_set
+
     interface CWP_Field_create ; module procedure &
         CWP_Field_create_
     end interface CWP_Field_create
@@ -554,6 +558,7 @@ module cwp
              CWP_Mesh_interf_del_ ,&
              CWP_Mesh_interf_from_cellface_set_ ,&
              CWP_Mesh_interf_from_faceedge_set_ ,&
+             CWP_Mesh_interf_from_facevtx_set_ ,&
              CWP_Field_create_ ,&
              CWP_Field_data_set_ ,&
              CWP_Field_dof_location_get_ ,&
@@ -991,6 +996,17 @@ module cwp
         type(c_ptr), value :: face_edge_idx, face_edge, edge_vtx, parent_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_faceedge_set_cf
+
+      subroutine CWP_Mesh_interf_from_facevtx_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_faces, &
+            face_vtx_idx, face_vtx, global_num) &
+            bind(c, name = 'CWP_Mesh_interf_from_facevtx_set_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(c_int), value :: i_part, n_faces
+        type(c_ptr), value :: face_vtx_idx, face_vtx, global_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Mesh_interf_from_facevtx_set_cf
 
       subroutine CWP_Field_create_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id, &
           data_type, storage, n_component, target_location, exch_type, visu_status) &
@@ -3130,11 +3146,11 @@ contains
     character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
     integer(c_int)                         :: i_part          ! Partition identifier
     integer(c_int)                         :: n_cells         ! Number of cells
-    integer(c_int),  dimension(:), pointer :: cell_face_idx   ! Index for cell to face connectivity (``face_cell_idx(0)`` = 0 and size = ``n_cells`` + 1
-    integer(c_int),  dimension(:), pointer :: cell_face       ! Cell to face connectivity (size = ``face_cell_idx(n_cells+1)``)
+    integer(c_int),  dimension(:), pointer :: cell_face_idx   ! Index for cell to face connectivity (``cell_face_idx(0)`` = 0 and size = ``n_cells`` + 1
+    integer(c_int),  dimension(:), pointer :: cell_face       ! Cell to face connectivity (size = ``cell_face_idx(n_cells+1)``)
     integer(c_int)                         :: n_faces         ! Number of faces
-    integer(c_int),  dimension(:), pointer :: face_vtx_idx    ! Index for face to vertex connectivity (``connec_faces_idx(0)`` = 0 and size = ``n_faces`` + 1)
-    integer(c_int),  dimension(:), pointer :: face_vtx        ! Face to vertex connectivity (size = ``connec_faces_idx(n_faces+1)``)
+    integer(c_int),  dimension(:), pointer :: face_vtx_idx    ! Index for face to vertex connectivity (``face_vtx_idx(0)`` = 0 and size = ``n_faces`` + 1)
+    integer(c_int),  dimension(:), pointer :: face_vtx        ! Face to vertex connectivity (size = ``face_vtx_idx(n_faces+1)``)
     integer(c_long), dimension(:), pointer :: global_num      ! Global cell ids (size = ``n_cells`` or ``null()``)
 
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
@@ -3182,10 +3198,10 @@ contains
     character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
     integer(c_int)                         :: i_part          ! Partition identifier
     integer(c_int)                         :: n_faces         ! Number of faces
-    integer(c_int),  dimension(:), pointer :: face_edge_idx   ! Index for face to edge connectivity (``edge_face_idx(0)`` = 0 and size = ``n_faces`` + 1
-    integer(c_int),  dimension(:), pointer :: face_edge       ! Face to edge connectivity (size = ``edge_face_idx(n_faces+1)``)
+    integer(c_int),  dimension(:), pointer :: face_edge_idx   ! Index for face to edge connectivity (``face_edge_idx(0)`` = 0 and size = ``n_faces`` + 1
+    integer(c_int),  dimension(:), pointer :: face_edge       ! Face to edge connectivity (size = ``face_edge_idx(n_faces+1)``)
     integer(c_int)                         :: n_edges         ! Number of edges
-    integer(c_int),  dimension(:), pointer :: edge_vtx        ! Edge to vertex connectivity (size = ``connec_edges_idx(n_faces+1)``)
+    integer(c_int),  dimension(:), pointer :: edge_vtx        ! Edge to vertex connectivity (size = 2*``n_edges``)
     integer(c_long), dimension(:), pointer :: global_num      ! Global face ids (size = ``n_faces`` or ``null()``)
 
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
@@ -3213,6 +3229,50 @@ contains
                                                c_global_num)
 
   end subroutine CWP_Mesh_interf_from_faceedge_set_
+
+
+  subroutine CWP_Mesh_interf_from_facevtx_set_(local_code_name, &
+                                               cpl_id,          &
+                                               i_part,          &
+                                               n_faces,         &
+                                               face_vtx_idx,    &
+                                               face_vtx,        &
+                                               global_num)
+    ! Define the surface interface mesh from a face-to-vertex connectivity.
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *)      :: local_code_name ! Local code name
+    character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
+    integer(c_int)                         :: i_part          ! Partition identifier
+    integer(c_int)                         :: n_faces         ! Number of faces
+    integer(c_int),  dimension(:), pointer :: face_vtx_idx    ! Index for face to vertex connectivity (``face_vtx_idx(0)`` = 0 and size = ``n_faces`` + 1
+    integer(c_int),  dimension(:), pointer :: face_vtx        ! Face to vertex connectivity (size = ``face_vtx_idx(n_faces+1)``)
+    integer(c_long), dimension(:), pointer :: global_num      ! Global face ids (size = ``n_faces`` or ``null()``)
+
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_global_num
+
+    if (associated(global_num)) then
+      c_global_num = c_loc(global_num)
+    else
+      c_global_num = c_null_ptr
+    endif
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Mesh_interf_from_facevtx_set_cf(local_code_name,     &
+                                             l_local_code_name,   &
+                                             cpl_id,              &
+                                             l_cpl_id,            &
+                                             i_part,              &
+                                             n_faces,             &
+                                             c_loc(face_vtx_idx), &
+                                             c_loc(face_vtx),     &
+                                             c_global_num)
+
+  end subroutine CWP_Mesh_interf_from_facevtx_set_
 
 
   subroutine CWP_Field_create_(local_code_name,      &

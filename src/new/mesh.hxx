@@ -403,13 +403,19 @@ namespace cwipi {
      *
      */
 
-     void fromFacesEdgeSet(const int   i_part,
-                           const int   n_faces,
-                           int         face_edge_idx[],
-                           int         face_edge[],
-                           const int   n_edges,
-                           int         edge_vtx[],
-                           CWP_g_num_t parent_num[]);
+    void fromFacesEdgeSet(const int   i_part,
+                          const int   n_faces,
+                          int         face_edge_idx[],
+                          int         face_edge[],
+                          const int   n_edges,
+                          int         edge_vtx[],
+                          CWP_g_num_t parent_num[]);
+
+    void fromFacesVtxSet(const int   i_part,
+                         const int   n_faces,
+                         int         face_vtx_idx[],
+                         int         face_vtx[],
+                         CWP_g_num_t global_num[]);
 
 
     /**
@@ -726,6 +732,7 @@ namespace cwipi {
     std::vector<CWP_g_num_t*>               _cellLNToGN;
 
     int                                     _faceEdgeMethod;
+    int                                     _faceVtxMethod;
     int                                     _cellFaceMethod;
 
     PDM_part_mesh_nodal_t                  *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
