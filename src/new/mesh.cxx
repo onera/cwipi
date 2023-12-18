@@ -457,8 +457,6 @@ namespace cwipi {
                                                        &parent_entity_g_num,
                                                        PDM_OWNERSHIP_KEEP);
 
-          log_trace("Mesh::updateBlockDB : poly3DBlockSet : %p\n", face_g_num);
-
           poly3DBlockSet(i_part,
                          block_id,
                          n_elt,
@@ -605,55 +603,6 @@ namespace cwipi {
                        _edgeVtx,
                        _coords,
                        _faceLNToGN);
-
-        // PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-
-        // double ** face_center =  (double **) malloc (sizeof(double *) * (_npart));
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   face_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nFace[i_part]));
-        //   for (int j = 0; j < 3*_nFace[i_part]; j++) {
-        //     face_center[i_part][j] = 0.;
-        //   }
-
-        //   for (int j = 0; j < _nFace[i_part]; j++) {
-        //     int idx = _faceEdgeIdx[i_part][j];
-        //     int nb = _faceEdgeIdx[i_part][j+1]-_faceEdgeIdx[i_part][j];
-
-        //     for (int k = idx; k < idx + nb; k++) {
-        //       int iEdge = std::abs(_faceEdge[i_part][k]) - 1;
-        //       for (int k1 = 0; k1 < 2; k1++) {
-        //         int ivtx = _edgeVtx[i_part][2*iEdge + k1] - 1;
-        //         for (int k2 = 0; k2 < 3; k2++) {
-        //           face_center[i_part][3*j+k2] += _coords[i_part][3*ivtx+k2];
-        //         }
-        //       }
-        //     }
-
-        //     for (int k2 = 0; k2 < 3; k2++) {
-        //       face_center[i_part][3*j+k2] /= 2*nb;
-        //     }
-        //   }
-        // }
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nFace[i_part], face_center[i_part], NULL);
-        // }
-
-        // PDM_gnum_compute (pdmGNum_handle_index);
-
-        // for(int i_part=0;i_part<_npart;i_part++) {
-        //   _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
-        // }
-
-        // PDM_gnum_free (pdmGNum_handle_index);
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   free ( face_center[i_part]);
-        // }
-
-        // free ( face_center);
-
       }
 
       for (int i_part = 0; i_part < _npart; i_part++) {
@@ -697,49 +646,6 @@ namespace cwipi {
                        _edgeVtx,
                        _coords,
                        _faceLNToGN);
-
-        // PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-
-        // double **face_center = (double **) malloc(sizeof(double *) * (_npart));
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   face_center[i_part] = (double *) malloc(sizeof(double) * (3*_nFace[i_part]));
-        //   for (int j = 0; j < 3*_nFace[i_part]; j++) {
-        //     face_center[i_part][j] = 0.;
-        //   }
-
-        //   for (int i_face = 0; i_face < _nFace[i_part]; i_face++) {
-        //     for (int i_vtx = _faceVtxIdx[i_part][i_face]; i_vtx < _faceVtxIdx[i_part][i_face+1]; i_vtx++) {
-        //       int vtx_id = _faceVtx[i_part][i_vtx] - 1;
-        //       for (int j = 0; j < 3; j++) {
-        //         face_center[i_part][3*i_face+j] += _coords[i_part][3*vtx_id+j];
-        //       }
-        //     }
-
-        //     double normalization = 1./(double) (_faceVtxIdx[i_part][i_face+1] - _faceVtxIdx[i_part][i_face]);
-        //     for (int j = 0; j < 3; j++) {
-        //       face_center[i_part][3*i_face+j] *= normalization;
-        //     }
-        //   }
-        // }
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   PDM_gnum_set_from_coords(pdmGNum_handle_index, i_part, _nFace[i_part], face_center[i_part], NULL);
-        // }
-
-        // PDM_gnum_compute(pdmGNum_handle_index);
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
-        // }
-
-        // PDM_gnum_free(pdmGNum_handle_index);
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   free(face_center[i_part]);
-        // }
-
-        // free(face_center);
       }
 
       for (int i_part = 0; i_part < _npart; i_part++) {
@@ -779,51 +685,6 @@ namespace cwipi {
                        _edgeVtx,
                        _coords,
                        _faceLNToGN);
-
-        // PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-
-        // double ** face_center =  (double **) malloc (sizeof(double *) * (_npart));
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   face_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nFace[i_part]));
-        //   for (int j = 0; j < 3*_nFace[i_part]; j++) {
-        //     face_center[i_part][j] = 0.;
-        //   }
-
-        //   for (int j = 0; j < _nFace[i_part]; j++) {
-        //     int idx = _faceVtxIdx[i_part][j];
-        //     int nb = _faceVtxIdx[i_part][j+1] - _faceVtxIdx[i_part][j];
-
-        //     for (int k = idx; k < idx + nb; k++) {
-        //       int ivtx = _faceVtx[i_part][k] - 1;
-        //       for (int k2 = 0; k2 < 3; k2++) {
-        //         face_center[i_part][3*j+k2] += _coords[i_part][3*ivtx+k2];
-        //       }
-        //     }
-
-        //     for (int k2 = 0; k2 < 3; k2++) {
-        //       face_center[i_part][3*j+k2] /= nb;
-        //     }
-        //   }
-        // }
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nFace[i_part], face_center[i_part], NULL);
-        // }
-
-        // PDM_gnum_compute (pdmGNum_handle_index);
-
-        // for(int i_part=0;i_part<_npart;i_part++) {
-        //   _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
-        // }
-
-        // PDM_gnum_free (pdmGNum_handle_index);
-
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   free ( face_center[i_part]);
-        // }
-
-        // free ( face_center);
       }
 
 
@@ -934,8 +795,6 @@ namespace cwipi {
         CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
 
         if (block_type == CWP_BLOCK_CELL_POLY) {
-          log_trace("CWP_BLOCK_CELL_POLY :\n");
-
           BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
 
           std::vector<int>           n_face       = block->NFacesGet();
