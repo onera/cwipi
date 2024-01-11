@@ -325,8 +325,8 @@ _gen_mesh
     /*
      * Split mesh
      */
-    PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
-    PDM_multipart_run_ppart(mpart);
+    PDM_multipart_dmesh_nodal_set(mpart, 0, dmn);
+    PDM_multipart_compute(mpart);
 
     PDM_dcube_nodal_gen_free(dcube);
   }
@@ -410,9 +410,9 @@ _gen_mesh
                         dface_group_idx,
                         PDM_OWNERSHIP_USER);
 
-    PDM_multipart_register_block (mpart, 0, dmesh);
+    PDM_multipart_dmesh_set (mpart, 0, dmesh);
 
-    PDM_multipart_run_ppart(mpart);
+    PDM_multipart_compute(mpart);
 
     PDM_dmesh_free(dmesh);
     free(dvtx_coord);
@@ -459,7 +459,7 @@ _gen_mesh
     (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
                                                        0,
                                                        ipart,
-                                                       PDM_MESH_ENTITY_VERTEX,
+                                                       PDM_MESH_ENTITY_VTX,
                                                        &(*pvtx_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
 
@@ -484,8 +484,8 @@ _gen_mesh
                                         0,
                                         ipart,
                                         PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                        &_face_vtx,
                                         &_face_vtx_idx,
+                                        &_face_vtx,
                                         PDM_OWNERSHIP_USER);
 
     if (_face_vtx != NULL) {
@@ -499,8 +499,8 @@ _gen_mesh
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                          &_face_edge,
                                           &_face_edge_idx,
+                                          &_face_edge,
                                           PDM_OWNERSHIP_USER);
 
       int *_edge_vtx;
@@ -509,8 +509,8 @@ _gen_mesh
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                                          &_edge_vtx,
                                           &_edge_vtx_idx,
+                                          &_edge_vtx,
                                           PDM_OWNERSHIP_USER);
 
       (*pface_vtx_idx)[ipart] = _face_edge_idx;
@@ -538,8 +538,8 @@ _gen_mesh
                                         0,
                                         ipart,
                                         PDM_CONNECTIVITY_TYPE_CELL_FACE,
-                                        &(*pcell_face)[ipart],
                                         &(*pcell_face_idx)[ipart],
+                                        &(*pcell_face)[ipart],
                                         PDM_OWNERSHIP_USER);
   }
 

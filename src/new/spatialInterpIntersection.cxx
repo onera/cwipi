@@ -288,7 +288,7 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
+      _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_WEIGHT,
                                              mesh_dim,
                                              mesh_dim,
                                              0.,
@@ -363,7 +363,7 @@ namespace cwipi {
     else {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
+        _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_WEIGHT,
                                                mesh_dim,
                                                mesh_dim,
                                                0.,

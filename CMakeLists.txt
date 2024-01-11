@@ -155,17 +155,17 @@ endif()
 # Client-Server
 # -------------
 
-option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" OFF)
+option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server mode" OFF)
 
 # Documentation
 # -------------
 
-option(CWP_ENABLE_DOCUMENTATION "Enable sphinx documentation" OFF)
+option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 
 # Enable PDM tests
 # ----------------
 
-option(CWP_ENABLE_PDM_TESTS "Enable ParaDiGM Tests if ParaDiGM is embaded" OFF)
+option(CWP_ENABLE_PDM_TESTS "Enable ParaDiGM Tests if ParaDiGM is embedded" OFF)
 
 # Enable tests
 # ----------------

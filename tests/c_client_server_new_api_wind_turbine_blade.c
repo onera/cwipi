@@ -262,9 +262,9 @@ _gen_part_data
                                        NULL,
                                        "PDM_PART_RENUM_FACE_NONE");
 
-  PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+  PDM_multipart_dmesh_nodal_set(mpart, 0, dmn);
 
-  PDM_multipart_run_ppart(mpart);
+  PDM_multipart_compute(mpart);
 
 
   *pn_vtx         = malloc(sizeof(int          ) * n_part);
@@ -281,7 +281,7 @@ _gen_part_data
     (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
                                                        0,
                                                        ipart,
-                                                       PDM_MESH_ENTITY_VERTEX,
+                                                       PDM_MESH_ENTITY_VTX,
                                                        &(*pvtx_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
 
@@ -306,8 +306,8 @@ _gen_part_data
                                         0,
                                         ipart,
                                         PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                        &_face_vtx,
                                         &_face_vtx_idx,
+                                        &_face_vtx,
                                         PDM_OWNERSHIP_KEEP);
 
     if (_face_vtx != NULL) {
@@ -325,8 +325,8 @@ _gen_part_data
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                          &_face_edge,
                                           &_face_edge_idx,
+                                          &_face_edge,
                                           PDM_OWNERSHIP_KEEP);
 
       int *_edge_vtx;
@@ -335,8 +335,8 @@ _gen_part_data
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                                          &_edge_vtx,
                                           &_edge_vtx_idx,
+                                          &_edge_vtx,
                                           PDM_OWNERSHIP_KEEP);
 
       (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));

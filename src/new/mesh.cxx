@@ -1012,7 +1012,7 @@ namespace cwipi {
                                                    n_elt,
                                                    block->ConnecIJKGet()[i_part],
                                                    block->GNumMeshGet(i_part),
-                                                   NULL,
+                                                   _blockDB[i_block]->ParentNumGet(i_part),//NULL,
                                                    NULL,
                                                    block->OrderGet(),
                                                    NULL,
