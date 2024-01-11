@@ -45,27 +45,34 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
                         np.ones(1).astype(np.double),
                         comm)
 
-  mpart.multipart_register_dmesh_nodal(0, dmn_capsule)
+  mpart.dmesh_nodal_set(0, dmn_capsule)
 
-  mpart.multipart_run_ppart()
+  mpart.compute()
 
 
-  pvtx_coord     = [mpart.multipart_vtx_coord_get(i, 0)["np_vtx_coord"] for i in range(n_part)]
-  pvtx_ln_to_gn  = [mpart.multipart_ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VERTEX)["np_entity_ln_to_gn"] for i in range(n_part)]
-  pface_ln_to_gn = [mpart.multipart_ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE)  ["np_entity_ln_to_gn"] for i in range(n_part)]
+#  pvtx_coord     = [mpart.vtx_coord_get(i, 0)["np_vtx_coord"] for i in range(n_part)]
+#  pvtx_ln_to_gn  = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VERTEX)["np_entity_ln_to_gn"] for i in range(n_part)]
+#  pface_ln_to_gn = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE)  ["np_entity_ln_to_gn"] for i in range(n_part)]
+
+  pvtx_coord     = [mpart.vtx_coord_get(i, 0) for i in range(n_part)]
+  pvtx_ln_to_gn  = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VTX) for i in range(n_part)]
+  pface_ln_to_gn = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE) for i in range(n_part)]
+
 
   pface_vtx_idx = []
   pface_vtx     = []
   for i in range(n_part):
-    edges = mpart.multipart_connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_EDGE_VTX)
-    faces = mpart.multipart_connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_FACE_EDGE)
+    edges = mpart.connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_EDGE_VTX)
+    faces = mpart.connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_FACE_EDGE)
 
-    face_edge_idx = faces["np_entity1_entity2_idx"]
-    face_edge     = faces["np_entity1_entity2"]
+    # face_edge_idx = faces["np_entity1_entity2_idx"]
+    # face_edge     = faces["np_entity1_entity2"]
+    face_edge_idx = faces[0]
+    face_edge     = faces[1]
 
     face_vtx = PDM.compute_face_vtx_from_face_and_edge(face_edge_idx,
                                                        face_edge,
-                                                       edges["np_entity1_entity2"])
+                                                       edges[1])
     pface_vtx_idx.append(face_edge_idx)
     pface_vtx.append(face_vtx)
 

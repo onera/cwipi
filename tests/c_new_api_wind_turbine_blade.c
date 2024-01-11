@@ -295,9 +295,9 @@ _gen_part_data
                                        NULL,
                                        "PDM_PART_RENUM_FACE_NONE");
 
-  PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+  PDM_multipart_dmesh_nodal_set(mpart, 0, dmn);
 
-  PDM_multipart_run_ppart(mpart);
+  PDM_multipart_compute(mpart);
 
 
   *pn_vtx         = malloc(sizeof(int          ) * n_part);
@@ -314,7 +314,7 @@ _gen_part_data
     (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
                                                        0,
                                                        ipart,
-                                                       PDM_MESH_ENTITY_VERTEX,
+                                                       PDM_MESH_ENTITY_VTX,
                                                        &(*pvtx_ln_to_gn)[ipart],
                                                        PDM_OWNERSHIP_USER);
 

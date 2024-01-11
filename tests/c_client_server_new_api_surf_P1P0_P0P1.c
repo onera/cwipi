@@ -335,6 +335,7 @@ main
                                    n_vtx_seg,
                                    n_part,
                                    PDM_SPLIT_DUAL_WITH_HILBERT,
+                                   0,
                                    &pn_vtx,
                                    &pn_edge,
                                    &pn_face,

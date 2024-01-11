@@ -190,6 +190,7 @@ _gen_mesh
                                    n_vtx_seg,
                                    n_part,
                                    part_method,
+                                   0,
                                    pn_vtx,
                                    &pn_edge,
                                    pn_face,
