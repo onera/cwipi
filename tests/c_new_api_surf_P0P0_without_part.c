@@ -256,10 +256,10 @@ _gen_mesh
                                          NULL,
                                          "PDM_PART_RENUM_FACE_NONE");
 
-    PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+    PDM_multipart_dmesh_nodal_set(mpart, 0, dmn);
 
     /* Run */
-    PDM_multipart_run_ppart(mpart);
+    PDM_multipart_compute(mpart);
 
 
 
@@ -280,15 +280,15 @@ _gen_mesh
                                                    0,
                                                    i_part,
                                                    PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                                   &face_edge,
                                                    &face_edge_idx,
+                                                   &face_edge,
                                                    PDM_OWNERSHIP_KEEP);
       PDM_multipart_part_connectivity_get(mpart,
                                           0,
                                           i_part,
                                           PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                                          &edge_vtx,
                                           &edge_vtx_idx,
+                                          &edge_vtx,
                                           PDM_OWNERSHIP_KEEP);
 
 
@@ -323,7 +323,7 @@ _gen_mesh
       PDM_multipart_part_ln_to_gn_get(mpart,
                                       0,
                                       i_part,
-                                      PDM_MESH_ENTITY_VERTEX,
+                                      PDM_MESH_ENTITY_VTX,
                                       &vtx_ln_to_gn,
                                       PDM_OWNERSHIP_KEEP);
 

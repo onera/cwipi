@@ -33,79 +33,79 @@ program testf
 #endif
 
   type my_mesh
-    integer(c_int)            :: n_part
-    integer(c_int), pointer   :: pn_vtx(:)  => null()
-    type(PDM_pointer_array_t) :: pvtx_coord
-    type(PDM_pointer_array_t) :: pvtx_ln_to_gn
-    integer(c_int), pointer   :: pn_face(:) => null()
-    type(PDM_pointer_array_t) :: pface_vtx_idx
-    type(PDM_pointer_array_t) :: pface_vtx
-    type(PDM_pointer_array_t) :: pface_ln_to_gn
+    integer(c_int)                     :: n_part
+    integer(c_int),            pointer :: pn_vtx(:)      => null()
+    type(PDM_pointer_array_t), pointer :: pvtx_coord     => null()
+    type(PDM_pointer_array_t), pointer :: pvtx_ln_to_gn  => null()
+    integer(c_int),            pointer :: pn_face(:)     => null()
+    type(PDM_pointer_array_t), pointer :: pface_vtx_idx  => null()
+    type(PDM_pointer_array_t), pointer :: pface_vtx      => null()
+    type(PDM_pointer_array_t), pointer :: pface_ln_to_gn => null()
   end type my_mesh
 
   ! --------------------------------------------------------------------
-  integer, parameter            :: comm = MPI_COMM_WORLD
-  integer                       :: ierr
-  integer                       :: i_rank
-  integer                       :: n_rank
+  integer, parameter                 :: comm = MPI_COMM_WORLD
+  integer                            :: ierr
+  integer                            :: i_rank
+  integer                            :: n_rank
 
   ! CMD args
-  integer(c_int)                :: all_n_part(2) = [1, 1]
-  integer(c_int)                :: part_method = 3
-  logical                       :: disjoint_comms = .false.
-  logical                       :: swap_codes     = .false.
-  logical                       :: verbose        = .false.
-  integer(c_int)                :: spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
+  integer(c_int)                     :: all_n_part(2) = [1, 1]
+  integer(c_int)                     :: part_method = 3
+  logical                            :: disjoint_comms = .false.
+  logical                            :: swap_codes     = .false.
+  logical                            :: verbose        = .false.
+  integer(c_int)                     :: spatial_interp_algo = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
 
-  integer(c_long)               :: n_subdiv    = 1
-  double precision              :: x_center    = 0.d0
-  double precision              :: y_center    = 0.d0
-  double precision              :: z_center    = 0.d0
-  double precision              :: radius      = 1.d0
+  integer(c_long)                    :: n_subdiv    = 1
+  double precision                   :: x_center    = 0.d0
+  double precision                   :: y_center    = 0.d0
+  double precision                   :: z_center    = 0.d0
+  double precision                   :: radius      = 1.d0
 
-  type(my_mesh), allocatable    :: mesh(:)
-  integer(c_int)                :: id_block
+  type(my_mesh), allocatable         :: mesh(:)
+  integer(c_int)                     :: id_block
 
-  type(c_ptr)                   :: c_vtx_coord = C_NULL_PTR
-  double precision,     pointer :: vtx_coord1(:)    => null()
-  double precision,     pointer :: vtx_coord(:,:)   => null()
-  integer(c_long),      pointer :: vtx_ln_to_gn(:)  => null()
-  integer(c_int),       pointer :: face_vtx_idx(:)  => null()
-  integer(c_int),       pointer :: face_vtx(:)      => null()
-  integer(c_long),      pointer :: face_ln_to_gn(:) => null()
-
-
-  logical                       :: has_code(2)
-  integer(c_int)                :: n_code
-  integer,              pointer :: code_id(:)           => null()
-  character(len=5),     pointer :: code_name(:)         => null()
-  character(len=5),     pointer :: coupled_code_name(:) => null()
-  integer(c_int)                :: is_active_rank = CWP_STATUS_ON
-  integer(c_int),       pointer :: intra_comms(:)       => null()
-  character(len=99)             :: coupling_name
+  type(c_ptr)                        :: c_vtx_coord = C_NULL_PTR
+  double precision,          pointer :: vtx_coord1(:)    => null()
+  double precision,          pointer :: vtx_coord(:,:)   => null()
+  integer(c_long),           pointer :: vtx_ln_to_gn(:)  => null()
+  integer(c_int),            pointer :: face_vtx_idx(:)  => null()
+  integer(c_int),            pointer :: face_vtx(:)      => null()
+  integer(c_long),           pointer :: face_ln_to_gn(:) => null()
 
 
-  integer(c_int)                :: visu_status, map_type, exch_type
-  double precision,     pointer :: field_data(:) => null(), ptr(:) => null()
-  type(PDM_pointer_array_t), target :: send_data, recv_data
+  logical                            :: has_code(2)
+  integer(c_int)                     :: n_code
+  integer,                   pointer :: code_id(:)           => null()
+  character(len=5),          pointer :: code_name(:)         => null()
+  character(len=5),          pointer :: coupled_code_name(:) => null()
+  integer(c_int)                     :: is_active_rank = CWP_STATUS_ON
+  integer(c_int),            pointer :: intra_comms(:)       => null()
+  character(len=99)                  :: coupling_name
+
+
+  integer(c_int)                     :: visu_status, map_type, exch_type
+  double precision,          pointer :: field_data(:) => null(), ptr(:) => null()
+  type(PDM_pointer_array_t), pointer :: send_data => null(), recv_data => null()
   type(PDM_pointer_array_t), pointer :: data => null()
-  integer(c_int)                :: stride
-  character(len=99)             :: field_name
+  integer(c_int)                     :: stride
+  character(len=99)                  :: field_name
 
-  character(len=99)             :: part_data_name
+  character(len=99)                  :: part_data_name
 
   ! Global data
-  character(len=99)             :: global_data_name
-  integer(c_int)                :: global_stride, global_n_entity
-  integer(c_int), pointer       :: global_data(:,:) => null()
+  character(len=99)                  :: global_data_name
+  integer(c_int)                     :: global_stride, global_n_entity
+  integer(c_int),            pointer :: global_data(:,:) => null()
 
 
-  character                     :: strnum
-  integer                       :: i, j, k, l
-  integer                       :: iiunit = 13
-  character(len=99)             :: arg
-  double precision              :: expected
-  logical                       :: error
+  character                          :: strnum
+  integer                            :: i, j, k, l
+  integer                            :: iiunit = 13
+  character(len=99)                  :: arg
+  double precision                   :: expected
+  logical                            :: error
   ! --------------------------------------------------------------------
 
   ! Read command line arguments
@@ -352,7 +352,7 @@ program testf
                                         face_ln_to_gn)
 
         do k = 1, stride
-          ptr(k::stride) = k*face_ln_to_gn(:)
+          ptr(k::stride) = k*face_ln_to_gn(:mesh(i)%pn_face(j))
         enddo
 
         call PDM_pointer_array_part_set(send_data, &
@@ -778,11 +778,11 @@ contains
 
     call pdm_fortran_free_c(c_loc(mesh%pn_vtx))
     call pdm_fortran_free_c(c_loc(mesh%pn_face))
-    call my_free(mesh%pvtx_coord)
-    call my_free(mesh%pvtx_ln_to_gn)
-    call my_free(mesh%pface_vtx_idx)
-    call my_free(mesh%pface_vtx)
-    call my_free(mesh%pface_ln_to_gn)
+    ! call my_free(mesh%pvtx_coord)
+    ! call my_free(mesh%pvtx_ln_to_gn)
+    ! call my_free(mesh%pface_vtx_idx)
+    ! call my_free(mesh%pface_vtx)
+    ! call my_free(mesh%pface_ln_to_gn)
     call PDM_pointer_array_free(mesh%pvtx_coord)
     call PDM_pointer_array_free(mesh%pvtx_ln_to_gn)
     call PDM_pointer_array_free(mesh%pface_vtx_idx)

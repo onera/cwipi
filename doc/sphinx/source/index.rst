@@ -1,6 +1,6 @@
-*********************
-CWIPI's documentation
-*********************
+*********************************
+Welcome to CWIPI's documentation!
+*********************************
 
 **CWIPI** (Coupling With Interpolation Parallel Interface) is a C/C++ parallel coupling library under LGPL3 license.
 It allows fully parallel data exchanges based on distributed mesh definition. Those meshes are differently partitioned
@@ -57,6 +57,7 @@ Indices and tables
 ##################
 
 * :ref:`genindex`
+* :ref:`modindex`
 * :ref:`search`
 
 

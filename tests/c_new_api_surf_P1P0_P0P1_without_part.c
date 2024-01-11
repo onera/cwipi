@@ -279,7 +279,7 @@ _gen_mesh
                                          NULL,
                                          "PDM_PART_RENUM_FACE_NONE");
 
-    PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+    PDM_multipart_dmesh_nodal_set(mpart, 0, dmn);
     // int n_join = 0;
     // PDM_dmesh_t *dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
     //                                       dn_face,
@@ -316,7 +316,7 @@ _gen_mesh
     // PDM_multipart_register_joins(mpart, n_total_joins, join_to_opposite);
 
     /* Run */
-    PDM_multipart_run_ppart(mpart);
+    PDM_multipart_compute(mpart);
 
     // free(djoins_ids);
     // free(dedge_join_idx);
@@ -385,7 +385,7 @@ _gen_mesh
       PDM_multipart_part_ln_to_gn_get(mpart,
                                       0,
                                       i_part,
-                                      PDM_MESH_ENTITY_VERTEX,
+                                      PDM_MESH_ENTITY_VTX,
                                       &vtx_ln_to_gn,
                                       PDM_OWNERSHIP_KEEP);
 

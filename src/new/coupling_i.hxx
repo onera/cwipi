@@ -781,20 +781,28 @@ namespace cwipi {
       // free field variables data
       std::map < string, Field * >::iterator itf = _fields.begin();
       while (itf != _fields.end()) {
-        for (int i = 0; i < itf->second->nComponentGet(); i++) {
-          int id_send = itf->second->_id_writer_var_send_get()[i];
-          int id_recv = itf->second->_id_writer_var_recv_get()[i];
 
-          if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
-          if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
-        }
-        int id_send_status = itf->second->_id_writer_var_send_status_get();
-        if (id_send_status >= 0) PDM_writer_var_data_free(_writer, id_send_status);
-        int id_recv_status = itf->second->_id_writer_var_recv_status_get();
-        if (id_recv_status >= 0) PDM_writer_var_data_free(_writer, id_recv_status);
+        if (itf->second->visuStatusGet() == CWP_STATUS_ON) {
+
+          for (int i = 0; i < itf->second->nComponentGet(); i++) {
+            int id_send = itf->second->_id_writer_var_send_get()[i];
+            int id_recv = itf->second->_id_writer_var_recv_get()[i];
+
+            if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
+            if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
+          }
+
+          int id_send_status = itf->second->_id_writer_var_send_status_get();
+          if (id_send_status >= 0) PDM_writer_var_data_free(_writer, id_send_status);
+          int id_recv_status = itf->second->_id_writer_var_recv_status_get();
+          if (id_recv_status >= 0) PDM_writer_var_data_free(_writer, id_recv_status);
+
+        } // end if field is visualized
+
         itf++;
-      }
-    }
+      } // end iterate over fields
+    } // end if write is done
+
     _mesh.meshDel();
 
     _is_mesh_finalized = 0;

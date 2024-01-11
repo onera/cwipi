@@ -322,7 +322,7 @@ main
   CWP_g_num_t **pvtx_ln_to_gn  = NULL;
   CWP_g_num_t **pedge_ln_to_gn = NULL;
   CWP_g_num_t **pface_ln_to_gn = NULL;
-  int         **pface_vtx      = malloc(sizeof(int *) * n_part);
+  int         **pface_vtx      = NULL;
 
   PDM_generate_mesh_rectangle_ngon(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm),
                                    elt_type,
@@ -335,6 +335,7 @@ main
                                    n_vtx_seg,
                                    n_part,
                                    PDM_SPLIT_DUAL_WITH_HILBERT,
+                                   0,
                                    &pn_vtx,
                                    &pn_edge,
                                    &pn_face,
@@ -342,17 +343,10 @@ main
                                    &pedge_vtx,
                                    &pface_edge_idx,
                                    &pface_edge,
+                                   &pface_vtx,
                                    &pvtx_ln_to_gn,
                                    &pedge_ln_to_gn,
                                    &pface_ln_to_gn);
-
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    PDM_compute_face_vtx_from_face_and_edge(pn_face       [ipart],
-                                            pface_edge_idx[ipart],
-                                            pface_edge    [ipart],
-                                            pedge_vtx     [ipart],
-                                            &pface_vtx    [ipart]);
-  }
 
   int block_id = CWP_client_Mesh_interf_block_add(code_name,
                                                   cpl_name,

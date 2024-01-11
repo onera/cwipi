@@ -491,7 +491,7 @@ FILE *output_file
 /**
  * \brief Define a user structure associated to a code
  * 
- * This structure can be called into a callback 
+ * This structure can be accessed into a callback
  *
  * \param [in] local_code_name  Local code name
  * \param [in] user_structure   User structure
@@ -948,7 +948,7 @@ CWP_Visu_set
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Setting user target points.
+ * \brief Set a partition of the user target point cloud.
  *
  * This function must be called if the degrees of freedom locations are
  * \ref CWP_DOF_LOCATION_USER
@@ -979,7 +979,7 @@ CWP_User_tgt_pts_set
 
 
 /**
- * \brief Finalize interface mesh.
+ * \brief Finalize the interface mesh.
  *
  * This function computes the global ids of mesh entities if they are
  * not provided.
@@ -998,14 +998,14 @@ CWP_Mesh_interf_finalize
 
 
 /**
- * \brief Set vertices.
+ * \brief Set the interface mesh vertices.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Current partition
- * \param [in]  n_pts            Number of points
- * \param [in]  coord            Coordinates (size = 3 * \p n_pts)
- * \param [in]  global_num       Global vertex ids (size = \p n_pts or NULL)
+ * \param [in]  n_vtx            Number of vertices
+ * \param [in]  coord            Coordinates (size = 3 * \p n_vtx)
+ * \param [in]  global_num       Global vertex ids (size = \p n_vtx or NULL)
  *
  */
 
@@ -1015,7 +1015,7 @@ CWP_Mesh_interf_vtx_set
  const char           *local_code_name,
  const char           *cpl_id,
  const int             i_part,
- const int             n_pts,
+ const int             n_vtx,
  double                coord[],
  CWP_g_num_t           global_num[]
 );
@@ -1071,7 +1071,7 @@ CWP_Mesh_interf_block_add
  *       1 x-------x2
  *   \endcode
  *
- *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) :
+ *  - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) :
  *
  *   \code
  *             x 4
@@ -1085,7 +1085,7 @@ CWP_Mesh_interf_block_add
  *             x 2
  *   \endcode
  *
- *   - pyramid (\ref CWP_BLOCK_CELL_PYRAM5) :
+ *  - pyramid (\ref CWP_BLOCK_CELL_PYRAM5) :
  *
  *   \code
  *              5 x
@@ -1111,7 +1111,7 @@ CWP_Mesh_interf_block_add
  *             x 2
  *   \endcode
  *
- *  -  hexaedron (\ref CWP_BLOCK_CELL_HEXA8) :
+ *  - hexahedron (\ref CWP_BLOCK_CELL_HEXA8) :
  *
  *   \code
  *          8 x-------x 7
@@ -1192,7 +1192,7 @@ CWP_std_block_type_get
 
 
 /**
- * \brief Set the connectivity of a polygon block in a interface mesh partition.
+ * \brief Set the connectivity of a polygon block in an interface mesh partition.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1250,7 +1250,7 @@ CWP_Mesh_interf_f_poly_block_get
 
 
 /**
- * \brief Get the properties of a polyhedron block of the interface mesh partition..
+ * \brief Set the properties of a polyhedron block of the interface mesh partition.
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -1296,19 +1296,19 @@ CWP_Mesh_interf_c_poly_block_set
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
  * \param [in]  block_id          Block identifier
- * \param [in]  n_elts            Number of elements
- * \param [in]  n_faces           Number of faces
- * \param [in]  connec_faces_idx  Polyhedron face to vertex index
+ * \param [out] n_elts            Number of elements
+ * \param [out] n_faces           Number of faces
+ * \param [out] connec_faces_idx  Polyhedron face to vertex index
  *                                (\p connec_faces_idx[0] = 0 and
  *                                 size = max(\p connec_cells) + 1)
- * \param [in]  connec_faces      Polyhedron face to vertex connectivity
+ * \param [out] connec_faces      Polyhedron face to vertex connectivity
  *                                (size = \p connec_faces_idx[\p n_elts])
- * \param [in]  connec_cells_idx  Polyhedron to face index
+ * \param [out] connec_cells_idx  Polyhedron to face index
  *                                (\p connec_cells_idx[0] = 0 and
  *                                 size = \p n_elts + 1)
- * \param [in]  connec_cells      Polyhedron to face connectivity
+ * \param [out] connec_cells      Polyhedron to face connectivity
  *                                (size = \p connec_cells_idx[\p n_elts])
- * \param [in]  global_num        Global element ids (size = \p n_elts or NULL)
+ * \param [out] global_num        Global element ids (size = \p n_elts or NULL)
  *
  */
 
@@ -1330,7 +1330,7 @@ CWP_Mesh_interf_c_poly_block_get
 
 
 /**
- * \brief Delete interface mesh.
+ * \brief Delete the interface mesh.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1346,7 +1346,7 @@ CWP_Mesh_interf_del
 
 
 /**
- * \brief Define the interface mesh from a cell to face connectivity.
+ * \brief Define the interface mesh from a cell-to-face connectivity.
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -1384,7 +1384,7 @@ CWP_Mesh_interf_from_cellface_set
 
 
 /**
- * \brief Define the surface interface mesh from a face to edge connectivity.
+ * \brief Define the surface interface mesh from a face-to-edge connectivity.
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -1545,6 +1545,8 @@ CWP_Field_storage_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  field_id                  Field identifier
+ *
+ * \return Number of field components
  *
  */
 
@@ -2003,10 +2005,6 @@ CWP_Param_del
 );
 
 
-/*----------------------------------------------------------------------------*
- * Functions about all code parameters                                        *
- *----------------------------------------------------------------------------*/
-
 /**
  *
  * \brief Return the number of control parameters for the code \p code_name.
@@ -2248,8 +2246,8 @@ CWP_Global_data_wait_irecv
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id     Partitioned data identifier
- * \param [in] exch_type        Send or receive
- * \param [in] gnum_elt         Element global number array
+ * \param [in] exch_type        Exchange type
+ * \param [in] gnum_elt         Global ids
  * \param [in] n_elt            Number of elements per partition
  * \param [in] n_part           Number of partitions
  *

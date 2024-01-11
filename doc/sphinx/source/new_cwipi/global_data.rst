@@ -1,6 +1,6 @@
 .. _global data:
 
-Exhange of Global Data
-""""""""""""""""""""""
+Exchange of Global Data
+~~~~~~~~~~~~~~~~~~~~~~~
 
 *à remplir*
