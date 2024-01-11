@@ -306,8 +306,8 @@ _gen_part_data
                                         0,
                                         ipart,
                                         PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                        &_face_vtx,
                                         &_face_vtx_idx,
+                                        &_face_vtx,
                                         PDM_OWNERSHIP_KEEP);
 
     if (_face_vtx != NULL) {
@@ -325,8 +325,8 @@ _gen_part_data
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                          &_face_edge,
                                           &_face_edge_idx,
+                                          &_face_edge,
                                           PDM_OWNERSHIP_KEEP);
 
       int *_edge_vtx;
@@ -335,8 +335,8 @@ _gen_part_data
                                           0,
                                           ipart,
                                           PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                                          &_edge_vtx,
                                           &_edge_vtx_idx,
+                                          &_edge_vtx,
                                           PDM_OWNERSHIP_KEEP);
 
       (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
