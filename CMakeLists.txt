@@ -162,6 +162,11 @@ option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server mode" OFF)
 
 option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 
+# Training Notebooks
+# ------------------
+
+option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
+
 # Enable PDM tests
 # ----------------
 
@@ -623,6 +628,9 @@ endif()
 
 add_subdirectory(doc)
 
+if (CWP_ENABLE_TRAINING)
+  add_subdirectory(training)
+endif()
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages
