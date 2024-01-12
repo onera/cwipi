@@ -23,3 +23,5 @@ nbproject
 CMakeLists.txt.user
 build/
 cmake-build-*
+doc/sphinx/source/conf.py
+*.ipynb
