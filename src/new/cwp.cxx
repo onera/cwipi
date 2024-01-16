@@ -2045,6 +2045,43 @@ CWP_Mesh_interf_from_faceedge_set
 
 
 /**
+ * \brief Define the surface interface mesh from a face-to-vertex connectivity.
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  n_faces           Number of cells
+ * \param [in]  face_vtx_idx      Polygon to vertex index
+ *                                (\p face_vtx_idx[0] = 0 and
+ *                                 size =  \p n_faces + 1)
+ * \param [in]  face_vtx          Polygon to vertex connectivity
+ *                                (size = \p face_vtx_idx[\p n_faces])
+ * \param [in]  global_num        Global polygon ids (size = \p n_faces or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_from_facevtx_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          n_faces,
+       int          face_vtx_idx[],
+       int          face_vtx[],
+       CWP_g_num_t  global_num[]
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshFromFacesVtxSet(i_part,
+                          n_faces,
+                          face_vtx_idx,
+                          face_vtx,
+                          global_num);
+}
+
+
+/**
  * \brief Delete interface mesh.
  *
  * \param [in] local_code_name  Local code name

@@ -988,6 +988,16 @@ namespace cwipi {
     );
 
 
+    inline void
+    meshFromFacesVtxSet(
+      const int   i_part,
+      const int   n_faces,
+      int         face_vtx_idx[],
+      int         face_vtx[],
+      CWP_g_num_t global_num[]
+    );
+
+
     /**
      * \brief SpatialInterp mesh removal
      *

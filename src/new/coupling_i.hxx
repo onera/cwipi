@@ -751,6 +751,32 @@ namespace cwipi {
   }
 
 
+  void
+  Coupling::meshFromFacesVtxSet (
+    const int         i_part,
+    const int         n_faces,
+          int         face_vtx_idx[],
+          int         face_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    if (has_mesh()) {
+      _mesh.fromFacesVtxSet (i_part,
+                             n_faces,
+                             face_vtx_idx,
+                             face_vtx,
+                             global_num);
+    }
+    else {
+      _mesh.fromFacesVtxSet (i_part,
+                             0,
+                             NULL,
+                             NULL,
+                             NULL);
+    }
+  }
+
+
   /**
    * \brief SpatialInterp mesh removal
    *
