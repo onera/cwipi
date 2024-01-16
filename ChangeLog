@@ -2,6 +2,7 @@
 ### Added
 - Training : Jupyter notebook
 - Documentation
+- CWP_Mesh_interf_from_facevtx_set
 ### Changed
 - New version of ParaDiGM-2.4.0
 ### Deprecated
