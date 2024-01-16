@@ -271,9 +271,9 @@ program testf
                                             mesh(i)%pface_vtx,      &
                                             mesh(i)%pface_ln_to_gn)
 
-    id_block = CWP_Mesh_interf_block_add(code_name(i),        &
-                                         coupling_name,       &
-                                         CWP_BLOCK_FACE_POLY)
+    ! id_block = CWP_Mesh_interf_block_add(code_name(i),        &
+    !                                      coupling_name,       &
+    !                                      CWP_BLOCK_FACE_POLY)
 
     do j = 1, mesh(i)%n_part
       call PDM_pointer_array_part_get(mesh(i)%pvtx_ln_to_gn, &
@@ -308,14 +308,22 @@ program testf
                                       j-1,               &
                                       face_vtx)
 
-      call CWP_Mesh_interf_f_poly_block_set(code_name(i),       &
+      ! call CWP_Mesh_interf_f_poly_block_set(code_name(i),       &
+      !                                       coupling_name,      &
+      !                                       j-1,                &
+      !                                       id_block,           &
+      !                                       mesh(i)%pn_face(j), &
+      !                                       face_vtx_idx,       &
+      !                                       face_vtx,           &
+      !                                       face_ln_to_gn)
+      call CWP_Mesh_interf_from_facevtx_set(code_name(i),       &
                                             coupling_name,      &
                                             j-1,                &
-                                            id_block,           &
                                             mesh(i)%pn_face(j), &
                                             face_vtx_idx,       &
                                             face_vtx,           &
                                             face_ln_to_gn)
+
     enddo
 
     call CWP_Mesh_interf_finalize(code_name(i),  &

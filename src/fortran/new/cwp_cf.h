@@ -826,6 +826,20 @@ CWP_Mesh_interf_from_faceedge_set_cf (
   CWP_g_num_t parent_num[]
 );
 
+
+void
+CWP_Mesh_interf_from_facevtx_set_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int n_faces,
+  int face_vtx_idx[],
+  int face_vtx[],
+  CWP_g_num_t global_num[]
+);
+
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/

@@ -381,9 +381,9 @@ int main(int argc, char *argv[])
               &pface_ln_to_gn[i_code],
               &pvtx_ln_to_gn [i_code]);
 
-    int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
-                                             cpl_name,
-                                             CWP_BLOCK_FACE_POLY);
+    // int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
+    //                                          cpl_name,
+    //                                          CWP_BLOCK_FACE_POLY);
     for (int i = 0; i < n_part[i_code]; i++) {
       CWP_Mesh_interf_vtx_set(code_name[i_code],
                               cpl_name,
@@ -393,14 +393,21 @@ int main(int argc, char *argv[])
                               pvtx_ln_to_gn[i_code][i]);
 
 
-      CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
+      // CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
+      //                                  cpl_name,
+      //                                  i,
+      //                                  block_id,
+      //                                  pn_face       [i_code][i],
+      //                                  pface_vtx_idx [i_code][i],
+      //                                  pface_vtx     [i_code][i],
+      //                                  pface_ln_to_gn[i_code][i]);
+      CWP_Mesh_interf_from_facevtx_set(code_name[i_code],
                                        cpl_name,
                                        i,
-                                       block_id,
                                        pn_face       [i_code][i],
                                        pface_vtx_idx [i_code][i],
                                        pface_vtx     [i_code][i],
-                                       pface_ln_to_gn[i_code][i]);
+                                       NULL);//pface_ln_to_gn[i_code][i]);
     }
 
     CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);

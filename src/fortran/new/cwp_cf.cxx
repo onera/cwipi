@@ -1661,6 +1661,38 @@ CWP_Mesh_interf_from_faceedge_set_cf (
 
 }
 
+
+void
+CWP_Mesh_interf_from_facevtx_set_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int n_faces,
+  int face_vtx_idx[],
+  int face_vtx[],
+  CWP_g_num_t global_num[]
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+
+  CWP_Mesh_interf_from_facevtx_set(c_local_code_name,
+                                   c_cpl_id,
+                                   i_part,
+                                   n_faces,
+                                   face_vtx_idx,
+                                   face_vtx,
+                                   global_num);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+
+}
+
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/
