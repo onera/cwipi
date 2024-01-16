@@ -49,6 +49,7 @@ namespace cwipi {
     _connec_cells.resize(_n_part,NULL);
     _connec_faces_idx.resize(_n_part,NULL);
     _connec_faces.resize(_n_part,NULL);
+    _face_ln_to_gn.resize(_n_part,NULL);
   }
 
   void BlockCP::blockSet(int          i_part,
@@ -108,6 +109,17 @@ namespace cwipi {
     *connec_faces     = _connec_faces[i_part];
   
    }
+
+
+  void
+  BlockCP::FacesGNumFree(int i_part) {
+    // if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
+      if (_face_ln_to_gn[i_part] != NULL) {
+        free(_face_ln_to_gn[i_part]);
+        _face_ln_to_gn[i_part] = NULL;
+      }
+    // }
+  }
 
 
 
