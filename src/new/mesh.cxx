@@ -552,8 +552,8 @@ namespace cwipi {
     }
 
     int _compute_gnum = compute_gnum;
-    PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, MPI_INT, MPI_MAX,
-                    _pdm_localComm);
+    PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                       _pdm_localComm);
 
     if(compute_gnum == 1) {
       _isVtxGnumComputed = true;
@@ -603,8 +603,8 @@ namespace cwipi {
       }
 
       int _compute_gnum = compute_gnum;
-      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, MPI_INT, MPI_MAX,
-                     _pdm_localComm);
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if(compute_gnum) {
         _isEltGnumComputed = true;
@@ -650,8 +650,8 @@ namespace cwipi {
       }
 
       int _compute_gnum = compute_gnum;
-      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, MPI_INT, MPI_MAX,
-                     _pdm_localComm);
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
         _isEltGnumComputed = true;
@@ -717,8 +717,8 @@ namespace cwipi {
       }
 
       int _compute_gnum = compute_gnum;
-      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, MPI_INT, MPI_MAX,
-                     _pdm_localComm);
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
 
@@ -855,8 +855,8 @@ namespace cwipi {
       }
 
       int _compute_gnum = compute_gnum;
-      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, MPI_INT, MPI_MAX,
-                     _pdm_localComm);
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
 
