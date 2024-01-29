@@ -2756,12 +2756,12 @@ contains
     character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
     integer(c_int), intent(in)             :: i_part          ! Current partition
     integer(c_int), intent(in)             :: n_vtx           ! Number of vertices
-    real(8), dimension(:,:), pointer       :: coord           ! Coordinates (size = 3 * ``n_vtx``)
+    real(8), dimension(:,:), pointer       :: coord           ! Coordinates (shape = [3, ``n_vtx``])
     integer(c_long), dimension(:), pointer :: global_num      ! Global vertex ids (size = ``n_vtx`` or ``null()``)
-    integer(c_int)                    :: array_size
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
     type(c_ptr) :: c_global_num
+    type(c_ptr) :: c_coord
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -2769,15 +2769,21 @@ contains
       c_global_num = c_null_ptr
     endif
 
+    if (associated(coord)) then
+      c_coord = c_loc(coord)
+    else
+      c_coord = c_null_ptr
+    endif
+
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
 
-    array_size = size(coord)
-    if (modulo(array_size, 3) /= 0) then
-        print *, "Error : Length of connectivity array is not a multiple of the 3"
-        stop 'error'
+    if (n_vtx > 0) then
+      if (size(coord, 1) /= 3) then
+          print *, "Error : First dimension of 'coord' should be equal to 3"
+          stop 'error'
+      endif
     endif
-
 
     call CWP_Mesh_interf_vtx_set_cf(local_code_name,   &
                                     l_local_code_name, &
@@ -2785,7 +2791,7 @@ contains
                                     l_cpl_id,          &
                                     i_part,            &
                                     n_vtx,             &
-                                    c_loc(coord),      &
+                                    c_coord,           &
                                     c_global_num)
 
   end subroutine CWP_Mesh_interf_vtx_set_
