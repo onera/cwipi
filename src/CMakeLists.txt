@@ -67,20 +67,20 @@ if (CWP_ENABLE_Fortran)
        fortran/cwipi_set_output_logical_unit.f90
        fortran/printfort.f90
        fortran/mod_fvmc_ho_basis.f90
+       fortran/callfortinterpfct.f90
+       fortran/callforthointerpfct.f90
+       fortran/callfortlocinterpfct.f90
        # --> new fortran
        fortran/new/cwp_cf.cxx
        fortran/new/cwp_f.f90
        fortran/new/cwp_printfort_cf.cxx
        fortran/new/cwp_printfort.f90)
-  list(APPEND SOURCES fortran/callfortinterpfct.f90)
-  list(APPEND SOURCES fortran/callforthointerpfct.f90)
-  list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
   if (NOT CWP_ENABLE_EXTERNAL_PDM)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/util/pdm_fortran.F90)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/pdm.F90)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_generate_mesh.F90)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_sphere_surf_gen.F90)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/struct/pdm_pointer_array.F90)
+    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/util/pdm_fortran.F90)
+    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/pdm.F90)
+    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_generate_mesh.F90)
+    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_sphere_surf_gen.F90)
+    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/struct/pdm_pointer_array.F90)
   endif()
 endif()
 
@@ -149,28 +149,24 @@ endif()
 # --------------------------------------------------
 
 if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES)
-    list(APPEND LINK_LIBRARIES ${FORTRAN_LIBRARIES})
+  list(APPEND LINK_LIBRARIES ${FORTRAN_LIBRARIES})
 endif()
 
 if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES_FLAG)
-   set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
+  set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
 endif ()
 
-if (MKL_FOUND)
-  list(APPEND LINK_LIBRARIES ${MKL_LIBRARIES})
-else ()
-  if (BLAS_FOUND)
-    list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
-  endif()
+if (BLAS_FOUND)
+  list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
+endif()
 
-  if (LAPACK_FOUND)
-    list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
-  endif()
+if (LAPACK_FOUND)
+  list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
 endif()
 
 if (CWP_ENABLE_SHARED)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwp_shared SHARED  $<TARGET_OBJECTS:cwp>)
+  add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp>)
   set_target_properties(cwp_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
   add_dependencies(cwp_shared cwp)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
@@ -184,7 +180,7 @@ if (CWP_ENABLE_SHARED)
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
   if (CWP_ENABLE_TESTS AND NOT CWP_ENABLE_EXTERNAL_PDM) #add library with non-private paradigm for tests
-    add_library(cwp_test_shared SHARED  $<TARGET_OBJECTS:cwp>)
+    add_library(cwp_test_shared SHARED $<TARGET_OBJECTS:cwp>)
     add_dependencies(cwp_test_shared cwp)
     target_link_libraries(cwp_test_shared ${LINK_LIBRARIES})
     if (CWP_ENABLE_EXTERNAL_PDM)
@@ -197,13 +193,13 @@ endif()
 
 if (CWP_ENABLE_STATIC)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwp_static STATIC  $<TARGET_OBJECTS:cwp>)
+  add_library(cwp_static STATIC $<TARGET_OBJECTS:cwp>)
   add_dependencies(cwp_static cwp)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_static ${LINK_LIBRARIES})
   set_target_properties(cwp_static PROPERTIES
-                             PUBLIC_HEADER "${LIST_HEADER}")
+                        PUBLIC_HEADER "${LIST_HEADER}")
   if (CWP_ENABLE_EXTERNAL_PDM)
     target_link_libraries (cwp_shared pdm::pdm_static)
   endif ()
