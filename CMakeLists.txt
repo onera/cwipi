@@ -19,9 +19,6 @@ enable_testing()
 
 #set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-
-
-
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
@@ -52,21 +49,6 @@ set(CWP_VERSION "${CWP_VERSION_MAJOR}.${CWP_VERSION_MINOR}.${CWP_VERSION_PATCH}"
 # -----------------
 
 option(CWP_ENABLE_EXTERNAL_PDM "Use an external ParaDiGM library" OFF)
-
-# OpenMP
-# ------
-
-option(CWP_ENABLE_OPENMP "Enable OpenMP" ON)
-
-# Pt-scotch
-# ---------
-
-option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." ON)
-
-# ParMetis
-# --------
-
-option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." ON)
 
 # Shared libraries
 # ----------------
@@ -102,7 +84,7 @@ endif()
 # MKL, BLAS, LAPACK
 # -----------------
 
-option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
+option(CWP_ENABLE_BLASLAPACK  "Enable the use of the library blas/lapack" OFF)
 
 if (CWP_ENABLE_BLASLAPACK)
 
@@ -133,21 +115,6 @@ if (CWP_ENABLE_BLASLAPACK)
   endif()
 
 endif()
-
-# High order (Nodal bases from SPACE)
-# -----------------
-
-#if (BLAS_FOUND AND LAPACK_FOUND)
-#  set (ENABLE_SPACE_NODAL_BASIS ON)
-#else()
-#  set (ENABLE_SPACE_NODAL_BASIS OFF)
-#endif()
-#option(CWP_ENABLE_SPACE_NODAL_BASIS  "Enable nodal basis from SPACE" ${ENABLE_SPACE_NODAL_BASIS})
-
-#if (CWP_ENABLE_SPACE_NODAL_BASIS)
-# set(SNB_IN_CWP 1)
-# set(HAVE_SPACE_BASIS 1)
-#endif ()
 
 # Allow Fortran call from C
 # --------------------------
@@ -377,33 +344,6 @@ if (CWP_ENABLE_MPI_CHECK)
   include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/CheckMPI.cmake)
 endif()
 
-# Checck SCOTCH an ParMETIS
-# -------------------------
-
-if (CWP_ENABLE_PARMETIS)
-  find_package(ParMETIS 4.0.3)
-  if (PARMETIS_FOUND)
-    set(CWP_HAVE_PARMETIS 1)
-  endif()
-endif()
-
-if (CWP_ENABLE_PTSCOTCH)
-  find_package(PTSCOTCH 6.0.0)
-  if (PTSCOTCH_FOUND)
-    set(CWP_HAVE_PTSCOTCH 1)
-  endif()
-endif()
-
-# Check OpenMP (TODO : check MPI wrapper function check )
-# -------------------------------------------------------
-
-if (CWP_ENABLE_OPENMP)
-  find_package(OpenMP)
-  if (OPENMP_FOUND)
-    set(CWP_HAVE_OPENMP 1)
-  endif()
-endif()
-
 # Python bindings
 # ---------------
 
@@ -495,11 +435,7 @@ set(CWP_LIST_NRANK "")
 # Fake dlclose path
 #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/script/asan/fake_dlclose)
-else()
-  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose)
-endif()
+set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/script/asan/fake_dlclose)
 
 set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
 
@@ -510,7 +446,7 @@ set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
 
 add_subdirectory(script)
 
-if (CWP_ENABLE_EXTERNAL_PDM) 
+if (CWP_ENABLE_EXTERNAL_PDM)
 
   set (REQUIRED_COMPONENTS pdm)
 
@@ -528,75 +464,59 @@ if (CWP_ENABLE_EXTERNAL_PDM)
                )
 
   #find_package(PARADIGM 2.3.0
-  #             REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} 
+  #             REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
   #             OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES)
 
 else ()
 
-  # Extensions
-  # ----------
+  # Global options
+  # ------
 
-  set (PDM_ENABLE_EXTENSION_PDMA OFF)
+  set(PDM_HAVE_CUDA OFF)
+  set(PDM_HAVE_ANISO_AGGLO OFF)
+  set(PDM_HAVE_GETRUSAGE ${HAVE_PDM_HAVE_GETRUSAGE})
+  set(PDM_HAVE_GETTIMEOFDAY ${HAVE_GETTIMEOFDAY})
+  set(PDM_HAVE_BLAS OFF)
+  set(PDM_HAVE_LAPACK OFF)
 
   # OpenMP
   # ------
 
-  set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
+  set(PDM_HAVE_OPENMP OFF)
 
   # Enable long for absolute number
   # -------------------------------
 
-  set(PDM_ENABLE_LONG_G_NUM ON)
+  set(PDM_LONG_G_NUM ON)
 
   # Pt-scotch
   # ---------
 
-  set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
+  set(PDM_HAVE_PTSCOTCH OFF)
 
   # ParMetis
   # --------
 
-  set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
-
-  # Shared libraries
-  # ----------------
-
-  set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
-
-  # Static libraries
-  # ----------------
-
-  set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
-
-  # Check MPI Wrapper
-  # -----------------
-
-  #set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
-
-  # Python Bindings
-  # ---------------
-
-  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+  set(PDM_ENABLE_PARMETIS OFF)
 
   # Fortran interface
   # -----------------
 
-  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
-
-  set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
-
-  set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
-
-  set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
+  if (CWP_ENABLE_Fortran_MPI_MODULE)
+    set(CMAKE_Fortran_PREPROCESS ON)
+    set(PDM_HAVE_FORTRAN_MPI_MODULE 1)
+  endif()
 
   set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
-  # Enable Tests
-  # ------------
+  configure_file(${PDM_SOURCE_DIR}/pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
-  set(PDM_ENABLE_TESTS ${CWP_ENABLE_PDM_TESTS})
-
-  add_subdirectory(external/paradigm)
+  if (${CWP_ENABLE_Fortran})
+    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+      include (FortranizeFile)
+      fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
+    endif ()
+  endif ()
 
 endif()
 
@@ -610,10 +530,6 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   add_subdirectory(Cython)
 endif()
 
-if (CWP_ENABLE_SPACE_NODAL_BASIS)
- add_subdirectory(spaceBasis)
-endif ()
-
 if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(bin)
 endif()
@@ -626,7 +542,9 @@ endif()
 # Add doc
 #------------------------------------------------------------------------------
 
-add_subdirectory(doc)
+if(CWP_ENABLE_DOCUMENTATION)
+  add_subdirectory(doc)
+endif()
 
 if (CWP_ENABLE_TRAINING)
   add_subdirectory(training)

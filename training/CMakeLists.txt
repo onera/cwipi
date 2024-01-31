@@ -4,7 +4,7 @@ if (CWP_ENABLE_FORTRAN)
   check_python_module(sphinxfortran REQUIRED)
 endif()
 
-find_package(Jupyter REQUIRED)
+find_package(Jupyter  REQUIRED)
 find_package(Jupytext REQUIRED)
 
 set(TRAINING_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/training)
@@ -19,18 +19,10 @@ file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Fortran DESTINATION ${CMAKE_CURRENT_BINAR
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Python DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/utils DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-
 if (CWP_ENABLE_SHARED)
-    set(JUPYTEXT_DEP cwp_shared)
+  set(JUPYTEXT_DEP cwp_shared)
 else ()
-    set(JUPYTEXT_DEP cwp_static)
-endif()
-if(CWP_ENABLE_Fortran)
-  if (CWP_ENABLE_SHARED)
-      set(JUPYTEXT_DEP ${JUPYTEXT_DEP} cwpf_shared)
-  else ()
-      set(JUPYTEXT_DEP ${JUPYTEXT_DEP} cwpf_static)
-  endif()
+  set(JUPYTEXT_DEP cwp_static)
 endif()
 
 set(SOURCES_JUPITER "")
@@ -49,7 +41,7 @@ foreach(_md_file IN ITEMS ${SOURCES_JUPITEXT})
   add_custom_command(OUTPUT ${_ipynb_file}
                      COMMAND ${JUPYTEXT_EXECUTABLE} --to ipynb ${_md_file} -o ${_ipynb_file} -q
                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                     DEPENDS 
+                     DEPENDS
                      ${JUPYTEXT_DEP}
                      MAIN_DEPENDENCY ${_md_file}
                      VERBATIM)
@@ -65,5 +57,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Python
         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/training/cwp)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/utils
         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/training/cwp)
-
-

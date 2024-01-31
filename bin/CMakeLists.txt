@@ -2,6 +2,7 @@
 # Build server
 # ------------
 
+# wrong definition of compilers....
 if (MPI_C_COMPILER)
     set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 endif()
@@ -28,40 +29,28 @@ if (NOT MPI_CXX_COMPILER)
   endif()
 endif ()
 
-if (NOT CWP_ENABLE_EXTERNAL_PDM)
+list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-    if (CWP_ENABLE_STATIC)
-       list(APPEND LINK_LIBRARIES cwp_static)
-       list(APPEND LINK_LIBRARIES
-              pdm_mpi_static
-              pdm_static)
-       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-    else ()
-       list(APPEND LINK_LIBRARIES cwp_shared)
-       list(APPEND LINK_LIBRARIES
-              pdm_mpi_shared
-              pdm_shared)
-       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-    endif()
+if (CWP_ENABLE_STATIC)
+  list(APPEND LINK_LIBRARIES cwp_static)
+endif ()
 
+if (CWP_ENABLE_EXTERNAL_PDM)
+  if (CWP_ENABLE_STATIC)
+    list(APPEND LINK_LIBRARIES
+          pdm::pdm_mpi_static
+          pdm::pdm_static)
+  else ()
+    list(APPEND LINK_LIBRARIES cwp_shared)
+    list(APPEND LINK_LIBRARIES
+          pdm_mpi_shared
+          pdm_shared)
+  endif ()
 else ()
-    if (CWP_ENABLE_STATIC)
-       list(APPEND LINK_LIBRARIES cwp_static)
-       list(APPEND LINK_LIBRARIES
-              pdm::pdm_mpi_static
-              pdm::pdm_static)
-       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-    else ()
-       list(APPEND LINK_LIBRARIES cwp_shared)
-       list(APPEND LINK_LIBRARIES
-              pdm::pdm_mpi_shared
-              pdm::pdm_shared)
-       list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-    endif()
-
-endif()
-
-# add executable
+  if (CWP_ENABLE_SHARED)
+    list(APPEND LINK_LIBRARIES cwp_test_shared)
+  endif ()
+endif ()
 
 add_executable (cwp_server server_main.c)
 target_include_directories(cwp_server PRIVATE ${CMAKE_SOURCE_DIR}
