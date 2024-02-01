@@ -41,7 +41,7 @@ file(GLOB SOURCES
 set(SOURCESPDM "")
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
   file(GLOB_RECURSE SOURCESPDM
-      ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/*.[ch])
+      ${PDM_SOURCE_DIR}/src/*.[ch])
   list(FILTER SOURCESPDM EXCLUDE REGEX "pdm_no_mpi*")
 endif()
 
@@ -76,11 +76,13 @@ if (CWP_ENABLE_Fortran)
        fortran/new/cwp_printfort_cf.cxx
        fortran/new/cwp_printfort.f90)
   if (NOT CWP_ENABLE_EXTERNAL_PDM)
-    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/util/pdm_fortran.F90)
-    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/pdm.F90)
-    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_generate_mesh.F90)
-    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen/pdm_sphere_surf_gen.F90)
-    list(APPEND SOURCESPDM ${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/struct/pdm_pointer_array.F90)
+    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/util/pdm_fortran.F90)
+    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/pdm.F90)
+    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/struct/pdm_pointer_array.F90)
+    if (CWP_ENABLE_TESTS)
+      list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
+      list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
+    endif()
   endif()
 endif()
 
@@ -91,16 +93,16 @@ target_include_directories(cwp
                            PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                            PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/meshgen>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/mesh>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/struct>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/io>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/pario>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/ppart>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/util>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/ext_wrapper>
-                           PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/paradigm/src/mpi_wrapper>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>

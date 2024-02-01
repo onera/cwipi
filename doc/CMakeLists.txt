@@ -57,12 +57,6 @@ else()
   set (DOC_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython")
 endif()
 
-if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-  execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(DOC_PRELOAD "LD_PRELOAD=${PRELOAD_ASAN}")
-  set(RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
-endif()
-
 # Only regenerate Sphinx when:
 # - Doxygen has rerun
 # - Our doc files have been updated

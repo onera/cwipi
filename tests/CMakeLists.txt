@@ -61,18 +61,23 @@ endif ()
 
 get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)
 
-include(TestCreate)
-
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Add test
 # --------
 
-SET (CTEST_ENVIRONMENT
-     "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-     "PYTHONPATH=${CWP_BINARY_DIR}/Cython:${PYTHONPATH}"
-     "PATH=${CWP_BINARY_DIR}/bin:${PATH}"
-     )
+if (CWP_ENABLE_PYTHON_BINDINGS)
+  set (CTEST_ENVIRONMENT
+       "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+       "PYTHONPATH=${CWP_BINARY_DIR}/Cython:${PYTHONPATH}"
+       "PATH=${CWP_BINARY_DIR}/bin:${PATH}")
+else()
+  set (CTEST_ENVIRONMENT
+       "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+       "PATH=${CWP_BINARY_DIR}/bin:${PATH}")
+endif()
+
+include(TestCreate)
 
 test_c_create (c_new_api 10 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_c_poly_block 2 CWP_LIST_TEST CWP_LIST_NRANK)
@@ -179,3 +184,12 @@ add_subdirectory(tutorial)
 
 set (CWP_LIST_TEST  ${CWP_LIST_TEST}  PARENT_SCOPE )
 set (CWP_LIST_NRANK ${CWP_LIST_NRANK} PARENT_SCOPE )
+
+# unused/non-existent tests
+#if (CWP_ENABLE_CLIENT_SERVER)
+#  test_c_create (c_ip_io 1)
+#endif ()
+#test_c_create (c_new_to_old_api_surf_P1P0_P0P1_poly 2 CWP_LIST_TEST CWP_LIST_NRANK)
+#test_c_create (c_ho_palm 2)
+#test_c_create (c_surf_coupling_P1P0_P0P1_surf_gen 2)
+#test_c_create (c_surf_coupling_P1P0_P0P1_curv 2)

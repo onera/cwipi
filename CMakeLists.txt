@@ -84,7 +84,7 @@ endif()
 # MKL, BLAS, LAPACK
 # -----------------
 
-option(CWP_ENABLE_BLASLAPACK  "Enable the use of the library blas/lapack" OFF)
+option(CWP_ENABLE_BLASLAPACK "Enable the use of the library blas/lapack" OFF)
 
 if (CWP_ENABLE_BLASLAPACK)
 
@@ -116,9 +116,6 @@ if (CWP_ENABLE_BLASLAPACK)
 
 endif()
 
-# Allow Fortran call from C
-# --------------------------
-
 # Client-Server
 # -------------
 
@@ -149,19 +146,19 @@ option(CWP_ENABLE_TESTS "Enable Tests" ON)
 #------------------------------------------------------------------------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS AND (NOT CWP_ENABLE_SHARED))
-   set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
+  set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
 endif()
 
 if (CWP_ENABLE_SHARED AND CWP_ENABLE_Fortran)
-   set (CWP_ENABLE_SHARED_Fortran_LIB ON)
+  set (CWP_ENABLE_SHARED_Fortran_LIB ON)
 endif()
 
 if (CWP_ENABLE_STATIC AND CWP_ENABLE_Fortran)
-   set (CWP_ENABLE_STATIC_Fortran_LIB ON)
+  set (CWP_ENABLE_STATIC_Fortran_LIB ON)
 endif()
 
 if ((NOT CWP_ENABLE_STATIC) AND (NOT CWP_ENABLE_SHARED))
-   message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
+  message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -313,16 +310,6 @@ CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Libraries to add to link
-#------------------------------------------------------------------------------
-
-set(COMMON_LIBRARIES)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
-   add_link_options("--coverage")
-endif()
-
-#------------------------------------------------------------------------------
 # Check dependecies
 #------------------------------------------------------------------------------
 
@@ -360,7 +347,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
 
      set (CMAKE_CWP_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
      set (CMAKE_CWP_INSTALL_PYTHON_DIR
-         ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
+          ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
   endif ()
 
 endif()
@@ -390,7 +377,7 @@ endif()
 #------------------------------------------------------------------------------
 
 if (NOT (CWP_ENABLE_SHARED_Fortran_LIB OR CWP_ENABLE_STATIC_Fortran_LIB))
-   set (CWP_HAVE_NOT_FORTRAN_IN_C 1)
+  set (CWP_HAVE_NOT_FORTRAN_IN_C 1)
 endif()
 
 #------------------------------------------------------------------------------
@@ -403,25 +390,11 @@ configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-  if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
+  if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
     include (FortranizeFile)
     fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
   endif ()
 endif ()
-
-#------------------------------------------------------------------------------
-# Installation de CWP
-#------------------------------------------------------------------------------
-
-# Set PDM install sub-directories
-set(CWP_BIN_DIR "bin")
-set(CWP_LIB_DIR "lib")
-set(CWP_INCLUDE_DIR "include")
-set(CWP_PKGCONFIG_DIR "lib/pkgconfig")
-set(CWP_SHARE_DIR "share/cedre")
-set(CWP_MAN_DIR "share/man")
-set(CWP_DOC_DIR "${CWP_SHARE_DIR}/doc")
-set(CWP_ETC_DIR "etc")
 
 #------------------------------------------------------------------------------
 # Create test list
@@ -430,14 +403,13 @@ set(CWP_ETC_DIR "etc")
 set(CWP_LIST_TEST "")
 set(CWP_LIST_NRANK "")
 
-
 #------------------------------------------------------------------------------
-# Fake dlclose path
+# Definition of PDM_SOURCE_DIR
 #------------------------------------------------------------------------------
 
-set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/script/asan/fake_dlclose)
-
-set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+  set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
+endif ()
 
 #------------------------------------------------------------------------------
 # Ajout des sources de tous les elements du projet
@@ -512,17 +484,13 @@ else ()
   configure_file(${PDM_SOURCE_DIR}/pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
   if (${CWP_ENABLE_Fortran})
-    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
       include (FortranizeFile)
       fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
     endif ()
   endif ()
 
 endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "Sanitize" AND CWP_ENABLE_DOCUMENTATION)
-  message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
-endif ()
 
 add_subdirectory(src)
 
@@ -543,6 +511,9 @@ endif()
 #------------------------------------------------------------------------------
 
 if(CWP_ENABLE_DOCUMENTATION)
+  if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
+    message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
+  endif ()
   add_subdirectory(doc)
 endif()
 
@@ -594,6 +565,10 @@ string(REPLACE ";" " " PDM_LIST_TEST "${CWP_LIST_TEST}")
 
 string(REPLACE ";" " " PDM_LIST_NRANK "${CWP_LIST_NRANK}")
 
+if (CMAKE_BUILD_TYPE STREQUAL "Sanitize" AND CWP_ENABLE_EXTERNAL_PDM)
+  message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
+endif ()
+
 set (PDM_RUN_PRELOAD "")
 set (PDM_RUN_LSAN "")
 set (PDM_RUN_PYTHONPATH "")
@@ -601,16 +576,11 @@ set (PDM_RUN_PYTHONPATH "")
 if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
   execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
   set(PDM_RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
-  if (PDM_ENABLE_EXTERNAL_PDM)
-    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-  else()
-    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
-    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
-  endif()
+  set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+  set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
 endif()
 
-if (PDM_ENABLE_EXTERNAL_PDM)
+if (CWP_ENABLE_EXTERNAL_PDM)
   if(DEFINED ENV{PYTHONPATH})
     set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
   else()
@@ -630,7 +600,6 @@ else()
   set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin")
 endif()
 
-
 configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
                @ONLY)
 
@@ -646,7 +615,6 @@ configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${P
 configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch_python.in "${PROJECT_BINARY_DIR}/pdm_launch_python"
                @ONLY)
 
-
 #------------------------------------------------------------------------------
 # Print coverage report
 #------------------------------------------------------------------------------
@@ -656,6 +624,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
+
+  add_link_options("--coverage")
 
   # find gcov and gcovr
   find_program( GCOV_PATH  gcov )
