@@ -2,49 +2,22 @@
 # Build server
 # ------------
 
-# wrong definition of compilers....
-if (MPI_C_COMPILER)
-    set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif()
-
-if (MPI_CXX_COMPILER)
-    set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-endif()
-
 unset(LINK_LIBRARIES)
 
-if (NOT MPI_C_COMPILER)
-  if (MPI_C_LIBRARIES)
-    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})
-  endif()
-endif ()
-
-if (NOT MPI_CXX_COMPILER)
-  if (MPI_CXX_LIBRARIES)
-    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})
-  else ()
-    if (MPI_C_LIBRARIES)
-     list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})
-    endif()
-  endif()
-endif ()
-
-list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-
-if (CWP_ENABLE_STATIC)
+if (NOT CWP_ENABLE_SHARED)
   list(APPEND LINK_LIBRARIES cwp_static)
 endif ()
 
 if (CWP_ENABLE_EXTERNAL_PDM)
-  if (CWP_ENABLE_STATIC)
+  if (NOT CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES
           pdm::pdm_mpi_static
           pdm::pdm_static)
   else ()
     list(APPEND LINK_LIBRARIES cwp_shared)
     list(APPEND LINK_LIBRARIES
-          pdm_mpi_shared
-          pdm_shared)
+          pdm::pdm_mpi_shared
+          pdm::pdm_shared)
   endif ()
 else ()
   if (CWP_ENABLE_SHARED)

@@ -1,31 +1,3 @@
-if (MPI_C_COMPILER)
-  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif()
-
-if (MPI_CXX_COMPILER)
-  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-endif()
-
-if (MPI_Fortran_COMPILER)
-  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif(MPI_Fortran_COMPILER)
-
-# Flags pour MPI
-# --------------
-
-if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
-   set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
-endif()
-
-if ((NOT MPI_CXX_COMPILER) AND MPI_CXX_COMPILE_FLAGS)
-   set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-endif()
-
-if ((NOT MPI_Fortran_COMPILER) AND MPI_Fortran_COMPILE_FLAGS)
-   set (CMAKE_Fortran_FLAGS " ${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAGS}")
-endif()
-
-
 # Sources list
 # ------------
 
@@ -93,28 +65,24 @@ target_include_directories(cwp
                            PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                            PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
-                           PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
                            PUBLIC    $<INSTALL_INTERFACE:include/>)
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  if (CWP_ENABLE_SHARED)
-    target_link_libraries (cwp pdm::pdm_shared)
-  else ()
-    target_link_libraries (cwp pdm::pdm_static)
-  endif()
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+  target_include_directories(cwp
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
 endif()
 
 if (BLAS_FOUND)
@@ -142,6 +110,7 @@ endif ()
 # ---------------
 
 unset(LINK_LIBRARIES)
+
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   list(APPEND LINK_LIBRARIES "m")
@@ -158,6 +127,9 @@ if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES_FLAG)
   set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
 endif ()
 
+# Add BLAS/LAPACK libraries
+# --------------------------------------------------
+
 if (BLAS_FOUND)
   list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
 endif()
@@ -165,6 +137,9 @@ endif()
 if (LAPACK_FOUND)
   list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
 endif()
+
+# Add cwp libraries
+# --------------------------------------------------
 
 if (CWP_ENABLE_SHARED)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -177,6 +152,7 @@ if (CWP_ENABLE_SHARED)
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
   if (CWP_ENABLE_EXTERNAL_PDM)
+    target_link_libraries (cwp        pdm::pdm_shared)
     target_link_libraries (cwp_shared pdm::pdm_shared)
   endif ()
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
@@ -203,7 +179,8 @@ if (CWP_ENABLE_STATIC)
   set_target_properties(cwp_static PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
   if (CWP_ENABLE_EXTERNAL_PDM)
-    target_link_libraries (cwp_shared pdm::pdm_static)
+    target_link_libraries (cwp        pdm::pdm_static)
+    target_link_libraries (cwp_static pdm::pdm_static)
   endif ()
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})

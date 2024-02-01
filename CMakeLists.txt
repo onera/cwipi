@@ -9,15 +9,9 @@ cmake_policy(VERSION 3.16)
 
 enable_testing()
 
-# ----------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # RPATH protection
-
-#set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-#SET(CMAKE_SKIP_BUILD_RPATH  TRUE)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
-#set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+#------------------------------------------------------------------------------
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -27,10 +21,8 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 # Internal CMake module (shared with paradigm)
 #------------------------------------------------------------------------------
 
-#set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules")
-#set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 include(${CWP_CMAKE_DIR}/modules/cwp_version.cmake)
 project(CWP VERSION ${CWP_DEF_VERSION_MAJOR} LANGUAGES C CXX Fortran)
@@ -73,13 +65,9 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # Fortran interface
 # -----------------
 
-option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
+option(CWP_ENABLE_Fortran "Build Shared Fortran Interface" OFF)
 
 option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
-
-if (CWP_ENABLE_Fortran_MPI_MODULE)
-  set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
-endif()
 
 # MKL, BLAS, LAPACK
 # -----------------
@@ -93,7 +81,6 @@ if (CWP_ENABLE_BLASLAPACK)
     find_package(BLAS)
     find_package(LAPACK)
     if (BLAS_FOUND AND LAPACK_FOUND)
-      set(CWP_HAVE_MKL 1)
     endif()
     unset (BLA_VENDOR)
   endif()
@@ -170,14 +157,6 @@ endif()
 #------------------------------------------------------------------------------
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/default_flags.cmake)
-
-#------------------------------------------------------------------------------
-# ADD "-DDEBUG_CLASSE" in Debug
-#------------------------------------------------------------------------------
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions (-DDEBUG_CLASSE)
-endif()
 
 #------------------------------------------------------------------------------
 # Check include file
@@ -313,16 +292,23 @@ CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 # Check dependecies
 #------------------------------------------------------------------------------
 
-# Check MPI (TODO : check MPI wrapper function check )
+# Check MPI
 # ----------------------------------------------------
 
 if (CWP_ENABLE_Fortran)
-  find_package(MPI REQUIRED COMPONENTS C Fortran)
+  find_package(MPI REQUIRED COMPONENTS C CXX Fortran)
+  if (MPI_Fortran_COMPILER)
+    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+  endif()
 else()
-  find_package(MPI REQUIRED COMPONENTS C)
+  find_package(MPI REQUIRED COMPONENTS C CXX)
 endif()
-
-mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
+if (MPI_C_COMPILER)
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+endif()
+if (MPI_CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif()
 
 # Check MPI Wrapper
 # -----------------
@@ -335,8 +321,6 @@ endif()
 # ---------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
-  # NB: cython module must use mpicxx to avoid "mpi.h" not found.
-  find_package(MPI REQUIRED COMPONENTS CXX)
 
   find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
   find_package(Mpi4Py REQUIRED)
@@ -344,8 +328,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   include(UseCython)
 
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
-
-     set (CMAKE_CWP_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
+     set (CMAKE_CWP_INSTALL_PYTHON_DIR "${CMAKE_INSTALL_PREFIX}")
      set (CMAKE_CWP_INSTALL_PYTHON_DIR
           ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
   endif ()
@@ -370,6 +353,14 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "SunOS")
   set(bftc_OS_Solaris 1)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "System_V")
   set(bftc_OS_System_V 1)
+endif()
+
+#------------------------------------------------------------------------------
+# Fortran module
+#------------------------------------------------------------------------------
+
+if (CWP_ENABLE_Fortran_MPI_MODULE)
+  set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
 endif()
 
 #------------------------------------------------------------------------------
@@ -475,15 +466,20 @@ else ()
   # -----------------
 
   if (CWP_ENABLE_Fortran_MPI_MODULE)
-    set(CMAKE_Fortran_PREPROCESS ON)
     set(PDM_HAVE_FORTRAN_MPI_MODULE 1)
   endif()
 
+  # Python bindings
+  # -----------------
+
   set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+
+  # Configuration file
+  # -----------------
 
   configure_file(${PDM_SOURCE_DIR}/pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
-  if (${CWP_ENABLE_Fortran})
+  if (CWP_ENABLE_Fortran)
     if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
       include (FortranizeFile)
       fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
