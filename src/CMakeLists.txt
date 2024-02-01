@@ -126,15 +126,11 @@ if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES_FLAG)
   set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
 endif ()
 
-# Add BLAS/LAPACK libraries
+# Add BLAS libraries
 # --------------------------------------------------
 
 if (BLAS_FOUND)
   list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
-endif()
-
-if (LAPACK_FOUND)
-  list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
 endif()
 
 # Add cwp libraries

@@ -69,7 +69,7 @@ option(CWP_ENABLE_Fortran "Build Shared Fortran Interface" OFF)
 
 option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
 
-# MKL, BLAS, LAPACK
+# BLAS
 # -----------------
 
 option(CWP_ENABLE_BLASLAPACK "Enable the use of the library blas/lapack" OFF)
@@ -79,7 +79,6 @@ if (CWP_ENABLE_BLASLAPACK)
   if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
     set (BLA_VENDOR "Intel10_64lp")
     find_package(BLAS)
-    find_package(LAPACK)
     unset (BLA_VENDOR)
   endif()
 
@@ -87,16 +86,8 @@ if (CWP_ENABLE_BLASLAPACK)
     find_package(BLAS)
   endif()
 
-  if (NOT LAPACK_FOUND)
-    find_package(LAPACK)
-  endif()
-
   if (BLAS_FOUND)
     set(CWP_HAVE_BLAS 1)
-  endif()
-
-  if (LAPACK_FOUND)
-    set(CWP_HAVE_LAPACK 1)
   endif()
 
 endif()
@@ -115,11 +106,6 @@ option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 # ------------------
 
 option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
-
-# Enable PDM tests
-# ----------------
-
-option(CWP_ENABLE_PDM_TESTS "Enable ParaDiGM Tests if ParaDiGM is embedded" OFF)
 
 # Enable tests
 # ----------------
@@ -147,7 +133,7 @@ if ((NOT CWP_ENABLE_STATIC) AND (NOT CWP_ENABLE_SHARED))
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
 endif()
 
 #------------------------------------------------------------------------------
@@ -326,9 +312,9 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   include(UseCython)
 
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
-     set (CMAKE_CWP_INSTALL_PYTHON_DIR "${CMAKE_INSTALL_PREFIX}")
-     set (CMAKE_CWP_INSTALL_PYTHON_DIR
-          ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
+    set (CMAKE_CWP_INSTALL_PYTHON_DIR "${CMAKE_INSTALL_PREFIX}")
+    set (CMAKE_CWP_INSTALL_PYTHON_DIR
+         ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
   endif ()
 
 endif()
@@ -561,10 +547,6 @@ string(REPLACE ";" " " PDM_LIST_TEST "${CWP_LIST_TEST}")
 
 string(REPLACE ";" " " PDM_LIST_NRANK "${CWP_LIST_NRANK}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Sanitize" AND CWP_ENABLE_EXTERNAL_PDM)
-  message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
-endif ()
-
 set (PDM_RUN_PRELOAD "")
 set (PDM_RUN_LSAN "")
 set (PDM_RUN_PYTHONPATH "")
@@ -599,9 +581,6 @@ endif()
 configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
                @ONLY)
 
- #
- # Voir comment mieux faire !
-
 configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
                @ONLY)
 
@@ -621,10 +600,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
+  # link for coverage
   add_link_options("--coverage")
 
   # find gcov and gcovr
-  find_program( GCOV_PATH  gcov )
+  find_program( GCOV_PATH gcov )
   if (NOT GCOV_PATH)
     message(FATAL_ERROR "gcov is mandatory for code coverage")
   endif()
