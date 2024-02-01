@@ -80,8 +80,6 @@ if (CWP_ENABLE_BLASLAPACK)
     set (BLA_VENDOR "Intel10_64lp")
     find_package(BLAS)
     find_package(LAPACK)
-    if (BLAS_FOUND AND LAPACK_FOUND)
-    endif()
     unset (BLA_VENDOR)
   endif()
 
@@ -441,6 +439,8 @@ else ()
   set(PDM_HAVE_GETTIMEOFDAY ${HAVE_GETTIMEOFDAY})
   set(PDM_HAVE_BLAS OFF)
   set(PDM_HAVE_LAPACK OFF)
+  set(PDM_HAVE_LAPACK OFF)
+  set(PDM_USE_MULTIPART OFF)
 
   # OpenMP
   # ------
@@ -460,7 +460,7 @@ else ()
   # ParMetis
   # --------
 
-  set(PDM_ENABLE_PARMETIS OFF)
+  set(PDM_HAVE_PARMETIS OFF)
 
   # Fortran interface
   # -----------------
