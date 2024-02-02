@@ -10,7 +10,8 @@ file(GLOB SOURCES
      *.[ch]
      *.[ch]xx)
 
-set(SOURCESPDM "")
+set(SOURCESPDM  "")
+set(SOURCESPDMF "")
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
   file(GLOB_RECURSE SOURCESPDM
       ${PDM_SOURCE_DIR}/src/*.[ch])
@@ -39,26 +40,26 @@ if (CWP_ENABLE_Fortran)
        fortran/cwipi_set_output_logical_unit.f90
        fortran/printfort.f90
        fortran/mod_fvmc_ho_basis.f90
-       fortran/callfortinterpfct.f90
-       fortran/callforthointerpfct.f90
-       fortran/callfortlocinterpfct.f90
        # --> new fortran
        fortran/new/cwp_cf.cxx
        fortran/new/cwp_f.f90
        fortran/new/cwp_printfort_cf.cxx
        fortran/new/cwp_printfort.f90)
+  list(APPEND SOURCES fortran/callfortinterpfct.f90)
+  list(APPEND SOURCES fortran/callforthointerpfct.f90)
+  list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
   if (NOT CWP_ENABLE_EXTERNAL_PDM)
-    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/util/pdm_fortran.F90)
-    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/pdm.F90)
-    list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/struct/pdm_pointer_array.F90)
+    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/util/pdm_fortran.F90)
+    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/pdm.F90)
+    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/struct/pdm_pointer_array.F90)
     if (CWP_ENABLE_TESTS)
-      list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
-      list(APPEND SOURCESPDM ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
+      list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
+      list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
     endif()
   endif()
 endif()
 
-add_library(cwp OBJECT ${SOURCES} ${SOURCESPDM} ${SOURCESF})
+add_library(cwp OBJECT ${SOURCES} ${SOURCESPDM} ${SOURCESF} ${SOURCESPDMF})
 
 target_include_directories(cwp
                            INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
