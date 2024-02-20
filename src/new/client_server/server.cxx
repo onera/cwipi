@@ -6282,7 +6282,7 @@ CWP_server_Part_data_issend
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) send_data[i_part], s_data * n_components * part_data.n_elt[i_part]);
   }
 
-  part_data.data.insert(std::make_pair(exch_id, send_data)); // necessary?
+  part_data.data.insert(std::make_pair(exch_id, send_data)); // WARNING : exch_id overwrite with recv ?
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -6469,6 +6469,12 @@ CWP_server_Part_data_wait_issend
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    free(part_data.data[exch_id][i_part]);
+  }
+  free(part_data.data[exch_id]);
+  part_data.data  .erase(exch_id);
+
   // free
   free(local_code_name);
   free(cpl_id);
@@ -6548,6 +6554,10 @@ CWP_server_Part_data_wait_irecv
   }
 
   part_data.s_unit.erase(exch_id);
+  for (int i_part = 0; i_part < part_data.n_part; i_part++) {
+    free(data[i_part]);
+  }
+  free(data);
   part_data.data  .erase(exch_id);
 
   // free
