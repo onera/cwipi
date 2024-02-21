@@ -8,6 +8,7 @@ if (NOT CWP_ENABLE_SHARED)
   list(APPEND LINK_LIBRARIES cwp_static)
 endif ()
 
+set(SOURCESPDM "")
 if (CWP_ENABLE_EXTERNAL_PDM)
   if (NOT CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES
@@ -20,15 +21,22 @@ if (CWP_ENABLE_EXTERNAL_PDM)
           pdm::pdm_shared)
   endif ()
 else ()
-  if (CWP_ENABLE_SHARED AND CWP_ENABLE_TESTS)
-    list(APPEND LINK_LIBRARIES cwp_test_shared)
-  endif ()
-  if (CWP_ENABLE_SHARED AND NOT CWP_ENABLE_TESTS)
+  file(GLOB_RECURSE SOURCESPDM
+    ${PDM_SOURCE_DIR}/src/*/pdm_io.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_timer.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_mpi.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_array.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_file_seq.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_file_par.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_mpi_node_first_rank.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_printf.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_error.c)
+  if (CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES cwp_shared)
   endif ()
 endif ()
 
-add_executable (cwp_server server_main.c)
+add_executable (cwp_server server_main.c ${SOURCESPDM})
 target_include_directories(cwp_server PRIVATE ${CMAKE_SOURCE_DIR}
                            PRIVATE ${CMAKE_BINARY_DIR}
                            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
