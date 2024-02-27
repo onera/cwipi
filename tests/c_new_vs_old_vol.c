@@ -1503,6 +1503,8 @@ main(int argc, char *argv[]) {
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
 
+
+  double max_geom_time;
   int n_unlocated = 0;
   int n_located = 0;
   const int *located = NULL;
@@ -1515,6 +1517,14 @@ main(int argc, char *argv[]) {
       located = cwipi_get_located_points(coupling_name);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    PDM_timer_hang_on(timer);
+    t_end = PDM_timer_elapsed(timer);
+    PDM_timer_resume(timer);
+
+    double geom_time = t_end - t_start;
+    MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
   }
   else {
     PDM_part_to_block_global_statistic_reset();
@@ -1524,6 +1534,14 @@ main(int argc, char *argv[]) {
     sprintf(char_tol, "%e", tolerance);
     CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, char_tol);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    PDM_timer_hang_on(timer);
+    t_end = PDM_timer_elapsed(timer);
+    PDM_timer_resume(timer);
+
+    double geom_time = t_end - t_start;
+    MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (code_id != 1) {
       n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
@@ -1716,14 +1734,14 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
-  PDM_timer_resume(timer);
+  // MPI_Barrier(MPI_COMM_WORLD);
+  // PDM_timer_hang_on(timer);
+  // t_end = PDM_timer_elapsed(timer);
+  // PDM_timer_resume(timer);
 
-  double geom_time = t_end - t_start;
-  double max_geom_time;
-  MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  // double geom_time = t_end - t_start;
+  // double max_geom_time;
+  // MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   FILE *output = stdout;
   if (filedump) {

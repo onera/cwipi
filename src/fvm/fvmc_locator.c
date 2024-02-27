@@ -1091,6 +1091,14 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                     const fvmc_lnum_t     point_list[],
                     const fvmc_coord_t    point_coords[])
 {
+  int verbose = 0;
+  char *env_var = NULL;
+  env_var = getenv ("FVM_VERBOSE");
+  if (env_var != NULL) {
+    verbose = atoi(env_var);
+  }
+
+
   int i, k, stride;
   int dist_rank, dist_index;
   fvmc_lnum_t j;
@@ -1112,6 +1120,16 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   int max_entity_dim = fvmc_nodal_get_max_entity_dim (this_nodal);
 
   /* Initialization */
+  int min_n_intersects, max_n_intersects;
+  MPI_Reduce(&this_locator->n_intersects, &min_n_intersects, 1, MPI_INT, MPI_MIN, 0, this_locator->comm);
+  MPI_Reduce(&this_locator->n_intersects, &max_n_intersects, 1, MPI_INT, MPI_MAX, 0, this_locator->comm);
+
+  int comm_rank;
+  MPI_Comm_rank(this_locator->comm, &comm_rank);
+  if (verbose && comm_rank == 0) {
+    printf("n_intersects (min/max) = %d %d\n", min_n_intersects, max_n_intersects);
+    fflush(stdout);
+  }
 
   stride = dim * 2;
 
@@ -1178,6 +1196,8 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   /* MPI_Barrier(this_locator->comm); */
 
+  int tn_recv_pts = 0;
+
   for (i = 0; i < this_locator->n_intersects; i++) {
 
     dist_index = i; /* Ordering (communication schema) not yet optimized */
@@ -1227,6 +1247,8 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     MPI_Sendrecv(&n_coords_loc, 1, FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
                  &n_coords_dist, 1, FVMC_MPI_LNUM, dist_rank,
                  FVMC_MPI_TAG, this_locator->comm, &status);
+
+    tn_recv_pts += n_coords_dist;
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
@@ -1703,6 +1725,26 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
+
+
+  if (verbose) {
+    int min_tn_recv_pts, max_tn_recv_pts;
+
+    MPI_Allreduce(&tn_recv_pts, &max_tn_recv_pts, 1, MPI_INT, MPI_MAX, this_locator->comm);
+
+    if (n_points > 0 && tn_recv_pts == 0) {
+      tn_recv_pts = max_tn_recv_pts;
+    }
+
+    MPI_Reduce(&tn_recv_pts, &min_tn_recv_pts, 1, MPI_INT, MPI_MIN, 0, this_locator->comm);
+
+
+    // printf("[%d] tn_recv_pts = %d, n_points = %d\n", comm_rank, tn_recv_pts, n_points);
+    if (comm_rank == 0) {
+      printf("tn_recv_pts (min,max,ratio) = %d %d %.1f\n", min_tn_recv_pts, max_tn_recv_pts, (double) max_tn_recv_pts/(double) min_tn_recv_pts);
+      fflush(stdout);
+    }
+  }
 }
 
 #endif /* defined(FVMC_HAVE_MPI) */
@@ -2992,6 +3034,36 @@ fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
  *                         (dimension: dim * n_points)
  *----------------------------------------------------------------------------*/
 
+typedef enum {
+
+  TIMER_COMPUTE_EXTENTS,
+  TIMER_EXCHANGE_EXTENTS,
+  TIMER_QUERY_RANK_BOXES,
+  TIMER_LOCATE_ALL_DISTANT,
+  TIMER_N_STEP
+
+} _timer_step_t;
+
+
+static const char* _timer_step_label[TIMER_N_STEP] = {
+  "compute extents   ",
+  "exchange extents  ",
+  "query rank boxes  ",
+  "locate all distant"
+};
+
+static const char* _timer_step_label2[8] = {
+  "location",
+  "location",
+  "exchange",
+  "exchange",
+  "issend  ",
+  "issend  ",
+  "irecv   ",
+  "irecv   "
+};
+
+
 void
 fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                       const fvmc_nodal_t   *this_nodal,
@@ -3001,11 +3073,20 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                       const fvmc_lnum_t     point_list[],
                       const fvmc_coord_t    point_coords[])
 {
+  int verbose = 0;
+  char *env_var = NULL;
+  env_var = getenv ("FVM_VERBOSE");
+  if (env_var != NULL) {
+    verbose = atoi(env_var);
+  }
+
   int i;
   int stride2;
   double tolerance;
   double w_start, w_end, cpu_start, cpu_end;
   double extents[12];
+
+  double elapsed_time[TIMER_N_STEP], t1, t2;
 
 #if defined(FVMC_HAVE_MPI)
   int j;
@@ -3033,6 +3114,8 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
 
   tolerance = FVMC_MAX(this_locator->tolerance, 0.1);
 
+  MPI_Barrier(this_locator->comm);
+  t1 = bftc_timer_wtime();
   _nodal_extents(this_nodal,
                  this_locator->opt_bbox_step,
                  tolerance,
@@ -3043,7 +3126,8 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                  point_list,
                  point_coords,
                  extents + 2*dim);
-
+  t2 = bftc_timer_wtime();
+  elapsed_time[TIMER_COMPUTE_EXTENTS] = t2 - t1;
 
   /* Release information if previously present */
 
@@ -3140,14 +3224,17 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(recvbuf, stride4*comm_size, double);
 
     _locator_trace_start_comm(_fvmc_locator_log_start_g_comm, comm_timing);
-
+    MPI_Barrier(this_locator->comm);
+    t1 = bftc_timer_wtime();
     MPI_Allgather(extents, stride4, MPI_DOUBLE, recvbuf, stride4, MPI_DOUBLE,
                   this_locator->comm);
-
+    t2 = bftc_timer_wtime();
+    elapsed_time[TIMER_EXCHANGE_EXTENTS] = t2 - t1;
     _locator_trace_end_comm(_fvmc_locator_log_end_g_comm, comm_timing);
 
     /* Count and mark possible overlaps */
-
+    MPI_Barrier(this_locator->comm);
+    t1 = bftc_timer_wtime();
     n_intersects = 0;
     BFTC_MALLOC(intersect_rank, this_locator->n_ranks, int);
 
@@ -3164,6 +3251,8 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
       }
 
     }
+    t2 = bftc_timer_wtime();
+    elapsed_time[TIMER_QUERY_RANK_BOXES] = t2 - t1;
 
     this_locator->n_intersects = n_intersects;
     BFTC_MALLOC(this_locator->intersect_rank,
@@ -3190,13 +3279,88 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
     BFTC_FREE(intersect_rank);
     BFTC_FREE(recvbuf);
 
+    MPI_Barrier(this_locator->comm);
+    t1 = bftc_timer_wtime();
     _locate_all_distant(this_locator,
                         this_nodal,
                         dim,
                         n_points,
                         point_list,
                         point_coords);
+    t2 = bftc_timer_wtime();
+    elapsed_time[TIMER_LOCATE_ALL_DISTANT] = t2 - t1;
 
+
+    double min_elapsed_time[TIMER_N_STEP];
+    double max_elapsed_time[TIMER_N_STEP];
+    MPI_Reduce(elapsed_time, min_elapsed_time, TIMER_N_STEP, MPI_DOUBLE, MPI_MIN, 0, this_locator->comm);
+    MPI_Reduce(elapsed_time, max_elapsed_time, TIMER_N_STEP, MPI_DOUBLE, MPI_MAX, 0, this_locator->comm);
+
+    double rank_box_volume[2] = {1, 1};
+    for (i = 0; i < 2; i++) {
+      for (j = 0; j < 3; j++) {
+        rank_box_volume[i] *= extents[2*dim*i + j + dim] - extents[2*dim*i + j];
+      }
+    }
+
+    double min_volume[2], max_volume[2];
+    MPI_Allreduce(rank_box_volume, max_volume, 2, MPI_DOUBLE, MPI_MAX, this_locator->comm);
+    if (n_points == 0) {
+      rank_box_volume[1] = max_volume[1];
+    }
+    MPI_Allreduce(rank_box_volume, min_volume, 2, MPI_DOUBLE, MPI_MIN, this_locator->comm);
+
+    // for (i = 0; i < TIMER_N_STEP; i++) {
+    //   printf("[%d] %s : %12.5es\n", comm_rank, _timer_step_label[i], elapsed_time[i]);
+    // }
+
+    // double times[8];
+    // fvmc_locator_get_times(this_locator,
+    //                        &times[0],
+    //                        &times[1],
+    //                        &times[2],
+    //                        &times[3],
+    //                        &times[4],
+    //                        &times[5],
+    //                        &times[6],
+    //                        &times[7]);
+
+    // double min_times[8], max_times[8];
+    // MPI_Reduce(times, min_times, 8, MPI_DOUBLE, MPI_MIN, 0, this_locator->comm);
+    // MPI_Reduce(times, max_times, 8, MPI_DOUBLE, MPI_MAX, 0, this_locator->comm);
+
+
+    // double comm_times[8];
+    // fvmc_locator_get_comm_times(this_locator,
+    //                             &comm_times[0],
+    //                             &comm_times[1],
+    //                             &comm_times[2],
+    //                             &comm_times[3],
+    //                             &comm_times[4],
+    //                             &comm_times[5],
+    //                             &comm_times[6],
+    //                             &comm_times[7]);
+
+    // double min_comm_times[8], max_comm_times[8];
+    // MPI_Reduce(comm_times, min_comm_times, 8, MPI_DOUBLE, MPI_MIN, 0, this_locator->comm);
+    // MPI_Reduce(comm_times, max_comm_times, 8, MPI_DOUBLE, MPI_MAX, 0, this_locator->comm);
+
+
+    if (verbose && comm_rank == 0) {
+      printf("rank elt box volume (min,max,ratio) = %12.5e %12.5e %.1f\n", min_volume[0], max_volume[0], max_volume[0]/min_volume[0]);
+      printf("rank pts box volume (min,max,ratio) = %12.5e %12.5e %.1f\n", min_volume[1], max_volume[1], max_volume[1]/min_volume[1]);
+      for (i = 0; i < TIMER_N_STEP; i++) {
+        printf("fvmc_locator : %s : %12.5es %12.5es\n", _timer_step_label[i], min_elapsed_time[i], max_elapsed_time[i]);
+      }
+      // for (i = 0; i < 8; i+=2) {
+      //   printf("fvmc_locator :      %s : %12.5es %12.5es\n", _timer_step_label2[i], min_times[i], max_times[i]);
+      // }
+      // for (i = 0; i < 8; i+=2) {
+      //   printf("fvmc_locator : comm %s : %12.5es %12.5es\n", _timer_step_label2[i], min_times[i], max_times[i]);
+      // }
+    }
+
+    MPI_Barrier(this_locator->comm);
   }
 
 #endif
