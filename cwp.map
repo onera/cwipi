@@ -1,9 +1,15 @@
 {
   global:
-    CWP_*;
-    cwp_*;
+    *CWP_*;
+    *cwp_*;
+    *CWIPI*;
+    *cwipi*;
+    *bftc_*;
+    *fvmc_*;
+    mesh_rotate;
+    grid_mesh*;
+    creeMaillagePolygone2D;
+    carre2rond;
   local:
-    PDM_*;
-    pdm_*;
-    __pdm*;
+    *;
 };
