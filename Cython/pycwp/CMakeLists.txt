@@ -25,11 +25,6 @@ target_include_directories(pycwp PUBLIC ${CWP_INC})
 
 target_link_libraries(pycwp Python::NumPy MPI::MPI_CXX)
 target_link_libraries(pycwp ${LINK_LIBRARIES})
-target_link_libraries(pycwp cwp_shared)
-
-if (CWP_ENABLE_EXTERNAL_PDM)
-  target_link_libraries(pycwp pdm::pdm_shared)
-endif ()
 
 if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR

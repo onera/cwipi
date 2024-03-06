@@ -14,9 +14,7 @@ list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
 unset(LINK_LIBRARIES)
 
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  list(APPEND LINK_LIBRARIES "m")
-endif()
+list(APPEND LINK_LIBRARIES cwp_shared)
 
 set(PYX_NPY_G_NUM np.int64_t)
 set(PYX_NPY_G_NUM_DTYPE np.int64)
@@ -32,7 +30,8 @@ if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(pycwpclt)
 endif()
 
-if (NOT CWP_ENABLE_EXTERNAL_PDM)
+if (NOT CWP_ENABLE_EXTERNAL_PDM AND (CWP_ENABLE_TESTS OR CWP_ENABLE_TRAINING))
+  list(APPEND LINK_LIBRARIES pdm_shared)
   set(PYX_NPY_G_NUM NPY.int64_t)
   set(PYX_NPY_G_NUM_DTYPE NPY.int64)
   set(PDM_G_NUM_NPY_INT NPY.NPY_INT64)

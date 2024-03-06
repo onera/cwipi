@@ -26,7 +26,6 @@ target_include_directories(Pypdm PUBLIC ${PDM_INC})
 
 target_link_libraries(Pypdm Python::NumPy MPI::MPI_CXX)
 target_link_libraries(Pypdm ${LINK_LIBRARIES})
-target_link_libraries(Pypdm cwp_test_shared)
 
 if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR

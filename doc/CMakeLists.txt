@@ -34,6 +34,14 @@ else ()
   set(DOXYGEN_DEP cwp_static)
 endif()
 
+if (CWP_ENABLE_Fortran)
+  if (CWP_ENABLE_SHARED)
+    set(DOXYGEN_DEP ${DOXYGEN_DEP} cwpf_shared)
+  else ()
+    set(DOXYGEN_DEP ${DOXYGEN_DEP} cwpf_static)
+  endif()
+endif()
+
 add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
                    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
                    MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}

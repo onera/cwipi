@@ -4,21 +4,22 @@
 
 unset(LINK_LIBRARIES)
 
-if (NOT CWP_ENABLE_SHARED)
+if (CWP_ENABLE_SHARED)
+  list(APPEND LINK_LIBRARIES cwp_shared)
+else ()
   list(APPEND LINK_LIBRARIES cwp_static)
 endif ()
 
 set(SOURCESPDM "")
 if (CWP_ENABLE_EXTERNAL_PDM)
-  if (NOT CWP_ENABLE_SHARED)
-    list(APPEND LINK_LIBRARIES
-          pdm::pdm_mpi_static
-          pdm::pdm_static)
-  else ()
-    list(APPEND LINK_LIBRARIES cwp_shared)
+  if (CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES
           pdm::pdm_mpi_shared
           pdm::pdm_shared)
+  else ()
+    list(APPEND LINK_LIBRARIES
+          pdm::pdm_mpi_static
+          pdm::pdm_static)
   endif ()
 else ()
   file(GLOB_RECURSE SOURCESPDM
@@ -31,9 +32,6 @@ else ()
     ${PDM_SOURCE_DIR}/src/*/pdm_mpi_node_first_rank.c
     ${PDM_SOURCE_DIR}/src/*/pdm_printf.c
     ${PDM_SOURCE_DIR}/src/*/pdm_error.c)
-  if (CWP_ENABLE_SHARED)
-    list(APPEND LINK_LIBRARIES cwp_shared)
-  endif ()
 endif ()
 
 add_executable (cwp_server server_main.c ${SOURCESPDM})

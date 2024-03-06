@@ -4,21 +4,22 @@
 
 unset(LINK_LIBRARIES)
 
-if (NOT CWP_ENABLE_SHARED)
+if (CWP_ENABLE_SHARED)
+  list(APPEND LINK_LIBRARIES cwp_shared)
+else ()
   list(APPEND LINK_LIBRARIES cwp_static)
 endif ()
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  if (NOT CWP_ENABLE_SHARED)
-    list(APPEND LINK_LIBRARIES
-          pdm::pdm_mpi_static
-          pdm::pdm_static)
-    if (CWP_ENABLE_Fortran)
-      list(APPEND LINK_LIBRARIES
-          pdm::pdmf_static)
-    endif ()
+if (CWP_ENABLE_Fortran)
+  if (CWP_ENABLE_SHARED)
+    list(APPEND LINK_LIBRARIES cwpf_shared)
   else ()
-    list(APPEND LINK_LIBRARIES cwp_shared)
+    list(APPEND LINK_LIBRARIES cwpf_static)
+  endif ()
+endif ()
+
+if (CWP_ENABLE_EXTERNAL_PDM)
+  if (CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES
           pdm::pdm_mpi_shared
           pdm::pdm_shared)
@@ -26,10 +27,23 @@ if (CWP_ENABLE_EXTERNAL_PDM)
       list(APPEND LINK_LIBRARIES
           pdm::pdmf_shared)
     endif ()
+  else ()
+    list(APPEND LINK_LIBRARIES
+          pdm::pdm_mpi_static
+          pdm::pdm_static)
+    if (CWP_ENABLE_Fortran)
+      list(APPEND LINK_LIBRARIES
+          pdm::pdmf_static)
+    endif ()
   endif ()
 else ()
   if (CWP_ENABLE_SHARED)
-    list(APPEND LINK_LIBRARIES cwp_test_shared)
+    list(APPEND LINK_LIBRARIES
+          pdm_shared)
+    if (CWP_ENABLE_Fortran)
+      list(APPEND LINK_LIBRARIES
+          pdmf_shared)
+    endif ()
   endif ()
 endif ()
 

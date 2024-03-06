@@ -52,14 +52,12 @@ if (CWP_ENABLE_Fortran)
     list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/util/pdm_fortran.F90)
     list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/pdm.F90)
     list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/struct/pdm_pointer_array.F90)
-    if (CWP_ENABLE_TESTS)
-      list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
-      list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
-    endif()
+    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
+    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
   endif()
 endif()
 
-add_library(cwp OBJECT ${SOURCES} ${SOURCESPDM} ${SOURCESF} ${SOURCESPDMF})
+add_library(cwp OBJECT ${SOURCES})
 
 target_include_directories(cwp
                            INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -73,7 +71,11 @@ target_include_directories(cwp
                            PUBLIC    $<INSTALL_INTERFACE:include/>)
 
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
-  target_include_directories(cwp
+
+  add_library(pdm OBJECT ${SOURCESPDM})
+
+  target_include_directories(pdm
+                             PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
@@ -84,6 +86,53 @@ if (NOT CWP_ENABLE_EXTERNAL_PDM)
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
+
+  add_dependencies(cwp pdm)
+  get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+  target_include_directories(cwp PRIVATE ${PDM_INC})
+
+endif()
+
+if (CWP_ENABLE_Fortran)
+
+  add_library(cwpf OBJECT ${SOURCESF})
+
+  target_include_directories(cwpf
+                             INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                             PUBLIC    $<INSTALL_INTERFACE:include/>)
+
+  if (NOT CWP_ENABLE_EXTERNAL_PDM)
+
+    add_library(pdmf OBJECT ${SOURCESPDMF})
+
+    target_include_directories(pdmf
+                               PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
+
+    add_dependencies(cwpf pdmf)
+    get_target_property(PDM_INC pdmf INCLUDE_DIRECTORIES)
+    target_include_directories(cwpf PRIVATE ${PDM_INC})
+
+  endif()
+
+  add_dependencies(cwpf cwp)
+
 endif()
 
 if (BLAS_FOUND)
@@ -102,9 +151,10 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
 list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-  list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/cwipi_configf.h")
-  list(APPEND LIST_HEADER "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
-  list(APPEND LIST_HEADER "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
+  set (LIST_HEADERF "")
+  list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
 endif ()
 
 # Options du link
@@ -139,47 +189,112 @@ endif()
 
 if (CWP_ENABLE_SHARED)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp>)
-  set_target_properties(cwp_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
+  if (CWP_ENABLE_EXTERNAL_PDM)
+    add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp>)
+    target_link_libraries (cwp        pdm::pdm_shared)
+    target_link_libraries (cwp_shared pdm::pdm_shared)
+  else ()
+    add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp> $<TARGET_OBJECTS:pdm>)
+    add_dependencies(cwp_shared pdm)
+    set_target_properties(cwp_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
+  endif ()
   add_dependencies(cwp_shared cwp)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_shared PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_shared ${LINK_LIBRARIES})
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
-  if (CWP_ENABLE_EXTERNAL_PDM)
-    target_link_libraries (cwp        pdm::pdm_shared)
-    target_link_libraries (cwp_shared pdm::pdm_shared)
-  endif ()
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
-  if (CWP_ENABLE_TESTS AND NOT CWP_ENABLE_EXTERNAL_PDM) #add library with non-private paradigm for tests
-    add_library(cwp_test_shared SHARED $<TARGET_OBJECTS:cwp>)
-    add_dependencies(cwp_test_shared cwp)
-    target_link_libraries(cwp_test_shared ${LINK_LIBRARIES})
+
+  if (CWP_ENABLE_Fortran)
+    set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
     if (CWP_ENABLE_EXTERNAL_PDM)
-      target_link_libraries (cwp_test_shared pdm::pdm_shared)
+      add_library(cwpf_shared SHARED $<TARGET_OBJECTS:cwpf>)
+      target_link_libraries (cwpf        pdm::pdmf_shared)
+      target_link_libraries (cwpf_shared pdm::pdmf_shared)
+    else ()
+      add_library(cwpf_shared SHARED $<TARGET_OBJECTS:cwpf> $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdmf>)
+      add_dependencies(cwpf_shared pdm)
+      add_dependencies(cwpf_shared pdmf)
+      set_target_properties(cwpf_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
     endif ()
-    get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
-    target_include_directories(cwp_test_shared PUBLIC ${CWP_INC})
-  endif ()
+    add_dependencies(cwpf_shared cwpf)
+    set_target_properties(cwpf_shared PROPERTIES OUTPUT_NAME "cwpf")
+    set_target_properties(cwpf_shared PROPERTIES VERSION ${CWP_VERSION})
+    target_link_libraries(cwpf_shared cwp_shared ${CXX_LIBRARIES})
+    set_target_properties(cwpf_shared PROPERTIES
+                          PUBLIC_HEADER "${LIST_HEADERF}")
+    get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
+    target_include_directories(cwpf_shared PUBLIC ${CWP_INC})
+  endif()
+
+  if (NOT CWP_ENABLE_EXTERNAL_PDM AND (CWP_ENABLE_TESTS OR CWP_ENABLE_TRAINING))
+
+    set_property(TARGET ${pdm} PROPERTY POSITION_INDEPENDENT_CODE 1)
+    add_library(pdm_shared SHARED $<TARGET_OBJECTS:pdm>)
+    set_target_properties(pdm_shared PROPERTIES OUTPUT_NAME "pdm")
+    add_dependencies(pdm_shared pdm)
+    target_link_libraries(pdm_shared ${LINK_LIBRARIES})
+    get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+    target_include_directories(pdm_shared PUBLIC ${PDM_INC})
+
+    if (CWP_ENABLE_Fortran)
+      set_property(TARGET ${pdmf} PROPERTY POSITION_INDEPENDENT_CODE 1)
+      add_library(pdmf_shared SHARED $<TARGET_OBJECTS:pdmf>)
+      set_target_properties(pdmf_shared PROPERTIES OUTPUT_NAME "pdmf")
+      add_dependencies(pdmf        pdm)
+      add_dependencies(pdmf_shared pdm)
+      target_link_libraries(pdmf        pdm_shared)
+      target_link_libraries(pdmf_shared pdm_shared)
+      target_link_libraries(pdmf_shared ${LINK_LIBRARIES})
+      get_target_property(PDM_INC pdmf INCLUDE_DIRECTORIES)
+      target_include_directories(pdmf_shared PUBLIC ${PDM_INC})
+    endif()
+
+  endif()
+
 endif()
 
 if (CWP_ENABLE_STATIC)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwp_static STATIC $<TARGET_OBJECTS:cwp>)
+  if (CWP_ENABLE_EXTERNAL_PDM)
+    add_library(cwp_static STATIC $<TARGET_OBJECTS:cwp>)
+    target_link_libraries (cwp        pdm::pdm_static)
+    target_link_libraries (cwp_static pdm::pdm_static)
+  else ()
+    add_library(cwp_static STATIC $<TARGET_OBJECTS:cwp> $<TARGET_OBJECTS:pdm>)
+    add_dependencies(cwp_static pdm)
+  endif ()
   add_dependencies(cwp_static cwp)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_static ${LINK_LIBRARIES})
   set_target_properties(cwp_static PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
-  if (CWP_ENABLE_EXTERNAL_PDM)
-    target_link_libraries (cwp        pdm::pdm_static)
-    target_link_libraries (cwp_static pdm::pdm_static)
-  endif ()
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})
+
+  if (CWP_ENABLE_Fortran)
+    set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
+    if (CWP_ENABLE_EXTERNAL_PDM)
+      add_library(cwpf_static STATIC $<TARGET_OBJECTS:cwpf>)
+      target_link_libraries (cwpf        pdm::pdmf_static)
+      target_link_libraries (cwpf_static pdm::pdmf_static)
+    else ()
+      add_library(cwpf_static STATIC $<TARGET_OBJECTS:cwpf> $<TARGET_OBJECTS:pdmf>)
+      add_dependencies(cwpf_static pdmf)
+    endif ()
+    add_dependencies(cwpf_static cwpf)
+    set_target_properties(cwpf_static PROPERTIES OUTPUT_NAME "cwpf")
+    set_target_properties(cwpf_static PROPERTIES VERSION ${CWP_VERSION})
+    target_link_libraries(cwpf_static cwp_static ${MPI_CXX_LIBRARIES})
+    set_target_properties(cwpf_static PROPERTIES
+                          PUBLIC_HEADER "${LIST_HEADERF}")
+    get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
+    target_include_directories(cwpf_static PUBLIC ${CWP_INC})
+  endif()
+
 endif()
 
 # Spécification de l'installation
@@ -189,10 +304,16 @@ set (_targets "")
 
 if (CWP_ENABLE_SHARED)
   list (APPEND _targets cwp_shared)
+  if (CWP_ENABLE_Fortran)
+    list (APPEND _targets cwpf_shared)
+  endif()
 endif()
 
 if (CWP_ENABLE_STATIC)
   list (APPEND _targets cwp_static)
+  if (CWP_ENABLE_Fortran)
+    list (APPEND _targets cwpf_static)
+  endif()
 endif()
 
 foreach(_target IN ITEMS ${_targets})
