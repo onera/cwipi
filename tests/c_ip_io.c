@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 
   int one = 1;
   PDM_g_num_t debut_bloc = 0; // i_rank * strlen(data) + strlen(buf)
-  PDM_UNUSED(debut_bloc);
+  CWP_UNUSED(debut_bloc);
   PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
 
   PDM_io_par_interlaced_write(unite,
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 
   // --> read data (hostname/port);
   PDM_g_num_t debut_bloc_read = i_rank * size + 32;
-  PDM_UNUSED(debut_bloc_read);
+  CWP_UNUSED(debut_bloc_read);
 
   char *read_data = malloc(size+1);
 

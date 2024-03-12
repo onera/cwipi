@@ -24,8 +24,7 @@
 #include <math.h>
 
 #include "cwp.h"
-#include "pdm_error.h"
-#include "pdm_priv.h"
+#include "cwp_priv.h"
 #include "pdm_generate_mesh.h"
 
 /*----------------------------------------------------------------------
@@ -256,8 +255,8 @@ main(int argc, char *argv[]) {
                                                 0);
     }
 
-    PDM_UNUSED(n_uncomputed_tgts);
-    PDM_UNUSED(uncomputed_tgts);
+    CWP_UNUSED(n_uncomputed_tgts);
+    CWP_UNUSED(uncomputed_tgts);
 
     // End time step
     CWP_Time_step_end(code_name[0]);
