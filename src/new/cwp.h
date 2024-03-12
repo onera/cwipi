@@ -2532,7 +2532,7 @@ typedef enum {
 
 
 /**
- * \enum PDM_part_split_t
+ * \enum CWP_part_split_t
  * \brief Split method
  *
  */
@@ -2940,6 +2940,138 @@ CWPT_generate_mesh_parallelepiped_ngon
  CWP_g_num_t                ***pridge_edge_ln_to_gn
  );
 
+/*****************************************************************************************************
+ *                                                                                                   *
+ *                  CWIPI timer                                                                      *
+ *                                                                                                   *
+ *****************************************************************************************************/
+
+typedef void* CWP_timer_t;
+
+/**
+ * \brief Create a timer object
+ *
+ * \return timer
+ *
+ */
+
+CWP_timer_t
+CWP_timer_create
+(
+  void
+);
+
+/**
+ * \brief Initialize a timer object
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_init
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Resuming time measurement
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_resume
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Suspend time measurement
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_hang_on
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Get user time
+ *
+ * \param[in] timer
+ *
+ * \return User time
+ * 
+ */
+
+double 
+CWP_timer_cpu
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Get user cpu time
+ *
+ * \param[in] timer
+ *
+ * \return User cpu time
+ * 
+ */
+
+double 
+CWP_timer_cpu_user
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Get system cpu time
+ *
+ * \param[in] timer
+ *
+ * \return System cpu time
+ * 
+ */
+
+double 
+CWP_timer_cpu_sys
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Get elpased time
+ *
+ * \param[in] timer
+ *
+ * \return Elapsed time
+ * 
+ */
+
+double 
+CWP_timer_elapsed
+(
+  CWP_timer_t timer
+);
+
+/**
+ * \brief Free timer
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_free
+(
+  CWP_timer_t timer
+);
 
 
 /*****************************************************************************************************

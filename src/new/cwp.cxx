@@ -64,6 +64,7 @@
 #include "pdm_logging.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_generate_mesh.h"
+#include "pdm_timer.h"
 #include "spatialInterpClosestPoint.hxx"
 #include "spatialInterpIntersection.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
@@ -4457,6 +4458,165 @@ CWPT_generate_mesh_parallelepiped_ngon
                                          (PDM_g_num_t ***)      pridge_edge_ln_to_gn);
 
 
+}
+
+
+/*****************************************************************************************************
+ *                                                                                                   *
+ *                  CWIPI timer                                                                      *
+ *                                                                                                   *
+ *****************************************************************************************************/
+
+/**
+ * \brief Create a timer object
+ *
+ * \return timer
+ *
+ */
+
+CWP_timer_t
+CWP_timer_create
+(
+  void
+)
+{
+  return (void *) PDM_timer_create();
+}
+
+/**
+ * \brief Initialize a timer object
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_init
+(
+  CWP_timer_t timer
+)
+{
+  PDM_timer_init((PDM_timer_t *) timer);
+}
+
+/**
+ * \brief Resuming time measurement
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_resume
+(
+  CWP_timer_t timer
+)
+{
+  PDM_timer_resume((PDM_timer_t *) timer);  
+}
+
+/**
+ * \brief Suspend time measurement
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_hang_on
+(
+  CWP_timer_t timer
+)
+{
+  PDM_timer_hang_on((PDM_timer_t *) timer);  
+}
+
+/**
+ * \brief Get user time
+ *
+ * \param[in] timer
+ *
+ * \return User time
+ * 
+ */
+
+double 
+CWP_timer_cpu
+(
+  CWP_timer_t timer
+)
+{
+  return PDM_timer_cpu((PDM_timer_t *) timer);
+}
+
+/**
+ * \brief Get user cpu time
+ *
+ * \param[in] timer
+ *
+ * \return User cpu time
+ * 
+ */
+
+double 
+CWP_timer_cpu_user
+(
+  CWP_timer_t timer
+)
+{
+ return PDM_timer_cpu_user((PDM_timer_t *) timer);  
+}
+
+/**
+ * \brief Get system cpu time
+ *
+ * \param[in] timer
+ *
+ * \return System cpu time
+ * 
+ */
+
+double 
+CWP_timer_cpu_sys
+(
+  CWP_timer_t timer
+)
+{
+  return PDM_timer_cpu_sys((PDM_timer_t *) timer);   
+}
+
+/**
+ * \brief Get elpased time
+ *
+ * \param[in] timer
+ *
+ * \return Elapsed time
+ * 
+ */
+
+double 
+CWP_timer_elapsed
+(
+  CWP_timer_t timer
+)
+{
+  return PDM_timer_elapsed((PDM_timer_t *) timer);     
+}
+
+/**
+ * \brief Free timer
+ *
+ * \param[in] timer
+ *
+ */
+
+void 
+CWP_timer_free
+(
+  CWP_timer_t timer
+)
+{
+  PDM_timer_free((PDM_timer_t *) timer); 
 }
 
 
