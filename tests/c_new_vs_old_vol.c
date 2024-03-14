@@ -1494,14 +1494,14 @@ main(int argc, char *argv[]) {
   }
 
   // Perform geometric algorithm
-  PDM_timer_t *timer = PDM_timer_create();
+  CWP_timer_t *timer = CWP_timer_create();
   double t_start, t_end;
 
   MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_init(timer);
+  CWP_timer_init(timer);
 
-  t_start = PDM_timer_elapsed(timer);
-  PDM_timer_resume(timer);
+  t_start = CWP_timer_elapsed(timer);
+  CWP_timer_resume(timer);
 
 
   double max_geom_time;
@@ -1734,10 +1734,10 @@ main(int argc, char *argv[]) {
     }
   }
 
-  // MPI_Barrier(MPI_COMM_WORLD);
-  // PDM_timer_hang_on(timer);
-  // t_end = PDM_timer_elapsed(timer);
-  // PDM_timer_resume(timer);
+  MPI_Barrier(MPI_COMM_WORLD);
+  CWP_timer_hang_on(timer);
+  t_end = CWP_timer_elapsed(timer);
+  CWP_timer_resume(timer);
 
   // double geom_time = t_end - t_start;
   // double max_geom_time;
@@ -1765,9 +1765,9 @@ main(int argc, char *argv[]) {
 
   //  Exchange interpolated fields 1
   MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_start = PDM_timer_elapsed(timer);
-  PDM_timer_resume(timer);
+  CWP_timer_hang_on(timer);
+  t_start = CWP_timer_elapsed(timer);
+  CWP_timer_resume(timer);
 
   int request;
   if (version == CWP_VERSION_OLD) {
@@ -1789,13 +1789,13 @@ main(int argc, char *argv[]) {
   }
 
   /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* PDM_timer_hang_on(timer); */
-  /* t_end = PDM_timer_elapsed(timer); */
+  /* CWP_timer_hang_on(timer); */
+  /* t_end = CWP_timer_elapsed(timer); */
   /* double exch_time1 = t_end - t_start; */
   /* double max_exch_time1; */
   /* t_start = t_end; */
   /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
-  /* PDM_timer_resume(timer); */
+  /* CWP_timer_resume(timer); */
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1815,8 +1815,8 @@ main(int argc, char *argv[]) {
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
+  CWP_timer_hang_on(timer);
+  t_end = CWP_timer_elapsed(timer);
   double exch_time = t_end - t_start;
   double max_exch_time;
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -1837,12 +1837,12 @@ main(int argc, char *argv[]) {
   /* max_geom_time += max_exch_time1; */
 
   //  Exchange interpolated fields 2
-  PDM_timer_resume(timer);
+  CWP_timer_resume(timer);
 
   MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_start = PDM_timer_elapsed(timer);
-  PDM_timer_resume(timer);
+  CWP_timer_hang_on(timer);
+  t_start = CWP_timer_elapsed(timer);
+  CWP_timer_resume(timer);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1863,8 +1863,8 @@ main(int argc, char *argv[]) {
   }
 
   /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* PDM_timer_hang_on(timer); */
-  /* t_end = PDM_timer_elapsed(timer); */
+  /* CWP_timer_hang_on(timer); */
+  /* t_end = CWP_timer_elapsed(timer); */
   /* exch_time1 = t_end - t_start; */
 
   /* CWP_UNUSED (max_exch_time1); */
@@ -1872,12 +1872,12 @@ main(int argc, char *argv[]) {
   /* t_start = t_end; */
   /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
 
-  /* PDM_timer_resume(timer); */
+  /* CWP_timer_resume(timer); */
 
   /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* PDM_timer_hang_on(timer); */
-  /* t_start = PDM_timer_elapsed(timer); */
-  /* PDM_timer_resume(timer); */
+  /* CWP_timer_hang_on(timer); */
+  /* t_start = CWP_timer_elapsed(timer); */
+  /* CWP_timer_resume(timer); */
 
   /* redondance_geom += -max_exch_time1; */
 
@@ -1899,8 +1899,8 @@ main(int argc, char *argv[]) {
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
+  CWP_timer_hang_on(timer);
+  t_end = CWP_timer_elapsed(timer);
   exch_time = t_end - t_start;
   /* CWP_UNUSED (max_exch_time1); */
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -2076,7 +2076,7 @@ main(int argc, char *argv[]) {
     free(recv_val);
     free(recv_val2);
   }
-  PDM_timer_free(timer);
+  CWP_timer_free(timer);
 
   //  Finalize CWIPI
   if (version == CWP_VERSION_OLD) {
