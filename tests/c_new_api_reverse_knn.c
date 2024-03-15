@@ -27,18 +27,6 @@
 #include "cwp_priv.h"
 #include "cwp.h"
 
-#include "pdm.h"
-#include "pdm_multipart.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-
-#include "pdm_dmesh_nodal.h"
-#include "pdm_block_to_part.h"
-#include "pdm_mesh_nodal.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_vtk.h"
-#include "pdm_generate_mesh.h"
-
 
 /*----------------------------------------------------------------------
  *
@@ -78,7 +66,7 @@ _read_args
   char                 **argv,
   int                   *verbose,
   int                   *swap_codes,
-  PDM_g_num_t            all_n_vtx_seg[],
+  CWP_g_num_t            all_n_vtx_seg[],
   int                    all_n_rank[],
   int                   *visu
 )
@@ -181,13 +169,6 @@ _my_interpolation
         buffer_out[n_components*id + k] += buffer_in[n_components*j + k];
       }
     }
-    // PDM_log_trace_array_double(buffer_in + n_components*tgt_come_from_src_idx[i],
-    //                            n_components*(tgt_come_from_src_idx[i+1] - tgt_come_from_src_idx[i]),
-    //                            "buffer_in  : ");
-    // PDM_log_trace_array_double(buffer_out + n_components*id,
-    //                            n_components,
-    //                            "buffer_out : ");
-    // log_trace("\n");
   }
 }
 
@@ -221,7 +202,7 @@ main
 {
   int         verbose          = 0;
   int         swap_codes       = 0;
-  PDM_g_num_t all_n_vtx_seg[2] = {10, 5};
+  CWP_g_num_t all_n_vtx_seg[2] = {10, 5};
   int         all_n_rank   [2] = {-1, -1};
   int         visu             = 0;
 
@@ -269,7 +250,7 @@ main
   const char   **coupled_code_name = malloc(sizeof(char       *) * n_code);
   CWP_Status_t   is_active_rank    = CWP_STATUS_ON;
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
-  PDM_g_num_t   *n_vtx_seg         = malloc(sizeof(PDM_g_num_t ) * n_code);
+  CWP_g_num_t   *n_vtx_seg         = malloc(sizeof(CWP_g_num_t ) * n_code);
 
   n_code = 0;
   for (int icode = 0; icode < 2; icode++) {
@@ -280,8 +261,9 @@ main
       n_vtx_seg        [n_code] = all_n_vtx_seg[icode];
 
       if (verbose) {
-        log_trace("Running %s, coupled with %s\n",
-                  code_name[n_code], coupled_code_name[n_code]);
+        printf("rank %d : Running %s, coupled with %s\n",
+               i_rank,
+               code_name[n_code], coupled_code_name[n_code]);
       }
       n_code++;
     }
@@ -341,15 +323,13 @@ main
   double  *tgt_coord   = NULL;
 
   for (int icode = 0; icode < n_code; icode++) {
-    PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
-
-    PDM_generate_mesh_rectangle_simplified(mesh_comm,
-                                           n_vtx_seg   [icode],
-                                           &n_vtx      [icode],
-                                           &n_elt      [icode],
-                                           &vtx_coord  [icode],
-                                           &elt_vtx_idx[icode],
-                                           &elt_vtx    [icode]);
+    CWPT_generate_mesh_rectangle_simplified(intra_comm[icode],
+                                            n_vtx_seg   [icode],
+                                            &n_vtx      [icode],
+                                            &n_elt      [icode],
+                                            &vtx_coord  [icode],
+                                            &elt_vtx_idx[icode],
+                                            &elt_vtx    [icode]);
 
     int block_id = CWP_Mesh_interf_block_add(code_name[icode],
                                              cpl_name,
@@ -478,9 +458,6 @@ main
 
     if (i_rank == 0) {
       printf("\n  Step %d\n", step);
-    }
-    if (verbose) {
-      log_trace("\n  Step %d\n", step);
     }
     for (int icode = 0; icode < n_code; icode++) {
 
