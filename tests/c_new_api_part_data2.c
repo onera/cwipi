@@ -166,7 +166,7 @@ int main
   FILE *file_log = NULL;
   if (verbose) {
     char file_log_name[999];
-    sprintf(file_log_name, "c_new_api_param_%d.log", i_rank);
+    sprintf(file_log_name, "c_new_api_part_data2_%d.log", i_rank);
     file_log = fopen(file_log_name, "w");
     if (file_log == NULL) {
       printf("Warning : failed to open %s\n", file_log_name);
@@ -460,7 +460,7 @@ int main
               fprintf(file_log, "%ld sends:\n", pface_ln_to_gn[icode][ipart][i]);
               for (int j = 0; j < stride; j++) {
                 fprintf(file_log, "  %f\n",
-                          send_val[ipart][stride*i+j]);
+                        send_val[ipart][stride*i+j]);
               }
             }
           }
@@ -479,8 +479,8 @@ int main
               double expected = (double) (j+1)*pface_ln_to_gn[icode][ipart][i];
               if (verbose) {
                 fprintf(file_log, "  %f (expected %f)\n",
-                          recv_val[ipart][stride*i+j],
-                          expected);
+                        recv_val[ipart][stride*i+j],
+                        expected);
               }
 
               if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
