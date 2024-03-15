@@ -1,6 +1,7 @@
 {
   global:
     *CWP_*;
+    *CWPT_*;
     *cwp_*;
     *CWIPI*;
     *cwipi*;
