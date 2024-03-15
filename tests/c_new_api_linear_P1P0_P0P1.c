@@ -197,167 +197,113 @@ _read_args
 static void
 _gen_mesh
 (
- const PDM_MPI_Comm         comm,
- const PDM_g_num_t          gn_vtx,
+ const MPI_Comm             comm,
+ const CWP_g_num_t          gn_vtx,
  const int                  n_part,
- const PDM_split_dual_t     part_method,
  int                      **pn_elt,
  int                      **pn_vtx,
  int                     ***pelt_vtx,
  double                  ***pvtx_coord,
- PDM_g_num_t             ***pelt_ln_to_gn,
- PDM_g_num_t             ***pvtx_ln_to_gn
+ CWP_g_num_t             ***pelt_ln_to_gn,
+ CWP_g_num_t             ***pvtx_ln_to_gn
  )
 {
   int i_rank;
-  PDM_MPI_Comm_rank(comm, &i_rank);
+  MPI_Comm_rank(comm, &i_rank);
 
-  PDM_g_num_t gn_elt = gn_vtx - 1;
-
-  PDM_g_num_t *distrib_vtx = PDM_compute_uniform_entity_distribution(comm,
-                                                                     gn_vtx);
-
-  PDM_g_num_t *distrib_elt = PDM_compute_uniform_entity_distribution(comm,
-                                                                     gn_elt);
-
-  int dn_vtx = (int) (distrib_vtx[i_rank+1] - distrib_vtx[i_rank]);
-  int dn_elt = (int) (distrib_elt[i_rank+1] - distrib_elt[i_rank]);
+  int n_rank;
+  MPI_Comm_size(comm, &n_rank);
 
 
   double step = 6.28 / (double) (gn_vtx - 1);
 
-  double *dvtx_coord = malloc(sizeof(double) * dn_vtx * 3);
-  for (int i = 0; i < dn_vtx; i++) {
-    PDM_g_num_t g = distrib_vtx[i_rank] + i;
 
-    double r = 1 + 0.3*cos(5*g*step);
-    double t = g*step + 0.1*sin(5*g*step);
-
-    dvtx_coord[3*i  ] = r*cos(t);
-    dvtx_coord[3*i+1] = r*sin(t);
-    dvtx_coord[3*i+2] = 0.1*cos(5*g*step);
-  }
-  free(distrib_vtx);
-
-
-  PDM_g_num_t *delt_vtx = malloc(sizeof(PDM_g_num_t) * dn_elt * 2);
-  for (int i = 0; i < dn_elt; i++) {
-    PDM_g_num_t g = distrib_elt[i_rank] + i;
-
-    delt_vtx[2*i  ] = g+1;
-    delt_vtx[2*i+1] = g+2;
-  }
-  free(distrib_elt);
-
-  PDM_dmesh_t *dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
-                                        0,
-                                        0,
-                                        dn_elt,
-                                        dn_vtx,
-                                        comm);
-
-  PDM_dmesh_vtx_coord_set(dmesh,
-                          dvtx_coord,
-                          PDM_OWNERSHIP_KEEP);
-
-  int *delt_vtx_idx = NULL;
-  PDM_dmesh_connectivity_set(dmesh,
-                             PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                             delt_vtx,
-                             delt_vtx_idx,
-                             PDM_OWNERSHIP_KEEP);
-
-  int n_bnd = 2;
-  int *dbnd_vtx_idx = PDM_array_zeros_int(n_bnd + 1);
-  if (i_rank == 0) {
-    dbnd_vtx_idx[1] = 1;
-    dbnd_vtx_idx[2] = 2;
-  }
-  PDM_g_num_t *dbnd_vtx = malloc(sizeof(PDM_g_num_t) * dbnd_vtx_idx[n_bnd]);
-  if (i_rank == 0) {
-    dbnd_vtx[0] = 1;
-    dbnd_vtx[1] = gn_vtx;
-  }
-
-  PDM_dmesh_bound_set(dmesh,
-                      PDM_BOUND_TYPE_VTX,
-                      n_bnd,
-                      dbnd_vtx,
-                      dbnd_vtx_idx,
-                      PDM_OWNERSHIP_KEEP);
-
-
-  int n_zone = 1;
-  PDM_multipart_t *mpart = PDM_multipart_create(n_zone,
-                                                &n_part,
-                                                PDM_FALSE,
-                                                part_method,
-                                                PDM_PART_SIZE_HOMOGENEOUS,
-                                                NULL,
-                                                comm,
-                                                PDM_OWNERSHIP_KEEP);
-
-  PDM_multipart_set_reordering_options(mpart,
-                                       -1,
-                                       "PDM_PART_RENUM_CELL_NONE",
-                                       NULL,
-                                       "PDM_PART_RENUM_FACE_NONE");
-
-  PDM_multipart_dmesh_set(mpart,
-                               0,
-                               dmesh);
-
-  PDM_multipart_compute(mpart);
-
-
-  *pn_vtx        = malloc(sizeof(int          ) * n_part);
-  *pvtx_coord    = malloc(sizeof(double      *) * n_part);
-  *pvtx_ln_to_gn = malloc(sizeof(PDM_g_num_t *) * n_part);
   *pn_elt        = malloc(sizeof(int          ) * n_part);
+  *pn_vtx        = malloc(sizeof(int          ) * n_part);
   *pelt_vtx      = malloc(sizeof(int         *) * n_part);
-  *pelt_ln_to_gn = malloc(sizeof(PDM_g_num_t *) * n_part);
+  *pvtx_coord    = malloc(sizeof(double      *) * n_part);
+  *pelt_ln_to_gn = malloc(sizeof(CWP_g_num_t *) * n_part);
+  *pvtx_ln_to_gn = malloc(sizeof(CWP_g_num_t *) * n_part);
+
+  int tn_part = n_part * n_rank;
+
+  if (tn_part == 1) {
+    (*pn_elt)[0] = (int) gn_vtx;
+    (*pn_vtx)[0] = (int) gn_vtx;
+
+    (*pelt_vtx     )[0] = malloc(sizeof(int        ) * (*pn_elt)[0] * 2);
+    (*pvtx_coord   )[0] = malloc(sizeof(double     ) * (*pn_vtx)[0] * 3);
+    (*pelt_ln_to_gn)[0] = malloc(sizeof(CWP_g_num_t) * (*pn_elt)[0]);
+    (*pvtx_ln_to_gn)[0] = malloc(sizeof(CWP_g_num_t) * (*pn_vtx)[0]);
+
+    for (int i = 0; i < (*pn_elt)[0]; i++) {
+      (*pelt_ln_to_gn)[0][i] = i + 1;
+      (*pelt_vtx     )[0][2*i  ] = i+1;
+      (*pelt_vtx     )[0][2*i+1] = (i+1)%gn_vtx + 1;
+    }
+
+    for (int i = 0; i < (*pn_vtx)[0]; i++) {
+      (*pvtx_ln_to_gn)[0][i] = i + 1;
+
+      double r = 1 + 0.3*cos(5*i*step);
+      double t = i*step + 0.1*sin(5*i*step);
+
+      (*pvtx_coord)[0][3*i  ] = r*cos(t);
+      (*pvtx_coord)[0][3*i+1] = r*sin(t);
+      (*pvtx_coord)[0][3*i+2] = 0.1*cos(5*i*step);
+    }
+
+  }
+  else {
+    int div = (int) (gn_vtx / tn_part);
+    int rem = (int) (gn_vtx % tn_part);
+    CWP_g_num_t *offset_elt = malloc(sizeof(CWP_g_num_t) * (tn_part+1));
+    offset_elt[0] = 0;
+    for (int i_part = 0; i_part < tn_part; i_part++) {
+      offset_elt[i_part+1] = offset_elt[i_part] + div;
+      if (i_part < rem) {
+        offset_elt[i_part+1]++;
+      }
+    }
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      int j_part = n_part*i_rank + i_part;
+      (*pn_elt)[i_part] = offset_elt[j_part+1] - offset_elt[j_part];
+      (*pn_vtx)[i_part] = (*pn_elt)[i_part] + 1;
+
+      (*pelt_vtx     )[i_part] = malloc(sizeof(int        ) * (*pn_elt)[i_part] * 2);
+      (*pvtx_coord   )[i_part] = malloc(sizeof(double     ) * (*pn_vtx)[i_part] * 3);
+      (*pelt_ln_to_gn)[i_part] = malloc(sizeof(CWP_g_num_t) * (*pn_elt)[i_part]);
+      (*pvtx_ln_to_gn)[i_part] = malloc(sizeof(CWP_g_num_t) * (*pn_vtx)[i_part]);
 
 
-  for (int ipart = 0; ipart < n_part; ipart++) {
+      for (int i = 0; i < (*pn_elt)[i_part]; i++) {
+        (*pelt_ln_to_gn)[i_part][i] = offset_elt[j_part] + i + 1;
+        (*pelt_vtx     )[i_part][2*i  ] = i+1;
+        (*pelt_vtx     )[i_part][2*i+1] = i+2;
+      }
 
-    /* Vertices */
-    (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
-                                                       0,
-                                                       ipart,
-                                                       PDM_MESH_ENTITY_VTX,
-                                                       &(*pvtx_ln_to_gn)[ipart],
-                                                       PDM_OWNERSHIP_USER);
+      for (int i = 0; i <= (*pn_elt)[i_part]; i++) {
+        CWP_g_num_t g = (offset_elt[j_part] + i) % gn_vtx;
 
-    PDM_multipart_part_vtx_coord_get(mpart,
-                                     0,
-                                     ipart,
-                                     &(*pvtx_coord)[ipart],
-                                     PDM_OWNERSHIP_USER);
+        (*pvtx_ln_to_gn)[i_part][i] = g + 1;
 
+        double r = 1 + 0.3*cos(5*g*step);
+        double t = g*step + 0.1*sin(5*g*step);
 
-    /* Elements */
-    (*pn_elt)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
-                                                       0,
-                                                       ipart,
-                                                       PDM_MESH_ENTITY_EDGE,
-                                                       &(*pelt_ln_to_gn)[ipart],
-                                                       PDM_OWNERSHIP_USER);
+        (*pvtx_coord)[i_part][3*i  ] = r*cos(t);
+        (*pvtx_coord)[i_part][3*i+1] = r*sin(t);
+        (*pvtx_coord)[i_part][3*i+2] = 0.1*cos(5*g*step);
+      }
+    }
 
-    int *elt_vtx_idx;
-    PDM_multipart_part_connectivity_get(mpart,
-                                        0,
-                                        ipart,
-                                        PDM_CONNECTIVITY_TYPE_EDGE_VTX,
-                                        &elt_vtx_idx,
-                                        &(*pelt_vtx)[ipart],
-                                        PDM_OWNERSHIP_USER);
+    free(offset_elt);
   }
 
-  PDM_dmesh_free(dmesh);
-  PDM_multipart_free(mpart);
+
+
+
 }
-
-
 
 
 /*----------------------------------------------------------------------
@@ -382,8 +328,6 @@ main
   double               tolerance      = 1e-2;
   int                  n_neighbors    = 5;
   int                  visu           = 0;
-
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
 
   _read_args(argc,
              argv,
@@ -499,16 +443,13 @@ main
   int          **pn_elt        = malloc(sizeof(int          *) * n_code);
   double      ***pvtx_coord    = malloc(sizeof(double      **) * n_code);
   int         ***pelt_vtx      = malloc(sizeof(int         **) * n_code);
-  PDM_g_num_t ***pelt_ln_to_gn = malloc(sizeof(PDM_g_num_t **) * n_code);
-  PDM_g_num_t ***pvtx_ln_to_gn = malloc(sizeof(PDM_g_num_t **) * n_code);
+  CWP_g_num_t ***pelt_ln_to_gn = malloc(sizeof(CWP_g_num_t **) * n_code);
+  CWP_g_num_t ***pvtx_ln_to_gn = malloc(sizeof(CWP_g_num_t **) * n_code);
 
   for (int icode = 0; icode < n_code; icode++) {
-    PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
-
-    _gen_mesh(mesh_comm,
+    _gen_mesh(intra_comm[icode],
               gn_vtx[icode],
               n_part[icode],
-              part_method,
               &pn_elt       [icode],
               &pn_vtx       [icode],
               &pelt_vtx     [icode],
