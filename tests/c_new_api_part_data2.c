@@ -726,18 +726,25 @@ int main
 
   for (int icode = 0; icode < n_code; icode++) {
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+      free(pedge_vtx     [icode][ipart]);
       free(pface_vtx_idx [icode][ipart]);
+      free(pface_edge    [icode][ipart]);
       free(pface_vtx     [icode][ipart]);
       free(pvtx_coord    [icode][ipart]);
       free(pface_ln_to_gn[icode][ipart]);
+      free(pedge_ln_to_gn[icode][ipart]);
       free(pvtx_ln_to_gn [icode][ipart]);
     }
     free(pn_face       [icode]);
+    free(pn_edge       [icode]);
     free(pn_vtx        [icode]);
+    free(pedge_vtx     [icode]);
     free(pface_vtx_idx [icode]);
+    free(pface_edge    [icode]);
     free(pface_vtx     [icode]);
     free(pvtx_coord    [icode]);
     free(pface_ln_to_gn[icode]);
+    free(pedge_ln_to_gn[icode]);
     free(pvtx_ln_to_gn [icode]);
 
     if (code_id[icode] == 1) {
@@ -754,11 +761,15 @@ int main
     }
   }
   free(pn_face       );
+  free(pn_edge       );
   free(pn_vtx        );
+  free(pedge_vtx     );
   free(pface_vtx_idx );
+  free(pface_edge    );
   free(pface_vtx     );
   free(pvtx_coord    );
   free(pface_ln_to_gn);
+  free(pedge_ln_to_gn);
   free(pvtx_ln_to_gn );
 
   free(code_id);
