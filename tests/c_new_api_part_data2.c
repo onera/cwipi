@@ -285,7 +285,7 @@ int main
 
   for (int icode = 0; icode < n_code; icode++) {
     CWPT_generate_mesh_sphere_ngon(intra_comm[icode],
-                                   CWPT_MESH_NODAL_POLY_2D,
+                                   CWPT_MESH_NODAL_TRIA3,
                                    1,
                                    NULL,
                                    1.0,

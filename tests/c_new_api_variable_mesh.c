@@ -27,14 +27,6 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_logging.h"
-#include "pdm_io.h"
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_generate_mesh.h"
 
 #include "cwp_priv.h"
 
@@ -45,7 +37,7 @@
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -n_rank1 \n\n"
@@ -117,7 +109,7 @@ main
              argv,
              code_n_rank);
 
-  // mpi
+  // MPI
   int i_rank;
   int n_rank;
 
@@ -249,13 +241,13 @@ main
     if (elt_vtx != NULL) {
       free(elt_vtx);
     }
-    PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm),
-                                           it+2,
-                                           &n_vtx,
-                                           &n_elt,
-                                           &coords,
-                                           &elt_vtx_idx,
-                                           &elt_vtx);
+    CWPT_generate_mesh_rectangle_simplified(intra_comm,
+                                            it+2,
+                                            &n_vtx,
+                                            &n_elt,
+                                            &coords,
+                                            &elt_vtx_idx,
+                                            &elt_vtx);
 
     send_field = realloc(send_field, sizeof(double) * n_vtx);
     recv_field = realloc(recv_field, sizeof(double) * n_vtx);

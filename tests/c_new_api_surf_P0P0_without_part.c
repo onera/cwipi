@@ -173,7 +173,7 @@ _gen_mesh
  const PDM_g_num_t         n_vtx_seg,
  const int                 randomize,
  const int                 random_seed,
- const int                 is_partitionned,
+ const int                 is_partitioned,
  int                     **pn_face,
  int                     **pn_vtx,
  int                    ***pface_vtx_idx,
@@ -238,7 +238,7 @@ _gen_mesh
   *pvtx_ln_to_gn  = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
   *pvtx_coord     = (double **)      malloc(sizeof(double **)      * n_part);
 
-  if (is_partitionned) {
+  if (is_partitioned) {
     /* Spit the mesh */
     int n_zone = 1;
     PDM_multipart_t *mpart = PDM_multipart_create(n_zone,
@@ -341,7 +341,7 @@ _gen_mesh
 
   else {
     int i_part = 0;
-    // Not partitionned => allgather
+    // Not partitioned => allgather
     int *recv_count = malloc(sizeof(int) * n_rank);
     int *recv_shift = malloc(sizeof(int) * (n_rank + 1));
     recv_shift[0] = 0;
