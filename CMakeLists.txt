@@ -50,7 +50,7 @@ option(CWP_ENABLE_SHARED "Build Shared Libraries" ON)
 # Static libraries
 # ----------------
 
-option(CWP_ENABLE_STATIC "Build Static Libraries" ON)
+option(CWP_ENABLE_STATIC "Build Static Libraries" OFF)
 
 # Check MPI Wrapper
 # -----------------
@@ -70,7 +70,7 @@ option(CWP_ENABLE_Fortran "Build Shared Fortran Interface" OFF)
 option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
 
 # BLAS
-# -----------------
+# ----
 
 option(CWP_ENABLE_BLASLAPACK "Enable the use of the library blas/lapack" OFF)
 
@@ -108,9 +108,15 @@ option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
 
 # Enable tests
-# ----------------
+# ------------
 
 option(CWP_ENABLE_TESTS "Enable Tests" ON)
+
+# Hide ParaDiGM Librabry symbols into the cwipi library.
+# This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
+# -----------------------------------------------------------------------------------
+
+option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Enable Tests" ON)
 
 #------------------------------------------------------------------------------
 # Default build : Release
@@ -134,6 +140,10 @@ endif()
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
+endif()
+
+if ((CWP_ENABLE_STATIC) AND (CWP_ENABLE_HIDE_PDM_SYMBOLS))
+  message (FATAL_ERROR "Enabling the hiding of ParaDiGM library symbols in the CWIPI library is not allowed for the static library. To generate a static library, set the CWP_ENABLE_HIDE_PDM_SYMBOLS option to OFF.")
 endif()
 
 #------------------------------------------------------------------------------
