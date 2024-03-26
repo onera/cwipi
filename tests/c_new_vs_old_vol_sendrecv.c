@@ -70,26 +70,26 @@ _usage(int exit_code) {
 static void
 _read_args
 (
-  int                   argc, 
-  char                **argv, 
-  CWP_Version_t        *version, 
-  int                  *n_vtx_seg1, 
+  int                   argc,
+  char                **argv,
+  CWP_Version_t        *version,
+  int                  *n_vtx_seg1,
   int                  *n_vtx_seg2,
   double               *length,
   double               *separation_x,
   double               *separation_y,
   double               *separation_z,
-  int                  *deform, 
+  int                  *deform,
   double               *tolerance,
-  int                  *randomize, 
+  int                  *randomize,
   int                  *nProcData,
-  CWP_Spatial_interp_t *loc_method, 
-  char                **output_filename, 
+  CWP_Spatial_interp_t *loc_method,
+  char                **output_filename,
   int                  *verbose,
   int                  *extension_depth_tgt,
   int                  *extension_depth_src,
   CWPT_Mesh_nodal_elt_t *elt_type
-) 
+)
 {
   int i = 1;
 
@@ -284,152 +284,203 @@ _unrotate(const int n_pts, double *coord) {
 
 
 
+// static void
+// _cube_mesh_old
+// (
+//  const int                     activeRank,
+//  const MPI_Comm                comm,
+//  const int                     n_part,
+//  const CWPT_split_dual_t       part_method,
+//  const CWP_g_num_t             n_vtx_seg,
+//  const double                  xmin,
+//  const double                  ymin,
+//  const double                  zmin,
+//  const double                  length,
+//  const int                     deform,
+//  const int                     part_extension_depth,
+//  const CWPT_Mesh_nodal_elt_t   elt_type,
+//  int                         **pn_cell,
+//  int                         **pn_face,
+//  int                         **pn_vtx,
+//  int                        ***pcell_face_idx,
+//  int                        ***pcell_face,
+//  int                        ***pcell_vtx,
+//  int                        ***pface_vtx_idx,
+//  int                        ***pface_vtx,
+//  double                     ***pvtx_coord,
+//  CWP_g_num_t                ***pcell_ln_to_gn,
+//  CWP_g_num_t                ***pface_ln_to_gn,
+//  CWP_g_num_t                ***pvtx_ln_to_gn
+// )
+// {
+//   if (activeRank) {
+
+//     // Unused variables
+//     int          *unused_n_edge                = NULL;
+//     int         **unused_edge_vtx              = NULL;
+//     int         **unused_face_edge             = NULL;
+//     CWP_g_num_t **unused_edge_ln_to_gn         = NULL;
+//     int          *unused_n_surface             = NULL;
+//     int         **unused_surface_face_idx      = NULL;
+//     int         **unused_surface_face          = NULL;
+//     CWP_g_num_t **unused_surface_face_ln_to_gn = NULL;
+//     int          *unused_n_ridge               = NULL;
+//     int         **unused_ridge_edge_idx        = NULL;
+//     int         **unused_ridge_edge            = NULL;
+//     CWP_g_num_t **unused_ridge_edge_ln_to_gn   = NULL;
+
+//     CWPT_generate_mesh_parallelepiped_ngon(comm,
+//                                            elt_type,
+//                                            1,
+//                                            NULL,
+//                                            xmin,
+//                                            ymin,
+//                                            zmin,
+//                                            length,
+//                                            length,
+//                                            length,
+//                                            n_vtx_seg,
+//                                            n_vtx_seg,
+//                                            n_vtx_seg,
+//                                            n_part,
+//                                            part_method,
+//                                            pn_vtx,
+//                                            &unused_n_edge,
+//                                            pn_face,
+//                                            pn_cell,
+//                                            pvtx_coord,
+//                                            &unused_edge_vtx,
+//                                            pface_vtx_idx,
+//                                            &unused_face_edge,
+//                                            pface_vtx,
+//                                            pcell_face_idx,
+//                                            pcell_face,
+//                                            pvtx_ln_to_gn,
+//                                            &unused_edge_ln_to_gn,
+//                                            pface_ln_to_gn,
+//                                            pcell_ln_to_gn,
+//                                            &unused_n_surface,
+//                                            &unused_surface_face_idx,
+//                                            &unused_surface_face,
+//                                            &unused_surface_face_ln_to_gn,
+//                                            &unused_n_ridge,
+//                                            &unused_ridge_edge_idx,
+//                                            &unused_ridge_edge,
+//                                            &unused_ridge_edge_ln_to_gn);
+
+//     // Free unused variables
+//     for (int i_part = 0; i_part < n_part; i_part++) {
+//       free(unused_edge_vtx             [i_part]);
+//       free(unused_face_edge            [i_part]);
+//       free(unused_edge_ln_to_gn        [i_part]);
+//       free(unused_surface_face_idx     [i_part]);
+//       free(unused_surface_face         [i_part]);
+//       free(unused_surface_face_ln_to_gn[i_part]);
+//       free(unused_ridge_edge_idx       [i_part]);
+//       free(unused_ridge_edge           [i_part]);
+//       free(unused_ridge_edge_ln_to_gn  [i_part]);
+//     }
+//     free(unused_n_edge               );
+//     free(unused_edge_vtx             );
+//     free(unused_face_edge            );
+//     free(unused_edge_ln_to_gn        );
+//     free(unused_n_surface            );
+//     free(unused_surface_face_idx     );
+//     free(unused_surface_face         );
+//     free(unused_surface_face_ln_to_gn);
+//     free(unused_n_ridge              );
+//     free(unused_ridge_edge_idx       );
+//     free(unused_ridge_edge           );
+//     free(unused_ridge_edge_ln_to_gn  );
+
+//     // TO DO : part_extension_depth > 0 => create extension
+//   }
+//   else {
+//     *pn_cell = (int *) malloc (sizeof(int *) * n_part);
+//     *pn_face = (int *) malloc (sizeof(int *) * n_part);
+//     *pn_vtx = (int *) malloc (sizeof(int *) * n_part);
+//     *pcell_face_idx = (int **) malloc (sizeof(int *) * n_part);
+//     *pcell_face = (int **) malloc (sizeof(int *) * n_part);
+//     *pcell_vtx = (int **) malloc (sizeof(int *) * n_part);
+//     *pface_vtx_idx = (int **) malloc (sizeof(int *) * n_part);
+//     *pface_vtx = (int **) malloc (sizeof(int *) * n_part);
+//     *pvtx_coord = (double **) malloc (sizeof(int *) * n_part);
+//     *pcell_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
+//     *pface_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
+//     *pvtx_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
+//     for (int ipart = 0 ; ipart < n_part ; ipart++) {
+//       int _nFace = 0;
+//       int _nCell = 0;
+//       int _nVtx = 0;
+//       (*pn_cell)[ipart] = _nCell;
+//       (*pn_face)[ipart] = _nFace;
+//       (*pn_vtx)[ipart] = _nVtx;
+//       (*pcell_face_idx)[ipart] = (int *) malloc(sizeof(int) * (_nCell + 1));
+//       (*pcell_face_idx)[ipart][0] = 0;
+//       (*pcell_face)[ipart] = (int *) malloc(sizeof(int) * 0);
+//       (*pcell_vtx)[ipart] = (int *) malloc(sizeof(int) * 0);
+//       (*pface_vtx_idx)[ipart] = (int *) malloc(sizeof(int) * (_nFace + 1));
+//       (*pface_vtx_idx)[ipart][0] = 0;
+//       (*pface_vtx)[ipart] = (int *) malloc(sizeof(int) * 0);
+//       (*pvtx_coord)[ipart] = (double *) malloc(sizeof(double) * 0);
+//       (*pcell_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nCell);
+//       (*pface_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nFace);
+//       (*pvtx_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nVtx);
+//     }
+//   }
+// }
+
 static void
 _cube_mesh
 (
- const int                     activeRank,  
+ const int                     activeRank,
  const MPI_Comm                comm,
- const int                     n_part,
- const CWPT_split_dual_t       part_method,
+ // const int                     n_part,
+ // const CWPT_split_dual_t       part_method,
  const CWP_g_num_t             n_vtx_seg,
- const double                  xmin,
- const double                  ymin,
- const double                  zmin,
- const double                  length,
- const int                     deform,
- const int                     part_extension_depth,
- const CWPT_Mesh_nodal_elt_t   elt_type,
- int                         **pn_cell,
- int                         **pn_face,
- int                         **pn_vtx,
- int                        ***pcell_face_idx,
- int                        ***pcell_face,
- int                        ***pcell_vtx,
- int                        ***pface_vtx_idx,
- int                        ***pface_vtx,
- double                     ***pvtx_coord,
- CWP_g_num_t                ***pcell_ln_to_gn,
- CWP_g_num_t                ***pface_ln_to_gn,
- CWP_g_num_t                ***pvtx_ln_to_gn
+ // const double                  xmin,
+ // const double                  ymin,
+ // const double                  zmin,
+ // const double                  length,
+ // const int                     deform,
+ // const int                     part_extension_depth,
+ // const CWPT_Mesh_nodal_elt_t   elt_type,
+ // int                         **pn_cell,
+ // int                         **pn_face,
+ // int                         **pn_vtx,
+ // int                        ***pcell_face_idx,
+ // int                        ***pcell_face,
+ // int                        ***pcell_vtx,
+ // int                        ***pface_vtx_idx,
+ // int                        ***pface_vtx,
+ // double                     ***pvtx_coord,
+ // CWP_g_num_t                ***pcell_ln_to_gn,
+ // CWP_g_num_t                ***pface_ln_to_gn,
+ // CWP_g_num_t                ***pvtx_ln_to_gn
+ int      *n_vtx,
+ int      *n_elt,
+ double **vtx_coord,
+ int    **elt_vtx_idx,
+ int    **elt_vtx
 )
 {
   if (activeRank) {
-
-    // Unused variables
-    int          *unused_n_edge                = NULL;
-    int         **unused_edge_vtx              = NULL;
-    int         **unused_face_edge             = NULL;
-    CWP_g_num_t **unused_edge_ln_to_gn         = NULL;
-    int          *unused_n_surface             = NULL;
-    int         **unused_surface_face_idx      = NULL;
-    int         **unused_surface_face          = NULL;
-    CWP_g_num_t **unused_surface_face_ln_to_gn = NULL;
-    int          *unused_n_ridge               = NULL;
-    int         **unused_ridge_edge_idx        = NULL;
-    int         **unused_ridge_edge            = NULL;
-    CWP_g_num_t **unused_ridge_edge_ln_to_gn   = NULL;
-
-    CWPT_generate_mesh_parallelepiped_ngon(comm,
-                                           elt_type,
-                                           1,
-                                           NULL,
-                                           xmin,
-                                           ymin,
-                                           zmin,
-                                           length,
-                                           length,
-                                           length,
-                                           n_vtx_seg,
-                                           n_vtx_seg,
-                                           n_vtx_seg,
-                                           n_part,
-                                           part_method,
-                                           pn_vtx,
-                                           &unused_n_edge,
-                                           pn_face,
-                                           pn_cell,
-                                           pvtx_coord,
-                                           &unused_edge_vtx,
-                                           pface_vtx_idx,
-                                           &unused_face_edge,
-                                           pface_vtx,
-                                           pcell_face_idx,
-                                           pcell_face,
-                                           pvtx_ln_to_gn,
-                                           &unused_edge_ln_to_gn,
-                                           pface_ln_to_gn,
-                                           pcell_ln_to_gn,
-                                           &unused_n_surface,
-                                           &unused_surface_face_idx,
-                                           &unused_surface_face,
-                                           &unused_surface_face_ln_to_gn,
-                                           &unused_n_ridge,
-                                           &unused_ridge_edge_idx,
-                                           &unused_ridge_edge,
-                                           &unused_ridge_edge_ln_to_gn);
-
-    // Free unused variables
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      free(unused_edge_vtx             [i_part]);
-      free(unused_face_edge            [i_part]);
-      free(unused_edge_ln_to_gn        [i_part]);
-      free(unused_surface_face_idx     [i_part]);
-      free(unused_surface_face         [i_part]);
-      free(unused_surface_face_ln_to_gn[i_part]);
-      free(unused_ridge_edge_idx       [i_part]);
-      free(unused_ridge_edge           [i_part]);
-      free(unused_ridge_edge_ln_to_gn  [i_part]);
-    }
-    free(unused_n_edge               );
-    free(unused_edge_vtx             );
-    free(unused_face_edge            );
-    free(unused_edge_ln_to_gn        );
-    free(unused_n_surface            );
-    free(unused_surface_face_idx     );
-    free(unused_surface_face         );
-    free(unused_surface_face_ln_to_gn);
-    free(unused_n_ridge              );
-    free(unused_ridge_edge_idx       );
-    free(unused_ridge_edge           );
-    free(unused_ridge_edge_ln_to_gn  );
-
-    // TO DO : part_extension_depth > 0 => create extension
+    CWPT_generate_mesh_parallelepiped_simplified(comm,
+                                                 n_vtx_seg,
+                                                 n_vtx,
+                                                 n_elt,
+                                                 vtx_coord,
+                                                 elt_vtx_idx,
+                                                 elt_vtx);
   }
   else {
-    *pn_cell = (int *) malloc (sizeof(int *) * n_part);
-    *pn_face = (int *) malloc (sizeof(int *) * n_part);
-    *pn_vtx = (int *) malloc (sizeof(int *) * n_part);
-    *pcell_face_idx = (int **) malloc (sizeof(int *) * n_part);
-    *pcell_face = (int **) malloc (sizeof(int *) * n_part);
-    *pcell_vtx = (int **) malloc (sizeof(int *) * n_part);
-    *pface_vtx_idx = (int **) malloc (sizeof(int *) * n_part);
-    *pface_vtx = (int **) malloc (sizeof(int *) * n_part);
-    *pvtx_coord = (double **) malloc (sizeof(int *) * n_part);
-    *pcell_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
-    *pface_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
-    *pvtx_ln_to_gn = (CWP_g_num_t **) malloc (sizeof(int *) * n_part);
-    for (int ipart = 0 ; ipart < n_part ; ipart++) {
-      int _nFace = 0;
-      int _nCell = 0;
-      int _nVtx = 0;
-      (*pn_cell)[ipart] = _nCell;
-      (*pn_face)[ipart] = _nFace;
-      (*pn_vtx)[ipart] = _nVtx;
-      (*pcell_face_idx)[ipart] = (int *) malloc(sizeof(int) * (_nCell + 1));
-      (*pcell_face_idx)[ipart][0] = 0;
-      (*pcell_face)[ipart] = (int *) malloc(sizeof(int) * 0); 
-      (*pcell_vtx)[ipart] = (int *) malloc(sizeof(int) * 0);
-      (*pface_vtx_idx)[ipart] = (int *) malloc(sizeof(int) * (_nFace + 1));
-      (*pface_vtx_idx)[ipart][0] = 0;
-      (*pface_vtx)[ipart] = (int *) malloc(sizeof(int) * 0);
-      (*pvtx_coord)[ipart] = (double *) malloc(sizeof(double) * 0);
-      (*pcell_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nCell);
-      (*pface_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nFace);
-      (*pvtx_ln_to_gn)[ipart] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * _nVtx);
-    }
+    *n_vtx = 0;
+    *n_elt = 0;
+    *vtx_coord   = malloc(sizeof(double) * 0);
+    *elt_vtx_idx = malloc(sizeof(int   ) * 1);
+    *elt_vtx     = malloc(sizeof(int   ) * 0);
   }
 }
-
 
 static int
 _set_rank_has_mesh(const MPI_Comm comm, const int nProcData, MPI_Comm *meshComm) {
@@ -484,6 +535,9 @@ _set_rank_has_mesh(const MPI_Comm comm, const int nProcData, MPI_Comm *meshComm)
     MPI_Comm_split(comm, current_rank_has_mesh, rank, meshComm);
     free(rankInNodes);
   }
+  else {
+    MPI_Comm_dup(comm, meshComm);
+  }
 
   return current_rank_has_mesh;
 }
@@ -524,21 +578,21 @@ main(int argc, char *argv[]) {
 
   CWPT_Mesh_nodal_elt_t elt_type = CWPT_MESH_NODAL_TETRA4;
 
-  _read_args (argc, 
-              argv, 
-             &version, 
-             &n_vtx_seg1, 
+  _read_args (argc,
+              argv,
+             &version,
+             &n_vtx_seg1,
              &n_vtx_seg2,
              &length,
              &separation_x,
              &separation_y,
              &separation_z,
-             &deform, 
+             &deform,
              &tolerance,
-             &randomize, 
+             &randomize,
              &n_proc_data,
-             &loc_method, 
-             &output_filename, 
+             &loc_method,
+             &output_filename,
              &verbose,
              &extension_depth_tgt,
              &extension_depth_src,
@@ -669,6 +723,13 @@ main(int argc, char *argv[]) {
   MPI_Comm code_mesh_comm;
   MPI_Comm_split(mesh_comm, code_id, rank, &code_mesh_comm);
 
+  int mesh_rank, mesh_size, mesh_rank2, mesh_size2;
+  MPI_Comm_rank(mesh_comm, &mesh_rank);
+  MPI_Comm_size(mesh_comm, &mesh_size);
+  MPI_Comm_rank(code_mesh_comm, &mesh_rank2);
+  MPI_Comm_size(code_mesh_comm, &mesh_size2);
+  printf("[%d] %d / %d   %d / %d\n", rank, mesh_rank, mesh_size, mesh_rank2, mesh_size2);
+
   if (code_id == 2) {
     init_random++;
     xmin += separation_x;
@@ -676,96 +737,127 @@ main(int argc, char *argv[]) {
     zmin += separation_z;
   }
 
-  int                         *pn_cell;
-  int                         *pn_face;
-  int                         *pn_vtx;
-  int                        **pcell_face_idx;
-  int                        **pcell_face;
-  int                        **pcell_vtx;
-  int                        **pface_vtx_idx;
-  int                        **pface_vtx;
-  double                     **pvtx_coord;
-  CWP_g_num_t                **pcell_ln_to_gn;
-  CWP_g_num_t                **pface_ln_to_gn;
-  CWP_g_num_t                **pvtx_ln_to_gn;
+  // int                         *pn_cell;
+  // int                         *pn_face;
+  // int                         *pn_vtx;
+  // int                        **pcell_face_idx;
+  // int                        **pcell_face;
+  // int                        **pcell_vtx;
+  // int                        **pface_vtx_idx;
+  // int                        **pface_vtx;
+  // double                     **pvtx_coord;
+  // CWP_g_num_t                **pcell_ln_to_gn;
+  // CWP_g_num_t                **pface_ln_to_gn;
+  // CWP_g_num_t                **pvtx_ln_to_gn;
 
-  _cube_mesh (current_rank_has_mesh,
-              code_mesh_comm,
-              1,
-              CWPT_SPLIT_DUAL_WITH_HILBERT,
-              n_vtx_seg,
-              xmin,
-              ymin,
-              zmin,
-              length,
-              deform,
-              extension_depth_src,
-              elt_type,
-             &pn_cell,
-             &pn_face,
-             &pn_vtx,
-             &pcell_face_idx,
-             &pcell_face,
-             &pcell_vtx,
-             &pface_vtx_idx,
-             &pface_vtx,
-             &pvtx_coord,
-             &pcell_ln_to_gn,
-             &pface_ln_to_gn,
-             &pvtx_ln_to_gn);
+  // _cube_mesh (current_rank_has_mesh,
+  //             code_mesh_comm,
+  //             1,
+  //             CWPT_SPLIT_DUAL_WITH_HILBERT,
+  //             n_vtx_seg,
+  //             xmin,
+  //             ymin,
+  //             zmin,
+  //             length,
+  //             deform,
+  //             extension_depth_src,
+  //             elt_type,
+  //            &pn_cell,
+  //            &pn_face,
+  //            &pn_vtx,
+  //            &pcell_face_idx,
+  //            &pcell_face,
+  //            &pcell_vtx,
+  //            &pface_vtx_idx,
+  //            &pface_vtx,
+  //            &pvtx_coord,
+  //            &pcell_ln_to_gn,
+  //            &pface_ln_to_gn,
+  //            &pvtx_ln_to_gn);
 
-  int *cellVtxIdx = malloc(sizeof(int) * (pn_cell[0] + 1));
-  cellVtxIdx[0] = 0;
+  int     n_vtx;
+  int     n_elt;
+  double *vtx_coord;
+  int    *elt_vtx_idx;
+  int    *elt_vtx;
+  _cube_mesh(current_rank_has_mesh,
+             code_mesh_comm,
+             n_vtx_seg,
+             &n_vtx,
+             &n_elt,
+             &vtx_coord,
+             &elt_vtx_idx,
+             &elt_vtx);
 
-  CWP_Block_t block_type;
-
-  if (elt_type == CWPT_MESH_NODAL_TETRA4) {
-    block_type = CWP_BLOCK_CELL_TETRA4;
-    for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 4 + cellVtxIdx[i];  
-    }
+  for (int i = 0; i < n_vtx; i++) {
+    vtx_coord[3*i  ] = xmin + vtx_coord[3*i  ]*length/10.;
+    vtx_coord[3*i+1] = ymin + vtx_coord[3*i+1]*length/10.;
+    vtx_coord[3*i+2] = zmin + vtx_coord[3*i+2]*length/10.;
   }
 
-  else if (elt_type == CWPT_MESH_NODAL_HEXA8) {
-    block_type = CWP_BLOCK_CELL_HEXA8;
-    for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 8 + cellVtxIdx[i];  
-    }
-  }
+  CWP_Block_t block_type = CWP_BLOCK_CELL_TETRA4;
 
-  else if (elt_type == CWPT_MESH_NODAL_PYRAMID5) {
-    block_type = CWP_BLOCK_CELL_PYRAM5;
-    for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 5 + cellVtxIdx[i];  
-    }
-  }
+  // int *cellVtxIdx = malloc(sizeof(int) * (pn_cell[0] + 1));
+  // cellVtxIdx[0] = 0;
 
-  else if (elt_type == CWPT_MESH_NODAL_PRISM6) {
-    block_type = CWP_BLOCK_CELL_PRISM6;
-    for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 6 + cellVtxIdx[i];  
-    }
-  }
+  // CWP_Block_t block_type;
+
+  // if (elt_type == CWPT_MESH_NODAL_TETRA4) {
+  //   block_type = CWP_BLOCK_CELL_TETRA4;
+  //   for (int i = 0; i < pn_cell[0]; i++) {
+  //     cellVtxIdx[i+1] = 4 + cellVtxIdx[i];
+  //   }
+  // }
+
+  // else if (elt_type == CWPT_MESH_NODAL_HEXA8) {
+  //   block_type = CWP_BLOCK_CELL_HEXA8;
+  //   for (int i = 0; i < pn_cell[0]; i++) {
+  //     cellVtxIdx[i+1] = 8 + cellVtxIdx[i];
+  //   }
+  // }
+
+  // else if (elt_type == CWPT_MESH_NODAL_PYRAMID5) {
+  //   block_type = CWP_BLOCK_CELL_PYRAM5;
+  //   for (int i = 0; i < pn_cell[0]; i++) {
+  //     cellVtxIdx[i+1] = 5 + cellVtxIdx[i];
+  //   }
+  // }
+
+  // else if (elt_type == CWPT_MESH_NODAL_PRISM6) {
+  //   block_type = CWP_BLOCK_CELL_PRISM6;
+  //   for (int i = 0; i < pn_cell[0]; i++) {
+  //     cellVtxIdx[i+1] = 6 + cellVtxIdx[i];
+  //   }
+  // }
 
   // Set interface mesh
   if (version == CWP_VERSION_OLD) {
-    cwipi_define_mesh(coupling_name, pn_vtx[0], pn_cell[0], pvtx_coord[0], cellVtxIdx, pcell_vtx[0]);
+    // cwipi_define_mesh(coupling_name, pn_vtx[0], pn_cell[0], pvtx_coord[0], cellVtxIdx, pcell_vtx[0]);
+    cwipi_define_mesh(coupling_name, n_vtx, n_elt, vtx_coord, elt_vtx_idx, elt_vtx);
   }
   else {
-    CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, pn_vtx[0], pvtx_coord[0], pvtx_ln_to_gn[0]);
+    // CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, pn_vtx[0], pvtx_coord[0], pvtx_ln_to_gn[0]);
+    CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, n_vtx, vtx_coord, NULL);
 
     int block_id = CWP_Mesh_interf_block_add (code_name[0],
                                               coupling_name,
-                                              block_type);  
+                                              block_type);
 
 
-    CWP_Mesh_interf_block_std_set (code_name[0],
-                                   coupling_name,
-                                   0,
-                                   block_id,
-                                   pn_cell[0],
-                                   pcell_vtx[0],
-                                   pcell_ln_to_gn[0]); 
+    // CWP_Mesh_interf_block_std_set (code_name[0],
+    //                                coupling_name,
+    //                                0,
+    //                                block_id,
+    //                                pn_cell[0],
+    //                                pcell_vtx[0],
+    //                                pcell_ln_to_gn[0]);
+    CWP_Mesh_interf_block_std_set(code_name[0],
+                                  coupling_name,
+                                  0,
+                                  block_id,
+                                  n_elt,
+                                  elt_vtx,
+                                  NULL);
 
 
     CWP_Mesh_interf_finalize(code_name[0], coupling_name);
@@ -776,13 +868,17 @@ main(int argc, char *argv[]) {
   }
 
   // Create and set fields
-  double *send_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
-  double *recv_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+  // double *send_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+  // double *recv_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+  double *send_val = (double *) malloc(sizeof(double) * n_vtx);
+  double *recv_val = (double *) malloc(sizeof(double) * n_vtx);
 
   const char *field_name  = "cooX";
 
-  for (int i = 0 ; i < pn_vtx[0] ; i++) {
-    send_val[i] = pvtx_coord[0][3 * i];
+  // for (int i = 0 ; i < pn_vtx[0] ; i++) {
+  //   send_val[i] = pvtx_coord[0][3 * i];
+    for (int i = 0 ; i < n_vtx; i++) {
+    send_val[i] = vtx_coord[3 * i];
   }
 
   if (version == CWP_VERSION_NEW) {
@@ -838,7 +934,7 @@ main(int argc, char *argv[]) {
     sprintf(char_tol, "%e", tolerance);
     CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, char_tol);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
-  
+
     // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
     n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name, 0);
     located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name, 0);
@@ -961,7 +1057,8 @@ main(int argc, char *argv[]) {
       for (int i = 0 ; i < n_located ; i++) {
 
         int pt_id = located[i] -1;
-        double coord[3] = {pvtx_coord[0][3*pt_id], pvtx_coord[0][3*pt_id+1], pvtx_coord[0][3*pt_id+2]};
+        // double coord[3] = {pvtx_coord[0][3*pt_id], pvtx_coord[0][3*pt_id+1], pvtx_coord[0][3*pt_id+2]};
+        double coord[3] = {vtx_coord[3*pt_id], vtx_coord[3*pt_id+1], vtx_coord[3*pt_id+2]};
         if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
             loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
           if (deform) {
@@ -978,8 +1075,8 @@ main(int argc, char *argv[]) {
         double err = ABS (recv_val[i] - coord[0]);
         if (err > 1.e-4) {
           n_wrong++;
-          printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
-          rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
+          // printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
+          // rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
         }
         if (err > max_err) {
           max_err = err;
@@ -1012,34 +1109,37 @@ main(int argc, char *argv[]) {
   free(code_name);
   free(coupled_code_name);
   free(intra_comm);
-  
-  if (current_rank_has_mesh) {
-    for (int ipart = 0; ipart < n_part; ipart++) {
-      free (pcell_face_idx[ipart]);
-      free (pcell_face[ipart]);
-      free (pcell_vtx[ipart]);
-      free (pface_vtx_idx[ipart]);
-      free (pface_vtx[ipart]);
-      free (pvtx_coord[ipart]);
-      free (pcell_ln_to_gn[ipart]);
-      free (pface_ln_to_gn[ipart]);
-      free (pvtx_ln_to_gn[ipart]);
-    }
-  }
 
-  free(pn_vtx);
-  free(pn_cell);
-  free(pn_face);
-  free(pvtx_coord);
-  free(pvtx_ln_to_gn);
-  free(pcell_face_idx);
-  free(pcell_face);
-  free(pcell_vtx);
-  free(pface_vtx_idx);
-  free(pface_vtx);
-  free(pcell_ln_to_gn);
-  free(pface_ln_to_gn);
-  free(cellVtxIdx);
+  // if (current_rank_has_mesh) {
+  //   for (int ipart = 0; ipart < n_part; ipart++) {
+  //     free (pcell_face_idx[ipart]);
+  //     free (pcell_face[ipart]);
+  //     free (pcell_vtx[ipart]);
+  //     free (pface_vtx_idx[ipart]);
+  //     free (pface_vtx[ipart]);
+  //     free (pvtx_coord[ipart]);
+  //     free (pcell_ln_to_gn[ipart]);
+  //     free (pface_ln_to_gn[ipart]);
+  //     free (pvtx_ln_to_gn[ipart]);
+  //   }
+  // }
+
+  // free(pn_vtx);
+  // free(pn_cell);
+  // free(pn_face);
+  // free(pvtx_coord);
+  // free(pvtx_ln_to_gn);
+  // free(pcell_face_idx);
+  // free(pcell_face);
+  // free(pcell_vtx);
+  // free(pface_vtx_idx);
+  // free(pface_vtx);
+  // free(pcell_ln_to_gn);
+  // free(pface_ln_to_gn);
+  // free(cellVtxIdx);
+  free(vtx_coord);
+  free(elt_vtx_idx);
+  free(elt_vtx);
   free(send_val);
   free(recv_val);
 
