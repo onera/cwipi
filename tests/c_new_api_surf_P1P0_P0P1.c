@@ -192,9 +192,9 @@ main(int argc, char *argv[]) {
   printf("%d - Create coupling\n", rank);
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1";
   int nb_part = 1;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   CWP_Cpl_create(code_name[0],                                          // Code name
                  cpl_name,                                              // Coupling id
                  coupled_code_name[0],                                  // Coupled application id
@@ -350,15 +350,17 @@ main(int argc, char *argv[]) {
   CWP_Status_t visu_status = CWP_STATUS_ON;
   printf("%d - Defining fields\n", rank);
   if (strcmp(code_name[0], "code1") == 0) {
-    CWP_Field_create(code_name[0],
-                     cpl_name,
-                     field_name1,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_SEND,
-                     visu_status);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) { // TODO: remove if when intersection implemented for node-based fields
+      CWP_Field_create(code_name[0],
+                       cpl_name,
+                       field_name1,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
+                       1,
+                       CWP_DOF_LOCATION_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       visu_status);
+    }
     CWP_Field_create(code_name[0],
                      cpl_name,
                      field_name2,
@@ -372,20 +374,24 @@ main(int argc, char *argv[]) {
     CWP_Time_step_beg(code_name[0],
                       0.0);
 
-    CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
+    }
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
   
   else if (strcmp(code_name[0], "code2") == 0) {
-    CWP_Field_create(code_name[0],
-                     cpl_name,
-                     field_name1,
-                     CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_INTERLEAVED,
-                     1,
-                     CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_RECV,
-                     visu_status);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_create(code_name[0],
+                       cpl_name,
+                       field_name1,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
+                       1,
+                       CWP_DOF_LOCATION_NODE,
+                       CWP_FIELD_EXCH_RECV,
+                       visu_status);
+    }
     CWP_Field_create(code_name[0],
                      cpl_name,
                      field_name2,
@@ -400,7 +406,9 @@ main(int argc, char *argv[]) {
                       0.0);
 
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
-    CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -417,30 +425,40 @@ main(int argc, char *argv[]) {
   }
 
   else if (strcmp(code_name[0], "code2") == 0) {
-    n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
+    }
   }
 
   printf("%d - After compute %d\n", rank, n_uncomputed);
 
   if (strcmp(code_name[0], "code1") == 0) {
-    CWP_Field_issend(code_name[0], cpl_name, field_name1);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_issend(code_name[0], cpl_name, field_name1);
+    }
     CWP_Field_irecv(code_name[0], cpl_name, field_name2);
   }
   else if (strcmp(code_name[0], "code2") == 0) {
-    CWP_Field_irecv(code_name[0], cpl_name, field_name1);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_irecv(code_name[0], cpl_name, field_name1);
+    }
     CWP_Field_issend(code_name[0], cpl_name, field_name2);
   }
 
   if (strcmp(code_name[0], "code1") == 0) {
-    CWP_Field_wait_issend(code_name[0], cpl_name, field_name1);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_wait_issend(code_name[0], cpl_name, field_name1);
+    }
     CWP_Field_wait_irecv(code_name[0], cpl_name, field_name2);
   }
   else if (strcmp(code_name[0], "code2") == 0) {
-    CWP_Field_wait_irecv(code_name[0], cpl_name, field_name1);
+    if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+      CWP_Field_wait_irecv(code_name[0], cpl_name, field_name1);
+    }
     CWP_Field_wait_issend(code_name[0], cpl_name, field_name2);
   }
 
-
+  int check = EXIT_SUCCESS;
   if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
     /* Check mass conservation */
     double *field_value;
@@ -464,6 +482,7 @@ main(int argc, char *argv[]) {
     double l_integral[2] = {0., 0.};
     for (int i_face = 0; i_face < nElts; i_face++) {
 
+      area = 0;
       // Compute face center
       for (int j = 0; j < 3; j++) {
         face_center[j]  = 0.;
@@ -471,7 +490,7 @@ main(int argc, char *argv[]) {
 
       n_vtx_face = eltsConnecPointer[0][i_face+1]-eltsConnecPointer[0][i_face];
       for (int i_vtx = 0; i_vtx < n_vtx_face; i_vtx++) {
-        int vtx_id = eltsConnec[0][i_face + i_vtx]-1;
+        int vtx_id = eltsConnec[0][eltsConnecPointer[0][i_face] + i_vtx]-1;
 
         for (int j = 0; j < 3; j++) {
           face_center[j] += coords[0][3*vtx_id + j];
@@ -484,8 +503,8 @@ main(int argc, char *argv[]) {
 
       // Compute area
       for (int i_vtx = 0; i_vtx < n_vtx_face; i_vtx++) {
-        int vtx_id = eltsConnec[0][i_face + i_vtx]-1;
-        int vtx_jd = coords[0][(vtx_id + 1) % n_vtx_face] - 1;
+        int vtx_id = eltsConnec[0][eltsConnecPointer[0][i_face] + i_vtx]-1;
+        int vtx_jd = eltsConnec[0][eltsConnecPointer[0][i_face] + (i_vtx+1)%n_vtx_face]-1;
 
         for (int j = 0; j < 3; j++) {
           edge_center[j] = 0.5 * (coords[0][3*vtx_jd + j] + coords[0][3*vtx_id + j]);
@@ -516,10 +535,15 @@ main(int argc, char *argv[]) {
     double g_integral[2];
     MPI_Allreduce(l_integral, g_integral, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
+    double rel_error = ABS(g_integral[0] - g_integral[1])/ABS(g_integral[1]);
 
     if (rank == 0) {
       printf("g_integral = %20.16e / %20.16e, error = %f%%\n",
-             g_integral[0], g_integral[1], 100.*ABS(g_integral[0] - g_integral[1])/ABS(g_integral[1]));
+             g_integral[0], g_integral[1], 100.*rel_error);
+    }
+
+    if (rel_error > 1e-12) {
+      check = EXIT_FAILURE;
     }
   }
 
@@ -555,5 +579,5 @@ main(int argc, char *argv[]) {
   // Finalize
   CWP_Finalize();
   MPI_Finalize();
-  return EXIT_SUCCESS;
+  return check;
 }

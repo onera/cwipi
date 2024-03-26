@@ -298,8 +298,8 @@ int main(int argc, char *argv[])
   // Create coupling
   const char *cpl_name = "c_new_api_surf_P0P0";
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
 
   for (int i_code = 0; i_code < n_code; i_code++) {
     CWP_Cpl_create(code_name[i_code],                                     // Code name
@@ -497,6 +497,7 @@ int main(int argc, char *argv[])
   }
 
 
+  int check = EXIT_SUCCESS;
   if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
 
     double l_mass[2] = {0., 0.};
@@ -523,6 +524,7 @@ int main(int argc, char *argv[])
           double vectFECenter[3];
           for (int i_face = 0; i_face < pn_face[icode][ipart]; i_face++) {
 
+            area = 0;
             // Compute face center
             for (int j = 0; j < 3; j++) {
               face_center[j]  = 0.;
@@ -530,7 +532,7 @@ int main(int argc, char *argv[])
 
             n_vtx_face = pface_vtx_idx[icode][ipart][i_face+1]-pface_vtx_idx[icode][ipart][i_face];
             for (int i_vtx = 0; i_vtx < n_vtx_face; i_vtx++) {
-              int vtx_id = pface_vtx[icode][ipart][i_face + i_vtx]-1;
+              int vtx_id = pface_vtx[icode][ipart][pface_vtx_idx[icode][ipart][i_face] + i_vtx]-1;
 
               for (int j = 0; j < 3; j++) {
                 face_center[j] += pvtx_coord[icode][ipart][3*vtx_id + j];
@@ -543,8 +545,8 @@ int main(int argc, char *argv[])
 
             // Compute area
             for (int i_vtx = 0; i_vtx < n_vtx_face; i_vtx++) {
-              int vtx_id = pface_vtx[icode][ipart][i_face + i_vtx]-1;
-              int vtx_jd = pvtx_coord[icode][ipart][(vtx_id + 1) % n_vtx_face] - 1;
+              int vtx_id = pface_vtx[icode][ipart][pface_vtx_idx[icode][ipart][i_face] + i_vtx]-1;
+              int vtx_jd = pface_vtx[icode][ipart][pface_vtx_idx[icode][ipart][i_face] + (i_vtx + 1) % n_vtx_face] - 1;
 
               for (int j = 0; j < 3; j++) {
                 edge_center[j] = 0.5 * (pvtx_coord[icode][ipart][3*vtx_jd + j] + pvtx_coord[icode][ipart][3*vtx_id + j]);
@@ -566,7 +568,6 @@ int main(int argc, char *argv[])
               const double areaTri = sqrt(surface_vectorTria[0] * surface_vectorTria[0] + surface_vectorTria[1] * surface_vectorTria[1] + surface_vectorTria[2] * surface_vectorTria[2]);
 
               area += areaTri;
-              // area += areaTri; // TO DO: twice??
             }
 
             l_area[code_id[icode]-1] += area;
@@ -583,12 +584,19 @@ int main(int argc, char *argv[])
     double g_area[2];
     MPI_Allreduce(l_area, g_area, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
+    double rel_error_area = ABS(g_area[0] - g_area[1])/ABS(g_area[1]);
+    double rel_error_mass = ABS(g_mass[0] - g_mass[1])/ABS(g_mass[1]);
+
     if (i_rank == 0) {
       printf("g_area = %20.16e / %20.16e, relative diff = %e\n",
-             g_area[0], g_area[1], ABS(g_area[0] - g_area[1])/ABS(g_area[1]));
+             g_area[0], g_area[1], rel_error_area);
 
       printf("g_mass   = %20.16e / %20.16e, relative diff = %e\n",
-             g_mass[0], g_mass[1], ABS(g_mass[0] - g_mass[1])/ABS(g_mass[1]));
+             g_mass[0], g_mass[1], rel_error_mass);
+    }
+
+    if (rel_error_area > 1e-12 || rel_error_mass > 1e-12) {
+      check = EXIT_FAILURE;
     }
   }
 
@@ -641,6 +649,6 @@ int main(int argc, char *argv[])
   // Finalize MPI
   MPI_Finalize();
 
-  return EXIT_SUCCESS;
+  return check;
 }
 

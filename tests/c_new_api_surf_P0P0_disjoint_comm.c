@@ -139,7 +139,7 @@ _read_args
 }
 
 
-tatic void
+static void
 _gen_mesh
 (
  const MPI_Comm            comm,
