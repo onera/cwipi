@@ -27,11 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_generate_mesh.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_array.h"
-#include "pdm_logging.h"
-
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -70,7 +65,6 @@ _read_args
   int                   *n_vtx_seg2,
   int                   *n_part1,
   int                   *n_part2,
-  PDM_split_dual_t      *part_method,
   double                *tolerance,
   int                   *randomize
 )
@@ -138,15 +132,6 @@ _read_args
       else
         *tolerance = atof(argv[i]);
     }
-    else if (strcmp(argv[i], "-pt-scotch") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
-    }
-    else if (strcmp(argv[i], "-parmetis") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
-    }
-    else if (strcmp(argv[i], "-hilbert") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
-    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -154,13 +139,13 @@ _read_args
 }
 
 
-static void
+tatic void
 _gen_mesh
 (
- const PDM_MPI_Comm        comm,
+ const MPI_Comm            comm,
  const int                 n_part,
- const PDM_split_dual_t    part_method,
- const PDM_g_num_t         n_vtx_seg,
+ const CWPT_split_dual_t   part_method,
+ const CWP_g_num_t         n_vtx_seg,
  const int                 randomize,
  const int                 random_seed,
  int                     **pn_face,
@@ -168,8 +153,8 @@ _gen_mesh
  int                    ***pface_vtx_idx,
  int                    ***pface_vtx,
  double                 ***pvtx_coord,
- PDM_g_num_t            ***pface_ln_to_gn,
- PDM_g_num_t            ***pvtx_ln_to_gn
+ CWP_g_num_t            ***pface_ln_to_gn,
+ CWP_g_num_t            ***pvtx_ln_to_gn
  )
 {
   CWP_UNUSED(randomize);
@@ -178,30 +163,30 @@ _gen_mesh
   int          *pn_edge        = NULL;
   int         **pface_edge     = NULL;
   int         **pedge_vtx      = NULL;
-  PDM_g_num_t **pedge_ln_to_gn = NULL;
-  PDM_generate_mesh_rectangle_ngon(comm,
-                                   PDM_MESH_NODAL_POLY_2D,
-                                   0.,
-                                   0.,
-                                   0.,
-                                   1.,
-                                   1.,
-                                   n_vtx_seg,
-                                   n_vtx_seg,
-                                   n_part,
-                                   part_method,
-                                   0,
-                                   pn_vtx,
-                                   &pn_edge,
-                                   pn_face,
-                                   pvtx_coord,
-                                   &pedge_vtx,
-                                   pface_vtx_idx,
-                                   &pface_edge,
-                                   pface_vtx,
-                                   pvtx_ln_to_gn,
-                                   &pedge_ln_to_gn,
-                                   pface_ln_to_gn);
+  CWP_g_num_t **pedge_ln_to_gn = NULL;
+  CWPT_generate_mesh_rectangle_ngon(comm,
+                                    (CWPT_Mesh_nodal_elt_t) CWP_BLOCK_FACE_POLY,
+                                    0.,
+                                    0.,
+                                    0.,
+                                    1.,
+                                    1.,
+                                    n_vtx_seg,
+                                    n_vtx_seg,
+                                    n_part,
+                                    part_method,
+                                    0,
+                                    pn_vtx,
+                                    &pn_edge,
+                                    pn_face,
+                                    pvtx_coord,
+                                    &pedge_vtx,
+                                    pface_vtx_idx,
+                                    &pface_edge,
+                                    pface_vtx,
+                                    pvtx_ln_to_gn,
+                                    &pedge_ln_to_gn,
+                                    pface_ln_to_gn);
 
   for (int i = 0; i < n_part; i++) {
     free(pface_edge    [i]);
@@ -229,16 +214,6 @@ int main(int argc, char *argv[])
   int    randomize             = 1;
   double tolerance             = 1e-2;
 
-#ifdef PDM_HAVE_PARMETIS
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
-#else
-#ifdef PDM_HAVE_PTSCOTCH
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
-#else
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
-#endif
-#endif
-
 
   _read_args(argc,
              argv,
@@ -246,7 +221,6 @@ int main(int argc, char *argv[])
              &n_vtx_seg2,
              &n_part1,
              &n_part2,
-             &part_method,
              &tolerance,
              &randomize);
 
@@ -335,14 +309,12 @@ int main(int argc, char *argv[])
   int         **pface_vtx_idx  = NULL;
   int         **pface_vtx      = NULL;
   double      **pvtx_coord     = NULL;
-  PDM_g_num_t **pface_ln_to_gn = NULL;
-  PDM_g_num_t **pvtx_ln_to_gn  = NULL;
+  CWP_g_num_t **pface_ln_to_gn = NULL;
+  CWP_g_num_t **pvtx_ln_to_gn  = NULL;
 
-  PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
-
-  _gen_mesh(mesh_comm,
+  _gen_mesh(intra_comm[0],
             n_part,
-            part_method,
+            CWPT_SPLIT_DUAL_WITH_HILBERT,
             n_vtx_seg,
             randomize,
             code_id[0],

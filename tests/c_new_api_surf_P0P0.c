@@ -28,12 +28,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_generate_mesh.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_array.h"
-#include "pdm_logging.h"
-#include "pdm_geom_elem.h"
-
 #define ABS(a)    ((a) < 0   ? -(a) : (a))
 #define MIN(a, b) ((a) < (b) ?  (a) : (b))
 #define MAX(a, b) ((a) > (b) ?  (a) : (b))
