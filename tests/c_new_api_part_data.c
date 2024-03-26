@@ -27,12 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_array.h"
-#include "pdm_writer.h"
-#include "pdm_printf.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -122,6 +116,17 @@ main(int argc, char *argv[]) {
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
+
+  FILE *file_log = NULL;
+  if (verbose) {
+    char file_log_name[999];
+    sprintf(file_log_name, "c_new_api_part_data_%d.log", rank);
+    file_log = fopen(file_log_name, "w");
+    if (file_log == NULL) {
+      printf("Warning : failed to open %s\n", file_log_name);
+      verbose = 0;
+    }
+  }
 
   if (joint) {
 
@@ -216,9 +221,13 @@ main(int argc, char *argv[]) {
       for (int i = 0; i < send_n_elts[i_part]; i++) {
         gnum_elt_send[i_part][i] = i + 1; // send_n_elts[i_part] * rank +
       }
-    }
-    if (verbose) {
-      PDM_log_trace_array_long(gnum_elt_send[0], send_n_elts[0], "gnum_elt_send: ");
+      if (verbose) {
+        fprintf(file_log, "gnum_elt_send: ");
+        for (int i = 0; i < send_n_elts[i_part]; i++) {
+          fprintf(file_log, "%ld ", gnum_elt_send[i_part][i]);
+        }
+        fprintf(file_log, "\n");
+      }
     }
 
     CWP_g_num_t **gnum_elt_recv = NULL;
@@ -232,9 +241,13 @@ main(int argc, char *argv[]) {
         for (int i = 0; i < recv_n_elts[i_part]; i++) {
           gnum_elt_recv[i_part][i] = i + 1;
         }
-      }
-      if (verbose) {
-        PDM_log_trace_array_long(gnum_elt_recv[0], recv_n_elts[0], "gnum_elt_recv: ");
+        if (verbose) {
+          fprintf(file_log, "gnum_elt_recv: ");
+          for (int i = 0; i < recv_n_elts[i_part]; i++) {
+            fprintf(file_log, "%ld ", gnum_elt_recv[i_part][i]);
+          }
+          fprintf(file_log, "\n");
+        }
       }
     }
 
@@ -337,7 +350,7 @@ main(int argc, char *argv[]) {
         if (rank == 0 || rank == 1) {
           for (int i = 0; i < send_n_elts[i_part]; i++) {
             for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
             }
           }
         }
@@ -345,7 +358,7 @@ main(int argc, char *argv[]) {
           if (rank == 1) {
           for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
             for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
             }
           }
         }
@@ -423,7 +436,7 @@ main(int argc, char *argv[]) {
         if (rank == 0 || rank == 1) {
           for (int i = 0; i < send_n_elts[i_part]; i++) {
             for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-              log_trace("%d - %ld -> s2[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> s2[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
             }
           }
         }
@@ -431,7 +444,7 @@ main(int argc, char *argv[]) {
         if (rank == 1) {
           for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
             for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-              log_trace("%d - %ld -> r2[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> r2[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
             }
           }
         }
@@ -583,7 +596,7 @@ main(int argc, char *argv[]) {
     }
 
     if (verbose) {
-      log_trace("code_id %d\n", code_id);
+      fprintf(file_log, "code_id %d\n", code_id);
     }
     for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
@@ -594,8 +607,11 @@ main(int argc, char *argv[]) {
         }
       }
       if (verbose) {
-        log_trace("part %d : ", i_part);
-        PDM_log_trace_array_long(gnum_elt[i_part], n_elt, "gnum_elt[i_part] : ");
+        fprintf(file_log, "part %d : gnum_elt: ", i_part);
+        for (int i = 0; i < n_elt; i++) {
+          fprintf(file_log, "%ld ", gnum_elt[i_part][i]);
+        }
+        fprintf(file_log, "\n");
       }
     }
 
@@ -676,10 +692,10 @@ main(int argc, char *argv[]) {
         for (int i = 0; i < n_elt; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             if (code_id == 1) {
-              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, send_data[i_part][3*i + i_comp]);
             }
             else {
-              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
+              fprintf(file_log, "%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, recv_data[i_part][3*i + i_comp]);
             }
           }
         }
@@ -687,6 +703,10 @@ main(int argc, char *argv[]) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+
+    if (verbose) {
+      fclose(file_log);
+    }
 
     // Delete part_data object
     CWP_Part_data_del(code_name[0],
