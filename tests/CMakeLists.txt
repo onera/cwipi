@@ -77,7 +77,7 @@ test_c_create (c_new_api_surf_P1P0_P0P1_without_part 2 CWP_LIST_TEST CWP_LIST_NR
 test_c_create (c_new_api_global_data 4 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_part_data 4 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_part_data2 2 CWP_LIST_TEST CWP_LIST_NRANK)
-test_c_create (c_new_api_part_data3 2 CWP_LIST_TEST CWP_LIST_NRANK)
+test_c_create (c_new_api_part_data_two_exch 2 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_surf_P0P0 2 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_surf_P0P0_disjoint_comm 2 CWP_LIST_TEST CWP_LIST_NRANK)
 test_c_create (c_new_api_surf_P0P0_without_part 3 CWP_LIST_TEST CWP_LIST_NRANK)
