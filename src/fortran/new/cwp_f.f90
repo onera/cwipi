@@ -2705,8 +2705,16 @@ contains
     integer(kind = c_int)                         :: n_pts           ! Number of points
     real(8), dimension(:,:), pointer              :: coord           ! Coordinates (size = 3 * ``n_pts``)
     integer(kind = c_long), dimension(:), pointer :: global_num      ! Global ids (size = ``n_pts`` or  ``null()``)
+
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_coord
     type(c_ptr) :: c_global_num
+
+    if (associated(coord)) then
+      c_coord = c_loc(coord)
+    else
+      c_coord = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -2718,7 +2726,7 @@ contains
     l_cpl_id = len(cpl_id)
 
     call CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, &
-            c_loc(coord), c_global_num)
+            c_coord, c_global_num)
   end subroutine CWP_User_tgt_pts_set_
 
 
@@ -2758,21 +2766,21 @@ contains
     integer(c_int), intent(in)             :: n_vtx           ! Number of vertices
     real(8), dimension(:,:), pointer       :: coord           ! Coordinates (shape = [3, ``n_vtx``])
     integer(c_long), dimension(:), pointer :: global_num      ! Global vertex ids (size = ``n_vtx`` or ``null()``)
+
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
-
-    type(c_ptr) :: c_global_num
     type(c_ptr) :: c_coord
-
-    if (associated(global_num)) then
-      c_global_num = c_loc(global_num)
-    else
-      c_global_num = c_null_ptr
-    endif
+    type(c_ptr) :: c_global_num
 
     if (associated(coord)) then
       c_coord = c_loc(coord)
     else
       c_coord = c_null_ptr
+    endif
+
+    if (associated(global_num)) then
+      c_global_num = c_loc(global_num)
+    else
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2842,9 +2850,16 @@ contains
     integer(c_int), dimension(:), pointer  :: connec          ! Connectivity (size = *n_vertex_per_elt* * ``n_elts``)
     integer(c_long), dimension(:), pointer :: global_num      ! Global element ids (size = ``n_elts`` or ``null()``)
     ! integer(c_int) :: array_size
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_connec
     type(c_ptr) :: c_global_num
+
+    if (associated(connec)) then
+      c_connec = c_loc(connec)
+    else
+      c_connec = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -2869,7 +2884,7 @@ contains
                                            i_part,            &
                                            block_id,          &
                                            n_elts,            &
-                                           c_loc(connec),     &
+                                           c_connec,          &
                                            c_global_num)
   end subroutine CWP_Mesh_interf_block_std_set_
 
@@ -2935,10 +2950,16 @@ contains
     integer(c_int),  dimension(:), pointer :: connec_idx      ! Connectivity index (``connec_idx(0)`` = 0 and size = ``n_elts`` + 1)
     integer(c_int),  dimension(:), pointer :: connec          ! Connectivity (size = ``connec_idx(n_elts+1)``)
     integer(c_long), dimension(:), pointer :: global_num      ! Global element ids (size = ``n_elts`` or ``null()``)
+
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
-
-
+    type(c_ptr) :: c_connec
     type(c_ptr) :: c_global_num
+
+    if (associated(connec)) then
+      c_connec = c_loc(connec)
+    else
+      c_connec = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -2957,7 +2978,7 @@ contains
                                               block_id,          &
                                               n_elts,            &
                                               c_loc(connec_idx), &
-                                              c_loc(connec),     &
+                                              c_connec,          &
                                               c_global_num)
   end subroutine CWP_Mesh_interf_f_poly_block_set_
 
@@ -3033,9 +3054,23 @@ contains
     integer(c_int),  dimension(:), pointer :: connec_cells_idx ! Index for polyhedron to face connectivity (``connec_cells_idx(0)`` = 0 and size = ``n_cell`` + 1)
     integer(c_int),  dimension(:), pointer :: connec_cells     ! Polyhedron to face connectivity (size = ``connec_cells_idx(n_cell+1)``)
     integer(c_long), dimension(:), pointer :: global_num       ! Global cell ids (size = ``n_cell`` or ``null()``)
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_connec_faces
+    type(c_ptr) :: c_connec_cells
     type(c_ptr) :: c_global_num
+
+    if (associated(connec_faces)) then
+      c_connec_faces = c_loc(connec_faces)
+    else
+      c_connec_faces = c_null_ptr
+    endif
+
+    if (associated(connec_cells)) then
+      c_connec_cells = c_loc(connec_cells)
+    else
+      c_connec_cells = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -3055,9 +3090,9 @@ contains
                                               n_cell,                  &
                                               n_face,                  &
                                               c_loc(connec_faces_idx), &
-                                              c_loc(connec_faces),     &
+                                              c_connec_faces,          &
                                               c_loc(connec_cells_idx), &
-                                              c_loc(connec_cells),     &
+                                              c_connec_cells,          &
                                               c_global_num)
   end subroutine CWP_Mesh_interf_c_poly_block_set_
 
@@ -3160,7 +3195,21 @@ contains
     integer(c_long), dimension(:), pointer :: global_num      ! Global cell ids (size = ``n_cells`` or ``null()``)
 
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_cell_face
+    type(c_ptr) :: c_face_vtx
     type(c_ptr) :: c_global_num
+
+    if (associated(cell_face)) then
+      c_cell_face = c_loc(cell_face)
+    else
+      c_cell_face = c_null_ptr
+    endif
+
+    if (associated(face_vtx)) then
+      c_face_vtx = c_loc(face_vtx)
+    else
+      c_face_vtx = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -3179,10 +3228,10 @@ contains
                                                i_part,               &
                                                n_cells,              &
                                                c_loc(cell_face_idx), &
-                                               c_loc(cell_face),     &
+                                               c_cell_face,          &
                                                n_faces,              &
                                                c_loc(face_vtx_idx),  &
-                                               c_loc(face_vtx),      &
+                                               c_face_vtx,           &
                                                c_global_num)
   end subroutine CWP_Mesh_interf_from_cellface_set_
 
@@ -3211,7 +3260,21 @@ contains
     integer(c_long), dimension(:), pointer :: global_num      ! Global face ids (size = ``n_faces`` or ``null()``)
 
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_face_edge
+    type(c_ptr) :: c_edge_vtx
     type(c_ptr) :: c_global_num
+
+    if (associated(face_edge)) then
+      c_face_edge = c_loc(face_edge)
+    else
+      c_face_edge = c_null_ptr
+    endif
+
+    if (associated(edge_vtx)) then
+      c_edge_vtx = c_loc(edge_vtx)
+    else
+      c_edge_vtx = c_null_ptr
+    endif
 
     if (associated(global_num)) then
       c_global_num = c_loc(global_num)
@@ -3229,9 +3292,9 @@ contains
                                                i_part,              &
                                                n_faces,             &
                                                c_loc(face_edge_idx),&
-                                               c_loc(face_edge),    &
+                                               c_face_edge,         &
                                                n_edges,             &
-                                               c_loc(edge_vtx),     &
+                                               c_edge_vtx,          &
                                                c_global_num)
 
   end subroutine CWP_Mesh_interf_from_faceedge_set_
