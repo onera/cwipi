@@ -25,6 +25,8 @@
 module cwp
     use iso_c_binding
     use pdm_fortran
+    use pdm_generate_mesh
+    use pdm_pointer_array
 
     ! CWP_Type_t
     enum, bind(c)
@@ -174,29 +176,29 @@ module cwp
 
 
    ! CWPT_Mesh_nodal_elt_t
-    enum, bind(c)
-      enumerator :: &
-        CWPT_MESH_NODAL_POINT, &
-        CWPT_MESH_NODAL_BAR2, &
-        CWPT_MESH_NODAL_TRIA3, &
-        CWPT_MESH_NODAL_QUAD4, &
-        CWPT_MESH_NODAL_POLY_2D, &
-        CWPT_MESH_NODAL_TETRA4, &
-        CWPT_MESH_NODAL_PYRAMID5, &
-        CWPT_MESH_NODAL_PRISM6, &
-        CWPT_MESH_NODAL_HEXA8, &
-        CWPT_MESH_NODAL_POLY_3D, &
-        CWPT_MESH_NODAL_BARHO, &
-        CWPT_MESH_NODAL_TRIAHO, &
-        CWPT_MESH_NODAL_QUADHO, &
-        CWPT_MESH_NODAL_TETRAHO, &
-        CWPT_MESH_NODAL_PYRAMIDHO, &
-        CWPT_MESH_NODAL_PRISMHO, &
-        CWPT_MESH_NODAL_HEXAHO, &
-        CWPT_MESH_NODAL_BARHO_BEZIER, &  
-        CWPT_MESH_NODAL_TRIAHO_BEZIER, & 
-        CWPT_MESH_NODAL_N_ELEMENT_TYPES
-    end enum
+    ! enum, bind(c)
+    !   enumerator :: &
+    !     CWPT_MESH_NODAL_POINT, &
+    !     CWPT_MESH_NODAL_BAR2, &
+    !     CWPT_MESH_NODAL_TRIA3, &
+    !     CWPT_MESH_NODAL_QUAD4, &
+    !     CWPT_MESH_NODAL_POLY_2D, &
+    !     CWPT_MESH_NODAL_TETRA4, &
+    !     CWPT_MESH_NODAL_PYRAMID5, &
+    !     CWPT_MESH_NODAL_PRISM6, &
+    !     CWPT_MESH_NODAL_HEXA8, &
+    !     CWPT_MESH_NODAL_POLY_3D, &
+    !     CWPT_MESH_NODAL_BARHO, &
+    !     CWPT_MESH_NODAL_TRIAHO, &
+    !     CWPT_MESH_NODAL_QUADHO, &
+    !     CWPT_MESH_NODAL_TETRAHO, &
+    !     CWPT_MESH_NODAL_PYRAMIDHO, &
+    !     CWPT_MESH_NODAL_PRISMHO, &
+    !     CWPT_MESH_NODAL_HEXAHO, &
+    !     CWPT_MESH_NODAL_BARHO_BEZIER, &  
+    !     CWPT_MESH_NODAL_TRIAHO_BEZIER, & 
+    !     CWPT_MESH_NODAL_N_ELEMENT_TYPES
+    ! end enum
 
     interface CWP_Param_set; module procedure &
       CWP_Param_set_int_, &
@@ -546,73 +548,38 @@ module cwp
 
 ! Only for tests
 
-    interface CWPT_generate_mesh_sphere_simplified
-      module procedure CWPT_generate_mesh_sphere_simplified_
-    end interface CWPT_generate_mesh_sphere_simplified
+    ! interface CWPT_generate_mesh_sphere_simplified
+    !   module procedure CWPT_generate_mesh_sphere_simplified_
+    ! end interface CWPT_generate_mesh_sphere_simplified
       
-    interface CWPT_generate_mesh_rectangle_simplified
-      module procedure CWPT_generate_mesh_rectangle_simplified_
-    end interface CWPT_generate_mesh_rectangle_simplified
+    ! interface CWPT_generate_mesh_rectangle_simplified
+    !   module procedure CWPT_generate_mesh_rectangle_simplified_
+    ! end interface CWPT_generate_mesh_rectangle_simplified
       
-    interface CWPT_generate_mesh_ball_simplified
-      module procedure CWPT_generate_mesh_ball_simplified_
-    end interface CWPT_generate_mesh_ball_simplified
+    ! interface CWPT_generate_mesh_ball_simplified
+    !   module procedure CWPT_generate_mesh_ball_simplified_
+    ! end interface CWPT_generate_mesh_ball_simplified
       
-    interface CWPT_generate_mesh_parallelepiped_simplified
-      module procedure CWPT_generate_mesh_parallelepiped_simplified_
-    end interface CWPT_generate_mesh_parallelepiped_simplified
+    ! interface CWPT_generate_mesh_parallelepiped_simplified
+    !   module procedure CWPT_generate_mesh_parallelepiped_simplified_
+    ! end interface CWPT_generate_mesh_parallelepiped_simplified
       
-    interface CWPT_generate_mesh_rectangle_ngon
-      module procedure CWPT_generate_mesh_rectangle_ngon_
-    end interface CWPT_generate_mesh_rectangle_ngon
+    ! interface CWPT_generate_mesh_rectangle_ngon
+    !   module procedure CWPT_generate_mesh_rectangle_ngon_
+    ! end interface CWPT_generate_mesh_rectangle_ngon
       
-    interface CWPT_generate_mesh_sphere_ngon
-      module procedure CWPT_generate_mesh_sphere_ngon_
-    end interface CWPT_generate_mesh_sphere_ngon
+    ! interface CWPT_generate_mesh_sphere_ngon
+    !   module procedure CWPT_generate_mesh_sphere_ngon_
+    ! end interface CWPT_generate_mesh_sphere_ngon
       
-    interface CWPT_generate_mesh_ball_ngon
-      module procedure CWPT_generate_mesh_ball_ngon_
-    end interface CWPT_generate_mesh_ball_ngon
+    ! interface CWPT_generate_mesh_ball_ngon
+    !   module procedure CWPT_generate_mesh_ball_ngon_
+    ! end interface CWPT_generate_mesh_ball_ngon
       
-    interface CWPT_generate_mesh_parallelepiped_ngon
-      module procedure CWPT_generate_mesh_parallelepiped_ngon_
-    end interface CWPT_generate_mesh_parallelepiped_ngon
+    ! interface CWPT_generate_mesh_parallelepiped_ngon
+    !   module procedure CWPT_generate_mesh_parallelepiped_ngon_
+    ! end interface CWPT_generate_mesh_parallelepiped_ngon
       
-    interface CWP_timer_create
-      module procedure CWP_timer_create_
-    end interface CWP_timer_create
-      
-    interface CWP_timer_init
-      module procedure CWP_timer_init_
-    end interface CWP_timer_init
-      
-    interface CWP_timer_resume
-      module procedure CWP_timer_resume_
-    end interface CWP_timer_resume
-      
-    interface CWP_timer_hang_on
-      module procedure CWP_timer_hang_on_
-    end interface CWP_timer_hang_on
-      
-    interface CWP_timer_cpu
-      module procedure CWP_timer_cpu_
-    end interface CWP_timer_cpu
-      
-    interface CWP_timer_cpu_user
-      module procedure CWP_timer_cpu_user_
-    end interface CWP_timer_cpu_user
-      
-    interface CWP_timer_cpu_sys
-      module procedure CWP_timer_cpu_sys_
-    end interface CWP_timer_cpu_sys
-      
-    interface CWP_timer_elapsed
-      module procedure CWP_timer_elapsed_
-    end interface CWP_timer_elapsed
-      
-    interface CWP_timer_free
-      module procedure CWP_timer_free_
-    end interface CWP_timer_free  
 
   !
   ! Private
@@ -717,24 +684,15 @@ module cwp
              CWP_Part_data_irecv_, &
              CWP_Part_data_wait_issend_, &
              CWP_Part_data_wait_irecv_, &
-             CWP_Cpl_spatial_interp_algo_get_, &
-             CWPT_generate_mesh_sphere_simplified_, &
-             CWPT_generate_mesh_rectangle_simplified_, &
-             CWPT_generate_mesh_ball_simplified_, &
-             CWPT_generate_mesh_parallelepiped_simplified_, &
-             CWPT_generate_mesh_rectangle_ngon_, &
-             CWPT_generate_mesh_sphere_ngon_, &
-             CWPT_generate_mesh_ball_ngon_, &
-             CWPT_generate_mesh_parallelepiped_ngon_, &             
-             CWP_timer_create_, &
-             CWP_timer_init_, &
-             CWP_timer_resume_, &
-             CWP_timer_hang_on_, &
-             CWP_timer_cpu_, &
-             CWP_timer_cpu_user_, &
-             CWP_timer_cpu_sys_, &
-             CWP_timer_elapsed_, &
-             CWP_timer_free_
+             CWP_Cpl_spatial_interp_algo_get_
+             ! CWPT_generate_mesh_sphere_simplified_, &
+             ! CWPT_generate_mesh_rectangle_simplified_, &
+             ! CWPT_generate_mesh_ball_simplified_, &
+             ! CWPT_generate_mesh_parallelepiped_simplified_, &
+             ! CWPT_generate_mesh_rectangle_ngon_, &
+             ! CWPT_generate_mesh_sphere_ngon_, &
+             ! CWPT_generate_mesh_ball_ngon_, &
+             ! CWPT_generate_mesh_parallelepiped_ngon_, &             
 
     interface
 
