@@ -78,6 +78,7 @@ _usage(int exit_code) {
  * parameters:
  *   nVertex             <-- Number of vertices in bandwidth
  *   randLevel           <-- Random level
+ * todo: add HO to PDM_generate_mesh and switch back to release mode
  *---------------------------------------------------------------------*/
 
 static void
