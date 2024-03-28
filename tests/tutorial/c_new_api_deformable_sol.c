@@ -25,7 +25,6 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_generate_mesh.h"
 
 /*----------------------------------------------------------------------
  *
@@ -83,21 +82,21 @@ main(int argc, char *argv[]) {
                "text");
 
   // Create mesh :
-  // It is the users responsability to free arrays from _simplified mesh generation functions.
-  // PDM_MPI_mpi_2_pdm_mpi_comm is used when calling ParaDiGM library functions to
-  // convert the MPI communicator into the expected format.
+  // It is the users responsability to free arrays from
+  // _simplified mesh generation functions. In a real life
+  // coupling case here a user generated mesh would be read/loaded/given.
   int     n_vtx = 0;
   int     n_elt = 0;
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
-  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
-                                         10,
-                                         &n_vtx,
-                                         &n_elt,
-                                         &coords,
-                                         &elt_vtx_idx,
-                                         &elt_vtx);
+  CWPT_generate_mesh_rectangle_simplified(intra_comm[0],
+                                          10,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx);
 
   int n_components = 1;
 

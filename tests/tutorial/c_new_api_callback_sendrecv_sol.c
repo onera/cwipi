@@ -27,9 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_logging.h"
-#include "pdm_generate_mesh.h"
-
 /*----------------------------------------------------------------------
  *
  * User Interpolation function (callback)
@@ -176,13 +173,13 @@ main
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
-  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
-                                         10,
-                                         &n_vtx,
-                                         &n_elt,
-                                         &coords,
-                                         &elt_vtx_idx,
-                                         &elt_vtx);
+  CWPT_generate_mesh_rectangle_simplified(intra_comm[0],
+                                          10,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx);
 
   // Set mesh :
   CWP_Mesh_interf_vtx_set(code_name[0],
