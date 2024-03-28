@@ -27,8 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "grid_mesh.h"
-
 
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))

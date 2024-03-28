@@ -246,7 +246,7 @@ _gen_mesh
        CWP_g_num_t          ***pvtx_ln_to_gn
  )
 {
-  CWP_UNUSED(rotate);
+  // CWP_UNUSED(rotate);
   CWP_UNUSED(randomize);
 
   // Unused variables
@@ -301,6 +301,12 @@ _gen_mesh
                                          &unused_ridge_edge_idx,
                                          &unused_ridge_edge,
                                          &unused_ridge_edge_ln_to_gn);
+
+  if (rotate) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      _rotate((*pn_vtx)[i_part], (*pvtx_coord)[i_part]);
+    }
+  }
 
   // Free unused variables
   for (int i_part = 0; i_part < n_part; i_part++) {
