@@ -19,7 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import mpi4py.MPI as MPI
-import Pypdm.Pypdm as PDM
+import pycwpt.pycwpt as CWPT
 import numpy as np
 import sys
 import argparse
@@ -42,45 +42,16 @@ def compute_elt_centers(connec_idx, connec, vtx_coord):
 
   return elt_center
 
-def setup_mesh(comm, n_vtx_seg, elt_type, xyz_min, length, order, random_factor, i_surface, part_method):
+def setup_mesh(comm, n_vtx_seg, xyz_min, random_factor):
 
-  surface = i_surface >= 0
-
-  dcube = PDM.DCubeNodalGenerator(nx     = n_vtx_seg,
-                                  ny     = n_vtx_seg,
-                                  nz     = n_vtx_seg,
-                                  length = length,
-                                  zero_x = xyz_min[0]*length,
-                                  zero_y = xyz_min[1]*length,
-                                  zero_z = xyz_min[2]*length,
-                                  t_elmt = elt_type,
-                                  order  = order,
-                                  comm   = comm)
-
-  dcube.set_random_factor(random_factor)
-  dcube.compute()
-
-  dmn = dcube.get_dmesh_nodal()
-
-  n_part = 1
-  mpart = PDM.MultiPart(1,
-                        np.array([n_part]).astype(np.int32),
-                        0,
-                        part_method,
-                        1,
-                        np.ones(1).astype(np.double),
-                        comm)
-
-  mpart.dmesh_nodal_set(0, dmn)
-
-  mpart.compute()
+  mesh = CWPT.generate_mesh_parallelepiped_simplified(comm, n_vtx_seg)
 
   comm.Barrier()
-  if comm.rank == 0: print("multipart OK", flush=True)
+  if comm.rank == 0: print("Generate-Mesh OK", flush=True)
 
   # Deform
-  vtx_coord    = mpart.vtx_coord_get(0, 0)
-  vtx_ln_to_gn = mpart.ln_to_gn_get(0, 0, PDM._PDM_MESH_ENTITY_VTX)
+  length = 10. # length defined in generate_mesh_parallelepiped_simplified
+  vtx_coord = mesh['coords']
 
   y0 = xyz_min[1] + 0.5
   z0 = xyz_min[2] + 0.5
@@ -88,97 +59,14 @@ def setup_mesh(comm, n_vtx_seg, elt_type, xyz_min, length, order, random_factor,
 
   vtx_coord[0::3] += 0.4*length*r2
 
-
-  if surface:
-    out = mpart.connectivity_get(0, 0, PDM._PDM_CONNECTIVITY_TYPE_FACE_EDGE)
-    face_edge_idx = out["np_entity1_entity2_idx"]
-    face_edge     = out["np_entity1_entity2"]
-
-    out = mpart.connectivity_get(0, 0, PDM._PDM_CONNECTIVITY_TYPE_EDGE_VTX)
-    edge_vtx = out["np_entity1_entity2"]
-
-    face_vtx = PDM.compute_face_vtx_from_face_and_edge(face_edge_idx,
-                                                       face_edge,
-                                                       edge_vtx)
-
-    face_ln_to_gn = mpart.ln_to_gn_get(0, 0, PDM._PDM_MESH_ENTITY_FACE)
-    cell_ln_to_gn = mpart.ln_to_gn_get(0, 0, PDM._PDM_MESH_ENTITY_CELL)
-
-    groups = mpart.group_get(0, 0, PDM._PDM_BOUND_TYPE_FACE)
-
-    extrp = PDM.ExtractPart(2,
-                            n_part,
-                            n_part,
-                            PDM._PDM_EXTRACT_PART_KIND_LOCAL,
-                            0,
-                            1,
-                            comm)
-
-    extrp.selected_lnum_set(0, groups["group_entity"][groups["group_entity_idx"][i_surface]:groups["group_entity_idx"][i_surface+1]]-1)
-
-    extrp.part_set(0,
-                   0,
-                   len(face_ln_to_gn),
-                   0,
-                   len(vtx_ln_to_gn),
-                   None,
-                   None,
-                   None,
-                   None,
-                   None,
-                   face_edge_idx,
-                   face_vtx,
-                   None,
-                   face_ln_to_gn,
-                   None,
-                   vtx_ln_to_gn,
-                   vtx_coord)
-
-    extrp.compute()
-
-    extrp_face_vtx_idx, extrp_face_vtx = extrp.connectivity_get(0, PDM._PDM_CONNECTIVITY_TYPE_FACE_VTX)
-
-    extrp_vtx_coord = extrp.vtx_coord_get(0)
-
-    return {
-    "n_vtx"       : extrp.n_entity_get(0, PDM._PDM_MESH_ENTITY_VTX),
-    "n_elt"       : extrp.n_entity_get(0, PDM._PDM_MESH_ENTITY_FACE),
-    "coord"       : extrp_vtx_coord,
-    "connec_idx"  : extrp_face_vtx_idx,
-    "connec"      : extrp_face_vtx,
-    "elt_center"  : compute_elt_centers(extrp_face_vtx_idx, extrp_face_vtx, extrp_vtx_coord),
-    "elt_ln_to_gn": extrp.ln_to_gn_get(0, PDM._PDM_MESH_ENTITY_FACE),
-    "vtx_ln_to_gn": extrp.ln_to_gn_get(0, PDM._PDM_MESH_ENTITY_VTX)
-    }
-
-  else:
-    pmn = mpart.part_mesh_nodal_get(0)
-
-    section = PDM.part_mesh_nodal_get_sections(pmn,
-                                               PDM._PDM_GEOMETRY_KIND_VOLUMIC,
-                                               0)[0]
-
-    connec = section["np_connec"]
-    n_elt  = len(section["np_numabs"])
-
-    strides = {
-    PDM._PDM_MESH_NODAL_TETRA4  : 4,
-    PDM._PDM_MESH_NODAL_PYRAMID5: 8,
-    PDM._PDM_MESH_NODAL_PRISM6  : 6,
-    PDM._PDM_MESH_NODAL_HEXA8   : 5
-    }
-    connec_idx = strides[elt_type] * np.arange(n_elt+1, dtype=np.int32)
-
-    return {
-    "n_vtx"       : len(vtx_ln_to_gn),
-    "n_elt"       : n_elt,
-    "coord"       : vtx_coord,
-    "connec_idx"  : connec_idx,
-    "connec"      : connec,
-    "elt_center"  : compute_elt_centers(connec_idx, connec, vtx_coord),
-    "elt_ln_to_gn": section["np_numabs"],
-    "vtx_ln_to_gn": vtx_ln_to_gn
-    }
+  return {
+          "n_vtx"       : len(vtx_coord)//3,
+          "n_elt"       : len(mesh['elt_vtx_idx'])-1,
+          "coord"       : vtx_coord,
+          "connec_idx"  : mesh['elt_vtx_idx'],
+          "connec"      : mesh['elt_vtx'],
+          "elt_center"  : compute_elt_centers( mesh['elt_vtx_idx'], mesh['elt_vtx'], vtx_coord)
+          }
 
 def eval_field(coord):
   return np.array(coord[::3])
@@ -196,7 +84,6 @@ def run_coupling():
   parser.add_argument("-ratio",       "--ratio",           type=float, default=0.5)
   parser.add_argument("-elt_type",    "--elt_type",        type=int,   default=5)
   parser.add_argument("-rand",        "--random_factor",   type=float, default=0)
-  parser.add_argument("-part_method", "--part_method",     type=int,   default=PDM._PDM_SPLIT_DUAL_WITH_HILBERT)
   parser.add_argument("-old",         "--old",             action="store_true")
   parser.add_argument("-inactive",    "--inactive",        action="store_true")
   parser.add_argument("-v",           "--visu",            action="store_true")
@@ -248,13 +135,8 @@ def run_coupling():
 
     mesh.append(setup_mesh(mesh_comm[icode],
                            n_vtx_seg[icode],
-                           args.elt_type,
                            xyz_min,
-                           20, # length
-                           1, # order
-                           args.random_factor,
-                           i_surface,
-                           args.part_method))
+                           args.random_factor))
 
     if code_name[icode] == all_code_name[0]:
       n_tgt = mesh[-1]["n_elt"]
@@ -333,7 +215,7 @@ def run_coupling():
       if is_active_rank:
         cpl[icode].mesh_interf_vtx_set(0,
                                        mesh[icode]["coord"],
-                                       mesh[icode]["vtx_ln_to_gn"])
+                                       None)
 
         if args.n_overlap == 0:
           id_block = cpl[icode].mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
@@ -341,14 +223,14 @@ def run_coupling():
                                                   id_block,
                                                   mesh[icode]["connec_idx"],
                                                   mesh[icode]["connec"],
-                                                  mesh[icode]["elt_ln_to_gn"])
+                                                  None)
         else:
           id_block = cpl[icode].mesh_interf_block_add(args.elt_type)
 
           cpl[icode].mesh_interf_block_std_set(0,
                                                id_block,
                                                mesh[icode]["connec"],
-                                               mesh[icode]["elt_ln_to_gn"])
+                                               None)
         cpl[icode].mesh_interf_finalize()
 
   # Field

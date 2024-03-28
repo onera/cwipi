@@ -26,6 +26,8 @@ add_subdirectory(cwipi)
 
 add_subdirectory(pycwp)
 
+add_subdirectory(pycwpt)
+
 if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(pycwpclt)
 endif()

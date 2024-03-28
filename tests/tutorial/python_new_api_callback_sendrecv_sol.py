@@ -97,13 +97,13 @@ def run_coupling():
   i_rank = comm.rank
   n_rank = comm.size
 
-  # Load Python PDM module
+  # Load Python CWPT module
   try:
-    from Pypdm import Pypdm
+    from pycwpt import pycwpt
   except:
     if i_rank == 0:
-      print("      Error : PDM module not found (update PYTHONPATH variable)")
-      print(f"pdm : {Pypdm.__file__}")
+      print("      Error : CWIPI test utilities module not found (update PYTHONPATH variable)")
+      print(f"cwpt : {pycwpt.__file__}")
       sys.exit(1)
 
   # Load Python CWIPI module
@@ -134,8 +134,8 @@ def run_coupling():
   n_part = 1
 
   # Generate mesh
-  mesh = Pypdm.generate_mesh_rectangle_simplified(intra_comm[0],
-                                                  5)
+  mesh = pycwpt.generate_mesh_rectangle_simplified(intra_comm[0],
+                                                   5)
   print(f"Python : {i_rank}/{n_rank} generate_mesh_rectangle_simplified OK")
   # send_field_data = mesh["coords"][0::3] # does not work for some reason...
   send_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
