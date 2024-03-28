@@ -112,7 +112,7 @@ option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
 
 option(CWP_ENABLE_TESTS "Enable Tests" ON)
 
-# Hide ParaDiGM Librabry symbols into the cwipi library.
+# Hide ParaDiGM Library symbols into the CWIPI library.
 # This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
 # -----------------------------------------------------------------------------------
 
@@ -144,6 +144,11 @@ endif()
 
 if ((CWP_ENABLE_STATIC) AND (CWP_ENABLE_HIDE_PDM_SYMBOLS))
   message (FATAL_ERROR "Enabling the hiding of ParaDiGM library symbols in the CWIPI library is not allowed for the static library. To generate a static library, set the CWP_ENABLE_HIDE_PDM_SYMBOLS option to OFF.")
+endif()
+
+if ((CWP_ENABLE_EXTERNAL_PDM) AND (CWP_ENABLE_HIDE_PDM_SYMBOLS))
+  set (CWP_ENABLE_HIDE_PDM_SYMBOLS OFF)
+  message (WARNING "Enabling the hiding of ParaDiGM library symbols in the CWIPI library is not allowed when using an external ParaDiGM library. Switching CWP_ENABLE_HIDE_PDM_SYMBOLS to OFF.")
 endif()
 
 #------------------------------------------------------------------------------
