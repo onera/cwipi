@@ -282,9 +282,9 @@ def generate_mesh_rectangle_simplified(MPI.Comm    comm,
                                           &elt_vtx)
 
   return {
-          'coords'      : create_numpy_d(coords, 3*n_vtx, False),
-          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, False),
-          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], False),
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
          }
 
 #-----------------------------------------------------------------------------
@@ -320,9 +320,9 @@ def generate_mesh_sphere_simplified(MPI.Comm comm):
                                        &elt_vtx)
 
   return {
-          'coords'      : create_numpy_d(coords, 3*n_vtx, False),
-          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, False),
-          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], False),
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
          }
 
 #-----------------------------------------------------------------------------
@@ -361,9 +361,9 @@ def generate_mesh_parallelepiped_simplified(MPI.Comm    comm,
                                                &elt_vtx)
 
   return {
-          'coords'      : create_numpy_d(coords, 3*n_vtx, False),
-          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, False),
-          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], False),
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
          }
 
 #-----------------------------------------------------------------------------
@@ -447,6 +447,7 @@ def generate_mesh_sphere_ngon(MPI.Comm          comm,
                                  &pedge_ln_to_gn,
                                  &pface_ln_to_gn)
 
+  # Cast
   py_vtx_coord     = []
   py_edge_vtx      = []
   py_face_edge_idx = []
@@ -457,14 +458,27 @@ def generate_mesh_sphere_ngon(MPI.Comm          comm,
   py_face_ln_to_gn = []
 
   for i_part in range(n_part):
-    py_vtx_coord.append(create_numpy_d(pvtx_coord[i_part], 3*pn_vtx[i_part], False))
-    py_edge_vtx.append(create_numpy_i(pedge_vtx[i_part], 2*pn_edge[i_part], False))
-    py_face_edge_idx.append(create_numpy_i(pface_edge_idx[i_part], pn_face[i_part]+1, False))
-    py_face_edge.append(create_numpy_i(pface_edge[i_part], pface_edge_idx[i_part][pn_face[i_part]], False))
-    py_face_vtx.append(create_numpy_i(pface_vtx[i_part], pface_edge_idx[i_part][pn_face[i_part]], False))
-    py_vtx_ln_to_gn.append(create_numpy_g(pvtx_ln_to_gn[i_part], pn_vtx[i_part], False))
-    py_edge_ln_to_gn.append(create_numpy_g(pedge_ln_to_gn[i_part], pn_edge[i_part], False))
-    py_face_ln_to_gn.append(create_numpy_g(pface_ln_to_gn[i_part], pn_face[i_part], False))
+    py_vtx_coord.append(create_numpy_d(pvtx_coord[i_part], 3*pn_vtx[i_part], True))
+    py_edge_vtx.append(create_numpy_i(pedge_vtx[i_part], 2*pn_edge[i_part], True))
+    py_face_edge_idx.append(create_numpy_i(pface_edge_idx[i_part], pn_face[i_part]+1, True))
+    py_face_edge.append(create_numpy_i(pface_edge[i_part], pface_edge_idx[i_part][pn_face[i_part]], True))
+    py_face_vtx.append(create_numpy_i(pface_vtx[i_part], pface_edge_idx[i_part][pn_face[i_part]], True))
+    py_vtx_ln_to_gn.append(create_numpy_g(pvtx_ln_to_gn[i_part], pn_vtx[i_part], True))
+    py_edge_ln_to_gn.append(create_numpy_g(pedge_ln_to_gn[i_part], pn_edge[i_part], True))
+    py_face_ln_to_gn.append(create_numpy_g(pface_ln_to_gn[i_part], pn_face[i_part], True))
+
+  # Free
+  free(pn_vtx);
+  free(pn_edge);
+  free(pn_face);
+  free(pvtx_coord);
+  free(pedge_vtx);
+  free(pface_edge_idx);
+  free(pface_edge);
+  free(pface_vtx);
+  free(pvtx_ln_to_gn);
+  free(pedge_ln_to_gn);
+  free(pface_ln_to_gn);
 
   return {
           "pvtx_coord"     : py_vtx_coord,

@@ -138,10 +138,10 @@ def run_coupling():
                                                    5)
   print(f"Python : {i_rank}/{n_rank} generate_mesh_rectangle_simplified OK")
   # send_field_data = mesh["coords"][0::3] # does not work for some reason...
-  send_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
-  for i in range(mesh["n_vtx"]):
+  send_field_data = np.zeros((len(mesh["coords"])//3), dtype=np.double)
+  for i in range((len(mesh["coords"])//3)):
     send_field_data[i] = mesh["coords"][3*i]
-  recv_field_data = np.zeros(mesh["n_vtx"], dtype=np.double)
+  recv_field_data = np.zeros((len(mesh["coords"])//3), dtype=np.double)
 
   # Create first coupling C <-> Python
   cpl_CP = pycwp.Coupling(code_name[0],
