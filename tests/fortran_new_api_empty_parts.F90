@@ -255,7 +255,7 @@ subroutine generate_mesh(intra_comm,   &
   integer(c_long),  pointer :: elt_ln_to_gn(:)
 
   double precision          :: step
-  integer                   :: i_rank_intra, err, i_rank_world, n_rank_intra
+  integer                   :: i_rank_intra, err
   integer                   :: i, j, k
 
   call mpi_comm_rank(intra_comm, i_rank_intra, err)

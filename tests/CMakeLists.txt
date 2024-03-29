@@ -153,14 +153,35 @@ endif()
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
   test_python_create (python_api 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_api cwipi)
+
   test_python_create (python_new_api 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api pycwp)
+
   test_python_create (python_new_api_surf 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_surf pycwp)
+  add_dependencies (python_new_api_surf pycwpt)
+
   test_python_create (python_new_api_multiple_field_with_callback 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_multiple_field_with_callback pycwp)
+  add_dependencies (python_new_api_multiple_field_with_callback pycwpt)
+
   test_python_create (python_new_api_multiblock_2d 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_multiblock_2d pycwp)
+
   test_python_create (python_new_api_multiblock_3d 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_multiblock_3d pycwp)
+
   test_python_create (python_new_api_multiple_orders 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_multiple_orders pycwp)
+
   test_python_create (python_perfo_hpdc24 2 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_perfo_hpdc24 pycwp)
+  add_dependencies (python_perfo_hpdc24 pycwpt)
+
   test_python_create (python_new_api_empty_parts 4 CWP_LIST_TEST CWP_LIST_NRANK)
+  add_dependencies (python_new_api_empty_parts pycwp)
+
 
   if (CWP_ENABLE_CLIENT_SERVER)
     test_python_create (python_new_api_client_server 2 CWP_LIST_TEST CWP_LIST_NRANK)
