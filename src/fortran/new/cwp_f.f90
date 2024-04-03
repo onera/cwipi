@@ -176,29 +176,29 @@ module cwp
 
 
    ! CWPT_Mesh_nodal_elt_t
-    ! enum, bind(c)
-    !   enumerator :: &
-    !     CWPT_MESH_NODAL_POINT, &
-    !     CWPT_MESH_NODAL_BAR2, &
-    !     CWPT_MESH_NODAL_TRIA3, &
-    !     CWPT_MESH_NODAL_QUAD4, &
-    !     CWPT_MESH_NODAL_POLY_2D, &
-    !     CWPT_MESH_NODAL_TETRA4, &
-    !     CWPT_MESH_NODAL_PYRAMID5, &
-    !     CWPT_MESH_NODAL_PRISM6, &
-    !     CWPT_MESH_NODAL_HEXA8, &
-    !     CWPT_MESH_NODAL_POLY_3D, &
-    !     CWPT_MESH_NODAL_BARHO, &
-    !     CWPT_MESH_NODAL_TRIAHO, &
-    !     CWPT_MESH_NODAL_QUADHO, &
-    !     CWPT_MESH_NODAL_TETRAHO, &
-    !     CWPT_MESH_NODAL_PYRAMIDHO, &
-    !     CWPT_MESH_NODAL_PRISMHO, &
-    !     CWPT_MESH_NODAL_HEXAHO, &
-    !     CWPT_MESH_NODAL_BARHO_BEZIER, &  
-    !     CWPT_MESH_NODAL_TRIAHO_BEZIER, & 
-    !     CWPT_MESH_NODAL_N_ELEMENT_TYPES
-    ! end enum
+    enum, bind(c)
+      enumerator :: &
+        CWPT_MESH_NODAL_POINT, &
+        CWPT_MESH_NODAL_BAR2, &
+        CWPT_MESH_NODAL_TRIA3, &
+        CWPT_MESH_NODAL_QUAD4, &
+        CWPT_MESH_NODAL_POLY_2D, &
+        CWPT_MESH_NODAL_TETRA4, &
+        CWPT_MESH_NODAL_PYRAMID5, &
+        CWPT_MESH_NODAL_PRISM6, &
+        CWPT_MESH_NODAL_HEXA8, &
+        CWPT_MESH_NODAL_POLY_3D, &
+        CWPT_MESH_NODAL_BARHO, &
+        CWPT_MESH_NODAL_TRIAHO, &
+        CWPT_MESH_NODAL_QUADHO, &
+        CWPT_MESH_NODAL_TETRAHO, &
+        CWPT_MESH_NODAL_PYRAMIDHO, &
+        CWPT_MESH_NODAL_PRISMHO, &
+        CWPT_MESH_NODAL_HEXAHO, &
+        CWPT_MESH_NODAL_BARHO_BEZIER, &  
+        CWPT_MESH_NODAL_TRIAHO_BEZIER, & 
+        CWPT_MESH_NODAL_N_ELEMENT_TYPES
+    end enum
 
     interface CWP_Param_set; module procedure &
       CWP_Param_set_int_, &
@@ -545,8 +545,16 @@ module cwp
     interface CWP_Cpl_spatial_interp_algo_get
       module procedure CWP_Cpl_spatial_interp_algo_get_
     end interface CWP_Cpl_spatial_interp_algo_get
-
-! Only for tests
+!
+!   Only for tests
+!
+    integer, parameter :: CWPT_TYPE_INT      = PDM_TYPE_INT
+    integer, parameter :: CWPT_TYPE_G_NUM    = PDM_TYPE_G_NUM
+    integer, parameter :: CWPT_TYPE_DOUBLE   = PDM_TYPE_DOUBLE
+    integer, parameter :: CWPT_TYPE_COMPLEX8 = PDM_TYPE_COMPLEX8
+    integer, parameter :: CWPT_TYPE_COMPLEX4 = PDM_TYPE_COMPLEX4
+    integer, parameter :: CWPT_TYPE_REAL4    = PDM_TYPE_REAL4
+    integer, parameter :: CWPT_TYPE_CPTR     = PDM_TYPE_CPTR
 
     ! interface CWPT_generate_mesh_sphere_simplified
     !   module procedure CWPT_generate_mesh_sphere_simplified_
@@ -580,6 +588,46 @@ module cwp
     !   module procedure CWPT_generate_mesh_parallelepiped_ngon_
     ! end interface CWPT_generate_mesh_parallelepiped_ngon
       
+    type CWPT_pointer_array_t
+      type(PDM_pointer_array_t),   pointer :: pdm_pt_array => null()
+    end type CWPT_pointer_array_t
+
+    interface CWPT_pointer_array_part_set
+      module procedure CWPT_pointer_array_part_set_int
+      module procedure CWPT_pointer_array_part_set_g_num
+      module procedure CWPT_pointer_array_part_set_double
+      module procedure CWPT_pointer_array_part_set_double_2
+      module procedure CWPT_pointer_array_part_set_double_3
+      module procedure CWPT_pointer_array_part_set_complex8
+      module procedure CWPT_pointer_array_part_set_complex4
+      module procedure CWPT_pointer_array_part_set_real4
+    end interface
+  
+    interface CWPT_pointer_array_part_get
+      module procedure CWPT_pointer_array_part_get_int
+      module procedure CWPT_pointer_array_part_get_g_num
+      module procedure CWPT_pointer_array_part_get_double
+      module procedure CWPT_pointer_array_part_get_double_2
+      module procedure CWPT_pointer_array_part_get_double_3
+      module procedure CWPT_pointer_array_part_get_complex8
+      module procedure CWPT_pointer_array_part_get_complex4
+      module procedure CWPT_pointer_array_part_get_real4
+      module procedure CWPT_pointer_array_part_get_cptr
+    end interface
+  
+  
+    interface CWPT_pointer_array_create
+      module procedure CWPT_pointer_array_create_
+      module procedure CWPT_pointer_array_create_type_from_c_allocated_cptr
+    end interface
+  
+    interface CWPT_pointer_array_part_length_update
+      module procedure CWPT_pointer_array_part_length_update_
+    end interface CWPT_pointer_array_part_length_update
+
+    interface CWPT_pointer_array_free
+      module procedure CWPT_pointer_array_free_
+    end interface CWPT_pointer_array_free
 
   !
   ! Private
@@ -684,7 +732,7 @@ module cwp
              CWP_Part_data_irecv_, &
              CWP_Part_data_wait_issend_, &
              CWP_Part_data_wait_irecv_, &
-             CWP_Cpl_spatial_interp_algo_get_
+             CWP_Cpl_spatial_interp_algo_get_, &
              ! CWPT_generate_mesh_sphere_simplified_, &
              ! CWPT_generate_mesh_rectangle_simplified_, &
              ! CWPT_generate_mesh_ball_simplified_, &
@@ -693,6 +741,28 @@ module cwp
              ! CWPT_generate_mesh_sphere_ngon_, &
              ! CWPT_generate_mesh_ball_ngon_, &
              ! CWPT_generate_mesh_parallelepiped_ngon_, &             
+             ! CWPT_pointer_array_part_length_update_, &
+             CWPT_pointer_array_create_,&
+             CWPT_pointer_array_part_get_double, &
+             CWPT_pointer_array_part_get_double_2, &
+             CWPT_pointer_array_part_get_double_3, &
+             CWPT_pointer_array_part_get_complex8, &
+             CWPT_pointer_array_part_get_complex4, &
+             CWPT_pointer_array_part_get_real4, &
+             CWPT_pointer_array_part_get_cptr, &
+             CWPT_pointer_array_part_get_g_num, &
+             CWPT_pointer_array_part_get_int, &
+             CWPT_pointer_array_part_set_double, &
+             CWPT_pointer_array_part_set_double_2, &
+             CWPT_pointer_array_part_set_double_3, &
+             CWPT_pointer_array_part_set_complex8, &
+             CWPT_pointer_array_part_set_complex4, &
+             CWPT_pointer_array_part_set_real4, &
+             CWPT_pointer_array_part_set_g_num, &
+             CWPT_pointer_array_part_set_int,&
+             CWPT_pointer_array_part_length_update_, &
+             CWPT_pointer_array_free_, &
+             CWPT_pointer_array_create_type_from_c_allocated_cptr
 
     interface
 
@@ -5463,5 +5533,541 @@ contains
 
 
 ! For tests
+
+  !>
+  !! \brief Initialize a \ref PDM_pointer_array_t object
+  !!
+  !! \param [out]  pa      \ref PDM_pointer_array_t object
+  !! \param [in]   n_part  Number of partitions
+  !! \param [in]   type    Data type of pointers
+  !! \param [in]   s_data  Size of a data (only used for PDM_TYPE_CPTR)
+  !!
+
+  subroutine CWPT_pointer_array_create_ (pa,     &
+                                        n_part, &
+                                        type,   &
+                                        s_data)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer :: pa
+    integer, intent(in)                :: n_part
+    integer, intent(in)                :: type
+    integer, intent(in), optional      :: s_data
+
+    if (associated(pa)) then
+      print*, "Error CWPT_pointer_array_create : pa is already associated ! "
+      call exit
+    endif
+
+    allocate(pa)
+
+    call PDM_pointer_array_create (pa%pdm_pt_array,     &
+                                   n_part, &
+                                   type,   &
+                                   s_data)
+
+  end subroutine  CWPT_pointer_array_create_
+
+  !>
+  !! \brief Initialize a \ref CWPT_pointer_array_t object
+  !!
+  !! \param [out]  pa        \ref PDM_pointer_array_t object
+  !! \param [in]   n_part    Number of partitions
+  !! \param [in]   type      Data type of pointers
+  !! \param [in]   c_data    C pointer cointaining data
+  !! \param [in]   length    Data type of pointers
+  !! \param [in]   ownership PDM_OWNERSHIP_KEEP: PDM_pointer_array_free subroutine free data,  PDM_OWNERSHIP_USER: user have to free data)
+  !! \param [in]   s_data    Size of a data (only used for CWPT_TYPE_CPTR)
+  !!
+
+  subroutine CWPT_pointer_array_create_type_from_c_allocated_cptr (pa,       &
+                                                                  n_part,   &
+                                                                  type,     &
+                                                                  c_data,   &
+                                                                  length,   &
+                                                                  ownership, &
+                                                                  s_data)
+
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer :: pa
+    integer, intent(in)                :: n_part
+    integer, intent(in)                :: type
+    type(c_ptr), intent(in)            :: c_data
+    integer, intent(in)                :: length(:)
+    integer, intent(in)                :: ownership
+    integer, intent(in), optional      :: s_data
+
+    if (associated(pa)) then
+      print*, "Error CWPT_pointer_array_create : pa is already associated ! "
+      call exit
+    endif
+
+    allocate (pa)
+
+    call PDM_pointer_array_create (pa%pdm_pt_array,  &
+                                   n_part,   &
+                                   type,     &
+                                   c_data,   &
+                                   length,   &
+                                   ownership, &
+                                   s_data)
+ 
+
+  end subroutine CWPT_pointer_array_create_type_from_c_allocated_cptr
+
+
+  !>
+  !! \brief Update the length of a partition of a pointer array
+  !!
+  !! \param [out]  pa        \ref PDM_pointer_array_t object
+  !! \param [in]   i_part    Number of partitions
+  !! \param [in]   length    Data type of pointers
+  !!
+
+  subroutine CWPT_pointer_array_part_length_update_ (pa,       &
+                                                   i_part,   &
+                                                   length)
+
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer :: pa
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: length
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_length_update : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_length_update (pa%pdm_pt_array,  &
+                                               i_part,&
+                                               length)
+
+  end subroutine CWPT_pointer_array_part_length_update_
+
+
+  !>
+  !! \brief Free a \ref PDM_pointer_array_t object
+  !!
+  !! \param [in, out]  pa      \ref PDM_pointer_array_t object
+  !!
+
+  subroutine CWPT_pointer_array_free_ (pa)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_free : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_free (pa%pdm_pt_array)
+
+    deallocate(pa)
+    pa => null()
+
+  end subroutine CWPT_pointer_array_free_
+
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref PDM_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to an integer array
+  !!
+
+  subroutine CWPT_pointer_array_part_set_int (pa,        &
+                                             i_part,    &
+                                             pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    integer(pdm_l_num_s),      pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_int
+
+  subroutine CWPT_pointer_array_part_set_g_num (pa,        &
+                                             i_part,    &
+                                             pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    integer(pdm_g_num_s),      pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_g_num
+
+  subroutine CWPT_pointer_array_part_set_double (pa,        &
+                                                 i_part,    &
+                                                 pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    double precision,          pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_double
+
+  subroutine CWPT_pointer_array_part_set_double_2 (pa,        &
+                                             i_part,    &
+                                             pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    double precision,          pointer :: pointer_f(:,:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_double_2
+
+  subroutine CWPT_pointer_array_part_set_double_3 (pa,        &
+                                             i_part,    &
+                                             pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    double precision,          pointer :: pointer_f(:,:,:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_double_3
+
+
+  subroutine CWPT_pointer_array_part_set_complex4 (pa,        &
+                                             i_part,    &
+                                             pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    complex (kind=4),          pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_complex4
+
+  subroutine CWPT_pointer_array_part_set_complex8 (pa,        &
+                                                   i_part,    &
+                                                   pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    complex (kind=8),          pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_complex8
+
+  subroutine CWPT_pointer_array_part_set_real4 (pa,        &
+                                                   i_part,    &
+                                                   pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    real (kind=4),          pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_set_real4
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref PDM_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to an integer array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_int (pa,        &
+                                              i_part,    &
+                                              pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    integer(pdm_l_num_s),      pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_int
+
+  subroutine CWPT_pointer_array_part_get_g_num (pa,        &
+                                                i_part,    &
+                                                pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    integer(pdm_g_num_s),      pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_g_num
+
+  subroutine CWPT_pointer_array_part_get_double(pa,        &
+                                                i_part,    &
+                                                pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    double precision,            pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_double
+
+  subroutine CWPT_pointer_array_part_get_double_2(pa,        &
+                                                  i_part,    &
+                                                  t_stride,  &
+                                                  stride,    &
+                                                  pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    integer, intent(in)                :: t_stride
+    integer, intent(in)                :: stride
+    double precision,            pointer :: pointer_f(:,:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     t_stride, &
+                                     stride, &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_double_2
+
+  subroutine CWPT_pointer_array_part_get_double_3(pa,        &
+                                                  i_part,    &
+                                                  t_stride,  &
+                                                  stride1,    &
+                                                  stride2,    &
+                                                  pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    integer, intent(in)                :: t_stride
+    integer, intent(in)                :: stride1
+    integer, intent(in)                :: stride2
+    double precision,            pointer :: pointer_f(:,:,:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     t_stride, &
+                                     stride1, &
+                                     stride2, &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_double_3
+
+  subroutine CWPT_pointer_array_part_get_real4(pa,        &
+                                               i_part,    &
+                                               pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    real (kind=4),              pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_real4
+
+  subroutine CWPT_pointer_array_part_get_complex4(pa,        &
+                                               i_part,    &
+                                               pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    complex (kind=4),              pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_complex4
+
+  subroutine CWPT_pointer_array_part_get_complex8(pa,        &
+                                                  i_part,    &
+                                                  pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    complex (kind=8),            pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_f)
+
+  end subroutine CWPT_pointer_array_part_get_complex8
+
+
+  subroutine CWPT_pointer_array_part_get_cptr(pa,        &
+                                              i_part,    &
+                                              pointer_c,     &
+                                              length)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                  :: i_part
+    type(c_ptr)                          :: pointer_c
+    integer                              :: length
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
+                                     i_part,    &
+                                     pointer_c,     &
+                                     length)
+
+  end subroutine CWPT_pointer_array_part_get_cptr
+
 
 end module cwp
