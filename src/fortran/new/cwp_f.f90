@@ -556,21 +556,21 @@ module cwp
     integer, parameter :: CWPT_TYPE_REAL4    = PDM_TYPE_REAL4
     integer, parameter :: CWPT_TYPE_CPTR     = PDM_TYPE_CPTR
 
-    ! interface CWPT_generate_mesh_sphere_simplified
-    !   module procedure CWPT_generate_mesh_sphere_simplified_
-    ! end interface CWPT_generate_mesh_sphere_simplified
+    interface CWPT_generate_mesh_sphere_simplified
+      module procedure CWPT_generate_mesh_sphere_simplified_
+    end interface CWPT_generate_mesh_sphere_simplified
       
-    ! interface CWPT_generate_mesh_rectangle_simplified
-    !   module procedure CWPT_generate_mesh_rectangle_simplified_
-    ! end interface CWPT_generate_mesh_rectangle_simplified
+    interface CWPT_generate_mesh_rectangle_simplified
+      module procedure CWPT_generate_mesh_rectangle_simplified_
+    end interface CWPT_generate_mesh_rectangle_simplified
       
-    ! interface CWPT_generate_mesh_ball_simplified
-    !   module procedure CWPT_generate_mesh_ball_simplified_
-    ! end interface CWPT_generate_mesh_ball_simplified
+    interface CWPT_generate_mesh_ball_simplified
+      module procedure CWPT_generate_mesh_ball_simplified_
+    end interface CWPT_generate_mesh_ball_simplified
       
-    ! interface CWPT_generate_mesh_parallelepiped_simplified
-    !   module procedure CWPT_generate_mesh_parallelepiped_simplified_
-    ! end interface CWPT_generate_mesh_parallelepiped_simplified
+    interface CWPT_generate_mesh_parallelepiped_simplified
+      module procedure CWPT_generate_mesh_parallelepiped_simplified_
+    end interface CWPT_generate_mesh_parallelepiped_simplified
       
     ! interface CWPT_generate_mesh_rectangle_ngon
     !   module procedure CWPT_generate_mesh_rectangle_ngon_
@@ -733,15 +733,14 @@ module cwp
              CWP_Part_data_wait_issend_, &
              CWP_Part_data_wait_irecv_, &
              CWP_Cpl_spatial_interp_algo_get_, &
-             ! CWPT_generate_mesh_sphere_simplified_, &
-             ! CWPT_generate_mesh_rectangle_simplified_, &
-             ! CWPT_generate_mesh_ball_simplified_, &
-             ! CWPT_generate_mesh_parallelepiped_simplified_, &
+             CWPT_generate_mesh_sphere_simplified_, &
+             CWPT_generate_mesh_rectangle_simplified_, &
+             CWPT_generate_mesh_ball_simplified_, &
+             CWPT_generate_mesh_parallelepiped_simplified_, &
              ! CWPT_generate_mesh_rectangle_ngon_, &
              ! CWPT_generate_mesh_sphere_ngon_, &
              ! CWPT_generate_mesh_ball_ngon_, &
              ! CWPT_generate_mesh_parallelepiped_ngon_, &             
-             ! CWPT_pointer_array_part_length_update_, &
              CWPT_pointer_array_create_,&
              CWPT_pointer_array_part_get_double, &
              CWPT_pointer_array_part_get_double_2, &
@@ -6069,5 +6068,167 @@ contains
 
   end subroutine CWPT_pointer_array_part_get_cptr
 
+  !>
+  !!
+  !! \brief Create a simple partitionned rectangle mesh (2D).
+  !!
+  !! \param [in]   comm        MPI communicator
+  !! \param [in]   n_vtx_seg   Number of vertices along each side of the rectangle
+  !! \param [out]  n_vtx       Number of vertices
+  !! \param [out]  n_elt       Number of elements
+  !! \param [out]  coords      Array of vertex coordinates
+  !! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
+  !! \param [out]  elt_vtx     Array of the element vertex connectivity
+  !!
+  !!
+
+  subroutine CWPT_generate_mesh_rectangle_simplified_(comm,        &
+                                                     n_vtx_seg,   &
+                                                     n_vtx,       &
+                                                     n_elt,       &
+                                                     coords,      &
+                                                     elt_vtx_idx, &
+                                                     elt_vtx)
+
+      use iso_c_binding
+      implicit none
+
+      integer,                     intent(in) :: comm
+      integer(kind=pdm_g_num_s),   intent(in) :: n_vtx_seg
+      integer,                    intent(out) :: n_vtx
+      integer,                    intent(out) :: n_elt
+      double precision,               pointer :: coords(:,:)
+      integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
+      integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
+
+      call PDM_generate_mesh_rectangle_simplified (comm,        &
+                                                     n_vtx_seg,   &
+                                                     n_vtx,       &
+                                                     n_elt,       &
+                                                     coords,      &
+                                                     elt_vtx_idx, &
+                                                     elt_vtx)
+
+  end subroutine CWPT_generate_mesh_rectangle_simplified_
+
+
+!>
+!!
+!! \brief Create a simple partitionned sphere mesh (2D).
+!!
+!! \param [in]   comm        MPI communicator
+!! \param [out]  n_vtx       Number of vertices
+!! \param [out]  n_elt       Number of elements
+!! \param [out]  coords      Array of vertex coordinates
+!! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
+!! \param [out]  elt_vtx     Array of the element vertex connectivity
+!!
+!!
+
+  subroutine CWPT_generate_mesh_sphere_simplified_(comm,        &
+                                                  n_vtx,       &
+                                                  n_elt,       &
+                                                  coords,      &
+                                                  elt_vtx_idx, &
+                                                  elt_vtx)     
+    use iso_c_binding
+    implicit none
+
+    integer, intent(in)                     :: comm 
+    integer, intent(out)                    :: n_vtx
+    integer, intent(out)                    :: n_elt
+    double precision,               pointer :: coords(:,:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
+
+    call PDM_generate_mesh_sphere_simplified(comm,        &
+                                             n_vtx,       &
+                                             n_elt,       &
+                                             coords,      &
+                                             elt_vtx_idx, &
+                                             elt_vtx)
+
+  end subroutine CWPT_generate_mesh_sphere_simplified_
+
+ !>
+ !!
+ !! \brief Create a simple partitionned ball mesh (3D).
+ !!
+ !! \param [in]   comm        MPI communicator
+ !! \param [out]  n_vtx       Number of vertices
+ !! \param [out]  n_elt       Number of elements
+ !! \param [out]  coords      Array of vertex coordinates
+ !! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
+ !! \param [out]  elt_vtx     Array of the element vertex connectivity
+ !!
+ !!
+
+  subroutine CWPT_generate_mesh_ball_simplified_(comm,        &
+                                                 n_vtx,       &
+                                                 n_elt,       &
+                                                 coords,      &
+                                                 elt_vtx_idx, &
+                                                 elt_vtx)     
+    use iso_c_binding
+    implicit none
+
+    integer, intent(in)                     :: comm 
+    integer, intent(out)                    :: n_vtx
+    integer, intent(out)                    :: n_elt
+    double precision,               pointer :: coords(:,:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
+
+    call PDM_generate_mesh_ball_simplified(comm,        &
+                                           n_vtx,       &
+                                           n_elt,       &
+                                           coords,      &
+                                           elt_vtx_idx, &
+                                           elt_vtx)
+
+  end subroutine CWPT_generate_mesh_ball_simplified_
+
+!>
+!!
+!! \brief Create a simple partitionned parallelepiped mesh (3D).
+!!
+!! \param [in]   comm        MPI communicator
+!! \param [in]   n_vtx_seg   Number of vertices along each side of the parallelepiped
+!! \param [out]  n_vtx       Number of vertices
+!! \param [out]  n_elt       Number of elements
+!! \param [out]  coords      Array of vertex coordinates
+!! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
+!! \param [out]  elt_vtx     Array of the element vertex connectivity
+!!
+!!
+
+  subroutine CWPT_generate_mesh_parallelepiped_simplified_(comm,        &
+                                                          n_vtx_seg,   &
+                                                          n_vtx,       &
+                                                          n_elt,       &
+                                                          coords,      &
+                                                          elt_vtx_idx, &
+                                                          elt_vtx)
+
+    use iso_c_binding
+    implicit none
+
+    integer,                     intent(in) :: comm
+    integer(kind=pdm_g_num_s),   intent(in) :: n_vtx_seg
+    integer,                    intent(out) :: n_vtx
+    integer,                    intent(out) :: n_elt
+    double precision,               pointer :: coords(:,:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
+    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
+
+    call PDM_generate_mesh_parallelepiped_simplified (comm,        &
+                                                      n_vtx_seg,     &
+                                                      n_vtx,       &
+                                                      n_elt,       &
+                                                      coords,      &
+                                                      elt_vtx_idx, &
+                                                      elt_vtx)
+
+  end subroutine CWPT_generate_mesh_parallelepiped_simplified_
 
 end module cwp
