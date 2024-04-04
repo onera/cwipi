@@ -6774,4 +6774,16 @@ contains
 
   end subroutine CWPT_generate_mesh_parallelepiped_ngon_
 
+  subroutine CWPT_fortran_free_c (ptrC) &
+      bind (c, name = 'free')
+
+      use iso_c_binding
+
+      implicit none
+
+      type (c_ptr), value :: ptrC
+
+
+  end subroutine CWPT_fortran_free_c
+
 end module cwp
