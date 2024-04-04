@@ -799,11 +799,11 @@ program testf
       my_part(i)%data(2*j      ) = int(2*my_part(i)%g_num(j))
     enddo
 
-    call CWPT_pointer_array_part_set_g_num(gnum_elt,         &
+    call CWPT_pointer_array_part_set(gnum_elt,         &
                                            i-1,              &
                                            my_part(i)%g_num)
 
-    call CWPT_pointer_array_part_set_int(part_data,        &
+    call CWPT_pointer_array_part_set(part_data,        &
                                          i-1,              &
                                          my_part(i)%data)
   enddo
@@ -840,7 +840,7 @@ program testf
                                    0)
     if (debug) then
       do i = 1, n_part
-        call CWPT_pointer_array_part_get_int(part_data, &
+        call CWPT_pointer_array_part_get(part_data, &
                                              i-1,       &
                                              recv_data)
         do j = 1, n_elt_part(i)
@@ -856,7 +856,7 @@ program testf
 
     if (debug) then
       do i = 1, n_part
-        call CWPT_pointer_array_part_get_int(part_data, &
+        call CWPT_pointer_array_part_get(part_data, &
                                              i-1,       &
                                              recv_data)
         do j = 1, n_elt_part(i)

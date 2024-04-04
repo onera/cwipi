@@ -294,11 +294,11 @@ program testf
     !                                      CWP_BLOCK_FACE_POLY)
 
     do j = 1, mesh(i)%n_part
-      call CWPT_pointer_array_part_get_g_num(mesh(i)%pvtx_ln_to_gn, &
+      call CWPT_pointer_array_part_get(mesh(i)%pvtx_ln_to_gn, &
                                              j-1,                   &
                                              vtx_ln_to_gn)
 
-      call CWPT_pointer_array_part_get_double(mesh(i)%pvtx_coord, &
+      call CWPT_pointer_array_part_get(mesh(i)%pvtx_coord, &
                                               j-1,                &
                                               vtx_coord1)
 
@@ -314,15 +314,15 @@ program testf
                                    vtx_ln_to_gn)
 
 
-      call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+      call CWPT_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
                                              j-1,                    &
                                              face_ln_to_gn)
 
-      call CWPT_pointer_array_part_get_int(mesh(i)%pface_vtx_idx, &
+      call CWPT_pointer_array_part_get(mesh(i)%pface_vtx_idx, &
                                            j-1,                   &
                                            face_vtx_idx)
 
-      call CWPT_pointer_array_part_get_int(mesh(i)%pface_vtx, &
+      call CWPT_pointer_array_part_get(mesh(i)%pface_vtx, &
                                            j-1,               &
                                            face_vtx)
 
@@ -373,7 +373,7 @@ program testf
       do j = 1, mesh(i)%n_part
         allocate(ptr(mesh(i)%pn_face(j) * stride))
 
-        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+        call CWPT_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
                                                j-1,                    &
                                                face_ln_to_gn)
 
@@ -381,7 +381,7 @@ program testf
           ptr(k::stride) = k*face_ln_to_gn(:mesh(i)%pn_face(j))
         enddo
 
-        call CWPT_pointer_array_part_set_double(send_data, &
+        call CWPT_pointer_array_part_set(send_data, &
                                                 j-1,       &
                                                 ptr)
       enddo
@@ -398,7 +398,7 @@ program testf
       do j = 1, mesh(i)%n_part
         allocate(ptr(mesh(i)%pn_face(j) * stride))
 
-        call CWPT_pointer_array_part_set_double(recv_data, &
+        call CWPT_pointer_array_part_set(recv_data, &
                                                 j-1,       &
                                                 ptr)
       enddo
@@ -418,7 +418,7 @@ program testf
                           visu_status)
 
     do j = 1, mesh(i)%n_part
-      call CWPT_pointer_array_part_get_double(data,       &
+      call CWPT_pointer_array_part_get(data,       &
                                               j-1,        &
                                               field_data)
 
@@ -501,11 +501,11 @@ program testf
   do i = 1, n_code
     if (code_id(i) == 2) then
       do j = 1, mesh(i)%n_part
-        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+        call CWPT_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
                                                j-1,                    &
                                                face_ln_to_gn)
 
-        call CWPT_pointer_array_part_get_double(recv_data,  &
+        call CWPT_pointer_array_part_get(recv_data,  &
                                                 j-1,        &
                                                 field_data)
 
@@ -552,7 +552,7 @@ program testf
 
       ! reset recv data
       do j = 1, mesh(i)%n_part
-        call CWPT_pointer_array_part_get_double(recv_data,  &
+        call CWPT_pointer_array_part_get(recv_data,  &
                                                 j-1,        &
                                                 field_data)
 
@@ -619,11 +619,11 @@ program testf
   do i = 1, n_code
     if (code_id(i) == 2) then
       do j = 1, mesh(i)%n_part
-        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+        call CWPT_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
                                                j-1,                    &
                                                face_ln_to_gn)
 
-        call CWPT_pointer_array_part_get_double(recv_data,  &
+        call CWPT_pointer_array_part_get(recv_data,  &
                                                 j-1,        &
                                                 field_data)
 
