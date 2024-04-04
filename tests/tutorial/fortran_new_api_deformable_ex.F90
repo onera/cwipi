@@ -6,7 +6,6 @@ program fortran_new_api_deformable_sol
     use mpi
 #endif
     use cwp
-    use pdm_generate_mesh
 
     implicit none
 
@@ -106,13 +105,13 @@ program fortran_new_api_deformable_sol
   ! TO UNCOMMENT -->>
   n_vtx = 0
   n_elt = 0
-  ! call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
-  !                                             n_vtx_seg,      &
-  !                                             n_vtx,          &
-  !                                             n_elt,          &
-  !                                             coords,         &
-  !                                             elt_vtx_idx,    &
-  !                                             elt_vtx)
+  ! call CWPT_generate_mesh_rectangle_simplified(intra_comms(1), &
+  !                                              n_vtx_seg,      &
+  !                                              n_vtx,          &
+  !                                              n_elt,          &
+  !                                              coords,         &
+  !                                              elt_vtx_idx,    &
+  !                                              elt_vtx)
   ! <<--
 
   ! Interations :
@@ -278,9 +277,9 @@ program fortran_new_api_deformable_sol
   deallocate(xyz_dest)
   deallocate(uncomputed_tgts)
 
-  call pdm_fortran_free_c(c_loc(coords))
-  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
-  call pdm_fortran_free_c(c_loc(elt_vtx))
+  call CWPT_fortran_free_c(c_loc(coords))
+  call CWPT_fortran_free_c(c_loc(elt_vtx_idx))
+  call CWPT_fortran_free_c(c_loc(elt_vtx))
 
   ! Finalize CWIPI :
   ! ------------------------------------------------------- To fill in

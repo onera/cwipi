@@ -149,7 +149,6 @@ program testf
     use mpi
 #endif
   use cwp
-  use pdm_pointer_array
 
   implicit none
 
@@ -240,12 +239,12 @@ program testf
   integer(c_int),            pointer :: global_data(:,:) => null()
 
   ! Part data
-  character(len=99)                  :: part_data_name
-  integer(c_int),            pointer :: recv_data(:) => null()
-  type(PDM_pointer_array_t), pointer :: gnum_elt => null(), part_data => null()
-  integer(c_int),            pointer :: n_elt_part(:) => null()
-  type(my_type), allocatable         :: my_part(:)
-  integer(c_int)                     :: n_comp, j
+  character(len=99)                   :: part_data_name
+  integer(c_int),            pointer  :: recv_data(:) => null()
+  type(CWPT_pointer_array_t), pointer :: gnum_elt => null(), part_data => null()
+  integer(c_int),            pointer  :: n_elt_part(:) => null()
+  type(my_type), allocatable          :: my_part(:)
+  integer(c_int)                      :: n_comp, j
   !--------------------------------------------------------------------
 
   interface
@@ -764,13 +763,13 @@ program testf
   endif
 
 
-  call PDM_pointer_array_create(gnum_elt,       &
-                                n_part,         &
-                                PDM_TYPE_G_NUM)
+  call CWPT_pointer_array_create(gnum_elt,       &
+                                 n_part,         &
+                                 CWPT_TYPE_G_NUM)
 
-  call PDM_pointer_array_create(part_data,     &
-                                n_part,        &
-                                PDM_TYPE_INT)
+  call CWPT_pointer_array_create(part_data,     &
+                                 n_part,        &
+                                 CWPT_TYPE_INT)
 
   allocate(my_part(n_part))
   if (code_names(1) == "code1") then
@@ -800,13 +799,13 @@ program testf
       my_part(i)%data(2*j      ) = int(2*my_part(i)%g_num(j))
     enddo
 
-    call PDM_pointer_array_part_set(gnum_elt,         &
-                                    i-1,              &
-                                    my_part(i)%g_num)
+    call CWPT_pointer_array_part_set_g_num(gnum_elt,         &
+                                           i-1,              &
+                                           my_part(i)%g_num)
 
-    call PDM_pointer_array_part_set(part_data,        &
-                                    i-1,              &
-                                    my_part(i)%data)
+    call CWPT_pointer_array_part_set_int(part_data,        &
+                                         i-1,              &
+                                         my_part(i)%data)
   enddo
 
   call CWP_Part_data_create(code_names(1),  &
@@ -841,9 +840,9 @@ program testf
                                    0)
     if (debug) then
       do i = 1, n_part
-        call PDM_pointer_array_part_get(part_data, &
-                                        i-1,       &
-                                        recv_data)
+        call CWPT_pointer_array_part_get_int(part_data, &
+                                             i-1,       &
+                                             recv_data)
         do j = 1, n_elt_part(i)
           write(iiunit, *) my_part(i)%g_num(j), " sends    ", recv_data(2*(j-1)+1:2*j)
         enddo
@@ -857,9 +856,9 @@ program testf
 
     if (debug) then
       do i = 1, n_part
-        call PDM_pointer_array_part_get(part_data, &
-                                        i-1,       &
-                                        recv_data)
+        call CWPT_pointer_array_part_get_int(part_data, &
+                                             i-1,       &
+                                             recv_data)
         do j = 1, n_elt_part(i)
           write(iiunit, *) my_part(i)%g_num(j), " receives ", recv_data(2*(j-1)+1:2*j)
         enddo
@@ -878,8 +877,8 @@ program testf
   deallocate(n_elt_part)
   deallocate(my_part)
 
-  call PDM_pointer_array_free(part_data)
-  call PDM_pointer_array_free(gnum_elt)
+  call CWPT_pointer_array_free(part_data)
+  call CWPT_pointer_array_free(gnum_elt)
 
 
   if (debug) then

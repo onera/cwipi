@@ -23,7 +23,6 @@ program testf
   use mpi
 #endif
   use cwp
-  use pdm_sphere_surf_gen
   use, intrinsic :: iso_c_binding
 
   implicit none
@@ -35,12 +34,12 @@ program testf
   type my_mesh
     integer(c_int)                     :: n_part
     integer(c_int),            pointer :: pn_vtx(:)      => null()
-    type(PDM_pointer_array_t), pointer :: pvtx_coord     => null()
-    type(PDM_pointer_array_t), pointer :: pvtx_ln_to_gn  => null()
+    type(CWPT_pointer_array_t), pointer :: pvtx_coord     => null()
+    type(CWPT_pointer_array_t), pointer :: pvtx_ln_to_gn  => null()
     integer(c_int),            pointer :: pn_face(:)     => null()
-    type(PDM_pointer_array_t), pointer :: pface_vtx_idx  => null()
-    type(PDM_pointer_array_t), pointer :: pface_vtx      => null()
-    type(PDM_pointer_array_t), pointer :: pface_ln_to_gn => null()
+    type(CWPT_pointer_array_t), pointer :: pface_vtx_idx  => null()
+    type(CWPT_pointer_array_t), pointer :: pface_vtx      => null()
+    type(CWPT_pointer_array_t), pointer :: pface_ln_to_gn => null()
   end type my_mesh
 
   ! --------------------------------------------------------------------
@@ -74,6 +73,11 @@ program testf
   integer(c_int),            pointer :: face_vtx(:)      => null()
   integer(c_long),           pointer :: face_ln_to_gn(:) => null()
 
+  type(CWPT_pointer_array_t), pointer :: pedge_ln_to_gn  => null()
+  type(CWPT_pointer_array_t), pointer :: pface_edge      => null()
+  type(CWPT_pointer_array_t), pointer :: pedge_vtx       => null()
+  integer(c_int),             pointer :: pn_edge(:)      => null()
+  type(c_ptr)                         :: ho_ordering = C_NULL_PTR
 
   logical                            :: has_code(2)
   integer(c_int)                     :: n_code
@@ -87,8 +91,8 @@ program testf
 
   integer(c_int)                     :: visu_status, map_type, exch_type
   double precision,          pointer :: field_data(:) => null(), ptr(:) => null()
-  type(PDM_pointer_array_t), pointer :: send_data => null(), recv_data => null()
-  type(PDM_pointer_array_t), pointer :: data => null()
+  type(CWPT_pointer_array_t), pointer :: send_data => null(), recv_data => null()
+  type(CWPT_pointer_array_t), pointer :: data => null()
   integer(c_int)                     :: stride
   character(len=99)                  :: field_name
 
@@ -255,34 +259,48 @@ program testf
 
   ! Define interface mesh
   do i = 1, n_code
-    call PDM_sphere_surf_icosphere_gen_part(intra_comms(i),         &
-                                            n_subdiv,               &
-                                            x_center,               &
-                                            y_center,               &
-                                            z_center,               &
-                                            radius,                 &
-                                            mesh(i)%n_part,         &
-                                            part_method,            &
-                                            mesh(i)%pn_vtx,         &
-                                            mesh(i)%pvtx_coord,     &
-                                            mesh(i)%pvtx_ln_to_gn,  &
-                                            mesh(i)%pn_face,        &
-                                            mesh(i)%pface_vtx_idx,  &
-                                            mesh(i)%pface_vtx,      &
-                                            mesh(i)%pface_ln_to_gn)
+    call CWPT_generate_mesh_sphere_ngon(intra_comms(i),         &
+                                        3,                      &
+                                        1,                      &
+                                        ho_ordering,            &
+                                        radius,                 &
+                                        x_center,               &
+                                        y_center,               &
+                                        z_center,               &
+                                        n_subdiv,               &
+                                        n_subdiv,               &
+                                        mesh(i)%n_part,         &
+                                        part_method,            &
+                                        mesh(i)%pn_vtx,         &
+                                        pn_edge,                &
+                                        mesh(i)%pn_face,        &
+                                        mesh(i)%pvtx_coord,     &
+                                        pedge_vtx,              &
+                                        mesh(i)%pface_vtx_idx,  &
+                                        pface_edge,             &
+                                        mesh(i)%pface_vtx,      &
+                                        mesh(i)%pvtx_ln_to_gn,  &
+                                        pedge_ln_to_gn,         &
+                                        mesh(i)%pface_ln_to_gn)
+
+    ! Free
+    call CWPT_fortran_free_c(c_loc(pn_edge))
+    call CWPT_pointer_array_free(pedge_vtx)
+    call CWPT_pointer_array_free(pface_edge)
+    call CWPT_pointer_array_free(pedge_ln_to_gn)
 
     ! id_block = CWP_Mesh_interf_block_add(code_name(i),        &
     !                                      coupling_name,       &
     !                                      CWP_BLOCK_FACE_POLY)
 
     do j = 1, mesh(i)%n_part
-      call PDM_pointer_array_part_get(mesh(i)%pvtx_ln_to_gn, &
-                                      j-1,                   &
-                                      vtx_ln_to_gn)
+      call CWPT_pointer_array_part_get_g_num(mesh(i)%pvtx_ln_to_gn, &
+                                             j-1,                   &
+                                             vtx_ln_to_gn)
 
-      call PDM_pointer_array_part_get(mesh(i)%pvtx_coord, &
-                                      j-1,                &
-                                      vtx_coord1)
+      call CWPT_pointer_array_part_get_double(mesh(i)%pvtx_coord, &
+                                              j-1,                &
+                                              vtx_coord1)
 
       ! reshape without copy
       c_vtx_coord = c_loc(vtx_coord1)
@@ -296,17 +314,17 @@ program testf
                                    vtx_ln_to_gn)
 
 
-      call PDM_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
-                                      j-1,                    &
-                                      face_ln_to_gn)
+      call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+                                             j-1,                    &
+                                             face_ln_to_gn)
 
-      call PDM_pointer_array_part_get(mesh(i)%pface_vtx_idx, &
-                                      j-1,                   &
-                                      face_vtx_idx)
+      call CWPT_pointer_array_part_get_int(mesh(i)%pface_vtx_idx, &
+                                           j-1,                   &
+                                           face_vtx_idx)
 
-      call PDM_pointer_array_part_get(mesh(i)%pface_vtx, &
-                                      j-1,               &
-                                      face_vtx)
+      call CWPT_pointer_array_part_get_int(mesh(i)%pface_vtx, &
+                                           j-1,               &
+                                           face_vtx)
 
       ! call CWP_Mesh_interf_f_poly_block_set(code_name(i),       &
       !                                       coupling_name,      &
@@ -348,24 +366,24 @@ program testf
       exch_type = CWP_FIELD_EXCH_SEND
       map_type  = CWP_FIELD_MAP_SOURCE
 
-      call PDM_pointer_array_create(send_data,       &
+      call CWPT_pointer_array_create(send_data,       &
                                     mesh(i)%n_part,  &
-                                    PDM_TYPE_DOUBLE)
+                                    CWPT_TYPE_DOUBLE)
 
       do j = 1, mesh(i)%n_part
         allocate(ptr(mesh(i)%pn_face(j) * stride))
 
-        call PDM_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
-                                        j-1,                    &
-                                        face_ln_to_gn)
+        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+                                               j-1,                    &
+                                               face_ln_to_gn)
 
         do k = 1, stride
           ptr(k::stride) = k*face_ln_to_gn(:mesh(i)%pn_face(j))
         enddo
 
-        call PDM_pointer_array_part_set(send_data, &
-                                        j-1,       &
-                                        ptr)
+        call CWPT_pointer_array_part_set_double(send_data, &
+                                                j-1,       &
+                                                ptr)
       enddo
 
       data => send_data
@@ -373,16 +391,16 @@ program testf
       exch_type = CWP_FIELD_EXCH_RECV
       map_type  = CWP_FIELD_MAP_TARGET
 
-      call PDM_pointer_array_create(recv_data,       &
+      call CWPT_pointer_array_create(recv_data,       &
                                     mesh(i)%n_part,  &
-                                    PDM_TYPE_DOUBLE)
+                                    CWPT_TYPE_DOUBLE)
 
       do j = 1, mesh(i)%n_part
         allocate(ptr(mesh(i)%pn_face(j) * stride))
 
-        call PDM_pointer_array_part_set(recv_data, &
-                                        j-1,       &
-                                        ptr)
+        call CWPT_pointer_array_part_set_double(recv_data, &
+                                                j-1,       &
+                                                ptr)
       enddo
 
       data => recv_data
@@ -400,9 +418,9 @@ program testf
                           visu_status)
 
     do j = 1, mesh(i)%n_part
-      call PDM_pointer_array_part_get(data,       &
-                                      j-1,        &
-                                      field_data)
+      call CWPT_pointer_array_part_get_double(data,       &
+                                              j-1,        &
+                                              field_data)
 
       call CWP_Field_data_set(code_name(i),  &
                               coupling_name, &
@@ -483,13 +501,13 @@ program testf
   do i = 1, n_code
     if (code_id(i) == 2) then
       do j = 1, mesh(i)%n_part
-        call PDM_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
-                                        j-1,                    &
-                                        face_ln_to_gn)
+        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+                                               j-1,                    &
+                                               face_ln_to_gn)
 
-        call PDM_pointer_array_part_get(recv_data,  &
-                                        j-1,        &
-                                        field_data)
+        call CWPT_pointer_array_part_get_double(recv_data,  &
+                                                j-1,        &
+                                                field_data)
 
         do k = 1, mesh(i)%pn_face(j)
           expected = face_ln_to_gn(k)
@@ -534,9 +552,9 @@ program testf
 
       ! reset recv data
       do j = 1, mesh(i)%n_part
-        call PDM_pointer_array_part_get(recv_data,  &
-                                        j-1,        &
-                                        field_data)
+        call CWPT_pointer_array_part_get_double(recv_data,  &
+                                                j-1,        &
+                                                field_data)
 
         field_data(:) = -1234.d0
       enddo
@@ -601,13 +619,13 @@ program testf
   do i = 1, n_code
     if (code_id(i) == 2) then
       do j = 1, mesh(i)%n_part
-        call PDM_pointer_array_part_get(mesh(i)%pface_ln_to_gn, &
-                                        j-1,                    &
-                                        face_ln_to_gn)
+        call CWPT_pointer_array_part_get_g_num(mesh(i)%pface_ln_to_gn, &
+                                               j-1,                    &
+                                               face_ln_to_gn)
 
-        call PDM_pointer_array_part_get(recv_data,  &
-                                        j-1,        &
-                                        field_data)
+        call CWPT_pointer_array_part_get_double(recv_data,  &
+                                                j-1,        &
+                                                field_data)
 
         do k = 1, mesh(i)%pn_face(j)
           expected = face_ln_to_gn(k)
@@ -769,12 +787,12 @@ contains
 
   subroutine my_free(pa)
     implicit none
-    type(PDM_pointer_array_t) :: pa
-    integer                   :: i
+    type(CWPT_pointer_array_t) :: pa
+    integer                    :: i
 
-    if (associated(pa%cptr)) then
-      do i = 1,size(pa%cptr)
-        call pdm_fortran_free_c(pa%cptr(i))
+    if (associated(pa%pdm_pt_array%cptr)) then
+      do i = 1,size(pa%pdm_pt_array%cptr)
+        call CWPT_fortran_free_c(pa%pdm_pt_array%cptr(i))
       enddo
     endif
 
@@ -784,18 +802,18 @@ contains
     implicit none
     type(my_mesh) :: mesh
 
-    call pdm_fortran_free_c(c_loc(mesh%pn_vtx))
-    call pdm_fortran_free_c(c_loc(mesh%pn_face))
+    call CWPT_fortran_free_c(c_loc(mesh%pn_vtx))
+    call CWPT_fortran_free_c(c_loc(mesh%pn_face))
     ! call my_free(mesh%pvtx_coord)
     ! call my_free(mesh%pvtx_ln_to_gn)
     ! call my_free(mesh%pface_vtx_idx)
     ! call my_free(mesh%pface_vtx)
     ! call my_free(mesh%pface_ln_to_gn)
-    call PDM_pointer_array_free(mesh%pvtx_coord)
-    call PDM_pointer_array_free(mesh%pvtx_ln_to_gn)
-    call PDM_pointer_array_free(mesh%pface_vtx_idx)
-    call PDM_pointer_array_free(mesh%pface_vtx)
-    call PDM_pointer_array_free(mesh%pface_ln_to_gn)
+    call CWPT_pointer_array_free(mesh%pvtx_coord)
+    call CWPT_pointer_array_free(mesh%pvtx_ln_to_gn)
+    call CWPT_pointer_array_free(mesh%pface_vtx_idx)
+    call CWPT_pointer_array_free(mesh%pface_vtx)
+    call CWPT_pointer_array_free(mesh%pface_ln_to_gn)
 
   end subroutine free_mesh
 

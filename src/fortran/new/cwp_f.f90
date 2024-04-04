@@ -5297,7 +5297,7 @@ contains
     character(kind=c_char, len=*)     :: cpl_id          ! Coupling identifier
     character(kind=c_char, len=*)     :: part_data_id    ! PartData identifier
     integer(c_int), intent(in)        :: exch_type       ! Exchange type
-    type(PDM_pointer_array_t), target :: gnum_elt        ! Global ids
+    type(CWPT_pointer_array_t), target :: gnum_elt        ! Global ids
     integer(c_int), pointer           :: n_elt(:)        ! Number of elements in partitions (size = ``n_part``)
     integer,        intent(in)        :: n_part          ! Number of partitions
 
@@ -5314,7 +5314,7 @@ contains
                                  part_data_id,         &
                                  l_part_data_id,       &
                                  exch_type,            &
-                                 c_loc(gnum_elt%cptr), &
+                                 c_loc(gnum_elt%pdm_pt_array%cptr), &
                                  c_loc(n_elt),         &
                                  n_part)
 
@@ -5363,7 +5363,7 @@ contains
     character(kind=c_char, len=*)     :: part_data_id    ! PartData identifier
     integer(c_int), intent(in)        :: exch_id         ! Exchange identifier
     integer(c_int), intent(in)        :: n_components    ! Number of components
-    type(PDM_pointer_array_t), target :: send_data       ! Pointer to data array to send
+    type(CWPT_pointer_array_t), target :: send_data       ! Pointer to data array to send
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5372,7 +5372,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = send_data%s_data
+    s_data = send_data%pdm_pt_array%s_data
 
     call CWP_Part_data_issend_cf(local_code_name,       &
                                  l_local_code_name,     &
@@ -5383,7 +5383,7 @@ contains
                                  exch_id,               &
                                  s_data,                &
                                  n_components,          &
-                                 c_loc(send_data%cptr))
+                                 c_loc(send_data%pdm_pt_array%cptr))
 
   end subroutine CWP_Part_data_issend_
 
@@ -5404,7 +5404,7 @@ contains
     character(kind=c_char, len=*)     :: part_data_id    ! PartData identifier
     integer(c_int), intent(in)        :: exch_id         ! Exchange identifier
     integer(c_int), intent(in)        :: n_components    ! Number of components
-    type(PDM_pointer_array_t), target :: recv_data       ! Pointer to received data
+    type(CWPT_pointer_array_t), target :: recv_data       ! Pointer to received data
 
     integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
     integer(c_long)                   :: s_data
@@ -5414,7 +5414,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = recv_data%s_data
+    s_data = recv_data%pdm_pt_array%s_data
 
     call CWP_Part_data_irecv_cf(local_code_name,        &
                                 l_local_code_name,      &
@@ -5425,7 +5425,7 @@ contains
                                 exch_id,                &
                                 s_data,                 &
                                 n_components,           &
-                                c_loc(recv_data%cptr))
+                                c_loc(recv_data%pdm_pt_array%cptr))
 
     call CWP_Part_data_n_part_get_cf(local_code_name,   &
                                      l_local_code_name, &
@@ -5446,7 +5446,7 @@ contains
                                       i-1,               &
                                       n_ref)
 
-      recv_data%length(i) = n_components * n_ref
+      recv_data%pdm_pt_array%length(i) = n_components * n_ref
     enddo
 
   end subroutine CWP_Part_data_irecv_
@@ -5536,7 +5536,7 @@ contains
   !>
   !! \brief Initialize a \ref PDM_pointer_array_t object
   !!
-  !! \param [out]  pa      \ref PDM_pointer_array_t object
+  !! \param [out]  pa      \ref CWPT_pointer_array_t object
   !! \param [in]   n_part  Number of partitions
   !! \param [in]   type    Data type of pointers
   !! \param [in]   s_data  Size of a data (only used for PDM_TYPE_CPTR)
