@@ -28,17 +28,6 @@
 #include "cwipi_config.h"
 #include "cwp_priv.h"
 
-#include "pdm.h"
-#include "pdm_multipart.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-
-#include "pdm_block_to_part.h"
-#include "pdm_mesh_nodal.h"
-#include "pdm_array.h"
-#include "pdm_vtk.h"
-#include "pdm_distrib.h"
-
 #define ABS(a)    ((a) < 0   ? -(a) : (a))
 #define MAX(a, b) ((a) > (b) ?  (a) : (b))
 
@@ -81,7 +70,7 @@ _read_args
   char                 **argv,
   int                   *verbose,
   int                   *swap_codes,
-  PDM_g_num_t            all_gn_vtx[],
+  CWP_g_num_t            all_gn_vtx[],
   int                    all_n_rank[],
   int                    all_n_part[],
   CWP_Spatial_interp_t  *spatial_interp_algo,
@@ -321,7 +310,7 @@ main
 {
   int                  verbose        = 0;
   int                  swap_codes     = 0;
-  PDM_g_num_t          all_gn_vtx[2]  = {100, 50};
+  CWP_g_num_t          all_gn_vtx[2]  = {100, 50};
   int                  all_n_rank[2]  = {-1, -1};
   int                  all_n_part[2]  = {1, 1};
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
@@ -374,7 +363,7 @@ main
   CWP_Status_t   is_active_rank    = CWP_STATUS_ON;
   MPI_Comm      *intra_comm        = malloc(sizeof(MPI_Comm    ) * n_code);
   int            n_part[2];
-  PDM_g_num_t    gn_vtx[2];
+  CWP_g_num_t    gn_vtx[2];
 
   n_code = 0;
   for (int icode = 0; icode < 2; icode++) {
@@ -385,10 +374,10 @@ main
       gn_vtx           [n_code] = all_gn_vtx[icode];
       n_part           [n_code] = all_n_part[icode];
 
-      if (verbose) {
-        log_trace("Running %s, coupled with %s\n",
-                  code_name[n_code], coupled_code_name[n_code]);
-      }
+      //if (verbose) {
+      //  log_trace("Running %s, coupled with %s\n",
+      //            code_name[n_code], coupled_code_name[n_code]);
+      //}
       n_code++;
     }
   }

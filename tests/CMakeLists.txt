@@ -36,15 +36,6 @@ if (CWP_ENABLE_EXTERNAL_PDM)
           pdm::pdmf_static)
     endif ()
   endif ()
-else ()
-  if (CWP_ENABLE_SHARED)
-    list(APPEND LINK_LIBRARIES
-          pdm_shared)
-    if (CWP_ENABLE_Fortran)
-      list(APPEND LINK_LIBRARIES
-          pdmf_shared)
-    endif ()
-  endif ()
 endif ()
 
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

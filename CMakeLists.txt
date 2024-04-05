@@ -116,7 +116,7 @@ option(CWP_ENABLE_TESTS "Enable Tests" ON)
 # This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
 # -----------------------------------------------------------------------------------
 
-option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Enable Tests" ON)
+option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Hide PDM symbols" ON)
 
 #------------------------------------------------------------------------------
 # Default build : Release
