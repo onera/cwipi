@@ -33,7 +33,7 @@
     use mpi
 #endif
     use cwp
-    use pdm_pointer_array
+!    use pdm_pointer_array
   
     implicit none
 

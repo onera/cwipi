@@ -6232,7 +6232,6 @@ contains
   end subroutine CWPT_generate_mesh_parallelepiped_simplified_
 
 
-!>
 !!
 !! \brief Create a partitionned rectangle mesh (2D) with descending connectivities.
 !!
@@ -6317,6 +6316,15 @@ contains
     type(CWPT_pointer_array_t), pointer         :: pedge_ln_to_gn    ! Edge global ids
     type(CWPT_pointer_array_t), pointer         :: pface_ln_to_gn    ! Face global ids
     real(c_double),  intent(in), optional      :: random_factor_opt ! Randomization factor (between 0 and 1)
+
+    allocate(pvtx_coord)
+    allocate(pedge_vtx)
+    allocate(pface_edge_idx)
+    allocate(pface_edge)
+    allocate(pface_vtx)
+    allocate(pvtx_ln_to_gn)
+    allocate(pedge_ln_to_gn)
+    allocate(pface_ln_to_gn)
 
     call PDM_generate_mesh_rectangle_ngon(comm,                          &
                                           elt_type,                      &
@@ -6428,6 +6436,15 @@ contains
     type(CWPT_pointer_array_t), pointer    :: pvtx_ln_to_gn
     type(CWPT_pointer_array_t), pointer    :: pedge_ln_to_gn
     type(CWPT_pointer_array_t), pointer    :: pface_ln_to_gn
+
+    allocate (pvtx_coord)
+    allocate (pedge_vtx)
+    allocate (pface_edge_idx)
+    allocate (pface_edge)
+    allocate (pface_vtx)
+    allocate (pvtx_ln_to_gn)
+    allocate (pedge_ln_to_gn)
+    allocate (pface_ln_to_gn)
 
     call PDM_generate_mesh_sphere_ngon (comm, &          
                                         elt_type, &      
@@ -6570,6 +6587,21 @@ contains
     type(CWPT_pointer_array_t), pointer    :: psurface_face_idx
     type(CWPT_pointer_array_t), pointer    :: psurface_face
     type(CWPT_pointer_array_t), pointer    :: psurface_face_ln_to_gn
+
+    allocate (pvtx_coord)
+    allocate (pedge_vtx)
+    allocate (pface_edge_idx)
+    allocate (pface_edge)
+    allocate (pface_vtx)
+    allocate (pcell_face_idx)
+    allocate (pcell_face)
+    allocate (pvtx_ln_to_gn)
+    allocate (pedge_ln_to_gn)
+    allocate (pface_ln_to_gn)
+    allocate (pcell_ln_to_gn)
+    allocate (psurface_face_idx)
+    allocate (psurface_face)
+    allocate (psurface_face_ln_to_gn)
 
     call PDM_generate_mesh_ball_ngon (comm, &
                                       elt_type, &
@@ -6732,6 +6764,24 @@ contains
     type(CWPT_pointer_array_t), pointer    :: pridge_edge_idx
     type(CWPT_pointer_array_t), pointer    :: pridge_edge
     type(CWPT_pointer_array_t), pointer    :: pridge_edge_ln_to_gn
+
+    allocate (pvtx_coord)
+    allocate (pedge_vtx)
+    allocate (pface_edge_idx)
+    allocate (pface_edge)
+    allocate (pface_vtx)
+    allocate (pcell_face_idx)
+    allocate (pcell_face)
+    allocate (pvtx_ln_to_gn)
+    allocate (pedge_ln_to_gn)
+    allocate (pface_ln_to_gn)
+    allocate (pcell_ln_to_gn)
+    allocate (psurface_face_idx)
+    allocate (psurface_face)
+    allocate (psurface_face_ln_to_gn)
+    allocate (pridge_edge_idx)
+    allocate (pridge_edge)
+    allocate (pridge_edge_ln_to_gn)
  
     call PDM_generate_mesh_parallelepiped_ngon(comm,                                &
                                                elt_type,                            & 
@@ -6774,8 +6824,7 @@ contains
 
   end subroutine CWPT_generate_mesh_parallelepiped_ngon_
 
-  subroutine CWPT_fortran_free_c (ptrC) &
-      bind (c, name = 'free')
+  subroutine CWPT_fortran_free_c (ptrC)
 
       use iso_c_binding
 
@@ -6783,6 +6832,7 @@ contains
 
       type (c_ptr), value :: ptrC
 
+      call PDM_fortran_free_c (ptrC)
 
   end subroutine CWPT_fortran_free_c
 
