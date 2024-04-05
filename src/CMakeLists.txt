@@ -57,7 +57,7 @@ if (CWP_ENABLE_Fortran)
   endif()
 endif()
 
-add_library(cwp OBJECT ${SOURCES})
+add_library(cwp OBJECT ${SOURCES} ${SOURCESPDM})
 
 target_include_directories(cwp
                            INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -68,13 +68,56 @@ target_include_directories(cwp
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
                            PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
-                           PUBLIC    $<INSTALL_INTERFACE:include/>)
+                           PUBLIC    $<INSTALL_INTERFACE:include/>
+                           PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+                           PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
 
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
 
-  add_library(pdm OBJECT ${SOURCESPDM})
+#  add_library(pdm OBJECT ${SOURCESPDM})
 
-  target_include_directories(pdm
+#  target_include_directories(pdm
+#                             PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+#                             PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
+#
+#  add_dependencies(cwp pdm)
+#  get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+#  target_include_directories(cwp PRIVATE ${PDM_INC})
+
+endif()
+
+if (CWP_ENABLE_Fortran)
+
+  add_library(cwpf OBJECT ${SOURCESF} ${SOURCESPDMF} ${SOURCESPDM})
+
+  target_include_directories(cwpf
+                             INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
+                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
+                             PUBLIC    $<INSTALL_INTERFACE:include/>
                              PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
@@ -87,47 +130,26 @@ if (NOT CWP_ENABLE_EXTERNAL_PDM)
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
                              PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
 
-  add_dependencies(cwp pdm)
-  get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
-  target_include_directories(cwp PRIVATE ${PDM_INC})
-
-endif()
-
-if (CWP_ENABLE_Fortran)
-
-  add_library(cwpf OBJECT ${SOURCESF})
-
-  target_include_directories(cwpf
-                             INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                             PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/new>
-                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fvm>
-                             PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bft>
-                             PUBLIC    $<INSTALL_INTERFACE:include/>)
-
   if (NOT CWP_ENABLE_EXTERNAL_PDM)
 
-    add_library(pdmf OBJECT ${SOURCESPDMF})
+#    add_library(pdmf OBJECT ${SOURCESPDMF})
 
-    target_include_directories(pdmf
-                               PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
-                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
-
-    add_dependencies(cwpf pdmf)
-    get_target_property(PDM_INC pdmf INCLUDE_DIRECTORIES)
-    target_include_directories(cwpf PRIVATE ${PDM_INC})
+#    target_include_directories(pdmf
+#                               PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
+#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
+#
+#    add_dependencies(cwpf pdmf)
+#    get_target_property(PDM_INC pdmf INCLUDE_DIRECTORIES)
+#    target_include_directories(cwpf PRIVATE ${PDM_INC})
 
   endif()
 
@@ -194,9 +216,9 @@ if (CWP_ENABLE_SHARED)
     target_link_libraries (cwp        pdm::pdm_shared)
     target_link_libraries (cwp_shared pdm::pdm_shared)
   else ()
-    add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp> $<TARGET_OBJECTS:pdm>)
-    add_dependencies(cwp_shared pdm)
-    if (CWP_ENABLE_HIDE_PDM_SYMBOLS)
+    add_library(cwp_shared SHARED $<TARGET_OBJECTS:cwp>)
+#    add_dependencies(cwp_shared pdm)
+    if (CWP_ENABLE_HIDE_PDM_SYMBOLS) 
       set_target_properties(cwp_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
     endif()
   endif ()
@@ -216,10 +238,8 @@ if (CWP_ENABLE_SHARED)
       target_link_libraries (cwpf        pdm::pdmf_shared)
       target_link_libraries (cwpf_shared pdm::pdmf_shared)
     else ()
-      add_library(cwpf_shared SHARED $<TARGET_OBJECTS:cwpf> $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdmf>)
-      add_dependencies(cwpf_shared pdm)
-      add_dependencies(cwpf_shared pdmf)
-      if (CWP_ENABLE_HIDE_PDM_SYMBOLS)
+      add_library(cwpf_shared SHARED $<TARGET_OBJECTS:cwpf>)
+      if (CWP_ENABLE_HIDE_PDM_SYMBOLS) 
          set_target_properties(cwpf_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
       endif()
     endif ()
