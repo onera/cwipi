@@ -24,7 +24,6 @@
 module cwp
     use iso_c_binding
     use pdm_generate_mesh
-    use pdm_pointer_array
 
     ! Type definition for pointer array
     integer, parameter :: CWPT_TYPE_INT    = 0
@@ -38,6 +37,18 @@ module cwp
     integer, parameter :: CWPT_TYPE_COMPLEX4 = 4
     integer, parameter :: CWPT_TYPE_REAL4    = 5
     integer, parameter :: CWPT_TYPE_CPTR     = 6
+
+    ! cwpt_pointer_array structure
+    type CWPT_pointer_array_t
+
+      integer                       :: type = -1
+      integer                       :: s_data = -1
+      type(c_ptr),          pointer :: cptr(:)   => null()
+      integer(pdm_l_num_s), pointer :: length(:) => null()
+      logical                       :: shared_c = .false.
+      integer                       :: ownership = PDM_OWNERSHIP_KEEP
+
+    end type CWPT_pointer_array_t
 
     ! CWP_Type_t
     enum, bind(c)
@@ -588,14 +599,12 @@ module cwp
     interface CWPT_generate_mesh_parallelepiped_ngon
       module procedure CWPT_generate_mesh_parallelepiped_ngon_
     end interface CWPT_generate_mesh_parallelepiped_ngon
-      
-    type CWPT_pointer_array_t
-      type(PDM_pointer_array_t),   pointer :: pdm_pt_array => null()
-    end type CWPT_pointer_array_t
 
     interface CWPT_pointer_array_part_set
       module procedure CWPT_pointer_array_part_set_int
+#ifdef PDM_LONG_G_NUM
       module procedure CWPT_pointer_array_part_set_g_num
+#endif
       module procedure CWPT_pointer_array_part_set_double
       module procedure CWPT_pointer_array_part_set_double_2
       module procedure CWPT_pointer_array_part_set_double_3
@@ -603,10 +612,12 @@ module cwp
       module procedure CWPT_pointer_array_part_set_complex4
       module procedure CWPT_pointer_array_part_set_real4
     end interface
-  
+
     interface CWPT_pointer_array_part_get
       module procedure CWPT_pointer_array_part_get_int
+#ifdef PDM_LONG_G_NUM
       module procedure CWPT_pointer_array_part_get_g_num
+#endif
       module procedure CWPT_pointer_array_part_get_double
       module procedure CWPT_pointer_array_part_get_double_2
       module procedure CWPT_pointer_array_part_get_double_3
@@ -615,20 +626,15 @@ module cwp
       module procedure CWPT_pointer_array_part_get_real4
       module procedure CWPT_pointer_array_part_get_cptr
     end interface
-  
-  
+
     interface CWPT_pointer_array_create
-      module procedure CWPT_pointer_array_create_
+      module procedure CWPT_pointer_array_create_type
       module procedure CWPT_pointer_array_create_type_from_c_allocated_cptr
     end interface
-  
+
     interface CWPT_pointer_array_part_length_update
       module procedure CWPT_pointer_array_part_length_update_
     end interface CWPT_pointer_array_part_length_update
-
-    interface CWPT_pointer_array_free
-      module procedure CWPT_pointer_array_free_
-    end interface CWPT_pointer_array_free
 
   !
   ! Private
@@ -742,7 +748,9 @@ module cwp
              CWPT_generate_mesh_sphere_ngon_, &
              CWPT_generate_mesh_ball_ngon_, &
              CWPT_generate_mesh_parallelepiped_ngon_, &             
-             CWPT_pointer_array_create_,&
+             CWPT_pointer_array_part_length_update_, &
+             CWPT_pointer_array_create_type, &
+             CWPT_pointer_array_create_type_from_c_allocated_cptr, &
              CWPT_pointer_array_part_get_double, &
              CWPT_pointer_array_part_get_double_2, &
              CWPT_pointer_array_part_get_double_3, &
@@ -750,7 +758,9 @@ module cwp
              CWPT_pointer_array_part_get_complex4, &
              CWPT_pointer_array_part_get_real4, &
              CWPT_pointer_array_part_get_cptr, &
+#ifdef PDM_LONG_G_NUM
              CWPT_pointer_array_part_get_g_num, &
+#endif
              CWPT_pointer_array_part_get_int, &
              CWPT_pointer_array_part_set_double, &
              CWPT_pointer_array_part_set_double_2, &
@@ -758,11 +768,10 @@ module cwp
              CWPT_pointer_array_part_set_complex8, &
              CWPT_pointer_array_part_set_complex4, &
              CWPT_pointer_array_part_set_real4, &
+#ifdef PDM_LONG_G_NUM
              CWPT_pointer_array_part_set_g_num, &
-             CWPT_pointer_array_part_set_int,&
-             CWPT_pointer_array_part_length_update_, &
-             CWPT_pointer_array_free_, &
-             CWPT_pointer_array_create_type_from_c_allocated_cptr
+#endif
+             CWPT_pointer_array_part_set_int
 
     interface
 
@@ -5300,7 +5309,6 @@ contains
                                    n_part)
     ! Create a partitioned data exchange object.
     use, intrinsic :: iso_c_binding
-    use pdm_pointer_array
     implicit none
     character(kind=c_char, len=*)     :: local_code_name ! Local code name
     character(kind=c_char, len=*)     :: cpl_id          ! Coupling identifier
@@ -5323,7 +5331,7 @@ contains
                                  part_data_id,         &
                                  l_part_data_id,       &
                                  exch_type,            &
-                                 c_loc(gnum_elt%pdm_pt_array%cptr), &
+                                 c_loc(gnum_elt%cptr), &
                                  c_loc(n_elt),         &
                                  n_part)
 
@@ -5364,7 +5372,6 @@ contains
                                    send_data)
     ! Initiate the sending of a partitioned data array.
     use, intrinsic :: iso_c_binding
-    use pdm_pointer_array
     implicit none
 
     character(kind=c_char, len=*)     :: local_code_name ! Local code name
@@ -5381,7 +5388,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = send_data%pdm_pt_array%s_data
+    s_data = send_data%s_data
 
     call CWP_Part_data_issend_cf(local_code_name,       &
                                  l_local_code_name,     &
@@ -5392,7 +5399,7 @@ contains
                                  exch_id,               &
                                  s_data,                &
                                  n_components,          &
-                                 c_loc(send_data%pdm_pt_array%cptr))
+                                 c_loc(send_data%cptr))
 
   end subroutine CWP_Part_data_issend_
 
@@ -5405,7 +5412,6 @@ contains
                                   recv_data)
     ! Initiate the reception of a partitioned data array.
     use, intrinsic :: iso_c_binding
-    use pdm_pointer_array
     implicit none
 
     character(kind=c_char, len=*)     :: local_code_name ! Local code name
@@ -5423,7 +5429,7 @@ contains
     l_cpl_id          = len(cpl_id)
     l_part_data_id    = len(part_data_id)
 
-    s_data = recv_data%pdm_pt_array%s_data
+    s_data = recv_data%s_data
 
     call CWP_Part_data_irecv_cf(local_code_name,        &
                                 l_local_code_name,      &
@@ -5434,7 +5440,7 @@ contains
                                 exch_id,                &
                                 s_data,                 &
                                 n_components,           &
-                                c_loc(recv_data%pdm_pt_array%cptr))
+                                c_loc(recv_data%cptr))
 
     call CWP_Part_data_n_part_get_cf(local_code_name,   &
                                      l_local_code_name, &
@@ -5455,7 +5461,7 @@ contains
                                       i-1,               &
                                       n_ref)
 
-      recv_data%pdm_pt_array%length(i) = n_components * n_ref
+      recv_data%length(i) = n_components * n_ref
     enddo
 
   end subroutine CWP_Part_data_irecv_
@@ -5539,22 +5545,20 @@ contains
 
   end function CWP_Cpl_spatial_interp_algo_get_
 
-
-! For tests
-
+  ! cwpt_pointer_array definition
   !>
-  !! \brief Initialize a \ref PDM_pointer_array_t object
+  !! \brief Initialize a \ref CWPT_pointer_array_t object
   !!
   !! \param [out]  pa      \ref CWPT_pointer_array_t object
   !! \param [in]   n_part  Number of partitions
   !! \param [in]   type    Data type of pointers
-  !! \param [in]   s_data  Size of a data (only used for PDM_TYPE_CPTR)
+  !! \param [in]   s_data  Size of a data (only used for CWPT_TYPE_CPTR)
   !!
 
-  subroutine CWPT_pointer_array_create_ (pa,     &
-                                        n_part, &
-                                        type,   &
-                                        s_data)
+  subroutine CWPT_pointer_array_create_type (pa,     &
+                                            n_part, &
+                                            type,   &
+                                            s_data)
     use iso_c_binding
     implicit none
 
@@ -5563,6 +5567,8 @@ contains
     integer, intent(in)                :: type
     integer, intent(in), optional      :: s_data
 
+    integer                            :: i
+
     if (associated(pa)) then
       print*, "Error CWPT_pointer_array_create : pa is already associated ! "
       call exit
@@ -5570,22 +5576,55 @@ contains
 
     allocate(pa)
 
-    call PDM_pointer_array_create (pa%pdm_pt_array,     &
-                                   n_part, &
-                                   type,   &
-                                   s_data)
+    pa%type = type
 
-  end subroutine  CWPT_pointer_array_create_
+    if (type .eq. CWPT_TYPE_INT) then
+      pa%s_data = 4
+#ifdef PDM_LONG_G_NUM
+    else if (type .eq. CWPT_TYPE_G_NUM) then
+      pa%s_data = 8
+#else
+    else if (type .eq. CWPT_TYPE_G_NUM) then
+      pa%s_data = 4
+#endif
+    else if (type .eq. CWPT_TYPE_DOUBLE) then
+      pa%s_data = 8
+    else if (type .eq. CWPT_TYPE_COMPLEX8) then
+      pa%s_data = 8
+    else if (type .eq. CWPT_TYPE_COMPLEX4) then
+      pa%s_data = 4
+    else if (type .eq. CWPT_TYPE_REAL4) then
+      pa%s_data = 4
+    else if (type .eq. CWPT_TYPE_CPTR) then
+      if (present (s_data)) then
+        pa%s_data = s_data
+      else
+        print*, "Error CWPT_pointer_array_create : s_data parameter is mandataroy with CWPT_TYPE_CPTR type"
+        call exit
+      endif
+    endif
+
+    allocate(pa%cptr(n_part))
+    allocate(pa%length(n_part))
+
+    do i = 1, n_part
+      pa%cptr(i)   = C_NULL_PTR
+      pa%length(i) = 0
+    end do
+
+    pa%shared_c = .false.
+
+  end subroutine CWPT_pointer_array_create_type
 
   !>
   !! \brief Initialize a \ref CWPT_pointer_array_t object
   !!
-  !! \param [out]  pa        \ref PDM_pointer_array_t object
+  !! \param [out]  pa        \ref CWPT_pointer_array_t object
   !! \param [in]   n_part    Number of partitions
   !! \param [in]   type      Data type of pointers
   !! \param [in]   c_data    C pointer cointaining data
   !! \param [in]   length    Data type of pointers
-  !! \param [in]   ownership PDM_OWNERSHIP_KEEP: PDM_pointer_array_free subroutine free data,  PDM_OWNERSHIP_USER: user have to free data)
+  !! \param [in]   ownership PDM_OWNERSHIP_KEEP: CWPT_pointer_array_free subroutine free data,  PDM_OWNERSHIP_USER: user have to free data)
   !! \param [in]   s_data    Size of a data (only used for CWPT_TYPE_CPTR)
   !!
 
@@ -5608,6 +5647,8 @@ contains
     integer, intent(in)                :: ownership
     integer, intent(in), optional      :: s_data
 
+    integer                            :: i
+
     if (associated(pa)) then
       print*, "Error CWPT_pointer_array_create : pa is already associated ! "
       call exit
@@ -5615,14 +5656,47 @@ contains
 
     allocate (pa)
 
-    call PDM_pointer_array_create (pa%pdm_pt_array,  &
-                                   n_part,   &
-                                   type,     &
-                                   c_data,   &
-                                   length,   &
-                                   ownership, &
-                                   s_data)
- 
+    pa%type = type
+    pa%ownership = ownership
+
+    if (type .eq. CWPT_TYPE_INT) then
+      pa%s_data = 4
+#ifdef PDM_LONG_G_NUM
+    else if (type .eq. CWPT_TYPE_G_NUM) then
+      pa%s_data = 8
+#else
+    else if (type .eq. CWPT_TYPE_G_NUM) then
+      pa%s_data = 4
+#endif
+    else if (type .eq. CWPT_TYPE_DOUBLE) then
+      pa%s_data = 8
+    else if (type .eq. CWPT_TYPE_COMPLEX8) then
+      pa%s_data = 8
+    else if (type .eq. CWPT_TYPE_COMPLEX4) then
+      pa%s_data = 4
+    else if (type .eq. CWPT_TYPE_REAL4) then
+      pa%s_data = 4
+    else if (type .eq. CWPT_TYPE_CPTR) then
+      if (present (s_data)) then
+        pa%s_data = s_data
+      else
+        print*, "Error CWPT_pointer_array_create : s_data parameter is mandataroy with CWPT_TYPE_CPTR type"
+        call exit
+      endif
+    endif
+
+    call c_f_pointer(c_data,    &
+                     pa%cptr, &
+                     [n_part])
+
+    allocate(pa%length(n_part))
+
+    do i = 1, n_part
+      pa%length(i) = length(i)
+    end do
+
+    pa%shared_c = .true.
+
 
   end subroutine CWPT_pointer_array_create_type_from_c_allocated_cptr
 
@@ -5630,7 +5704,7 @@ contains
   !>
   !! \brief Update the length of a partition of a pointer array
   !!
-  !! \param [out]  pa        \ref PDM_pointer_array_t object
+  !! \param [out]  pa        \ref CWPT_pointer_array_t object
   !! \param [in]   i_part    Number of partitions
   !! \param [in]   length    Data type of pointers
   !!
@@ -5647,45 +5721,64 @@ contains
     integer, intent(in)                :: length
 
     if (.not. associated(pa)) then
-      print*, "Error CWPT_pointer_array_part_length_update : 'pa' pointer is not associated "
+      print*, "Error DM_pointer_array_part_length_update : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_length_update (pa%pdm_pt_array,  &
-                                               i_part,&
-                                               length)
+    pa%length(i_part+1) = length
 
   end subroutine CWPT_pointer_array_part_length_update_
 
 
   !>
-  !! \brief Free a \ref PDM_pointer_array_t object
+  !! \brief Free a \ref CWPT_pointer_array_t object
   !!
-  !! \param [in, out]  pa      \ref PDM_pointer_array_t object
+  !! \param [in, out]  pa      \ref CWPT_pointer_array_t object
   !!
 
-  subroutine CWPT_pointer_array_free_ (pa)
+  subroutine CWPT_pointer_array_free (pa)
     use iso_c_binding
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
+
+    integer :: i
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_free : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_free (pa%pdm_pt_array)
+    if (pa%ownership .eq. PDM_OWNERSHIP_KEEP) then
+      if (pa%shared_c) then
+        if (associated(pa%cptr)) then
+          do i = 1, size(pa%cptr)
+            call pdm_fortran_free_c(pa%cptr(i))
+          end do
+          call pdm_fortran_free_c(c_loc(pa%cptr))
+        end if
 
+      else
+        if (associated(pa%cptr)) then
+          deallocate(pa%cptr)
+        end if
+
+      endif
+
+    endif
+
+    if (associated(pa%length)) then
+      deallocate(pa%length)
+    end if
     deallocate(pa)
     pa => null()
 
-  end subroutine CWPT_pointer_array_free_
+  end subroutine CWPT_pointer_array_free
 
   !>
   !! \brief Set a partition from a Fortran pointer
   !!
-  !! \param [in]  pa         Array of \ref PDM_pointer_array_t
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
   !! \param [in]  i_part     Id of partition
   !! \param [in]  pointer_f  Pointer to an integer array
   !!
@@ -5705,15 +5798,33 @@ contains
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_INT) then
+      print *, "CWPT_pointer_array_part_set_int : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_int : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_int
 
+
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a g_num array
+  !!
+#ifdef PDM_LONG_G_NUM
   subroutine CWPT_pointer_array_part_set_g_num (pa,        &
-                                             i_part,    &
-                                             pointer_f)
+                                               i_part,    &
+                                               pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5726,15 +5837,33 @@ contains
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_G_NUM) then
+      print *, "CWPT_pointer_array_part_set_g_num : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_g_num : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_g_num
+#endif
+
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a double array
+  !!
 
   subroutine CWPT_pointer_array_part_set_double (pa,        &
-                                                 i_part,    &
-                                                 pointer_f)
+                                                i_part,    &
+                                                pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5747,15 +5876,32 @@ contains
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_set_double : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_double : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_double
 
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a double array
+  !!
+
   subroutine CWPT_pointer_array_part_set_double_2 (pa,        &
-                                             i_part,    &
-                                             pointer_f)
+                                                  i_part,    &
+                                                  pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5768,15 +5914,32 @@ contains
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_set_double_2 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_double_2 : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_double_2
 
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a double array
+  !!
+
   subroutine CWPT_pointer_array_part_set_double_3 (pa,        &
-                                             i_part,    &
-                                             pointer_f)
+                                                  i_part,    &
+                                                  pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5789,89 +5952,150 @@ contains
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_set_double_3 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_double_3 : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_double_3
 
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a complex4 array
+  !!
 
   subroutine CWPT_pointer_array_part_set_complex4 (pa,        &
-                                             i_part,    &
-                                             pointer_f)
+                                                i_part,    &
+                                                pointer_f)
     use iso_c_binding
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    complex (kind=4),          pointer :: pointer_f(:)
+    complex (kind = 4),        pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_COMPLEX4) then
+      print *, "CWPT_pointer_array_part_set_comùplex4 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_complex4 : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_complex4
 
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a complex8 array
+  !!
+
   subroutine CWPT_pointer_array_part_set_complex8 (pa,        &
-                                                   i_part,    &
-                                                   pointer_f)
+                                                i_part,    &
+                                                pointer_f)
     use iso_c_binding
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    complex (kind=8),          pointer :: pointer_f(:)
+    complex (kind = 8),        pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_COMPLEX8) then
+      print *, "CWPT_pointer_array_part_set_comùplex8 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_complex8 : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_complex8
 
+
+  !>
+  !! \brief Set a partition from a Fortran pointer
+  !!
+  !! \param [in]  pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]  i_part     Id of partition
+  !! \param [in]  pointer_f  Pointer to a real4 array
+  !!
+
   subroutine CWPT_pointer_array_part_set_real4 (pa,        &
-                                                   i_part,    &
-                                                   pointer_f)
+                                               i_part,    &
+                                               pointer_f)
     use iso_c_binding
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    real (kind=4),          pointer :: pointer_f(:)
+    real (kind = 4),                    pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_set (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_REAL4) then
+      print *, "CWPT_pointer_array_part_set_real4 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_set_real4 : wrong i_part"
+      stop
+    end if
+
+    pa%cptr(i_part+1)   = c_loc(pointer_f)
+    pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_real4
+
 
   !>
   !! \brief Get a partition
   !!
   !! Maps a Fortran pointer onto a C pointer
   !!
-  !! \param [in]       pa         Array of \ref PDM_pointer_array_t
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
   !! \param [in]       i_part     Id of partition
   !! \param [in, out]  pointer_f  Pointer to an integer array
   !!
 
   subroutine CWPT_pointer_array_part_get_int (pa,        &
-                                              i_part,    &
-                                              pointer_f)
+                                             i_part,    &
+                                             pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5880,19 +6104,42 @@ contains
     integer(pdm_l_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_INT) then
+      print *, "CWPT_pointer_array_part_get_int : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_int : wrong i_part"
+      stop
+    end if
+
+
+    call c_f_pointer(pa%cptr(i_part+1),     &
+                     pointer_f,             &
+                     [pa%length(i_part+1)])
 
   end subroutine CWPT_pointer_array_part_get_int
 
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a g_num array
+  !!
+
+#ifdef PDM_LONG_G_NUM
   subroutine CWPT_pointer_array_part_get_g_num (pa,        &
-                                                i_part,    &
-                                                pointer_f)
+                                               i_part,    &
+                                               pointer_f)
     use iso_c_binding
     implicit none
 
@@ -5901,38 +6148,85 @@ contains
     integer(pdm_g_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_G_NUM) then
+      print *, "CWPT_pointer_array_part_get_g_num : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_g_num : wrong i_part"
+      stop
+    end if
+
+
+    call c_f_pointer(pa%cptr(i_part+1),     &
+                     pointer_f,             &
+                     [pa%length(i_part+1)])
 
   end subroutine CWPT_pointer_array_part_get_g_num
+#endif
 
-  subroutine CWPT_pointer_array_part_get_double(pa,        &
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a double array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_double (pa,        &
                                                 i_part,    &
                                                 pointer_f)
     use iso_c_binding
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    double precision,            pointer :: pointer_f(:)
+    integer, intent(in)                :: i_part
+    double precision,          pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_get_double : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_double : wrong i_part"
+      stop
+    end if
+
+
+    call c_f_pointer(pa%cptr(i_part+1),     &
+                     pointer_f,             &
+                     [pa%length(i_part+1)])
 
   end subroutine CWPT_pointer_array_part_get_double
 
-  subroutine CWPT_pointer_array_part_get_double_2(pa,        &
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in]       t_stride   Type of stride
+  !! \param [in]       stride     Stride
+  !! \param [in, out]  pointer_f  Pointer to a double array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_double_2 (pa,        &
                                                   i_part,    &
                                                   t_stride,  &
                                                   stride,    &
@@ -5941,139 +6235,269 @@ contains
     implicit none
 
     type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
+    integer, intent(in)                :: i_part
     integer, intent(in)                :: t_stride
     integer, intent(in)                :: stride
-    double precision,            pointer :: pointer_f(:,:)
-
-    if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
-      call exit
-    endif
-
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     t_stride, &
-                                     stride, &
-                                     pointer_f)
-
-  end subroutine CWPT_pointer_array_part_get_double_2
-
-  subroutine CWPT_pointer_array_part_get_double_3(pa,        &
-                                                  i_part,    &
-                                                  t_stride,  &
-                                                  stride1,    &
-                                                  stride2,    &
-                                                  pointer_f)
-    use iso_c_binding
-    implicit none
-
-    type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    integer, intent(in)                :: t_stride
-    integer, intent(in)                :: stride1
-    integer, intent(in)                :: stride2
-    double precision,            pointer :: pointer_f(:,:,:)
-
-    if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
-      call exit
-    endif
-
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     t_stride, &
-                                     stride1, &
-                                     stride2, &
-                                     pointer_f)
-
-  end subroutine CWPT_pointer_array_part_get_double_3
-
-  subroutine CWPT_pointer_array_part_get_real4(pa,        &
-                                               i_part,    &
-                                               pointer_f)
-    use iso_c_binding
-    implicit none
-
-    type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    real (kind=4),              pointer :: pointer_f(:)
-
-    if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
-      call exit
-    endif
-
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
-
-  end subroutine CWPT_pointer_array_part_get_real4
-
-  subroutine CWPT_pointer_array_part_get_complex4(pa,        &
-                                               i_part,    &
-                                               pointer_f)
-    use iso_c_binding
-    implicit none
-
-    type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    complex (kind=4),              pointer :: pointer_f(:)
-
-    if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
-      call exit
-    endif
-
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
-
-  end subroutine CWPT_pointer_array_part_get_complex4
-
-  subroutine CWPT_pointer_array_part_get_complex8(pa,        &
-                                                  i_part,    &
-                                                  pointer_f)
-    use iso_c_binding
-    implicit none
-
-    type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    complex (kind=8),            pointer :: pointer_f(:)
-
-    if (.not. associated(pa)) then
-      print*, "Error PDM_pointer_array_part_get : 'pa' pointer is not associated "
-      call exit
-    endif
-
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_f)
-
-  end subroutine CWPT_pointer_array_part_get_complex8
-
-
-  subroutine CWPT_pointer_array_part_get_cptr(pa,        &
-                                              i_part,    &
-                                              pointer_c,     &
-                                              length)
-    use iso_c_binding
-    implicit none
-
-    type(CWPT_pointer_array_t), pointer  :: pa
-    integer, intent(in)                  :: i_part
-    type(c_ptr)                          :: pointer_c
-    integer                              :: length
+    double precision,          pointer :: pointer_f(:,:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
       call exit
     endif
 
-    call PDM_pointer_array_part_get (pa%pdm_pt_array,        &
-                                     i_part,    &
-                                     pointer_c,     &
-                                     length)
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_get_double_2 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_double_2 : wrong i_part"
+      stop
+    end if
+
+    select case (t_stride)
+    case (PDM_STRIDE_CST_INTERLACED)
+      call c_f_pointer(pa%cptr(i_part+1),     &
+                       pointer_f,             &
+                       [stride,pa%length(i_part+1)/stride])
+    case (PDM_STRIDE_CST_INTERLEAVED)
+      call c_f_pointer(pa%cptr(i_part+1),     &
+                       pointer_f,             &
+                       [pa%length(i_part+1)/stride,stride])
+    case default
+      print *, "CWPT_pointer_array_part_get_double_2 : wrong stride type"
+      stop
+    end select
+
+  end subroutine CWPT_pointer_array_part_get_double_2
+
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in]       t_stride   Type of stride
+  !! \param [in]       stride 1   Stride 1
+  !! \param [in]       stride 2   Stride 2
+  !! \param [in, out]  pointer_f  Pointer to a double array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_double_3 (pa,        &
+                                                  i_part,    &
+                                                  t_stride,  &
+                                                  stride1,   &
+                                                  stride2,   &
+                                                  pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: t_stride
+    integer, intent(in)                :: stride1
+    integer, intent(in)                :: stride2
+    double precision,          pointer :: pointer_f(:,:,:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    if (pa%type .ne. CWPT_TYPE_DOUBLE) then
+      print *, "CWPT_pointer_array_part_get_double_3 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_double_3 : wrong i_part"
+      stop
+    end if
+
+    select case (t_stride)
+    case (PDM_STRIDE_CST_INTERLACED)
+      call c_f_pointer(pa%cptr(i_part+1),     &
+                       pointer_f,             &
+                       [stride1,stride2,pa%length(i_part+1)/(stride1*stride2)])
+    case (PDM_STRIDE_CST_INTERLEAVED)
+      call c_f_pointer(pa%cptr(i_part+1),     &
+                       pointer_f,             &
+                       [pa%length(i_part+1)/(stride1*stride2),stride1,stride2])
+    case default
+      print *, "CWPT_pointer_array_part_get_double_3 : wrong stride type"
+      stop
+    end select
+
+  end subroutine CWPT_pointer_array_part_get_double_3
+
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a real4 array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_real4 (pa,        &
+                                               i_part,    &
+                                               pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    real (kind=4),             pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    if (associated(pa)) then
+      if (pa%type .ne. CWPT_TYPE_REAL4) then
+        print *, "CWPT_pointer_array_part_set_double : wrong type"
+        stop
+      end if
+
+      if (i_part .ge. size(pa%cptr)) then
+        print *, "CWPT_pointer_array_part_set_double : wrong i_part"
+        stop
+      end if
+
+
+      call c_f_pointer(pa%cptr(i_part+1),     &
+                       pointer_f,             &
+                       [pa%length(i_part+1)])
+    endif
+
+  end subroutine CWPT_pointer_array_part_get_real4
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a complex4 array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_complex4 (pa,        &
+                                               i_part,    &
+                                               pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    complex (kind=4),             pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    if (pa%type .ne. CWPT_TYPE_COMPLEX4) then
+      print *, "CWPT_pointer_array_part_get_complex4 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_complex4 : wrong i_part"
+      stop
+    end if
+
+
+    call c_f_pointer(pa%cptr(i_part+1),     &
+                     pointer_f,             &
+                     [pa%length(i_part+1)])
+
+  end subroutine CWPT_pointer_array_part_get_complex4
+
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a complex8 array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_complex8 (pa,        &
+                                               i_part,    &
+                                               pointer_f)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    complex (kind=8),             pointer :: pointer_f(:)
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    if (pa%type .ne. CWPT_TYPE_COMPLEX8) then
+      print *, "CWPT_pointer_array_part_get_complex8 : wrong type"
+      stop
+    end if
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_complex8 : wrong i_part"
+      stop
+    end if
+
+
+    call c_f_pointer(pa%cptr(i_part+1),     &
+                     pointer_f,             &
+                     [pa%length(i_part+1)])
+
+  end subroutine CWPT_pointer_array_part_get_complex8
+
+
+
+  !>
+  !! \brief Get a partition
+  !!
+  !! Maps a Fortran pointer onto a C pointer
+  !!
+  !! \param [in]       pa         Array of \ref CWPT_pointer_array_t
+  !! \param [in]       i_part     Id of partition
+  !! \param [in, out]  pointer_f  Pointer to a complex8 array
+  !!
+
+  subroutine CWPT_pointer_array_part_get_cptr (pa,        &
+                                               i_part,    &
+                                               pointer_c,     &
+                                               length)
+    use iso_c_binding
+    implicit none
+
+    type(CWPT_pointer_array_t), pointer  :: pa
+    integer, intent(in)                :: i_part
+    type(c_ptr)                        :: pointer_c
+    integer                            :: length
+
+    if (.not. associated(pa)) then
+      print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
+      call exit
+    endif
+
+    if (i_part .ge. size(pa%cptr)) then
+      print *, "CWPT_pointer_array_part_get_complex8 : wrong i_part"
+      stop
+    end if
+
+    pointer_c = pa%cptr(i_part+1)
+    length    = pa%length(i_part+1)
 
   end subroutine CWPT_pointer_array_part_get_cptr
 
@@ -6091,7 +6515,7 @@ contains
   !!
   !!
 
-  subroutine CWPT_generate_mesh_rectangle_simplified_(comm,        &
+  subroutine CWPT_generate_mesh_rectangle_simplified_(comm,       &
                                                      n_vtx_seg,   &
                                                      n_vtx,       &
                                                      n_elt,       &
@@ -6211,7 +6635,7 @@ contains
 !!
 !!
 
-  subroutine CWPT_generate_mesh_parallelepiped_simplified_(comm,        &
+  subroutine CWPT_generate_mesh_parallelepiped_simplified_(comm,       &
                                                           n_vtx_seg,   &
                                                           n_vtx,       &
                                                           n_elt,       &
@@ -6231,7 +6655,7 @@ contains
     integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
 
     call PDM_generate_mesh_parallelepiped_simplified (comm,        &
-                                                      n_vtx_seg,     &
+                                                      n_vtx_seg,   &
                                                       n_vtx,       &
                                                       n_elt,       &
                                                       coords,      &
@@ -6335,28 +6759,28 @@ contains
     allocate(pedge_ln_to_gn)
     allocate(pface_ln_to_gn)
 
-    call PDM_generate_mesh_rectangle_ngon(comm,                          &
-                                          elt_type,                      &
-                                          xmin,                          &
-                                          ymin,                          &
-                                          zmin,                          &
-                                          lengthx,                       &
-                                          lengthy,                       &
-                                          n_x,                           &
-                                          n_y,                           &
-                                          n_part,                        &
-                                          part_method,                   &
-                                          pn_vtx,                        &
-                                          pn_edge,                       &
-                                          pn_face,                       &
-                                          pvtx_coord%pdm_pt_array,       &
-                                          pedge_vtx%pdm_pt_array,        &
-                                          pface_edge_idx%pdm_pt_array,   &
-                                          pface_edge%pdm_pt_array,       &
-                                          pface_vtx%pdm_pt_array,        &
-                                          pvtx_ln_to_gn%pdm_pt_array,    &
-                                          pedge_ln_to_gn%pdm_pt_array,   &
-                                          pface_ln_to_gn%pdm_pt_array,   &
+    call PDM_generate_mesh_rectangle_ngon(comm,             &
+                                          elt_type,         &
+                                          xmin,             &
+                                          ymin,             &
+                                          zmin,             &
+                                          lengthx,          &
+                                          lengthy,          &
+                                          n_x,              &
+                                          n_y,              &
+                                          n_part,           &
+                                          part_method,      &
+                                          pn_vtx,           &
+                                          pn_edge,          &
+                                          pn_face,          &
+                                          pvtx_coord,       &
+                                          pedge_vtx,        &
+                                          pface_edge_idx,   &
+                                          pface_edge,       &
+                                          pface_vtx,        &
+                                          pvtx_ln_to_gn,    &
+                                          pedge_ln_to_gn,   &
+                                          pface_ln_to_gn,   &
                                           random_factor_opt)
 
   end subroutine CWPT_generate_mesh_rectangle_ngon_
@@ -6470,14 +6894,14 @@ contains
                                         pn_vtx, &        
                                         pn_edge, &       
                                         pn_face, &       
-                                        pvtx_coord%pdm_pt_array, &    
-                                        pedge_vtx%pdm_pt_array, &     
-                                        pface_edge_idx%pdm_pt_array, &
-                                        pface_edge%pdm_pt_array, &    
-                                        pface_vtx%pdm_pt_array, &     
-                                        pvtx_ln_to_gn%pdm_pt_array, & 
-                                        pedge_ln_to_gn%pdm_pt_array, &
-                                        pface_ln_to_gn%pdm_pt_array) 
+                                        pvtx_coord, &
+                                        pedge_vtx, &
+                                        pface_edge_idx, &
+                                        pface_edge, &
+                                        pface_vtx, &
+                                        pvtx_ln_to_gn, &
+                                        pedge_ln_to_gn, &
+                                        pface_ln_to_gn)
 
   end subroutine CWPT_generate_mesh_sphere_ngon_ 
 
@@ -6520,41 +6944,41 @@ contains
 !!
 !!
 
-  subroutine CWPT_generate_mesh_ball_ngon_ (comm,            &
-                                           elt_type,        &
-                                           order,           &
-                                           ho_ordering,     &
-                                           radius,          &
-                                           hole_radius,     &
-                                           center_x,        &
-                                           center_y,        &
-                                           center_z,        &
-                                           n_x,             &
-                                           n_y,             &
-                                           n_z,             &
-                                           n_layer,         &
-                                           geometric_ratio, &
-                                           n_part,          &
-                                           part_method,     &
-                                           pn_vtx,          &
-                                           pn_edge,         &
-                                           pn_face,         &
-                                           pn_cell,         &
-                                           pvtx_coord,      &
-                                           pedge_vtx,       & 
-                                           pface_edge_idx,  &
-                                           pface_edge,      &
-                                           pface_vtx,       &
-                                           pcell_face_idx,  & 
-                                           pcell_face,      & 
-                                           pvtx_ln_to_gn,   &
-                                           pedge_ln_to_gn,  &
-                                           pface_ln_to_gn,  &
-                                           pcell_ln_to_gn,  &
-                                           pn_surface,      & 
-                                           psurface_face_idx,&
-                                           psurface_face,    &
-                                           psurface_face_ln_to_gn)
+  subroutine CWPT_generate_mesh_ball_ngon_ (comm,             &
+                                            elt_type,         &
+                                            order,            &
+                                            ho_ordering,      &
+                                            radius,           &
+                                            hole_radius,      &
+                                            center_x,         &
+                                            center_y,         &
+                                            center_z,         &
+                                            n_x,              &
+                                            n_y,              &
+                                            n_z,              &
+                                            n_layer,          &
+                                            geometric_ratio,  &
+                                            n_part,           &
+                                            part_method,      &
+                                            pn_vtx,           &
+                                            pn_edge,          &
+                                            pn_face,          &
+                                            pn_cell,          &
+                                            pvtx_coord,       &
+                                            pedge_vtx,        &
+                                            pface_edge_idx,   &
+                                            pface_edge,       &
+                                            pface_vtx,        &
+                                            pcell_face_idx,   &
+                                            pcell_face,       &
+                                            pvtx_ln_to_gn,    &
+                                            pedge_ln_to_gn,   &
+                                            pface_ln_to_gn,   &
+                                            pcell_ln_to_gn,   &
+                                            pn_surface,       &
+                                            psurface_face_idx,&
+                                            psurface_face,    &
+                                            psurface_face_ln_to_gn)
 
 
     use iso_c_binding
@@ -6632,21 +7056,21 @@ contains
                                       pn_edge, &
                                       pn_face, &
                                       pn_cell, &
-                                      pvtx_coord%pdm_pt_array, &
-                                      pedge_vtx%pdm_pt_array, &
-                                      pface_edge_idx%pdm_pt_array, &
-                                      pface_edge%pdm_pt_array, &
-                                      pface_vtx%pdm_pt_array, &
-                                      pcell_face_idx%pdm_pt_array, &
-                                      pcell_face%pdm_pt_array, &
-                                      pvtx_ln_to_gn%pdm_pt_array, &
-                                      pedge_ln_to_gn%pdm_pt_array, &
-                                      pface_ln_to_gn%pdm_pt_array, &
-                                      pcell_ln_to_gn%pdm_pt_array, &
+                                      pvtx_coord, &
+                                      pedge_vtx, &
+                                      pface_edge_idx, &
+                                      pface_edge, &
+                                      pface_vtx, &
+                                      pcell_face_idx, &
+                                      pcell_face, &
+                                      pvtx_ln_to_gn, &
+                                      pedge_ln_to_gn, &
+                                      pface_ln_to_gn, &
+                                      pcell_ln_to_gn, &
                                       pn_surface, &
-                                      psurface_face_idx%pdm_pt_array, &
-                                      psurface_face%pdm_pt_array, &
-                                      psurface_face_ln_to_gn%pdm_pt_array)
+                                      psurface_face_idx, &
+                                      psurface_face, &
+                                      psurface_face_ln_to_gn)
 
   end subroutine CWPT_generate_mesh_ball_ngon_
 
@@ -6792,44 +7216,44 @@ contains
     allocate (pridge_edge)
     allocate (pridge_edge_ln_to_gn)
  
-    call PDM_generate_mesh_parallelepiped_ngon(comm,                                &
-                                               elt_type,                            & 
-                                               order,                               &
-                                               ho_ordering,                         &
-                                               xmin,                                &
-                                               ymin,                                &
-                                               zmin,                                &
-                                               lengthx,                             &
-                                               lengthy,                             &
-                                               lengthz,                             &
-                                               n_x,                                 &
-                                               n_y,                                 &
-                                               n_z,                                 &
-                                               n_part,                              &
-                                               part_method,                         &
-                                               pn_vtx,                              &
-                                               pn_edge,                             &
-                                               pn_face,                             &
-                                               pn_cell,                             &
-                                               pvtx_coord%pdm_pt_array,             &
-                                               pedge_vtx%pdm_pt_array,              &
-                                               pface_edge_idx%pdm_pt_array,         &
-                                               pface_edge%pdm_pt_array,             &
-                                               pface_vtx%pdm_pt_array,              &
-                                               pcell_face_idx%pdm_pt_array,         &
-                                               pcell_face%pdm_pt_array,             &
-                                               pvtx_ln_to_gn%pdm_pt_array,          &
-                                               pedge_ln_to_gn%pdm_pt_array,         &
-                                               pface_ln_to_gn%pdm_pt_array,         &
-                                               pcell_ln_to_gn%pdm_pt_array,         &
-                                               pn_surface,                          &
-                                               psurface_face_idx%pdm_pt_array,      &
-                                               psurface_face%pdm_pt_array,          &
-                                               psurface_face_ln_to_gn%pdm_pt_array, &
-                                               pn_ridge,                            &
-                                               pridge_edge_idx%pdm_pt_array,        &
-                                               pridge_edge%pdm_pt_array,            &
-                                               pridge_edge_ln_to_gn%pdm_pt_array)
+    call PDM_generate_mesh_parallelepiped_ngon(comm,                   &
+                                               elt_type,               &
+                                               order,                  &
+                                               ho_ordering,            &
+                                               xmin,                   &
+                                               ymin,                   &
+                                               zmin,                   &
+                                               lengthx,                &
+                                               lengthy,                &
+                                               lengthz,                &
+                                               n_x,                    &
+                                               n_y,                    &
+                                               n_z,                    &
+                                               n_part,                 &
+                                               part_method,            &
+                                               pn_vtx,                 &
+                                               pn_edge,                &
+                                               pn_face,                &
+                                               pn_cell,                &
+                                               pvtx_coord,             &
+                                               pedge_vtx,              &
+                                               pface_edge_idx,         &
+                                               pface_edge,             &
+                                               pface_vtx,              &
+                                               pcell_face_idx,         &
+                                               pcell_face,             &
+                                               pvtx_ln_to_gn,          &
+                                               pedge_ln_to_gn,         &
+                                               pface_ln_to_gn,         &
+                                               pcell_ln_to_gn,         &
+                                               pn_surface,             &
+                                               psurface_face_idx,      &
+                                               psurface_face,          &
+                                               psurface_face_ln_to_gn, &
+                                               pn_ridge,               &
+                                               pridge_edge_idx,        &
+                                               pridge_edge,            &
+                                               pridge_edge_ln_to_gn)
 
   end subroutine CWPT_generate_mesh_parallelepiped_ngon_
 
