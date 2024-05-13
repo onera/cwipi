@@ -210,9 +210,9 @@ program fortran_new_api_deformable_sol
   deallocate(coupled_code_names)
   deallocate(field_data)
 
-  call pdm_fortran_free_c(c_loc(coords))
-  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
-  call pdm_fortran_free_c(c_loc(elt_vtx))
+  call cwpt_fortran_free_c(c_loc(coords))
+  call cwpt_fortran_free_c(c_loc(elt_vtx_idx))
+  call cwpt_fortran_free_c(c_loc(elt_vtx))
 
   ! Finalize CWIPI :
   call CWP_Finalize()

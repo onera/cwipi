@@ -2,7 +2,6 @@
 !! \file
 !!
 
-
 !-----------------------------------------------------------------------------
 ! This file is part of the CWIPI library.
 !
@@ -24,9 +23,21 @@
 
 module cwp
     use iso_c_binding
-    use pdm_fortran
     use pdm_generate_mesh
     use pdm_pointer_array
+
+    ! Type definition for pointer array
+    integer, parameter :: CWPT_TYPE_INT    = 0
+#ifdef PDM_LONG_G_NUM
+    integer, parameter :: CWPT_TYPE_G_NUM  = 1
+#else
+    integer, parameter :: CWPT_TYPE_G_NUM  = 0
+#endif
+    integer, parameter :: CWPT_TYPE_DOUBLE   = 2
+    integer, parameter :: CWPT_TYPE_COMPLEX8 = 3
+    integer, parameter :: CWPT_TYPE_COMPLEX4 = 4
+    integer, parameter :: CWPT_TYPE_REAL4    = 5
+    integer, parameter :: CWPT_TYPE_CPTR     = 6
 
     ! CWP_Type_t
     enum, bind(c)
@@ -545,16 +556,6 @@ module cwp
     interface CWP_Cpl_spatial_interp_algo_get
       module procedure CWP_Cpl_spatial_interp_algo_get_
     end interface CWP_Cpl_spatial_interp_algo_get
-!
-!   Only for tests
-!
-    integer, parameter :: CWPT_TYPE_INT      = PDM_TYPE_INT
-    integer, parameter :: CWPT_TYPE_G_NUM    = PDM_TYPE_G_NUM
-    integer, parameter :: CWPT_TYPE_DOUBLE   = PDM_TYPE_DOUBLE
-    integer, parameter :: CWPT_TYPE_COMPLEX8 = PDM_TYPE_COMPLEX8
-    integer, parameter :: CWPT_TYPE_COMPLEX4 = PDM_TYPE_COMPLEX4
-    integer, parameter :: CWPT_TYPE_REAL4    = PDM_TYPE_REAL4
-    integer, parameter :: CWPT_TYPE_CPTR     = PDM_TYPE_CPTR
 
     interface CWPT_generate_mesh_sphere_simplified
       module procedure CWPT_generate_mesh_sphere_simplified_
@@ -764,6 +765,14 @@ module cwp
              CWPT_pointer_array_create_type_from_c_allocated_cptr
 
     interface
+
+      subroutine cwpt_fortran_free_c (ptrC) &
+        bind (c, name = 'free')
+        use iso_c_binding
+        implicit none
+
+        type (c_ptr), value :: ptrC
+      end subroutine cwpt_fortran_free_c
 
     !> \cond DOXYGEN_SHOULD_SKIP_THIS
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
@@ -2124,14 +2133,14 @@ contains
       f_char_array(i) = f_char_array(i)(1:strlen)
       if (present(free_all)) then
         if (free_all) then
-          call pdm_fortran_free_c(fptr2(i))
+          call cwpt_fortran_free_c(fptr2(i))
         endif
       endif
 
     end do
 
-    call pdm_fortran_free_c(c_char_array)
-    call pdm_fortran_free_c(c_size_array)
+    call cwpt_fortran_free_c(c_char_array)
+    call cwpt_fortran_free_c(c_size_array)
 
   end subroutine c_f_char_array
 
@@ -6823,17 +6832,5 @@ contains
                                                pridge_edge_ln_to_gn%pdm_pt_array)
 
   end subroutine CWPT_generate_mesh_parallelepiped_ngon_
-
-  subroutine CWPT_fortran_free_c (ptrC)
-
-      use iso_c_binding
-
-      implicit none
-
-      type (c_ptr), value :: ptrC
-
-      call PDM_fortran_free_c (ptrC)
-
-  end subroutine CWPT_fortran_free_c
 
 end module cwp
