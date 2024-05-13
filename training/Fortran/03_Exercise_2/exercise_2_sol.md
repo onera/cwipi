@@ -66,7 +66,6 @@ Since the set up is roughly the same as in the previous exercise, it is not spli
 program fortran_new_api_deformable_sol
 
     use cwp
-    use pdm_generate_mesh
 
     implicit none
 
@@ -212,13 +211,13 @@ It is composed of triangle elements (i.e. `CWP_BLOCK_FACE_TRIA3`).
 %%code_block -p exercise_2_code_1 -i 2
 
   ! Create mesh :
-  call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
-                                              n_vtx_seg,      &
-                                              n_vtx,          &
-                                              n_elt,          &
-                                              coords,         &
-                                              elt_vtx_idx,    &
-                                              elt_vtx)
+  call CWPT_generate_mesh_rectangle_simplified(intra_comms(1), &
+                                               n_vtx_seg,      &
+                                               n_vtx,          &
+                                               n_elt,          &
+                                               coords,         &
+                                               elt_vtx_idx,    &
+                                               elt_vtx)
 ```
 
 +++ {"editable": false, "deletable": false}

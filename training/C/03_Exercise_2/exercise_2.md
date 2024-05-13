@@ -66,9 +66,6 @@ Since the set up is roughly the same as in the previous exercise, it is not spli
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm.h"
-#include "pdm_generate_mesh.h"
-
 int
 main(int argc, char *argv[]) {
 
@@ -162,13 +159,13 @@ It is composed of triangle elements (i.e. `CWP_BLOCK_FACE_TRIA3`).
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
-  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
-                                         10,
-                                         &n_vtx,
-                                         &n_elt,
-                                         &coords,
-                                         &elt_vtx_idx,
-                                         &elt_vtx);
+  CWPT_generate_mesh_rectangle_simplified(intra_comm[0],
+                                          10,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx);
 ```
 
 +++ {"editable": false, "deletable": false}

@@ -23,15 +23,22 @@
 
 module cwp
     use iso_c_binding
-    use pdm_generate_mesh
+
+    ! Integer types
+! #ifdef PDM_LONG_G_NUM
+    integer, parameter :: cwpt_g_num_s = 8
+! #else
+    ! integer, parameter :: cwpt_g_num_s = 4
+! #endif
+    integer, parameter :: cwpt_l_num_s = 4
 
     ! Type definition for pointer array
     integer, parameter :: CWPT_TYPE_INT    = 0
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
     integer, parameter :: CWPT_TYPE_G_NUM  = 1
-#else
-    integer, parameter :: CWPT_TYPE_G_NUM  = 0
-#endif
+! #else
+    ! integer, parameter :: CWPT_TYPE_G_NUM  = 0
+! #endif
     integer, parameter :: CWPT_TYPE_DOUBLE   = 2
     integer, parameter :: CWPT_TYPE_COMPLEX8 = 3
     integer, parameter :: CWPT_TYPE_COMPLEX4 = 4
@@ -41,12 +48,12 @@ module cwp
     ! cwpt_pointer_array structure
     type CWPT_pointer_array_t
 
-      integer                       :: type = -1
-      integer                       :: s_data = -1
-      type(c_ptr),          pointer :: cptr(:)   => null()
-      integer(pdm_l_num_s), pointer :: length(:) => null()
-      logical                       :: shared_c = .false.
-      integer                       :: ownership = PDM_OWNERSHIP_KEEP
+      integer                        :: type = -1
+      integer                        :: s_data = -1
+      type(c_ptr),           pointer :: cptr(:)   => null()
+      integer(cwpt_l_num_s), pointer :: length(:) => null()
+      logical                        :: shared_c = .false.
+      integer                        :: ownership = 1 ! PDM_OWNERSHIP_USER = 1
 
     end type CWPT_pointer_array_t
 
@@ -568,43 +575,11 @@ module cwp
       module procedure CWP_Cpl_spatial_interp_algo_get_
     end interface CWP_Cpl_spatial_interp_algo_get
 
-    interface CWPT_generate_mesh_sphere_simplified
-      module procedure CWPT_generate_mesh_sphere_simplified_
-    end interface CWPT_generate_mesh_sphere_simplified
-      
-    interface CWPT_generate_mesh_rectangle_simplified
-      module procedure CWPT_generate_mesh_rectangle_simplified_
-    end interface CWPT_generate_mesh_rectangle_simplified
-      
-    interface CWPT_generate_mesh_ball_simplified
-      module procedure CWPT_generate_mesh_ball_simplified_
-    end interface CWPT_generate_mesh_ball_simplified
-      
-    interface CWPT_generate_mesh_parallelepiped_simplified
-      module procedure CWPT_generate_mesh_parallelepiped_simplified_
-    end interface CWPT_generate_mesh_parallelepiped_simplified
-      
-    interface CWPT_generate_mesh_rectangle_ngon
-      module procedure CWPT_generate_mesh_rectangle_ngon_
-    end interface CWPT_generate_mesh_rectangle_ngon
-      
-    interface CWPT_generate_mesh_sphere_ngon
-      module procedure CWPT_generate_mesh_sphere_ngon_
-    end interface CWPT_generate_mesh_sphere_ngon
-      
-    interface CWPT_generate_mesh_ball_ngon
-      module procedure CWPT_generate_mesh_ball_ngon_
-    end interface CWPT_generate_mesh_ball_ngon
-      
-    interface CWPT_generate_mesh_parallelepiped_ngon
-      module procedure CWPT_generate_mesh_parallelepiped_ngon_
-    end interface CWPT_generate_mesh_parallelepiped_ngon
-
     interface CWPT_pointer_array_part_set
       module procedure CWPT_pointer_array_part_set_int
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
       module procedure CWPT_pointer_array_part_set_g_num
-#endif
+! #endif
       module procedure CWPT_pointer_array_part_set_double
       module procedure CWPT_pointer_array_part_set_double_2
       module procedure CWPT_pointer_array_part_set_double_3
@@ -615,9 +590,9 @@ module cwp
 
     interface CWPT_pointer_array_part_get
       module procedure CWPT_pointer_array_part_get_int
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
       module procedure CWPT_pointer_array_part_get_g_num
-#endif
+! #endif
       module procedure CWPT_pointer_array_part_get_double
       module procedure CWPT_pointer_array_part_get_double_2
       module procedure CWPT_pointer_array_part_get_double_3
@@ -740,14 +715,6 @@ module cwp
              CWP_Part_data_wait_issend_, &
              CWP_Part_data_wait_irecv_, &
              CWP_Cpl_spatial_interp_algo_get_, &
-             CWPT_generate_mesh_sphere_simplified_, &
-             CWPT_generate_mesh_rectangle_simplified_, &
-             CWPT_generate_mesh_ball_simplified_, &
-             CWPT_generate_mesh_parallelepiped_simplified_, &
-             CWPT_generate_mesh_rectangle_ngon_, &
-             CWPT_generate_mesh_sphere_ngon_, &
-             CWPT_generate_mesh_ball_ngon_, &
-             CWPT_generate_mesh_parallelepiped_ngon_, &             
              CWPT_pointer_array_part_length_update_, &
              CWPT_pointer_array_create_type, &
              CWPT_pointer_array_create_type_from_c_allocated_cptr, &
@@ -758,9 +725,9 @@ module cwp
              CWPT_pointer_array_part_get_complex4, &
              CWPT_pointer_array_part_get_real4, &
              CWPT_pointer_array_part_get_cptr, &
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
              CWPT_pointer_array_part_get_g_num, &
-#endif
+! #endif
              CWPT_pointer_array_part_get_int, &
              CWPT_pointer_array_part_set_double, &
              CWPT_pointer_array_part_set_double_2, &
@@ -768,12 +735,22 @@ module cwp
              CWPT_pointer_array_part_set_complex8, &
              CWPT_pointer_array_part_set_complex4, &
              CWPT_pointer_array_part_set_real4, &
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
              CWPT_pointer_array_part_set_g_num, &
-#endif
+! #endif
              CWPT_pointer_array_part_set_int
 
     interface
+
+      function CWPT_MPI_Comm_f2c (fcomm) &
+        result (comm)                   &
+        bind (c, name = 'CWPT_MPI_Comm_f2c')
+        use iso_c_binding
+        implicit none
+
+        integer(c_int), value :: fcomm
+        integer(c_int)        :: comm
+      end function CWPT_MPI_Comm_f2c
 
       subroutine cwpt_fortran_free_c (ptrC) &
         bind (c, name = 'free')
@@ -2110,6 +2087,450 @@ module cwp
   end interface
 
 contains
+
+  subroutine CWPT_generate_mesh_sphere_simplified (comm,        &
+                                                   n_vtx,       &
+                                                   n_elt,       &
+                                                   coords,      &
+                                                   elt_vtx_idx, &
+                                                   elt_vtx)
+    use iso_c_binding
+    implicit none
+
+    ! Fortran
+    integer, intent(in)                     :: comm
+    integer, intent(out)                    :: n_vtx
+    integer, intent(out)                    :: n_elt
+    double precision,               pointer :: coords(:,:)
+    integer(kind=cwpt_l_num_s),      pointer :: elt_vtx_idx(:)
+    integer(kind=cwpt_l_num_s),      pointer :: elt_vtx(:)
+
+    ! C
+    integer(c_int)         :: c_comm
+    integer(c_int)         :: c_n_vtx       = 0
+    integer(c_int)         :: c_n_elt       = 0
+    type(c_ptr)            :: c_coords      = C_NULL_PTR
+    type(c_ptr)            :: c_elt_vtx_idx = C_NULL_PTR
+    type(c_ptr)            :: c_elt_vtx     = C_NULL_PTR
+
+    interface
+    subroutine CWPT_generate_mesh_sphere_simplified_c(comm,        &
+                                                      n_vtx,       &
+                                                      n_elt,       &
+                                                      coords,      &
+                                                      elt_vtx_idx, &
+                                                      elt_vtx)     &
+        bind (c, name='CWPT_generate_mesh_sphere_simplified')
+        use iso_c_binding
+        implicit none
+
+        integer(c_int) :: comm
+        integer(c_int) :: n_vtx
+        integer(c_int) :: n_elt
+        type(c_ptr)    :: coords
+        type(c_ptr)    :: elt_vtx_idx
+        type(c_ptr)    :: elt_vtx
+
+      end subroutine CWPT_generate_mesh_sphere_simplified_c
+    end interface
+
+    c_comm = CWPT_MPI_Comm_f2c(comm)
+
+    call CWPT_generate_mesh_sphere_simplified_c(c_comm,        &
+                                                c_n_vtx,       &
+                                                c_n_elt,       &
+                                                c_coords,      &
+                                                c_elt_vtx_idx, &
+                                                c_elt_vtx)
+
+    n_vtx = c_n_vtx
+    n_elt = c_n_elt
+
+    call c_f_pointer(c_coords, &
+                     coords,   &
+                     [3, n_vtx])
+
+    call c_f_pointer(c_elt_vtx_idx, &
+                     elt_vtx_idx,   &
+                     [n_elt + 1])
+
+    call c_f_pointer(c_elt_vtx, &
+                     elt_vtx,   &
+                     [elt_vtx_idx(n_elt + 1)])
+
+  end subroutine CWPT_generate_mesh_sphere_simplified
+
+  subroutine CWPT_generate_mesh_rectangle_simplified (comm,        &
+                                                      n_vtx_seg,   &
+                                                      n_vtx,       &
+                                                      n_elt,       &
+                                                      coords,      &
+                                                      elt_vtx_idx, &
+                                                      elt_vtx)
+    use iso_c_binding
+    implicit none
+
+    ! Fortran
+    integer,                     intent(in)  :: comm
+    integer(kind=cwpt_g_num_s),   intent(in) :: n_vtx_seg
+    integer,                    intent(out)  :: n_vtx
+    integer,                    intent(out)  :: n_elt
+    double precision,               pointer  :: coords(:,:)
+    integer(kind=cwpt_l_num_s),      pointer :: elt_vtx_idx(:)
+    integer(kind=cwpt_l_num_s),      pointer :: elt_vtx(:)
+
+    ! C
+    integer(c_int)                           :: c_comm
+    integer(c_int)                           :: c_n_vtx
+    integer(c_int)                           :: c_n_elt
+    type(c_ptr)                              :: c_coords
+    type(c_ptr)                              :: c_elt_vtx_idx
+    type(c_ptr)                              :: c_elt_vtx
+
+    interface
+      subroutine CWPT_generate_mesh_rectangle_simplified_c(comm,        &
+                                                           n_vtx_seg,   &
+                                                           n_vtx,       &
+                                                           n_elt,       &
+                                                           coords,      &
+                                                           elt_vtx_idx, &
+                                                           elt_vtx)     &
+        bind (c, name='CWPT_generate_mesh_rectangle_simplified')
+        use iso_c_binding
+        implicit none
+
+        integer(c_int),  value :: comm
+! #ifdef PDM_LONG_G_NUM
+        integer(c_long), value :: n_vtx_seg
+! #else
+        ! integer(c_int),  value :: n_vtx_seg
+! #endif
+        integer(c_int)         :: n_vtx
+        integer(c_int)         :: n_elt
+        type(c_ptr)            :: coords
+        type(c_ptr)            :: elt_vtx_idx
+        type(c_ptr)            :: elt_vtx
+
+      end subroutine CWPT_generate_mesh_rectangle_simplified_c
+    end interface
+
+    c_comm = CWPT_MPI_Comm_f2c(comm)
+
+    call CWPT_generate_mesh_rectangle_simplified_c(c_comm,        &
+                                                   n_vtx_seg,     &
+                                                   c_n_vtx,       &
+                                                   c_n_elt,       &
+                                                   c_coords,      &
+                                                   c_elt_vtx_idx, &
+                                                   c_elt_vtx)
+
+    n_vtx = c_n_vtx
+    n_elt = c_n_elt
+
+    call c_f_pointer(c_coords, &
+                     coords,   &
+                     [3, n_vtx])
+
+    call c_f_pointer(c_elt_vtx_idx, &
+                     elt_vtx_idx,   &
+                     [n_elt + 1])
+
+    call c_f_pointer(c_elt_vtx, &
+                     elt_vtx,   &
+                     [elt_vtx_idx(n_elt + 1)])
+
+  end subroutine CWPT_generate_mesh_rectangle_simplified
+
+  subroutine CWPT_generate_mesh_sphere_ngon (comm,           &
+                                             elt_type,       &
+                                             order,          &
+                                             ho_ordering,    &
+                                             radius,         &
+                                             center_x,       &
+                                             center_y,       &
+                                             center_z,       &
+                                             n_u,            &
+                                             n_v,            &
+                                             n_part,         &
+                                             part_method,    &
+                                             pn_vtx,         &
+                                             pn_edge,        &
+                                             pn_face,        &
+                                             pvtx_coord,     &
+                                             pedge_vtx,      &
+                                             pface_edge_idx, &
+                                             pface_edge,     &
+                                             pface_vtx,      &
+                                             pvtx_ln_to_gn,  &
+                                             pedge_ln_to_gn, &
+                                             pface_ln_to_gn)
+    use iso_c_binding
+    implicit none
+
+    ! Fortran
+    integer, intent(in)                    :: comm
+    integer, intent(in)                    :: elt_type
+    integer, intent(in)                    :: order
+    type(c_ptr), intent(in)                :: ho_ordering
+    double precision, intent(in)           :: radius
+    double precision, intent(in)           :: center_x
+    double precision, intent(in)           :: center_y
+    double precision, intent(in)           :: center_z
+    integer(kind=cwpt_g_num_s), intent(in) :: n_u
+    integer(kind=cwpt_g_num_s), intent(in) :: n_v
+    integer, intent(in)                    :: n_part
+    integer, intent(in)                    :: part_method
+    integer(kind=cwpt_l_num_s), pointer    :: pn_vtx(:)
+    integer(kind=cwpt_l_num_s), pointer    :: pn_edge(:)
+    integer(kind=cwpt_l_num_s), pointer    :: pn_face(:)
+
+    type(CWPT_pointer_array_t), pointer    :: pvtx_coord
+    type(CWPT_pointer_array_t), pointer    :: pedge_vtx
+    type(CWPT_pointer_array_t), pointer    :: pface_edge_idx
+    type(CWPT_pointer_array_t), pointer    :: pface_edge
+    type(CWPT_pointer_array_t), pointer    :: pface_vtx
+    type(CWPT_pointer_array_t), pointer    :: pvtx_ln_to_gn
+    type(CWPT_pointer_array_t), pointer    :: pedge_ln_to_gn
+    type(CWPT_pointer_array_t), pointer    :: pface_ln_to_gn
+
+    ! C
+    integer(c_int)        :: c_comm
+    integer(c_int)        :: c_elt_type
+    integer(c_int)        :: c_order
+    type(c_ptr)           :: c_ho_ordering
+    real(c_double)        :: c_radius
+    real(c_double)        :: c_center_x
+    real(c_double)        :: c_center_y
+    real(c_double)        :: c_center_z
+! #ifdef PDM_LONG_G_NUM
+    integer(c_long)       :: c_n_u
+    integer(c_long)       :: c_n_v
+! #else
+!     integer(c_int)        :: c_n_u
+!     integer(c_int)        :: c_n_v
+! #endif
+    integer(c_int)        :: c_n_part
+    integer(c_int)        :: c_part_method
+    type(c_ptr)           :: c_pn_vtx
+    type(c_ptr)           :: c_pn_edge
+    type(c_ptr)           :: c_pn_face
+    type(c_ptr)           :: c_pvtx_coord
+    type(c_ptr)           :: c_pedge_vtx
+    type(c_ptr)           :: c_pface_edge_idx
+    type(c_ptr)           :: c_pface_edge
+    type(c_ptr)           :: c_pface_vtx
+    type(c_ptr)           :: c_pvtx_ln_to_gn
+    type(c_ptr)           :: c_pedge_ln_to_gn
+    type(c_ptr)           :: c_pface_ln_to_gn
+
+    interface
+      subroutine CWPT_generate_mesh_sphere_ngon_c(comm, &
+                                                  elt_type, &
+                                                  order, &
+                                                  ho_ordering, &
+                                                  radius, &
+                                                  center_x, &
+                                                  center_y, &
+                                                  center_z, &
+                                                  n_u, &
+                                                  n_v, &
+                                                  n_part, &
+                                                  part_method, &
+                                                  pn_vtx, &
+                                                  pn_edge, &
+                                                  pn_face, &
+                                                  pvtx_coord, &
+                                                  pedge_vtx, &
+                                                  pface_edge_idx, &
+                                                  pface_edge, &
+                                                  pface_vtx, &
+                                                  pvtx_ln_to_gn, &
+                                                  pedge_ln_to_gn, &
+                                                  pface_ln_to_gn) &
+        bind (c, name='CWPT_generate_mesh_sphere_ngon')
+        use iso_c_binding
+        implicit none
+
+        integer(c_int), value :: comm
+        integer(c_int), value :: elt_type
+        integer(c_int), value :: order
+        type(c_ptr), value    :: ho_ordering
+        real(c_double), value :: radius
+        real(c_double), value :: center_x
+        real(c_double), value :: center_y
+        real(c_double), value :: center_z
+! #ifdef PDM_LONG_G_NUM
+        integer(c_long), value :: n_u
+        integer(c_long), value :: n_v
+! #else
+!     integer(c_int), value :: n_u
+!     integer(c_int), value :: n_v
+! #endif
+        integer(c_int), value :: n_part
+        integer(c_int), value :: part_method
+
+        type(c_ptr) :: pn_vtx
+        type(c_ptr) :: pn_edge
+        type(c_ptr) :: pn_face
+        type(c_ptr) :: pvtx_coord
+        type(c_ptr) :: pedge_vtx
+        type(c_ptr) :: pface_vtx
+        type(c_ptr) :: pface_edge_idx
+        type(c_ptr) :: pface_edge
+        type(c_ptr) :: pvtx_ln_to_gn
+        type(c_ptr) :: pedge_ln_to_gn
+        type(c_ptr) :: pface_ln_to_gn
+
+      end subroutine CWPT_generate_mesh_sphere_ngon_c
+    end interface
+
+    integer, allocatable  :: s_array(:)
+
+    integer :: i
+    integer, pointer      :: ipart_pface_edge_idx(:)
+
+    c_comm = CWPT_MPI_Comm_f2c(comm)
+
+    c_elt_type    = elt_type
+    c_order       = order
+    c_ho_ordering = ho_ordering
+    c_radius      = radius
+    c_center_x    = center_x
+    c_center_y    = center_y
+    c_center_z    = center_z
+    c_n_u         = n_u
+    c_n_v         = n_v
+    c_n_part      = n_part
+    c_part_method = part_method
+
+    call CWPT_generate_mesh_sphere_ngon_c(c_comm, &
+                                          c_elt_type, &
+                                          c_order, &
+                                          c_ho_ordering, &
+                                          c_radius, &
+                                          c_center_x, &
+                                          c_center_y, &
+                                          c_center_z, &
+                                          c_n_u, &
+                                          c_n_v, &
+                                          c_n_part, &
+                                          c_part_method, &
+                                          c_pn_vtx, &
+                                          c_pn_edge, &
+                                          c_pn_face, &
+                                          c_pvtx_coord, &
+                                          c_pedge_vtx, &
+                                          c_pface_edge_idx, &
+                                          c_pface_edge, &
+                                          c_pface_vtx, &
+                                          c_pvtx_ln_to_gn, &
+                                          c_pedge_ln_to_gn, &
+                                          c_pface_ln_to_gn)
+
+    call c_f_pointer(c_pn_vtx, &
+                     pn_vtx,   &
+                     [n_part])
+
+    call c_f_pointer(c_pn_edge, &
+                     pn_edge,   &
+                     [n_part])
+
+    call c_f_pointer(c_pn_face, &
+                     pn_face,   &
+                     [n_part])
+
+    allocate(s_array(n_part))
+
+    do i = 1, n_part
+      s_array(i) = 3 * pn_vtx(i)
+    enddo
+
+    call CWPT_pointer_array_create (pvtx_coord,         &
+                                    n_part,             &
+                                    CWPT_TYPE_DOUBLE,   &
+                                    c_pvtx_coord,       &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      s_array(i) = 2 * pn_edge(i)
+    enddo
+
+    call CWPT_pointer_array_create (pedge_vtx,          &
+                                    n_part,             &
+                                    CWPT_TYPE_INT,      &
+                                    c_pedge_vtx,        &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      s_array(i) = pn_face(i) + 1
+    enddo
+
+    call CWPT_pointer_array_create (pface_edge_idx,     &
+                                    n_part,             &
+                                    CWPT_TYPE_INT,      &
+                                    c_pface_edge_idx,   &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      call CWPT_pointer_array_part_get (pface_edge_idx, &
+                                        i-1,            &
+                                        ipart_pface_edge_idx)
+      s_array(i) = ipart_pface_edge_idx(pn_face(i) + 1)
+    enddo
+
+    call CWPT_pointer_array_create (pface_edge,         &
+                                    n_part,             &
+                                    CWPT_TYPE_INT,      &
+                                    c_pface_edge,       &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    call CWPT_pointer_array_create (pface_vtx,          &
+                                    n_part,             &
+                                    CWPT_TYPE_INT,      &
+                                    c_pface_vtx,        &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      s_array(i) = pn_vtx(i)
+    enddo
+
+    call CWPT_pointer_array_create (pvtx_ln_to_gn,      &
+                                    n_part,             &
+                                    CWPT_TYPE_G_NUM,    &
+                                    c_pvtx_ln_to_gn,    &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      s_array(i) = pn_edge(i)
+    enddo
+
+    call CWPT_pointer_array_create (pedge_ln_to_gn,     &
+                                    n_part,             &
+                                    CWPT_TYPE_G_NUM,    &
+                                    c_pedge_ln_to_gn,   &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    do i = 1, n_part
+      s_array(i) = pn_face(i)
+    enddo
+
+    call CWPT_pointer_array_create (pface_ln_to_gn,     &
+                                    n_part,             &
+                                    CWPT_TYPE_G_NUM,    &
+                                    c_pface_ln_to_gn,   &
+                                    s_array,            &
+                                    1) ! PDM_OWNERSHIP_KEEP = 1
+
+    deallocate(s_array)
+
+  end subroutine CWPT_generate_mesh_sphere_ngon
 
   !> convert an array of char * in c to an array
   !  of characters of maximum size 256 in FORTRAN
@@ -5580,13 +6001,13 @@ contains
 
     if (type .eq. CWPT_TYPE_INT) then
       pa%s_data = 4
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
     else if (type .eq. CWPT_TYPE_G_NUM) then
       pa%s_data = 8
-#else
+! #else
     else if (type .eq. CWPT_TYPE_G_NUM) then
       pa%s_data = 4
-#endif
+! #endif
     else if (type .eq. CWPT_TYPE_DOUBLE) then
       pa%s_data = 8
     else if (type .eq. CWPT_TYPE_COMPLEX8) then
@@ -5661,13 +6082,13 @@ contains
 
     if (type .eq. CWPT_TYPE_INT) then
       pa%s_data = 4
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
     else if (type .eq. CWPT_TYPE_G_NUM) then
       pa%s_data = 8
-#else
+! #else
     else if (type .eq. CWPT_TYPE_G_NUM) then
       pa%s_data = 4
-#endif
+! #endif
     else if (type .eq. CWPT_TYPE_DOUBLE) then
       pa%s_data = 8
     else if (type .eq. CWPT_TYPE_COMPLEX8) then
@@ -5749,13 +6170,13 @@ contains
       call exit
     endif
 
-    if (pa%ownership .eq. PDM_OWNERSHIP_KEEP) then
+    if (pa%ownership .eq. 1) then ! PDM_OWNERSHIP_KEEP = 1
       if (pa%shared_c) then
         if (associated(pa%cptr)) then
           do i = 1, size(pa%cptr)
-            call pdm_fortran_free_c(pa%cptr(i))
+            call cwpt_fortran_free_c(pa%cptr(i))
           end do
-          call pdm_fortran_free_c(c_loc(pa%cptr))
+          call cwpt_fortran_free_c(c_loc(pa%cptr))
         end if
 
       else
@@ -5791,7 +6212,7 @@ contains
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    integer(pdm_l_num_s),      pointer :: pointer_f(:)
+    integer(cwpt_l_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
@@ -5821,7 +6242,7 @@ contains
   !! \param [in]  i_part     Id of partition
   !! \param [in]  pointer_f  Pointer to a g_num array
   !!
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
   subroutine CWPT_pointer_array_part_set_g_num (pa,        &
                                                i_part,    &
                                                pointer_f)
@@ -5830,7 +6251,7 @@ contains
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    integer(pdm_g_num_s),      pointer :: pointer_f(:)
+    integer(cwpt_g_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_set : 'pa' pointer is not associated "
@@ -5851,7 +6272,7 @@ contains
     pa%length(i_part+1) = size(pointer_f)
 
   end subroutine CWPT_pointer_array_part_set_g_num
-#endif
+! #endif
 
   !>
   !! \brief Set a partition from a Fortran pointer
@@ -6029,7 +6450,7 @@ contains
     endif
 
     if (pa%type .ne. CWPT_TYPE_COMPLEX8) then
-      print *, "CWPT_pointer_array_part_set_comùplex8 : wrong type"
+      print *, "CWPT_pointer_array_part_set_complex8 : wrong type"
       stop
     end if
 
@@ -6101,7 +6522,7 @@ contains
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    integer(pdm_l_num_s),      pointer :: pointer_f(:)
+    integer(cwpt_l_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
@@ -6136,7 +6557,7 @@ contains
   !! \param [in, out]  pointer_f  Pointer to a g_num array
   !!
 
-#ifdef PDM_LONG_G_NUM
+! #ifdef PDM_LONG_G_NUM
   subroutine CWPT_pointer_array_part_get_g_num (pa,        &
                                                i_part,    &
                                                pointer_f)
@@ -6145,7 +6566,7 @@ contains
 
     type(CWPT_pointer_array_t), pointer  :: pa
     integer, intent(in)                :: i_part
-    integer(pdm_g_num_s),      pointer :: pointer_f(:)
+    integer(cwpt_g_num_s),      pointer :: pointer_f(:)
 
     if (.not. associated(pa)) then
       print*, "Error CWPT_pointer_array_part_get : 'pa' pointer is not associated "
@@ -6168,7 +6589,7 @@ contains
                      [pa%length(i_part+1)])
 
   end subroutine CWPT_pointer_array_part_get_g_num
-#endif
+! #endif
 
 
   !>
@@ -6256,11 +6677,11 @@ contains
     end if
 
     select case (t_stride)
-    case (PDM_STRIDE_CST_INTERLACED)
+    case (CWP_FIELD_STORAGE_INTERLACED)
       call c_f_pointer(pa%cptr(i_part+1),     &
                        pointer_f,             &
                        [stride,pa%length(i_part+1)/stride])
-    case (PDM_STRIDE_CST_INTERLEAVED)
+    case (CWP_FIELD_STORAGE_INTERLEAVED)
       call c_f_pointer(pa%cptr(i_part+1),     &
                        pointer_f,             &
                        [pa%length(i_part+1)/stride,stride])
@@ -6317,11 +6738,11 @@ contains
     end if
 
     select case (t_stride)
-    case (PDM_STRIDE_CST_INTERLACED)
+    case (CWP_FIELD_STORAGE_INTERLACED)
       call c_f_pointer(pa%cptr(i_part+1),     &
                        pointer_f,             &
                        [stride1,stride2,pa%length(i_part+1)/(stride1*stride2)])
-    case (PDM_STRIDE_CST_INTERLEAVED)
+    case (CWP_FIELD_STORAGE_INTERLEAVED)
       call c_f_pointer(pa%cptr(i_part+1),     &
                        pointer_f,             &
                        [pa%length(i_part+1)/(stride1*stride2),stride1,stride2])
@@ -6501,760 +6922,6 @@ contains
 
   end subroutine CWPT_pointer_array_part_get_cptr
 
-  !>
-  !!
-  !! \brief Create a simple partitionned rectangle mesh (2D).
-  !!
-  !! \param [in]   comm        MPI communicator
-  !! \param [in]   n_vtx_seg   Number of vertices along each side of the rectangle
-  !! \param [out]  n_vtx       Number of vertices
-  !! \param [out]  n_elt       Number of elements
-  !! \param [out]  coords      Array of vertex coordinates
-  !! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
-  !! \param [out]  elt_vtx     Array of the element vertex connectivity
-  !!
-  !!
 
-  subroutine CWPT_generate_mesh_rectangle_simplified_(comm,       &
-                                                     n_vtx_seg,   &
-                                                     n_vtx,       &
-                                                     n_elt,       &
-                                                     coords,      &
-                                                     elt_vtx_idx, &
-                                                     elt_vtx)
-
-      use iso_c_binding
-      implicit none
-
-      integer,                     intent(in) :: comm
-      integer(kind=pdm_g_num_s),   intent(in) :: n_vtx_seg
-      integer,                    intent(out) :: n_vtx
-      integer,                    intent(out) :: n_elt
-      double precision,               pointer :: coords(:,:)
-      integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
-      integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
-
-      call PDM_generate_mesh_rectangle_simplified (comm,        &
-                                                     n_vtx_seg,   &
-                                                     n_vtx,       &
-                                                     n_elt,       &
-                                                     coords,      &
-                                                     elt_vtx_idx, &
-                                                     elt_vtx)
-
-  end subroutine CWPT_generate_mesh_rectangle_simplified_
-
-
-!>
-!!
-!! \brief Create a simple partitionned sphere mesh (2D).
-!!
-!! \param [in]   comm        MPI communicator
-!! \param [out]  n_vtx       Number of vertices
-!! \param [out]  n_elt       Number of elements
-!! \param [out]  coords      Array of vertex coordinates
-!! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
-!! \param [out]  elt_vtx     Array of the element vertex connectivity
-!!
-!!
-
-  subroutine CWPT_generate_mesh_sphere_simplified_(comm,        &
-                                                  n_vtx,       &
-                                                  n_elt,       &
-                                                  coords,      &
-                                                  elt_vtx_idx, &
-                                                  elt_vtx)     
-    use iso_c_binding
-    implicit none
-
-    integer, intent(in)                     :: comm 
-    integer, intent(out)                    :: n_vtx
-    integer, intent(out)                    :: n_elt
-    double precision,               pointer :: coords(:,:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
-
-    call PDM_generate_mesh_sphere_simplified(comm,        &
-                                             n_vtx,       &
-                                             n_elt,       &
-                                             coords,      &
-                                             elt_vtx_idx, &
-                                             elt_vtx)
-
-  end subroutine CWPT_generate_mesh_sphere_simplified_
-
- !>
- !!
- !! \brief Create a simple partitionned ball mesh (3D).
- !!
- !! \param [in]   comm        MPI communicator
- !! \param [out]  n_vtx       Number of vertices
- !! \param [out]  n_elt       Number of elements
- !! \param [out]  coords      Array of vertex coordinates
- !! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
- !! \param [out]  elt_vtx     Array of the element vertex connectivity
- !!
- !!
-
-  subroutine CWPT_generate_mesh_ball_simplified_(comm,        &
-                                                 n_vtx,       &
-                                                 n_elt,       &
-                                                 coords,      &
-                                                 elt_vtx_idx, &
-                                                 elt_vtx)     
-    use iso_c_binding
-    implicit none
-
-    integer, intent(in)                     :: comm 
-    integer, intent(out)                    :: n_vtx
-    integer, intent(out)                    :: n_elt
-    double precision,               pointer :: coords(:,:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
-
-    call PDM_generate_mesh_ball_simplified(comm,        &
-                                           n_vtx,       &
-                                           n_elt,       &
-                                           coords,      &
-                                           elt_vtx_idx, &
-                                           elt_vtx)
-
-  end subroutine CWPT_generate_mesh_ball_simplified_
-
-!>
-!!
-!! \brief Create a simple partitionned parallelepiped mesh (3D).
-!!
-!! \param [in]   comm        MPI communicator
-!! \param [in]   n_vtx_seg   Number of vertices along each side of the parallelepiped
-!! \param [out]  n_vtx       Number of vertices
-!! \param [out]  n_elt       Number of elements
-!! \param [out]  coords      Array of vertex coordinates
-!! \param [out]  elt_vtx_idx Index array of the element vertex connectivity
-!! \param [out]  elt_vtx     Array of the element vertex connectivity
-!!
-!!
-
-  subroutine CWPT_generate_mesh_parallelepiped_simplified_(comm,       &
-                                                          n_vtx_seg,   &
-                                                          n_vtx,       &
-                                                          n_elt,       &
-                                                          coords,      &
-                                                          elt_vtx_idx, &
-                                                          elt_vtx)
-
-    use iso_c_binding
-    implicit none
-
-    integer,                     intent(in) :: comm
-    integer(kind=pdm_g_num_s),   intent(in) :: n_vtx_seg
-    integer,                    intent(out) :: n_vtx
-    integer,                    intent(out) :: n_elt
-    double precision,               pointer :: coords(:,:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx_idx(:)
-    integer(kind=pdm_l_num_s),      pointer :: elt_vtx(:)
-
-    call PDM_generate_mesh_parallelepiped_simplified (comm,        &
-                                                      n_vtx_seg,   &
-                                                      n_vtx,       &
-                                                      n_elt,       &
-                                                      coords,      &
-                                                      elt_vtx_idx, &
-                                                      elt_vtx)
-
-  end subroutine CWPT_generate_mesh_parallelepiped_simplified_
-
-
-!!
-!! \brief Create a partitionned rectangle mesh (2D) with descending connectivities.
-!!
-!! \param [in]   comm           MPI communicator
-!! \param [in]   elt_type       Element type
-!! \param [in]   xmin           Minimal x-coordinate
-!! \param [in]   ymin           Minimal y-coordinate
-!! \param [in]   zmin           Minimal z-coordinate
-!! \param [in]   lengthx        Length of the rectangle in the x-direction
-!! \param [in]   lengthy        Length of the rectangle in the y-direction
-!! \param [in]   n_x            Number of points in the x-direction
-!! \param [in]   n_y            Number of points in the y-direction
-!! \param [in]   n_part         Number of partitions
-!! \param [in]   part_method    Paritioning method
-!! \param [in]   pn_vtx         Number of vertices
-!! \param [in]   pn_edge        Number of edges
-!! \param [in]   pn_face        Number of faces
-!! \param [in]   pvtx_coord     Vertex coordinates
-!! \param [in]   pedge_vtx      edge->vertex connectivity
-!! \param [in]   pface_edge_idx Index of face->edge connectivity
-!! \param [in]   pface_edge     face->edge connectivity
-!! \param [in]   pvtx_ln_to_gn  Vertex global number
-!! \param [in]   pedge_ln_to_gn Edge global number
-!! \param [in]   pface_ln_to_gn Face global number
-!!
-!!
-
-  subroutine CWPT_generate_mesh_rectangle_ngon_(comm,           &
-                                                elt_type,       &
-                                                xmin,           &
-                                                ymin,           &
-                                                zmin,           &
-                                                lengthx,        &
-                                                lengthy,        &
-                                                n_x,            &
-                                                n_y,            &
-                                                n_part,         &
-                                                part_method,    &
-                                                pn_vtx,         &
-                                                pn_edge,        &
-                                                pn_face,        &
-                                                pvtx_coord,     &
-                                                pedge_vtx,      &
-                                                pface_edge_idx, &
-                                                pface_edge,     &
-                                                pface_vtx,      &
-                                                pvtx_ln_to_gn,  &
-                                                pedge_ln_to_gn, &
-                                                pface_ln_to_gn, &
-                                                random_factor_opt)
-
-    ! Create a partitioned rectangular mesh (2D) with descending connectivities
-    !
-    ! Admissible values for ``elt_type``:
-    !   - ``PDM_MESH_NODAL_TRIA3``   : triangles
-    !   - ``PDM_MESH_NODAL_QUAD4``   : quadrangles
-    !   - ``PDM_MESH_NODAL_POLY_2D`` : mixed polygons (triangles, quadrangles and octagons)
-
-    use iso_c_binding
-    implicit none
-
-    integer(c_int),       intent(in)           :: comm              ! MPI communicator
-    integer(c_int),       intent(in)           :: elt_type          ! Element type
-    real(c_double),       intent(in)           :: xmin              ! Minimal x-coordinate
-    real(c_double),       intent(in)           :: ymin              ! Minimal y-coordinate
-    real(c_double),       intent(in)           :: zmin              ! Minimal z-coordinate
-    real(c_double),       intent(in)           :: lengthx           ! Length of the rectangle in the x-direction
-    real(c_double),       intent(in)           :: lengthy           ! Length of the rectangle in the y-direction
-    integer(pdm_g_num_s), intent(in)           :: n_x               ! Number of points in the x-direction
-    integer(pdm_g_num_s), intent(in)           :: n_y               ! Number of points in the y-direction
-    integer(c_int),       intent(in)           :: n_part            ! Number of partitions
-    integer(c_int),       intent(in)           :: part_method       ! Partitioning method
-    integer(pdm_l_num_s),      pointer         :: pn_vtx(:)         ! Number of vertices
-    integer(pdm_l_num_s),      pointer         :: pn_edge(:)        ! Number of edges
-    integer(pdm_l_num_s),      pointer         :: pn_face(:)        ! Number of faces
-    type(CWPT_pointer_array_t), pointer         :: pvtx_coord        ! Vertex coordinates
-    type(CWPT_pointer_array_t), pointer         :: pedge_vtx         ! Edge->vertex connectivity
-    type(CWPT_pointer_array_t), pointer         :: pface_edge_idx    ! Index of face->edge connectivity
-    type(CWPT_pointer_array_t), pointer         :: pface_edge        ! Face->edge connectivity
-    type(CWPT_pointer_array_t), pointer         :: pface_vtx         ! Face->vertex connectivity
-    type(CWPT_pointer_array_t), pointer         :: pvtx_ln_to_gn     ! Vertex global ids
-    type(CWPT_pointer_array_t), pointer         :: pedge_ln_to_gn    ! Edge global ids
-    type(CWPT_pointer_array_t), pointer         :: pface_ln_to_gn    ! Face global ids
-    real(c_double),  intent(in), optional      :: random_factor_opt ! Randomization factor (between 0 and 1)
-
-    allocate(pvtx_coord)
-    allocate(pedge_vtx)
-    allocate(pface_edge_idx)
-    allocate(pface_edge)
-    allocate(pface_vtx)
-    allocate(pvtx_ln_to_gn)
-    allocate(pedge_ln_to_gn)
-    allocate(pface_ln_to_gn)
-
-    call PDM_generate_mesh_rectangle_ngon(comm,             &
-                                          elt_type,         &
-                                          xmin,             &
-                                          ymin,             &
-                                          zmin,             &
-                                          lengthx,          &
-                                          lengthy,          &
-                                          n_x,              &
-                                          n_y,              &
-                                          n_part,           &
-                                          part_method,      &
-                                          pn_vtx,           &
-                                          pn_edge,          &
-                                          pn_face,          &
-                                          pvtx_coord,       &
-                                          pedge_vtx,        &
-                                          pface_edge_idx,   &
-                                          pface_edge,       &
-                                          pface_vtx,        &
-                                          pvtx_ln_to_gn,    &
-                                          pedge_ln_to_gn,   &
-                                          pface_ln_to_gn,   &
-                                          random_factor_opt)
-
-  end subroutine CWPT_generate_mesh_rectangle_ngon_
-
-
-!>
-!!
-!! \brief Create a partitionned sphere mesh (2D) with descending connectivities.
-!!
-!! \param [in]   comm           MPI communicator
-!! \param [in]   elt_type       Element type
-!! \param [in]   order          Element order
-!! \param [in]   ho_ordering    Ordering of nodes of the HO element
-!! \param [in]   radius         Radius of the sphere
-!! \param [in]   center_x       x-coordinate of the sphere center
-!! \param [in]   center_y       y-coordinate of the sphere center
-!! \param [in]   center_z       z-coordinate of the sphere center
-!! \param [in]   n_u            Number of vertices in the u-direction
-!! \param [in]   n_v            Number of vertices in the v-direction
-!! \param [in]   n_part         Number of partitions
-!! \param [in]   part_method    Paritioning method
-!! \param [in]   pn_vtx         Number of vertices
-!! \param [in]   pn_edge        Number of edges
-!! \param [in]   pn_face        Number of faces
-!! \param [in]   pvtx_coord     Vertex coordinates
-!! \param [in]   pedge_vtx      edge->vertex connectivity
-!! \param [in]   pface_edge_idx Index of face->edge connectivity
-!! \param [in]   pface_edge     face->edge connectivity
-!! \param [in]   pface_vtx      face->vtx connectivity
-!! \param [in]   pvtx_ln_to_gn  Vertex global number
-!! \param [in]   pedge_ln_to_gn Edge global number
-!! \param [in]   pface_ln_to_gn Face global number
-!!
-!!
-
-  subroutine CWPT_generate_mesh_sphere_ngon_ (comm,           &
-                                              elt_type,       &
-                                              order,          &
-                                              ho_ordering,    &
-                                              radius,         &
-                                              center_x,       &
-                                              center_y,       &
-                                              center_z,       &
-                                              n_u,            &
-                                              n_v,            &
-                                              n_part,         &
-                                              part_method,    &
-                                              pn_vtx,         &
-                                              pn_edge,        &
-                                              pn_face,        &
-                                              pvtx_coord,     & 
-                                              pedge_vtx,      &
-                                              pface_edge_idx, &
-                                              pface_edge,     &
-                                              pface_vtx,      &
-                                              pvtx_ln_to_gn,  &
-                                              pedge_ln_to_gn, &
-                                              pface_ln_to_gn)
-
-
-    use iso_c_binding
-    implicit none
-
-    integer, intent(in)                   :: comm 
-    integer, intent(in)                   :: elt_type
-    integer, intent(in)                   :: order
-    type(c_ptr), intent(in)               :: ho_ordering
-    double precision, intent(in)          :: radius
-    double precision, intent(in)          :: center_x
-    double precision, intent(in)          :: center_y
-    double precision, intent(in)          :: center_z
-    integer(kind=pdm_g_num_s), intent(in) :: n_u
-    integer(kind=pdm_g_num_s), intent(in) :: n_v
-    integer, intent(in)                   :: n_part
-    integer, intent(in)                   :: part_method
-
-    integer(kind=pdm_l_num_s), pointer    :: pn_vtx(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_edge(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_face(:)
-
-    type(CWPT_pointer_array_t), pointer    :: pvtx_coord
-    type(CWPT_pointer_array_t), pointer    :: pedge_vtx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge_idx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge
-    type(CWPT_pointer_array_t), pointer    :: pface_vtx
-    type(CWPT_pointer_array_t), pointer    :: pvtx_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pedge_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pface_ln_to_gn
-
-    allocate (pvtx_coord)
-    allocate (pedge_vtx)
-    allocate (pface_edge_idx)
-    allocate (pface_edge)
-    allocate (pface_vtx)
-    allocate (pvtx_ln_to_gn)
-    allocate (pedge_ln_to_gn)
-    allocate (pface_ln_to_gn)
-
-    call PDM_generate_mesh_sphere_ngon (comm, &          
-                                        elt_type, &      
-                                        order, &         
-                                        ho_ordering, &   
-                                        radius, &        
-                                        center_x, &      
-                                        center_y, &      
-                                        center_z, &      
-                                        n_u, &           
-                                        n_v, &           
-                                        n_part, &        
-                                        part_method, &   
-                                        pn_vtx, &        
-                                        pn_edge, &       
-                                        pn_face, &       
-                                        pvtx_coord, &
-                                        pedge_vtx, &
-                                        pface_edge_idx, &
-                                        pface_edge, &
-                                        pface_vtx, &
-                                        pvtx_ln_to_gn, &
-                                        pedge_ln_to_gn, &
-                                        pface_ln_to_gn)
-
-  end subroutine CWPT_generate_mesh_sphere_ngon_ 
-
-
-!>
-!!
-!! \brief Create a partitionned ball mesh (3D) with descending connectivities.
-!!
-!! \param [in]  comm                      MPI communicator
-!! \param [in]  elt_type                  Mesh element type
-!! \param [in]  order                     Mesh element order
-!! \param [in]  ho_ordering               High order nodes ordering type
-!! \param [in]  radius                    Radius of the ball
-!! \param [in]  hole_radius               Radius of the hole of the ball
-!! \param [in]  center_x                  x-coordinate of the ball center
-!! \param [in]  center_y                  y-coordinate of the ball center
-!! \param [in]  center_z                  z-coordinate of the ball center
-!! \param [in]  n_x                       Number of vertices on segments in x-direction
-!! \param [in]  n_y                       Number of vertices on segments in y-direction
-!! \param [in]  n_z                       Number of vertices on segments in z-direction
-!! \param [in]  n_layer                   Number of extrusion layers
-!! \param [in]  geometric_ratio           Geometric ratio for layer thickness
-!! \param [in]  n_part                    Number of mesh partitions
-!! \param [in]  part_method               Mesh partitionning method
-!! \param [out] pn_vtx                    Number of vertices
-!! \param [out] pn_edge                   Number of edges
-!! \param [out] pn_face                   Number of faces
-!! \param [out] pvtx_coord                Vertex coordinates
-!! \param [out] pedge_vtx                 edge->vertex connectivity
-!! \param [out] pface_edge_idx            Index of face->edge connectivity
-!! \param [out] pface_edge                face->edge connectivity
-!! \param [out] pface_vtx                face->vtx connectivity
-!! \param [out] pvtx_ln_to_gn             Vertex global number
-!! \param [out] pedge_ln_to_gn            Edge global number
-!! \param [out] pface_ln_to_gn            Face global number
-!! \param [out] pn_surface                Number of surfaces
-!! \param [out] psurface_face_idx         surface->face connectivity index
-!! \param [out] psurface_face             surface->face connectivity
-!! \param [out] psurface_face_ln_to_gn    surface->face connectivity with global numbers
-!!
-!!
-
-  subroutine CWPT_generate_mesh_ball_ngon_ (comm,             &
-                                            elt_type,         &
-                                            order,            &
-                                            ho_ordering,      &
-                                            radius,           &
-                                            hole_radius,      &
-                                            center_x,         &
-                                            center_y,         &
-                                            center_z,         &
-                                            n_x,              &
-                                            n_y,              &
-                                            n_z,              &
-                                            n_layer,          &
-                                            geometric_ratio,  &
-                                            n_part,           &
-                                            part_method,      &
-                                            pn_vtx,           &
-                                            pn_edge,          &
-                                            pn_face,          &
-                                            pn_cell,          &
-                                            pvtx_coord,       &
-                                            pedge_vtx,        &
-                                            pface_edge_idx,   &
-                                            pface_edge,       &
-                                            pface_vtx,        &
-                                            pcell_face_idx,   &
-                                            pcell_face,       &
-                                            pvtx_ln_to_gn,    &
-                                            pedge_ln_to_gn,   &
-                                            pface_ln_to_gn,   &
-                                            pcell_ln_to_gn,   &
-                                            pn_surface,       &
-                                            psurface_face_idx,&
-                                            psurface_face,    &
-                                            psurface_face_ln_to_gn)
-
-
-    use iso_c_binding
-    implicit none
-
-    integer, intent(in)                   :: comm
-    integer, intent(in)                   :: elt_type
-    integer, intent(in)                   :: order
-    type(c_ptr), intent(in)               :: ho_ordering
-    double precision, intent(in)          :: radius
-    double precision, intent(in)          :: hole_radius
-    double precision, intent(in)          :: center_x
-    double precision, intent(in)          :: center_y
-    double precision, intent(in)          :: center_z
-    integer(kind=pdm_g_num_s), intent(in) :: n_x
-    integer(kind=pdm_g_num_s), intent(in) :: n_y
-    integer(kind=pdm_g_num_s), intent(in) :: n_z
-    integer(kind=pdm_g_num_s), intent(in) :: n_layer
-    double precision, intent(in)          :: geometric_ratio
-    integer, intent(in)                   :: n_part
-    integer, intent(in)                   :: part_method
-
-    integer(kind=pdm_l_num_s), pointer    :: pn_vtx(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_edge(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_face(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_cell(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_surface(:)
-    type(CWPT_pointer_array_t), pointer    :: pvtx_coord
-    type(CWPT_pointer_array_t), pointer    :: pedge_vtx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge_idx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge
-    type(CWPT_pointer_array_t), pointer    :: pface_vtx
-    type(CWPT_pointer_array_t), pointer    :: pcell_face_idx
-    type(CWPT_pointer_array_t), pointer    :: pcell_face
-    type(CWPT_pointer_array_t), pointer    :: pvtx_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pedge_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pface_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pcell_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: psurface_face_idx
-    type(CWPT_pointer_array_t), pointer    :: psurface_face
-    type(CWPT_pointer_array_t), pointer    :: psurface_face_ln_to_gn
-
-    allocate (pvtx_coord)
-    allocate (pedge_vtx)
-    allocate (pface_edge_idx)
-    allocate (pface_edge)
-    allocate (pface_vtx)
-    allocate (pcell_face_idx)
-    allocate (pcell_face)
-    allocate (pvtx_ln_to_gn)
-    allocate (pedge_ln_to_gn)
-    allocate (pface_ln_to_gn)
-    allocate (pcell_ln_to_gn)
-    allocate (psurface_face_idx)
-    allocate (psurface_face)
-    allocate (psurface_face_ln_to_gn)
-
-    call PDM_generate_mesh_ball_ngon (comm, &
-                                      elt_type, &
-                                      order, &
-                                      ho_ordering, &
-                                      radius, &
-                                      hole_radius, &
-                                      center_x, &
-                                      center_y, &
-                                      center_z, &
-                                      n_x, &
-                                      n_y, &
-                                      n_z, &
-                                      n_layer, &
-                                      geometric_ratio, &
-                                      n_part, &
-                                      part_method, &
-                                      pn_vtx, &
-                                      pn_edge, &
-                                      pn_face, &
-                                      pn_cell, &
-                                      pvtx_coord, &
-                                      pedge_vtx, &
-                                      pface_edge_idx, &
-                                      pface_edge, &
-                                      pface_vtx, &
-                                      pcell_face_idx, &
-                                      pcell_face, &
-                                      pvtx_ln_to_gn, &
-                                      pedge_ln_to_gn, &
-                                      pface_ln_to_gn, &
-                                      pcell_ln_to_gn, &
-                                      pn_surface, &
-                                      psurface_face_idx, &
-                                      psurface_face, &
-                                      psurface_face_ln_to_gn)
-
-  end subroutine CWPT_generate_mesh_ball_ngon_
-
-!>
-!!
-!! \brief Create a partitionned parallelepiped mesh (3D) with descending connectivities.
-!!
-!! \param [in]  comm                      MPI communicator
-!! \param [in]  elt_type                  Mesh element type
-!! \param [in]  order                     Mesh element order
-!! \param [in]  ho_ordering               High order nodes ordering type
-!! \param [in]  radius                    Radius of the ball
-!! \param [in]  hole_radius               Radius of the hole of the ball
-!! \param [in]  center_x                  x-coordinate of the ball center
-!! \param [in]  center_y                  y-coordinate of the ball center
-!! \param [in]  center_z                  z-coordinate of the ball center
-!! \param [in]  n_x                       Number of vertices on segments in x-direction
-!! \param [in]  n_y                       Number of vertices on segments in y-direction
-!! \param [in]  n_z                       Number of vertices on segments in z-direction
-!! \param [in]  n_layer                   Number of extrusion layers
-!! \param [in]  geometric_ratio           Geometric ratio for layer thickness
-!! \param [in]  n_part                    Number of mesh partitions
-!! \param [in]  part_method               Mesh partitionning method
-!! \param [out] pn_vtx                    Number of vertices
-!! \param [out] pn_edge                   Number of edges
-!! \param [out] pn_face                   Number of faces
-!! \param [out] pvtx_coord                Vertex coordinates
-!! \param [out] pedge_vtx                 edge->vertex connectivity
-!! \param [out] pface_edge_idx            Index of face->edge connectivity
-!! \param [out] pface_edge                face->edge connectivity
-!! \param [out] pface_vtx                 face->vtx connectivity
-!! \param [out] pvtx_ln_to_gn             Vertex global number
-!! \param [out] pedge_ln_to_gn            Edge global number
-!! \param [out] pface_ln_to_gn            Face global number
-!! \param [out] pn_surface                Number of surfaces
-!! \param [out] psurface_face_idx         surface->face connectivity index
-!! \param [out] psurface_face             surface->face connectivity
-!! \param [out] psurface_face_ln_to_gn    surface->face connectivity with global numbers
-!! \param [out] pn_ridge                  Number of ridges
-!! \param [out] pridge_edge_idx           ridge->edge connectivity index
-!! \param [out] pridge_edge               ridge->edge connectivity
-!! \param [out] pridge_edge_ln_to_gn      ridge->edge connectivity with global numbers
-!!
-!!
-
-  subroutine CWPT_generate_mesh_parallelepiped_ngon_ (comm,                   &
-                                                      elt_type,               & 
-                                                      order,                  &
-                                                      ho_ordering,            &
-                                                      xmin,                   &
-                                                      ymin,                   &
-                                                      zmin,                   &
-                                                      lengthx,                &
-                                                      lengthy,                &
-                                                      lengthz,                &
-                                                      n_x,                    &
-                                                      n_y,                    &
-                                                      n_z,                    &
-                                                      n_part,                 &
-                                                      part_method,            &
-                                                      pn_vtx,                 &
-                                                      pn_edge,                &
-                                                      pn_face,                &
-                                                      pn_cell,                &
-                                                      pvtx_coord,             &
-                                                      pedge_vtx,              &
-                                                      pface_edge_idx,         &
-                                                      pface_edge,             &
-                                                      pface_vtx,              &
-                                                      pcell_face_idx,         &
-                                                      pcell_face,             &
-                                                      pvtx_ln_to_gn,          &
-                                                      pedge_ln_to_gn,         &
-                                                      pface_ln_to_gn,         &
-                                                      pcell_ln_to_gn,         &
-                                                      pn_surface,             &
-                                                      psurface_face_idx,      &
-                                                      psurface_face,          &
-                                                      psurface_face_ln_to_gn, &
-                                                      pn_ridge,               &
-                                                      pridge_edge_idx,        &
-                                                      pridge_edge,            &
-                                                      pridge_edge_ln_to_gn)
-      
-    use iso_c_binding
-    implicit none
-! 
-    integer, intent(in)                   :: comm
-    integer, intent(in)                   :: elt_type
-    integer, intent(in)                   :: order
-    type(c_ptr), intent(in)               :: ho_ordering
-    double precision, intent(in)          :: xmin
-    double precision, intent(in)          :: ymin
-    double precision, intent(in)          :: zmin
-    double precision, intent(in)          :: lengthx
-    double precision, intent(in)          :: lengthy
-    double precision, intent(in)          :: lengthz
-    integer(kind=pdm_g_num_s), intent(in) :: n_x
-    integer(kind=pdm_g_num_s), intent(in) :: n_y
-    integer(kind=pdm_g_num_s), intent(in) :: n_z
-    integer, intent(in)                   :: n_part
-    integer, intent(in)                   :: part_method
-
-    integer(kind=pdm_l_num_s), pointer    :: pn_vtx(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_edge(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_face(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_cell(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_surface(:)
-    integer(kind=pdm_l_num_s), pointer    :: pn_ridge(:)
-    type(CWPT_pointer_array_t), pointer    :: pvtx_coord
-    type(CWPT_pointer_array_t), pointer    :: pedge_vtx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge_idx
-    type(CWPT_pointer_array_t), pointer    :: pface_edge
-    type(CWPT_pointer_array_t), pointer    :: pface_vtx
-    type(CWPT_pointer_array_t), pointer    :: pcell_face_idx
-    type(CWPT_pointer_array_t), pointer    :: pcell_face
-    type(CWPT_pointer_array_t), pointer    :: pvtx_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pedge_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pface_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pcell_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: psurface_face_idx
-    type(CWPT_pointer_array_t), pointer    :: psurface_face
-    type(CWPT_pointer_array_t), pointer    :: psurface_face_ln_to_gn
-    type(CWPT_pointer_array_t), pointer    :: pridge_edge_idx
-    type(CWPT_pointer_array_t), pointer    :: pridge_edge
-    type(CWPT_pointer_array_t), pointer    :: pridge_edge_ln_to_gn
-
-    allocate (pvtx_coord)
-    allocate (pedge_vtx)
-    allocate (pface_edge_idx)
-    allocate (pface_edge)
-    allocate (pface_vtx)
-    allocate (pcell_face_idx)
-    allocate (pcell_face)
-    allocate (pvtx_ln_to_gn)
-    allocate (pedge_ln_to_gn)
-    allocate (pface_ln_to_gn)
-    allocate (pcell_ln_to_gn)
-    allocate (psurface_face_idx)
-    allocate (psurface_face)
-    allocate (psurface_face_ln_to_gn)
-    allocate (pridge_edge_idx)
-    allocate (pridge_edge)
-    allocate (pridge_edge_ln_to_gn)
- 
-    call PDM_generate_mesh_parallelepiped_ngon(comm,                   &
-                                               elt_type,               &
-                                               order,                  &
-                                               ho_ordering,            &
-                                               xmin,                   &
-                                               ymin,                   &
-                                               zmin,                   &
-                                               lengthx,                &
-                                               lengthy,                &
-                                               lengthz,                &
-                                               n_x,                    &
-                                               n_y,                    &
-                                               n_z,                    &
-                                               n_part,                 &
-                                               part_method,            &
-                                               pn_vtx,                 &
-                                               pn_edge,                &
-                                               pn_face,                &
-                                               pn_cell,                &
-                                               pvtx_coord,             &
-                                               pedge_vtx,              &
-                                               pface_edge_idx,         &
-                                               pface_edge,             &
-                                               pface_vtx,              &
-                                               pcell_face_idx,         &
-                                               pcell_face,             &
-                                               pvtx_ln_to_gn,          &
-                                               pedge_ln_to_gn,         &
-                                               pface_ln_to_gn,         &
-                                               pcell_ln_to_gn,         &
-                                               pn_surface,             &
-                                               psurface_face_idx,      &
-                                               psurface_face,          &
-                                               psurface_face_ln_to_gn, &
-                                               pn_ridge,               &
-                                               pridge_edge_idx,        &
-                                               pridge_edge,            &
-                                               pridge_edge_ln_to_gn)
-
-  end subroutine CWPT_generate_mesh_parallelepiped_ngon_
 
 end module cwp
