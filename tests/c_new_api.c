@@ -316,6 +316,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
   if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id2,
@@ -361,6 +362,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
   if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id3,
@@ -374,6 +376,18 @@ main(int argc, char *argv[]) {
   }
 
   // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code3) {
+    CWP_Cpl_create("code3",
+                   cpl_id4,
+                   "code4",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
   if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id4,
@@ -407,18 +421,6 @@ main(int argc, char *argv[]) {
     //    fflush(stdout);
   }
 
-  if (cond_code3) {
-    CWP_Cpl_create("code3",
-                   cpl_id4,
-                   "code4",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
-  }
-
   // cpl5: code1 (0, 1, 2, 5, 7) <-> code4 (2, 4, 8)
   if (cond_code1) {
     CWP_Cpl_create("code1",
@@ -431,6 +433,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
   if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id5,
