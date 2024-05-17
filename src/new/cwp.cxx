@@ -3138,7 +3138,7 @@ CWP_Param_n_get
     cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
-  int nParam;
+  int nParam = -1;
   switch(data_type) {
   case CWP_INT :
     nParam = properties.ctrlParamNGet<int>(codeNameStr);
@@ -3226,7 +3226,7 @@ CWP_Param_is
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
-  int isParam;
+  int isParam = -1;
   switch(data_type) {
   case CWP_INT :
     isParam = properties.ctrlParamIs<int>(codeNameStr, nameStr);

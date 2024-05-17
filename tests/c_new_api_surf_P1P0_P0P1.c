@@ -461,8 +461,8 @@ main(int argc, char *argv[]) {
   int check = EXIT_SUCCESS;
   if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
     /* Check mass conservation */
-    double *field_value;
-    int icode;
+    double *field_value = recvValues[0];
+    int     icode       = -1;
     if (strcmp(code_name[0], "code1") == 0) {
       field_value = recvValues[0];
       icode = 0;

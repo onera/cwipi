@@ -523,7 +523,7 @@ namespace cwipi {
     int globalRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&globalRank);
 
-    int mesh_dimension;
+    int mesh_dimension = -1;
     switch (_cpl->entitiesDimGet()) {
       case CWP_INTERFACE_POINT:
         mesh_dimension = 0;
