@@ -12,6 +12,8 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
+#include "pdm_logging.h"
+
 #include "cwp.h"
 #include "fortran/new/cwp_cf.h"
 #include "cwipi_config.h"

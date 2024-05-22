@@ -147,11 +147,6 @@ static char *_cwipi_fortran_to_c_string(const char *application_name_f,
  * Public function definitions
  *============================================================================*/
 
-// Convert Fortran communicator to C communicator
-MPI_Comm CWPT_MPI_Comm_f2c(MPI_Fint fcomm) {
-  MPI_Comm mpi_comm = MPI_Comm_f2c(fcomm);
-  return mpi_comm;
-}
 
 /*----------------------------------------------------------------------------
  *
