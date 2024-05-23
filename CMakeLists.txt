@@ -633,40 +633,32 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Gcovr is mandatory for code coverage")
   endif()
 
-  # remove .gcov, .gcno and .gcda files
-  # execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
-  # add_custom_target (distclean
-  #                    COMMAND find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
-  #                    COMMENT "Remove .gcno files")
-
   # list of tests
   get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
   get_property(TUTORIAL_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests/tutorial PROPERTY TESTS)
   list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
 
-  # remove previous coverage directory
-  # file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/coverage")
 
   # run tests
   add_custom_target(cwp_test
-                    COMMAND ./cwp_run --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ./cwp_run -timeout 2 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
                     DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
 
-  # create folder for coverage
-  # file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/coverage")
-
-  # rm -rf coverage; mkdir coverage
-  # gcovr --filter "" -r /home/khoogvel/workspace/cwipi/cwipi . --html --html-details -o coverage/index.html
-
   # command to generate html coverage summary
   add_custom_target(coverage
-                    COMMAND ${GCOVR_PATH}
+                    COMMAND cd ${CMAKE_BINARY_DIR}/src/CMakeFiles/cwp.dir/new &&
+                            gcov -b -l -p -c *.gcno &&
+                            cd ${CMAKE_BINARY_DIR} &&
+                            ${GCOVR_PATH}
+                            --gcov-ignore-parse-errors
+                            --root ${CMAKE_SOURCE_DIR}
+                            --object-directory ${CMAKE_BINARY_DIR}
+                            -g
+                            -k
                             --html
                             --html-details
-                            --root ${CMAKE_SOURCE_DIR}/src/new
-                            --object-directory ${CMAKE_BINARY_DIR}
                             --output index.html
                             # --delete # delete .gcda files after processing
                     BYPRODUCTS index.html
