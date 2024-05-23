@@ -186,7 +186,10 @@ job:coverage_report:
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
     - cd $CUSTOM_CI_DIR/build_coverage
     - ./cwp_run -srun -ics -timeout 2
-    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CUSTOM_CI_DIR}/src/new --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
+    - cd $CUSTOM_CI_DIR/build_coverage/src/CMakeFiles/cwp.dir/new
+    - gcov -b -l -p -c *.gcno
+    - cd $CUSTOM_CI_DIR/build_coverage
+    - gcovr --gcov-ignore-parse-errors -g -k --xml-pretty --print-summary --root ${CUSTOM_CI_DIR}/src --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
   when: on_success
   coverage: /lines:\s*(\d+\.\d+)%/
   artifacts:
