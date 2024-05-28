@@ -98,6 +98,9 @@ main(int argc, char *argv[]) {
   int n_part = 1;
   const char  *coupling_name     = "code1_code2";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
+  for (int i_code = 0; i_code < n_code; i_code++) {
+    coupled_code_name[i_code] = " ";
+  }
 
   if (I_am_code1) {
     coupled_code_name[0] = "code2";

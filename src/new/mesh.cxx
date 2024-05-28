@@ -162,7 +162,7 @@ namespace cwipi {
   :
     _localComm(localComm),
     _nBlocks(0),
-    _blocksType(nullptr),  
+    _blocksType(nullptr),
                   //_hoOrdering (NULL),
     // _visu(visu),
     _displacement(displacement),
@@ -249,11 +249,11 @@ namespace cwipi {
       }
 
       if (_isEltGnumComputed) {
-        free (_global_num_elt[i]); 
+        free (_global_num_elt[i]);
       }
 
       if (_isVtxGnumComputed) {
-        free (_global_num_vtx[i]); 
+        free (_global_num_vtx[i]);
       }
     }
 
@@ -523,7 +523,7 @@ namespace cwipi {
     int globalRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&globalRank);
 
-    int mesh_dimension;
+    int mesh_dimension = -1;
     switch (_cpl->entitiesDimGet()) {
       case CWP_INTERFACE_POINT:
         mesh_dimension = 0;
@@ -543,7 +543,19 @@ namespace cwipi {
 
     _pdmNodal_handle_index = PDM_part_mesh_nodal_create(mesh_dimension, _npart,_pdm_localComm);
 
-    if (gnumVtxRequired()) {
+    int compute_gnum = 0;
+    for(int i=0; i<_npart;i++){
+      if(_global_num_vtx[i] == NULL && _nVertex[i] > 0) {
+        compute_gnum = 1;
+        break;
+      }
+    }
+
+    int _compute_gnum = compute_gnum;
+    PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                       _pdm_localComm);
+
+    if(compute_gnum == 1) {
       _isVtxGnumComputed = true;
 
       PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
@@ -582,13 +594,17 @@ namespace cwipi {
 
     if (_faceEdgeMethod == 1) {
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
       }
+
+      _compute_gnum = compute_gnum;
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if(compute_gnum) {
         _isEltGnumComputed = true;
@@ -625,13 +641,17 @@ namespace cwipi {
 
     else if (_faceVtxMethod == 1) {
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
       }
+
+      _compute_gnum = compute_gnum;
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
         _isEltGnumComputed = true;
@@ -665,11 +685,15 @@ namespace cwipi {
 
       int compute_face_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
-          compute_face_gnum = 1;
+        if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
+          compute_gnum = 1;
           break;
         }
       }
+
+      int _compute_face_gnum = compute_face_gnum;
+      PDM_MPI_Allreduce (&_compute_face_gnum, &compute_face_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_face_gnum) {
 
@@ -688,13 +712,17 @@ namespace cwipi {
       }
 
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_cellLNToGN[i_part] == NULL) {
+        if (_cellLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
       }
+
+      _compute_gnum = compute_gnum;
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
 
@@ -817,7 +845,7 @@ namespace cwipi {
         }
       }
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
 
       for(int i_part = 0; i_part < _npart; i_part++){
 
@@ -829,6 +857,10 @@ namespace cwipi {
           }
         }
       }
+
+      _compute_gnum = compute_gnum;
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_gnum) {
 
@@ -932,7 +964,7 @@ namespace cwipi {
 
                   for (int k2 = 0; k2 < 3; k2++) {
                     cell_center[i_part][3*ielt+k2] += _coords[i_part][3*i_vtx+k2];
-                  }  
+                  }
                 }
 
                 for (int k2 = 0; k2 < 3; k2++) {
@@ -1101,12 +1133,12 @@ namespace cwipi {
       }   //end loop on block
     }
 
- 
+
     _blocksType = (CWP_Block_t *) malloc (sizeof(CWP_Block_t) * _nBlocks);
 
     for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
       _blockDB[i_block]->geomFinalize();
-      _blocksType[i_block] = _blockDB[i_block]->blockTypeGet(); 
+      _blocksType[i_block] = _blockDB[i_block]->blockTypeGet();
     } //Loop on blockDB
 
     for (int i_part = 0; i_part < _npart; i_part++) {
@@ -1131,7 +1163,7 @@ namespace cwipi {
           for(int i_elt = 0; i_elt < n_elt; i_elt++){
             _elt_id_block[i_part][i_elt] = i_block;
             _elt_in_block[i_part][i_elt] = i_elt + 1;
-          }        
+          }
         }
 
       }
@@ -1293,7 +1325,7 @@ namespace cwipi {
                     connec_idx,
                     connec,
                     global_num);
-  
+
   }
 
   /**********************************************************************/
@@ -1329,9 +1361,9 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   Mesh::poly3DBlockGet
-  ( 
+  (
     const int    i_part,
     const int    block_id,
     int         *n_elts,

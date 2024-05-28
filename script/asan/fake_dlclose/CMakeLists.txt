@@ -1,4 +1,3 @@
-
 add_library(dlclose SHARED dlclose.c)
 
 target_include_directories(dlclose

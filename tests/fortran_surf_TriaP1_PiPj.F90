@@ -274,7 +274,7 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   
-#ifdef PDM_HAVE_FORTRAN_MPI_MODULE  
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE
   use mpi
 #endif
 
@@ -290,7 +290,7 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
 
-#ifndef PDM_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   include "mpif.h"
 #endif  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

@@ -1,7 +1,6 @@
 program fortran_new_api_deformable_sol
 
     use cwp
-    use pdm_generate_mesh
 
     implicit none
 
@@ -90,13 +89,13 @@ program fortran_new_api_deformable_sol
                     "text")
 
   ! Create mesh :
-  call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
-                                              n_vtx_seg,      &
-                                              n_vtx,          &
-                                              n_elt,          &
-                                              coords,         &
-                                              elt_vtx_idx,    &
-                                              elt_vtx)
+  call CWPT_generate_mesh_rectangle_simplified(intra_comms(1), &
+                                               n_vtx_seg,      &
+                                               n_vtx,          &
+                                               n_elt,          &
+                                               coords,         &
+                                               elt_vtx_idx,    &
+                                               elt_vtx)
 
     call CWP_Mesh_interf_vtx_set(code_names(1), &
                                coupling_name, &
@@ -210,9 +209,9 @@ program fortran_new_api_deformable_sol
   deallocate(coupled_code_names)
   deallocate(field_data)
 
-  call pdm_fortran_free_c(c_loc(coords))
-  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
-  call pdm_fortran_free_c(c_loc(elt_vtx))
+  call cwpt_fortran_free_c(c_loc(coords))
+  call cwpt_fortran_free_c(c_loc(elt_vtx_idx))
+  call cwpt_fortran_free_c(c_loc(elt_vtx))
 
   ! Finalize CWIPI :
   call CWP_Finalize()

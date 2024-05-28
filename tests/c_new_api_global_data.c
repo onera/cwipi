@@ -27,11 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_array.h"
-#include "pdm_writer.h"
-#include "pdm_printf.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
 
 /*----------------------------------------------------------------------
  *

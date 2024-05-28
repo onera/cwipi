@@ -270,9 +270,9 @@ main(int argc, char *argv[]) {
   int localRank;
   MPI_Comm_rank(localComm, &localRank);
 
-  PDM_timer_t *timer = PDM_timer_create();
-  PDM_timer_t *timer2 = PDM_timer_create();
-  PDM_timer_init(timer);
+  CWP_timer_t *timer = CWP_timer_create();
+  CWP_timer_t *timer2 = CWP_timer_create();
+  CWP_timer_init(timer);
 
   int n_int = 1;
   double compute_time[n_compute];
@@ -297,22 +297,22 @@ main(int argc, char *argv[]) {
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    PDM_timer_init(timer);
-    PDM_timer_init(timer2);
+    CWP_timer_init(timer);
+    CWP_timer_init(timer2);
 
     double mean = 0.0;
     double std_dev = 0.0;
     double mean2;
 
     int n_it = 0;
-    PDM_timer_resume(timer);
+    CWP_timer_resume(timer);
     for (int i = 0 ; i < n_compute ; i++) {
       cwipi_update_location(cpl_name);
-      PDM_timer_init(timer2);
-      PDM_timer_resume(timer2);
+      CWP_timer_init(timer2);
+      CWP_timer_resume(timer2);
       cwipi_locate(cpl_name);
-      PDM_timer_hang_on(timer2);
-      compute_time[i] = PDM_timer_elapsed(timer2);
+      CWP_timer_hang_on(timer2);
+      compute_time[i] = CWP_timer_elapsed(timer2);
 
       mean += compute_time[i];
       MPI_Allreduce(&mean, &mean2, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -341,7 +341,7 @@ main(int argc, char *argv[]) {
         printf("Survey localization %i %5.4e\n", i, std_dev);
       }
     }
-    PDM_timer_hang_on(timer);
+    CWP_timer_hang_on(timer);
     if (localRank == 0) {
       printf("Old localization time %5.4e codeName %s deviation %5.4e nb_it %i\n",
              mean2,
@@ -453,12 +453,12 @@ main(int argc, char *argv[]) {
     double std_dev = 0.0;
     double mean2 = 0.0;
 
-    PDM_timer_init(timer);
-    PDM_timer_resume(timer);
+    CWP_timer_init(timer);
+    CWP_timer_resume(timer);
 
     for (int i = 0 ; i < n_int ; i++) {
-      PDM_timer_init(timer2);
-      PDM_timer_resume(timer2);
+      CWP_timer_init(timer2);
+      CWP_timer_resume(timer2);
 
       if (codeId == 1) {
         cwipi_issend(cpl_name, "ech1", tag, 1, 1, 0.1, fieldName1, sendValues, &sRequest);
@@ -476,8 +476,8 @@ main(int argc, char *argv[]) {
         //        cwipi_wait_issend(cpl_name, sRequest);
       }
 
-      PDM_timer_hang_on(timer2);
-      compute_exch_time[i] = PDM_timer_elapsed(timer2);
+      CWP_timer_hang_on(timer2);
+      compute_exch_time[i] = CWP_timer_elapsed(timer2);
 
       mean += compute_exch_time[i];
       MPI_Allreduce(&mean, &mean2, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -506,7 +506,7 @@ main(int argc, char *argv[]) {
       }
     }
 
-    PDM_timer_hang_on(timer);
+    CWP_timer_hang_on(timer);
 
     if (localRank == 0) {
       printf("Old exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n",
@@ -574,22 +574,22 @@ main(int argc, char *argv[]) {
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    PDM_timer_init(timer);
-    PDM_timer_resume(timer);
-    PDM_timer_init(timer);
-    PDM_timer_init(timer2);
+    CWP_timer_init(timer);
+    CWP_timer_resume(timer);
+    CWP_timer_init(timer);
+    CWP_timer_init(timer2);
 
-    PDM_timer_resume(timer);
+    CWP_timer_resume(timer);
     double mean = 0.0;
     double mean2 = 0.0;
     double std_dev = 0.0;
     int n_it = 0;
     for (int i = 0 ; i < n_compute ; i++) {
-      PDM_timer_init(timer2);
-      PDM_timer_resume(timer2);
+      CWP_timer_init(timer2);
+      CWP_timer_resume(timer2);
       CWP_Spatial_interp_weights_compute(codeName, cpl_name);;
-      PDM_timer_hang_on(timer2);
-      compute_time[i] = PDM_timer_elapsed(timer2);
+      CWP_timer_hang_on(timer2);
+      compute_time[i] = CWP_timer_elapsed(timer2);
 
       mean += compute_time[i];
       MPI_Allreduce(&mean, &mean2, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -614,7 +614,7 @@ main(int argc, char *argv[]) {
         printf("Survey exchange %i %5.4e\n", i, std_dev);
       }
     }
-    PDM_timer_hang_on(timer);
+    CWP_timer_hang_on(timer);
 
     if (localRank == 0 && new == 1) {
       printf("New localization time %5.4e codeName %s deviation %5.4e nb_it %i \n",
@@ -624,8 +624,8 @@ main(int argc, char *argv[]) {
              n_it);
     }
 
-    PDM_timer_init(timer);
-    PDM_timer_resume(timer);
+    CWP_timer_init(timer);
+    CWP_timer_resume(timer);
 
     mean = 0.0;
     std_dev = 0.0;
@@ -633,8 +633,8 @@ main(int argc, char *argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     for (int i = 0 ; i < n_int ; i++) {
-      PDM_timer_init(timer2);
-      PDM_timer_resume(timer2);
+      CWP_timer_init(timer2);
+      CWP_timer_resume(timer2);
 
       if (strcmp(codeName, "code1") == 0) {
         CWP_Field_issend(codeName, cpl_name, fieldName1);
@@ -649,8 +649,8 @@ main(int argc, char *argv[]) {
         //        CWP_Field_wait_issend(codeName, cpl_name, fieldName2);
       }
 
-      PDM_timer_hang_on(timer2);
-      compute_exch_time[i] = PDM_timer_elapsed(timer2);
+      CWP_timer_hang_on(timer2);
+      compute_exch_time[i] = CWP_timer_elapsed(timer2);
 
       mean += compute_exch_time[i];
       MPI_Allreduce(&mean, &mean2, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -675,7 +675,7 @@ main(int argc, char *argv[]) {
       MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    PDM_timer_hang_on(timer);
+    CWP_timer_hang_on(timer);
 
     if (localRank == 0) {
       printf("New exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n",

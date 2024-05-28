@@ -28,13 +28,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 #include "grid_mesh.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_io.h"
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_generate_mesh.h"
 #include "client_server/client.h"
 
 #include "cwp_priv.h"
@@ -46,7 +39,7 @@
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"
@@ -62,8 +55,8 @@ _read_args
  char                 **argv,
  int                    code_n_rank[],
  int                    code_n_part[],
- PDM_g_num_t            code_n_vtx_seg[],
- PDM_Mesh_nodal_elt_t   code_elt_type[],
+ CWP_g_num_t            code_n_vtx_seg[],
+ CWPT_Mesh_nodal_elt_t  code_elt_type[],
  char                 **config  // filename for server ip adresses + ports
 )
 {
@@ -135,7 +128,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        code_elt_type[0] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
+        code_elt_type[0] = (CWPT_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-e2") == 0) {
@@ -144,7 +137,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        code_elt_type[1] = (PDM_Mesh_nodal_elt_t) atoi(argv[i]);
+        code_elt_type[1] = (CWPT_Mesh_nodal_elt_t) atoi(argv[i]);
       }
     }
     else if (strcmp(argv[i], "-c") == 0) {
@@ -178,11 +171,11 @@ main
 )
 {
   // default
-  char                 *config = NULL;
-  int                   code_n_rank[2]    = {-1, -1};
-  int                   code_n_part[2]    = {1, 1};
-  PDM_g_num_t           code_n_vtx_seg[2] = {10, 5};
-  PDM_Mesh_nodal_elt_t  code_elt_type[2]  = {PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_QUAD4};
+  char                  *config = NULL;
+  int                    code_n_rank[2]    = {-1, -1};
+  int                    code_n_part[2]    = {1, 1};
+  CWP_g_num_t            code_n_vtx_seg[2] = {10, 5};
+  CWPT_Mesh_nodal_elt_t  code_elt_type[2]  = {CWPT_MESH_NODAL_TRIA3, CWPT_MESH_NODAL_QUAD4};
   _read_args(argc,
              argv,
              code_n_rank,
@@ -256,8 +249,8 @@ main
   CWP_Status_t  is_active_rank    = CWP_STATUS_ON;
 
   int           n_part;
-  PDM_g_num_t   n_vtx_seg;
-  PDM_Mesh_nodal_elt_t elt_type;
+  CWP_g_num_t   n_vtx_seg;
+  CWPT_Mesh_nodal_elt_t elt_type;
   if (is_code1) {
     code_name         = "code1";
     coupled_code_name = "code2";
@@ -324,29 +317,29 @@ main
   CWP_g_num_t **pface_ln_to_gn = NULL;
   int         **pface_vtx      = NULL;
 
-  PDM_generate_mesh_rectangle_ngon(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm),
-                                   elt_type,
-                                   0.,
-                                   0.,
-                                   0.,
-                                   1.,
-                                   1.,
-                                   n_vtx_seg,
-                                   n_vtx_seg,
-                                   n_part,
-                                   PDM_SPLIT_DUAL_WITH_HILBERT,
-                                   0,
-                                   &pn_vtx,
-                                   &pn_edge,
-                                   &pn_face,
-                                   &pvtx_coord,
-                                   &pedge_vtx,
-                                   &pface_edge_idx,
-                                   &pface_edge,
-                                   &pface_vtx,
-                                   &pvtx_ln_to_gn,
-                                   &pedge_ln_to_gn,
-                                   &pface_ln_to_gn);
+  CWPT_generate_mesh_rectangle_ngon(intra_comm,
+                                    elt_type,
+                                    0.,
+                                    0.,
+                                    0.,
+                                    1.,
+                                    1.,
+                                    n_vtx_seg,
+                                    n_vtx_seg,
+                                    n_part,
+                                    CWPT_SPLIT_DUAL_WITH_HILBERT,
+                                    0,
+                                    &pn_vtx,
+                                    &pn_edge,
+                                    &pn_face,
+                                    &pvtx_coord,
+                                    &pedge_vtx,
+                                    &pface_edge_idx,
+                                    &pface_edge,
+                                    &pface_vtx,
+                                    &pvtx_ln_to_gn,
+                                    &pedge_ln_to_gn,
+                                    &pface_ln_to_gn);
 
   int block_id = CWP_client_Mesh_interf_block_add(code_name,
                                                   cpl_name,

@@ -199,14 +199,15 @@ def generate_mesh_multiblock(nx=5,
                        ymax)
 
   blocks = {
-    pycwp.BLOCK_FACE_TRIA3: {"connec" : []},
-    pycwp.BLOCK_FACE_QUAD4: {"connec" : []},
-    pycwp.BLOCK_FACE_POLY : {"connec" : [], "connec_idx": [0]}
+    pycwp.BLOCK_FACE_TRIA3: {"connec" : [], "ln_to_gn": []},
+    pycwp.BLOCK_FACE_QUAD4: {"connec" : [], "ln_to_gn": []},
+    pycwp.BLOCK_FACE_POLY : {"connec" : [], "connec_idx": [0], "ln_to_gn": []}
   }
 
   connec_idx = mesh["connec_idx"]
   connec     = mesh["connec"]
   n_elt      = len(connec_idx)-1
+  elt_ln_to_gn = 1+np.arange(n_elt, dtype=np.int64)
   for i in range(n_elt):
     elt_vtx_n = connec_idx[i+1] - connec_idx[i]
     if elt_vtx_n == 3:
@@ -218,15 +219,18 @@ def generate_mesh_multiblock(nx=5,
       blocks[elt_type]["connec_idx"].append(blocks[elt_type]["connec_idx"][-1] + elt_vtx_n)
 
     blocks[elt_type]["connec"].extend(connec[connec_idx[i]:connec_idx[i+1]])
+    blocks[elt_type]["ln_to_gn"].append(elt_ln_to_gn[i])
 
   for elt_type in blocks:
+    blocks[elt_type]["ln_to_gn"] = np.array(blocks[elt_type]["ln_to_gn"], dtype=np.int64)
     blocks[elt_type]["connec"] = np.array(blocks[elt_type]["connec"], dtype=np.int32)
     if elt_type == pycwp.BLOCK_FACE_POLY:
       blocks[elt_type]["connec_idx"] = np.array(blocks[elt_type]["connec_idx"], dtype=np.int32)
 
   return {
     "coord"  : mesh["coord"],
-    "blocks" : blocks
+    "blocks" : blocks,
+    "vtx_ln_to_gn" : 1+np.arange(len(mesh["coord"])//3, dtype=np.int64)
   }
 
 
@@ -269,11 +273,12 @@ def run_test():
   # Generate mesh
   mesh = generate_mesh_multiblock()
 
-  print(mesh)
+  # print(mesh, flush=True)
 
   # Set vertices
   cpl.mesh_interf_vtx_set(0,
                           mesh["coord"],
+                          # mesh["vtx_ln_to_gn"])
                           None)
 
   n_vtx = len(mesh["coord"])//3
@@ -290,12 +295,14 @@ def run_test():
                                        block_id,
                                        mesh["blocks"][elt_type]["connec_idx"],
                                        mesh["blocks"][elt_type]["connec"],
+                                       # mesh["blocks"][elt_type]["ln_to_gn"])
                                        None)
     else:
       # Standard element (fixed number of vertices per element, no need for idx)
       cpl.mesh_interf_block_std_set(0,
                                     block_id,
                                     mesh["blocks"][elt_type]["connec"],
+                                    # mesh["blocks"][elt_type]["ln_to_gn"])
                                     None)
 
   # Finalize mesh

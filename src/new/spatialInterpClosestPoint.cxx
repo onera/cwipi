@@ -852,6 +852,7 @@ namespace cwipi {
     }
 
 
+    // TODO: ajouter termes croisés symétriques
     static inline void _basis_vector
     (
      const int     dim,
@@ -888,6 +889,9 @@ namespace cwipi {
       return 1. / (d2 + eps2);
     }
 
+    // TODO: changer formulation pour obtenir coefficients, vérifier que sum(c) = 1, et normaliser si c'est pas le cas
+    // (http://www.nealen.com/projects/mls/asapmls.pdf)
+    // tester avec des géométries très anisotropes
     static void _interp_weighted_least_squares
     (
       const int     degree,

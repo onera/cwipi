@@ -75,7 +75,6 @@ program fortran_new_api_callback_sendrecv_sol
 #endif
 
   use cwp
-  use pdm_generate_mesh
 
   implicit none
 
@@ -184,13 +183,13 @@ program fortran_new_api_callback_sendrecv_sol
                     "text")
 
   ! Generate mesh
-  call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
-                                              n_vtx_seg,      &
-                                              n_vtx,          &
-                                              n_elt,          &
-                                              vtx_coord,      &
-                                              elt_vtx_idx,    &
-                                              elt_vtx)
+  call CWPT_generate_mesh_rectangle_simplified(intra_comms(1), &
+                                               n_vtx_seg,      &
+                                               n_vtx,          &
+                                               n_elt,          &
+                                               vtx_coord,      &
+                                               elt_vtx_idx,    &
+                                               elt_vtx)
 
   ! Set mesh vertices
   call CWP_Mesh_interf_vtx_set(code_names(1), &
@@ -334,9 +333,9 @@ program fortran_new_api_callback_sendrecv_sol
              send_field_data,    &
              recv_field_data)
 
-  call pdm_fortran_free_c(c_loc(vtx_coord))
-  call pdm_fortran_free_c(c_loc(elt_vtx_idx))
-  call pdm_fortran_free_c(c_loc(elt_vtx))
+  call CWPT_fortran_free_c(c_loc(vtx_coord))
+  call CWPT_fortran_free_c(c_loc(elt_vtx_idx))
+  call CWPT_fortran_free_c(c_loc(elt_vtx))
 
   ! Finalize CWIPI
   call CWP_Finalize()

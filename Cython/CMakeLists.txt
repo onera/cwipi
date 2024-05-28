@@ -1,16 +1,8 @@
-if (MPI_C_COMPILER)
-  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif()
-
-if (MPI_Fortran_COMPILER)
-  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif(MPI_Fortran_COMPILER)
-
 if ((Mpi4Py_VERSION VERSION_GREATER 2.0.0) OR
     (Mpi4Py_VERSION VERSION_EQUAL 2.0.0))
-   set (mpi4pylibmpi libmpi)
+  set (mpi4pylibmpi libmpi)
 else ()
-   set (mpi4pylibmpi mpi_c)
+  set (mpi4pylibmpi mpi_c)
 endif()
 
 set (include_dirs "")
@@ -21,40 +13,37 @@ list (APPEND include_dirs ${CMAKE_CURRENT_SOURCE_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
 unset(LINK_LIBRARIES)
-list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  list(APPEND LINK_LIBRARIES "m")
-endif()
 
-if (${PARMETIS_FOUND})
-  list(APPEND LINK_LIBRARIES ${PARMETIS_LIBRARIES})
-  list(APPEND LINK_LIBRARIES ${METIS_LIBRARIES})
-endif ()
-if (${PTSCOTCH_FOUND})
-  list(APPEND LINK_LIBRARIES ${PTSCOTCH_LIBRARIES})
-  list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
-endif ()
+list(APPEND LINK_LIBRARIES cwp_shared)
 
-#if (CWP_ENABLE_LONG_G_NUM)
-   set(PYX_NPY_G_NUM np.int64_t)
-   set(PYX_NPY_G_NUM_DTYPE np.int64)
-   set(CWP_G_NUM_NPY_INT np.NPY_INT64)
-   set(PYX_G_NUM long)
-   set(PYX_L_NUM int)
-#else ()
-#   set(PYX_NPY_G_NUM np.int32_t)
-#   set(PYX_NPY_G_NUM_DTYPE np.int32)
-#   set(CWP_G_NUM_NPY_INT np.NPY_INT32)
-#   set(PYX_G_NUM int)
-#   set(PYX_L_NUM int)
-#endif ()
+set(PYX_NPY_G_NUM np.int64_t)
+set(PYX_NPY_G_NUM_DTYPE np.int64)
+set(CWP_G_NUM_NPY_INT np.NPY_INT64)
+set(PYX_G_NUM long)
+set(PYX_L_NUM int)
 
 add_subdirectory(cwipi)
 
 add_subdirectory(pycwp)
 
+add_subdirectory(pycwpt)
+
 if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(pycwpclt)
-
 endif()
 
+if (NOT CWP_ENABLE_EXTERNAL_PDM AND (CWP_ENABLE_TESTS OR CWP_ENABLE_TRAINING) AND NOT CWP_ENABLE_HIDE_PDM_SYMBOLS)
+  set(PYX_NPY_G_NUM NPY.int64_t)
+  set(PYX_NPY_G_NUM_DTYPE NPY.int64)
+  set(PDM_G_NUM_NPY_INT NPY.NPY_INT64)
+  set(PYX_PDM_HAS_PARMETIS False)
+  set(PYX_PDM_HAS_PTSCOTCH False)
+  set(PYX_PDM_HAS_PDMA     False)
+  set(COMMENT_NOT_PDMA      "\#")
+  file(COPY        ${PDM_SOURCE_DIR}/Cython/Pypdm
+       DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY        Pypdm/CMakeLists.txt
+       DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Pypdm)
+  add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/Pypdm
+                   ${CMAKE_CURRENT_BINARY_DIR}/Pypdm)
+endif()

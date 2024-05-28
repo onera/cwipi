@@ -40,29 +40,31 @@ job:build:
   parallel:
     matrix:
         - COMPILER: "gcc@12"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
+            - "Sanitize"
+          BUILD_TYPE:
             - "Sanitize"
         - COMPILER: "gcc@10"
-          MPI_LIB: 
+          MPI_LIB:
             - "openmpi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
         - COMPILER: "gcc@10"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Sanitize"
         - COMPILER: "intel-llvm@2022"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
         - COMPILER: "intel@2022"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
   variables:
     MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
@@ -76,13 +78,13 @@ job:build:
     - cd $CUSTOM_CI_DIR
     - mkdir -p build$MATRIX_KEY && cd build$MATRIX_KEY
     - if [ "${COMPILER}" == "gcc@12" ]; then
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=ON -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
     - elif [ "${COMPILER}" == "gcc@10" ]; then
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=ON -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
     - elif [ "${COMPILER}" == "intel@2022" ]; then
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=ON -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=ON -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON -DCWP_ENABLE_Fortran_MPI_MODULE=ON -DCWP_ENABLE_DOCUMENTATION=ON -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  ../
     - elif [ "${COMPILER}" == "intel-llvm@2022" ]; then
-    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PARMETIS=OFF -DCWP_ENABLE_PTSCOTCH=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=ON -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=OFF -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=OFF  ../
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=OFF -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_PDM_TESTS=OFF -DCWP_ENABLE_CLIENT_SERVER=OFF  ../
     - fi
     - make -j
 #          -DPDM_ENABLE_Fortran_MPI_MODULE=OFF \
@@ -103,7 +105,7 @@ job:build_coverage:
 # needs: ["job:init_repo", "job:build"] #job:init is needed to get dotenv artifacts
 # before_script:
 #   - module purge
-#   - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "intel@2022" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021 
+#   - source /scratchm/sonics/dist/source.sh --env sonics_dev --compiler "intel@2022" --mpi "intel-oneapi" && module load py-gcovr-4.2-gcc-8.3.1-6lqfk6f py-breathe-4.21.0-gcc-8.3.1-t576gc7 doxygen-1.9.3-gcc-8.3.1-4qcntlg texlive/2021
 # rules:
 #   - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
 # script:
@@ -119,29 +121,29 @@ unit_test:
   parallel:
     matrix:
         - COMPILER: "gcc@12"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Sanitize"
         - COMPILER: "gcc@10"
-          MPI_LIB: 
+          MPI_LIB:
             - "openmpi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
         - COMPILER: "gcc@10"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Sanitize"
         - COMPILER: "intel-llvm@2022"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
         - COMPILER: "intel@2022"
-          MPI_LIB: 
+          MPI_LIB:
             - "intel-oneapi"
-          BUILD_TYPE: 
+          BUILD_TYPE:
             - "Debug"
   variables:
     MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
@@ -153,7 +155,7 @@ unit_test:
   script:
     - echo "Runner directory is $PWD; move to working directory $CUSTOM_CI_DIR"
     - export SLURM_EXACT=1
-    - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so 
+    - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
     - ./cwp_run -srun -ics -timeout 2
 #    - ./cwp_run
@@ -184,7 +186,10 @@ job:coverage_report:
     - export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
     - cd $CUSTOM_CI_DIR/build_coverage
     - ./cwp_run -srun -ics -timeout 2
-    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary --root ${CUSTOM_CI_DIR}/src/new --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
+    - cd $CUSTOM_CI_DIR/build_coverage/src/CMakeFiles/cwp.dir/new
+    - gcov -b -l -p -c *.gcno
+    - cd $CUSTOM_CI_DIR/build_coverage
+    - gcovr --gcov-ignore-parse-errors -g -k --xml-pretty --print-summary --root ${CUSTOM_CI_DIR}/src --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
   when: on_success
   coverage: /lines:\s*(\d+\.\d+)%/
   artifacts:
@@ -199,7 +204,7 @@ pages:
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_TAG != null
-  before_script: 
+  before_script:
     - ''
   script:
     - mkdir -p public
@@ -208,7 +213,7 @@ pages:
     -   cp -r $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug/doc/sphinx/html public/$CI_COMMIT_BRANCH
     - else
     -   cp -r $CUSTOM_CI_DIR/build_intel@2022_intel-oneapi_BUILD_Debug/doc/sphinx/html public/$CI_COMMIT_TAG
-    - fi 
+    - fi
     # - |
     #   cat > public/index.html << EOF
     #   <head>
@@ -219,6 +224,7 @@ pages:
     paths:
       - public
     expire_in: never
+
 
 # $CI_COMMIT_TAG
 # non_regression:

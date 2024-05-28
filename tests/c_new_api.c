@@ -253,7 +253,6 @@ main(int argc, char *argv[]) {
 
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
-  // cpl1: code1 (0, 1, 2, 5, 7) <-> code2 (0, 2, 6, 7, 9)
   if (cond_code1) {
     int v = -1;
     if (rank == 0) {
@@ -262,26 +261,11 @@ main(int argc, char *argv[]) {
     MPI_Bcast(&v, 1, MPI_INT, 0, localComm[0]);
     printf("code 1 v : %d\n", v);
     fflush(stdout);
-    CWP_Cpl_create("code1",
-                   cpl_id1,
-                   "code2",
-                   CWP_INTERFACE_VOLUME,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
   if (cond_code2) {
-    CWP_Cpl_create("code2",
-                   cpl_id1,
-                   "code1",
-                   CWP_INTERFACE_VOLUME,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 0) {
       v = 21;
@@ -304,28 +288,7 @@ main(int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  // cpl2: code1 (0, 1, 2, 5, 7) <-> code3 (2, 3, 4, 5, 7, 9)
-  if (cond_code1) {
-    CWP_Cpl_create("code1",
-                   cpl_id2,
-                   "code3",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
-  }
   if (cond_code3) {
-    CWP_Cpl_create("code3",
-                   cpl_id2,
-                   "code1",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 2) {
       v = 31;
@@ -349,41 +312,9 @@ main(int argc, char *argv[]) {
     fflush(stdout);
   }
 
-  // cpl3: code2 (0, 2, 6, 7, 9) <-> code3 (2, 3, 4, 5, 7, 9)
-  if (cond_code2) {
-    CWP_Cpl_create("code2",
-                   cpl_id3,
-                   "code3",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
-  }
-  if (cond_code3) {
-    CWP_Cpl_create("code3",
-                   cpl_id3,
-                   "code2",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
-  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
   if (cond_code4) {
-    CWP_Cpl_create("code4",
-                   cpl_id4,
-                   "code3",
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   1,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 2) {
       v = 41;
@@ -403,10 +334,92 @@ main(int argc, char *argv[]) {
     }
 
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    //    printf("code 4 v : %d\n", v);
-    //    fflush(stdout);
+    printf("code 4 v : %d\n", v);
+    fflush(stdout);
   }
 
+  // cpl1: code1 (0, 1, 2, 5, 7) <-> code2 (0, 2, 6, 7, 9)
+
+  if (cond_code1) {
+    CWP_Cpl_create("code1",
+                   cpl_id1,
+                   "code2",
+                   CWP_INTERFACE_VOLUME,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+  if (cond_code2) {
+    CWP_Cpl_create("code2",
+                   cpl_id1,
+                   "code1",
+                   CWP_INTERFACE_VOLUME,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // cpl2: code1 (0, 1, 2, 5, 7) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code1) {
+    CWP_Cpl_create("code1",
+                   cpl_id2,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  if (cond_code3) {
+    CWP_Cpl_create("code3",
+                   cpl_id2,
+                   "code1",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // cpl3: code2 (0, 2, 6, 7, 9) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code2) {
+    CWP_Cpl_create("code2",
+                   cpl_id3,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  if (cond_code3) {
+    CWP_Cpl_create("code3",
+                   cpl_id3,
+                   "code2",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
   if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id4,
@@ -418,6 +431,20 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
+  if (cond_code4) {
+    CWP_Cpl_create("code4",
+                   cpl_id4,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // cpl5: code1 (0, 1, 2, 5, 7) <-> code4 (2, 4, 8)
   if (cond_code1) {
@@ -431,6 +458,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
   if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id5,
@@ -442,6 +470,8 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // cpl6: code2 (0, 2, 6, 7, 9) <-> code4 (2, 4, 8)
   if (cond_code2) {
@@ -466,6 +496,8 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Create Visu
   if (cond_code1) {

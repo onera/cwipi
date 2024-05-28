@@ -9,18 +9,9 @@ cmake_policy(VERSION 3.16)
 
 enable_testing()
 
-# ----------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # RPATH protection
-
-#set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-#SET(CMAKE_SKIP_BUILD_RPATH  TRUE)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
-#set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
-
-
+#------------------------------------------------------------------------------
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -30,10 +21,8 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 # Internal CMake module (shared with paradigm)
 #------------------------------------------------------------------------------
 
-#set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules")
-#set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 include(${CWP_CMAKE_DIR}/modules/cwp_version.cmake)
 project(CWP VERSION ${CWP_DEF_VERSION_MAJOR} LANGUAGES C CXX Fortran)
@@ -53,21 +42,6 @@ set(CWP_VERSION "${CWP_VERSION_MAJOR}.${CWP_VERSION_MINOR}.${CWP_VERSION_PATCH}"
 
 option(CWP_ENABLE_EXTERNAL_PDM "Use an external ParaDiGM library" OFF)
 
-# OpenMP
-# ------
-
-option(CWP_ENABLE_OPENMP "Enable OpenMP" ON)
-
-# Pt-scotch
-# ---------
-
-option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." ON)
-
-# ParMetis
-# --------
-
-option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." ON)
-
 # Shared libraries
 # ----------------
 
@@ -76,7 +50,7 @@ option(CWP_ENABLE_SHARED "Build Shared Libraries" ON)
 # Static libraries
 # ----------------
 
-option(CWP_ENABLE_STATIC "Build Static Libraries" ON)
+option(CWP_ENABLE_STATIC "Build Static Libraries" OFF)
 
 # Check MPI Wrapper
 # -----------------
@@ -91,28 +65,20 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # Fortran interface
 # -----------------
 
-option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
+option(CWP_ENABLE_Fortran "Build Shared Fortran Interface" OFF)
 
 option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
 
-if (CWP_ENABLE_Fortran_MPI_MODULE)
-  set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
-endif()
+# BLAS
+# ----
 
-# MKL, BLAS, LAPACK
-# -----------------
-
-option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
+option(CWP_ENABLE_BLASLAPACK "Enable the use of the library blas/lapack" OFF)
 
 if (CWP_ENABLE_BLASLAPACK)
 
   if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
     set (BLA_VENDOR "Intel10_64lp")
     find_package(BLAS)
-    find_package(LAPACK)
-    if (BLAS_FOUND AND LAPACK_FOUND)
-      set(CWP_HAVE_MKL 1)
-    endif()
     unset (BLA_VENDOR)
   endif()
 
@@ -120,37 +86,11 @@ if (CWP_ENABLE_BLASLAPACK)
     find_package(BLAS)
   endif()
 
-  if (NOT LAPACK_FOUND)
-    find_package(LAPACK)
-  endif()
-
   if (BLAS_FOUND)
     set(CWP_HAVE_BLAS 1)
   endif()
 
-  if (LAPACK_FOUND)
-    set(CWP_HAVE_LAPACK 1)
-  endif()
-
 endif()
-
-# High order (Nodal bases from SPACE)
-# -----------------
-
-#if (BLAS_FOUND AND LAPACK_FOUND)
-#  set (ENABLE_SPACE_NODAL_BASIS ON)
-#else()
-#  set (ENABLE_SPACE_NODAL_BASIS OFF)
-#endif()
-#option(CWP_ENABLE_SPACE_NODAL_BASIS  "Enable nodal basis from SPACE" ${ENABLE_SPACE_NODAL_BASIS})
-
-#if (CWP_ENABLE_SPACE_NODAL_BASIS)
-# set(SNB_IN_CWP 1)
-# set(HAVE_SPACE_BASIS 1)
-#endif ()
-
-# Allow Fortran call from C
-# --------------------------
 
 # Client-Server
 # -------------
@@ -167,38 +107,48 @@ option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 
 option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
 
-# Enable PDM tests
-# ----------------
-
-option(CWP_ENABLE_PDM_TESTS "Enable ParaDiGM Tests if ParaDiGM is embedded" OFF)
-
 # Enable tests
-# ----------------
+# ------------
 
 option(CWP_ENABLE_TESTS "Enable Tests" ON)
+
+# Hide ParaDiGM Library symbols into the CWIPI library.
+# This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
+# -----------------------------------------------------------------------------------
+
+option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Hide PDM symbols" ON)
 
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS AND (NOT CWP_ENABLE_SHARED))
-   set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
+  set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
 endif()
 
 if (CWP_ENABLE_SHARED AND CWP_ENABLE_Fortran)
-   set (CWP_ENABLE_SHARED_Fortran_LIB ON)
+  set (CWP_ENABLE_SHARED_Fortran_LIB ON)
 endif()
 
 if (CWP_ENABLE_STATIC AND CWP_ENABLE_Fortran)
-   set (CWP_ENABLE_STATIC_Fortran_LIB ON)
+  set (CWP_ENABLE_STATIC_Fortran_LIB ON)
 endif()
 
 if ((NOT CWP_ENABLE_STATIC) AND (NOT CWP_ENABLE_SHARED))
-   message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
+  message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
+endif()
+
+if ((CWP_ENABLE_STATIC) AND (CWP_ENABLE_HIDE_PDM_SYMBOLS))
+  message (FATAL_ERROR "Enabling the hiding of ParaDiGM library symbols in the CWIPI library is not allowed for the static library. To generate a static library, set the CWP_ENABLE_HIDE_PDM_SYMBOLS option to OFF.")
+endif()
+
+if ((CWP_ENABLE_EXTERNAL_PDM) AND (CWP_ENABLE_HIDE_PDM_SYMBOLS))
+  set (CWP_ENABLE_HIDE_PDM_SYMBOLS OFF)
+  message (WARNING "Enabling the hiding of ParaDiGM library symbols in the CWIPI library is not allowed when using an external ParaDiGM library. Switching CWP_ENABLE_HIDE_PDM_SYMBOLS to OFF.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -206,14 +156,6 @@ endif()
 #------------------------------------------------------------------------------
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/default_flags.cmake)
-
-#------------------------------------------------------------------------------
-# ADD "-DDEBUG_CLASSE" in Debug
-#------------------------------------------------------------------------------
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions (-DDEBUG_CLASSE)
-endif()
 
 #------------------------------------------------------------------------------
 # Check include file
@@ -346,29 +288,26 @@ CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Libraries to add to link
-#------------------------------------------------------------------------------
-
-set(COMMON_LIBRARIES)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
-   add_link_options("--coverage")
-endif()
-
-#------------------------------------------------------------------------------
 # Check dependecies
 #------------------------------------------------------------------------------
 
-# Check MPI (TODO : check MPI wrapper function check )
+# Check MPI
 # ----------------------------------------------------
 
 if (CWP_ENABLE_Fortran)
-  find_package(MPI REQUIRED COMPONENTS C Fortran)
+  find_package(MPI REQUIRED COMPONENTS C CXX Fortran)
+  if (MPI_Fortran_COMPILER)
+    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+  endif()
 else()
-  find_package(MPI REQUIRED COMPONENTS C)
+  find_package(MPI REQUIRED COMPONENTS C CXX)
 endif()
-
-mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
+if (MPI_C_COMPILER)
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+endif()
+if (MPI_CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif()
 
 # Check MPI Wrapper
 # -----------------
@@ -377,39 +316,10 @@ if (CWP_ENABLE_MPI_CHECK)
   include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/CheckMPI.cmake)
 endif()
 
-# Checck SCOTCH an ParMETIS
-# -------------------------
-
-if (CWP_ENABLE_PARMETIS)
-  find_package(ParMETIS 4.0.3)
-  if (PARMETIS_FOUND)
-    set(CWP_HAVE_PARMETIS 1)
-  endif()
-endif()
-
-if (CWP_ENABLE_PTSCOTCH)
-  find_package(PTSCOTCH 6.0.0)
-  if (PTSCOTCH_FOUND)
-    set(CWP_HAVE_PTSCOTCH 1)
-  endif()
-endif()
-
-# Check OpenMP (TODO : check MPI wrapper function check )
-# -------------------------------------------------------
-
-if (CWP_ENABLE_OPENMP)
-  find_package(OpenMP)
-  if (OPENMP_FOUND)
-    set(CWP_HAVE_OPENMP 1)
-  endif()
-endif()
-
 # Python bindings
 # ---------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
-  # NB: cython module must use mpicxx to avoid "mpi.h" not found.
-  find_package(MPI REQUIRED COMPONENTS CXX)
 
   find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
   find_package(Mpi4Py REQUIRED)
@@ -417,9 +327,8 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   include(UseCython)
 
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
-
-     set (CMAKE_CWP_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
-     set (CMAKE_CWP_INSTALL_PYTHON_DIR
+    set (CMAKE_CWP_INSTALL_PYTHON_DIR "${CMAKE_INSTALL_PREFIX}")
+    set (CMAKE_CWP_INSTALL_PYTHON_DIR
          ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
   endif ()
 
@@ -446,11 +355,19 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "System_V")
 endif()
 
 #------------------------------------------------------------------------------
+# Fortran module
+#------------------------------------------------------------------------------
+
+if (CWP_ENABLE_Fortran_MPI_MODULE)
+  set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
+endif()
+
+#------------------------------------------------------------------------------
 # Call Fortran in C
 #------------------------------------------------------------------------------
 
 if (NOT (CWP_ENABLE_SHARED_Fortran_LIB OR CWP_ENABLE_STATIC_Fortran_LIB))
-   set (CWP_HAVE_NOT_FORTRAN_IN_C 1)
+  set (CWP_HAVE_NOT_FORTRAN_IN_C 1)
 endif()
 
 #------------------------------------------------------------------------------
@@ -463,25 +380,11 @@ configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-  if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
+  if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
     include (FortranizeFile)
     fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
   endif ()
 endif ()
-
-#------------------------------------------------------------------------------
-# Installation de CWP
-#------------------------------------------------------------------------------
-
-# Set PDM install sub-directories
-set(CWP_BIN_DIR "bin")
-set(CWP_LIB_DIR "lib")
-set(CWP_INCLUDE_DIR "include")
-set(CWP_PKGCONFIG_DIR "lib/pkgconfig")
-set(CWP_SHARE_DIR "share/cedre")
-set(CWP_MAN_DIR "share/man")
-set(CWP_DOC_DIR "${CWP_SHARE_DIR}/doc")
-set(CWP_ETC_DIR "etc")
 
 #------------------------------------------------------------------------------
 # Create test list
@@ -490,18 +393,13 @@ set(CWP_ETC_DIR "etc")
 set(CWP_LIST_TEST "")
 set(CWP_LIST_NRANK "")
 
-
 #------------------------------------------------------------------------------
-# Fake dlclose path
+# Definition of PDM_SOURCE_DIR
 #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/script/asan/fake_dlclose)
-else()
-  set(PDM_BINARY_DLCLOSE_DIR ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose)
-endif()
-
-set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
+if (NOT CWP_ENABLE_EXTERNAL_PDM)
+  set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
+endif ()
 
 #------------------------------------------------------------------------------
 # Ajout des sources de tous les elements du projet
@@ -510,7 +408,7 @@ set(PDM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/paradigm)
 
 add_subdirectory(script)
 
-if (CWP_ENABLE_EXTERNAL_PDM) 
+if (CWP_ENABLE_EXTERNAL_PDM)
 
   set (REQUIRED_COMPONENTS pdm)
 
@@ -528,91 +426,73 @@ if (CWP_ENABLE_EXTERNAL_PDM)
                )
 
   #find_package(PARADIGM 2.3.0
-  #             REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} 
+  #             REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
   #             OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES)
 
 else ()
 
-  # Extensions
-  # ----------
+  # Global options
+  # ------
 
-  set (PDM_ENABLE_EXTENSION_PDMA OFF)
+  set(PDM_HAVE_CUDA OFF)
+  set(PDM_HAVE_ANISO_AGGLO OFF)
+  set(PDM_HAVE_GETRUSAGE ${HAVE_PDM_HAVE_GETRUSAGE})
+  set(PDM_HAVE_GETTIMEOFDAY ${HAVE_GETTIMEOFDAY})
+  set(PDM_HAVE_BLAS OFF)
+  set(PDM_HAVE_LAPACK OFF)
+  set(PDM_USE_MULTIPART OFF)
 
   # OpenMP
   # ------
 
-  set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
+  set(PDM_HAVE_OPENMP OFF)
 
   # Enable long for absolute number
   # -------------------------------
 
-  set(PDM_ENABLE_LONG_G_NUM ON)
+  set(PDM_LONG_G_NUM ON)
 
   # Pt-scotch
   # ---------
 
-  set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
+  set(PDM_HAVE_PTSCOTCH OFF)
 
   # ParMetis
   # --------
 
-  set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
-
-  # Shared libraries
-  # ----------------
-
-  set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
-
-  # Static libraries
-  # ----------------
-
-  set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
-
-  # Check MPI Wrapper
-  # -----------------
-
-  #set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
-
-  # Python Bindings
-  # ---------------
-
-  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+  set(PDM_HAVE_PARMETIS OFF)
 
   # Fortran interface
   # -----------------
 
-  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
+  if (CWP_ENABLE_Fortran_MPI_MODULE)
+    set(PDM_HAVE_FORTRAN_MPI_MODULE 1)
+  endif()
 
-  set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
-
-  set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
-
-  set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
+  # Python bindings
+  # -----------------
 
   set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
-  # Enable Tests
-  # ------------
+  # Configuration file
+  # -----------------
 
-  set(PDM_ENABLE_TESTS ${CWP_ENABLE_PDM_TESTS})
+  configure_file(${PDM_SOURCE_DIR}/pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
-  add_subdirectory(external/paradigm)
+  if (CWP_ENABLE_Fortran)
+    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+      include (FortranizeFile)
+      fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
+    endif ()
+  endif ()
 
 endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "Sanitize" AND CWP_ENABLE_DOCUMENTATION)
-  message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
-endif ()
 
 add_subdirectory(src)
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
   add_subdirectory(Cython)
 endif()
-
-if (CWP_ENABLE_SPACE_NODAL_BASIS)
- add_subdirectory(spaceBasis)
-endif ()
 
 if (CWP_ENABLE_CLIENT_SERVER)
   add_subdirectory(bin)
@@ -626,7 +506,12 @@ endif()
 # Add doc
 #------------------------------------------------------------------------------
 
-add_subdirectory(doc)
+if(CWP_ENABLE_DOCUMENTATION)
+  if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
+    message(FATAL_ERROR "Documention can not be built in Sanitize CMAKE_BUILD_TYPE")
+  endif ()
+  add_subdirectory(doc)
+endif()
 
 if (CWP_ENABLE_TRAINING)
   add_subdirectory(training)
@@ -683,16 +568,11 @@ set (PDM_RUN_PYTHONPATH "")
 if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
   execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
   set(PDM_RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
-  if (PDM_ENABLE_EXTERNAL_PDM)
-    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-  else()
-    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
-    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
-  endif()
+  set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+  set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
 endif()
 
-if (PDM_ENABLE_EXTERNAL_PDM)
+if (CWP_ENABLE_EXTERNAL_PDM)
   if(DEFINED ENV{PYTHONPATH})
     set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
   else()
@@ -712,12 +592,8 @@ else()
   set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin")
 endif()
 
-
 configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
                @ONLY)
-
- #
- # Voir comment mieux faire !
 
 configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
                @ONLY)
@@ -727,7 +603,6 @@ configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${P
 
 configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch_python.in "${PROJECT_BINARY_DIR}/pdm_launch_python"
                @ONLY)
-
 
 #------------------------------------------------------------------------------
 # Print coverage report
@@ -739,8 +614,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
   endif()
 
+  # link for coverage
+  add_link_options("--coverage")
+
   # find gcov and gcovr
-  find_program( GCOV_PATH  gcov )
+  find_program( GCOV_PATH gcov )
   if (NOT GCOV_PATH)
     message(FATAL_ERROR "gcov is mandatory for code coverage")
   endif()
@@ -755,40 +633,32 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     message(FATAL_ERROR "Gcovr is mandatory for code coverage")
   endif()
 
-  # remove .gcov, .gcno and .gcda files
-  # execute_process(COMMAND find . -type f -name '*.gcno' -exec rm {} +)
-  # add_custom_target (distclean
-  #                    COMMAND find ${CMAKE_BINARY_DIR} -type f -name '*.gcno' -exec rm {} +
-  #                    COMMENT "Remove .gcno files")
-
   # list of tests
   get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
   get_property(TUTORIAL_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests/tutorial PROPERTY TESTS)
   list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
 
-  # remove previous coverage directory
-  # file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/coverage")
 
   # run tests
   add_custom_target(cwp_test
-                    COMMAND ./cwp_run --timeout 120 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
+                    COMMAND ./cwp_run -timeout 2 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
                     DEPENDS ${TEST_NAMES}
                     COMMENT "Running tests for coverage")
 
-  # create folder for coverage
-  # file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/coverage")
-
-  # rm -rf coverage; mkdir coverage
-  # gcovr --filter "" -r /home/khoogvel/workspace/cwipi/cwipi . --html --html-details -o coverage/index.html
-
   # command to generate html coverage summary
   add_custom_target(coverage
-                    COMMAND ${GCOVR_PATH}
+                    COMMAND cd ${CMAKE_BINARY_DIR}/src/CMakeFiles/cwp.dir/new &&
+                            gcov -b -l -p -c *.gcno &&
+                            cd ${CMAKE_BINARY_DIR} &&
+                            ${GCOVR_PATH}
+                            --gcov-ignore-parse-errors
+                            --root ${CMAKE_SOURCE_DIR}
+                            --object-directory ${CMAKE_BINARY_DIR}
+                            -g
+                            -k
                             --html
                             --html-details
-                            --root ${CMAKE_SOURCE_DIR}/src/new
-                            --object-directory ${CMAKE_BINARY_DIR}
                             --output index.html
                             # --delete # delete .gcda files after processing
                     BYPRODUCTS index.html

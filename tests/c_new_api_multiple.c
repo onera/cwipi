@@ -28,15 +28,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 #include "grid_mesh.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_logging.h"
-#include "pdm_io.h"
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_generate_mesh.h"
-#include "pdm_array.h"
 
 #include "cwp_priv.h"
 
@@ -47,7 +38,7 @@
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -n_rank1 \n\n"
@@ -424,7 +415,10 @@ main
                     send_val1);
 
     send_val2 = malloc(sizeof(double) * n_first_elts);
-    int *connec_idx = PDM_array_new_idx_from_const_stride_int(3, n_first_elts);
+    int *connec_idx = calloc(sizeof(int), n_first_elts+1);
+    for (int i = 0; i < n_first_elts; i++) {
+      connec_idx[i+1] = connec_idx[i] + 3;
+    }
     _compute_field2(n_first_elts,
                     connec_idx,
                     first_connec,
@@ -556,7 +550,10 @@ main
                     send_val1);
 
     send_val2 = malloc(sizeof(double) * n_third_elts);
-    int *connec_idx = PDM_array_new_idx_from_const_stride_int(4, n_third_elts);
+    int *connec_idx = calloc(sizeof(int), n_third_elts+1);
+    for (int i = 0; i < n_third_elts; i++) {
+      connec_idx[i+1] = connec_idx[i] + 4;
+    }
     _compute_field2(n_third_elts,
                     connec_idx,
                     third_connec,
