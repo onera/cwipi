@@ -38,6 +38,7 @@ Follow these steps to build **CWIPI** from the sources:
 
 #### Enable Fortran interface
     CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)
+    CWP_ENABLE_Fortran_MPI_MODULE=<ON | OFF> (default : OFF)
 
 #### Enable Python interface
     CWP_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)
@@ -53,10 +54,23 @@ Refer to [FindPython](https://cmake.org/cmake/help/latest/module/FindPython.html
     CWP_ENABLE_SHARED=<ON | OFF> (default : ON)
 
 #### Build static library
-    CWP_ENABLE_STATIC=<ON | OFF> (default : ON)
+    CWP_ENABLE_STATIC=<ON | OFF> (default : OFF)
+
+#### Enable MPI wrapper check
+    CWP_ENABLE_MPI_CHECK=<ON | OFF> (default : ON)
+
+#### Hide symbols of internal ParaDiGM library
+    CWP_ENABLE_HIDE_PDM_SYMBOLS=<ON | OFF> (default : ON)
+
+#### Enable the use of external ParaDiGM library
+    CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)
+
+You must define this variable to find ParaDiGM :
+
+    PDM_DIR=<path> Where to find the base directory of ParaDiGM
 
 #### Enable the use of [BLAS](https://www.netlib.org/blas/) (linear algebra)
-    CWP_ENABLE_BLAS=<ON | OFF> (default : ON)
+    CWP_ENABLE_BLASLAPACK=<ON | OFF> (default : OFF)
 
 If a simple autodetection fails, you can use these options to find BLAS :
 
@@ -68,12 +82,17 @@ To force the use of a list of libraries, use :
 
     DBLAS_LIBRARIES="<lib_1> ... <lib_n>"
 
-
 #### Enable client-server mode
     CWP_ENABLE_CLIENT_SERVER=<ON | OFF> (default : OFF)
 
+#### Enable tests
+    CWP_ENABLE_TESTS=<ON | OFF> (default : ON)
+
 #### Enable documentation mode
     CWP_ENABLE_DOCUMENTATION=<ON | OFF> (default : OFF)
+
+#### Enable training mode
+    CWP_ENABLE_TRAINING=<ON | OFF> (default : OFF)
 
 Once built, the documentation can be found in `build/doc/sphinx/html` and launch `index.html` file
 

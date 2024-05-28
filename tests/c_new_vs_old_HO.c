@@ -78,6 +78,7 @@ _usage(int exit_code) {
  * parameters:
  *   nVertex             <-- Number of vertices in bandwidth
  *   randLevel           <-- Random level
+ * todo: add HO to PDM_generate_mesh and switch back to release mode
  *---------------------------------------------------------------------*/
 
 static void
@@ -834,14 +835,14 @@ main
   }
 
 
-  PDM_timer_t *timer = PDM_timer_create();
+  CWP_timer_t *timer = CWP_timer_create();
   double t_start, t_end;
   MPI_Barrier(comm);
 
-  PDM_timer_init(timer);
+  CWP_timer_init(timer);
 
-  t_start = PDM_timer_elapsed(timer);
-  PDM_timer_resume(timer);
+  t_start = CWP_timer_elapsed(timer);
+  CWP_timer_resume(timer);
 
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(cpl_name);
@@ -860,10 +861,10 @@ main
 
   MPI_Barrier(comm);
 
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
+  CWP_timer_hang_on(timer);
+  t_end = CWP_timer_elapsed(timer);
 
-  PDM_timer_free(timer);
+  CWP_timer_free(timer);
 
   double dt = t_end - t_start;
   double dt_min;

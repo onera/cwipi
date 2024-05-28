@@ -164,13 +164,13 @@ def runTest():
     if (i_rank == 0):
         print("\nSTART: python_new_api_multiple_field_with_callback.py")
 
-    # Load Python PDM module
+    # Load Python CWPT module
     try:
-      from Pypdm import Pypdm
+      from pycwpt import pycwpt
     except:
       if i_rank == 0:
-        print("      Error : PDM module not found (update PYTHONPATH variable)")
-        print(f"pdm : {Pypdm.__file__}")
+        print("      Error : CWIPI test utilities module not found (update PYTHONPATH variable)")
+        print(f"cwpt : {pycwpt.__file__}")
         sys.exit(1)
 
     # Load Python CWIPI module
@@ -221,8 +221,8 @@ def runTest():
                  "text")
 
     # MESH
-    mesh = Pypdm.generate_mesh_rectangle_simplified(intra_comm[0],
-                                                    5)
+    mesh = pycwpt.generate_mesh_rectangle_simplified(intra_comm[0],
+                                                     5)
 
     cpl.mesh_interf_vtx_set(0,
                             mesh["coords"],
@@ -241,10 +241,10 @@ def runTest():
     # FIELD 1 - x
     field1_name = "Field 1"
 
-    send_field1_data = np.zeros(mesh["n_vtx"], dtype=np.double)
-    for i in range(mesh["n_vtx"]):
+    send_field1_data = np.zeros(len(mesh["coords"])//3, dtype=np.double)
+    for i in range(len(mesh["coords"])//3):
         send_field1_data[i] = mesh["coords"][3*i]
-    recv_field1_data = np.zeros(mesh["n_vtx"], dtype=np.double)
+    recv_field1_data = np.zeros(len(mesh["coords"])//3, dtype=np.double)
 
     visu_status = pycwp.STATUS_ON
     if (proc0) :
@@ -264,10 +264,10 @@ def runTest():
     # FIELD 2 - y
     field2_name = "Field 2"
 
-    send_field2_data = np.zeros(mesh["n_vtx"], dtype=np.double)
-    for i in range(mesh["n_vtx"]):
+    send_field2_data = np.zeros(len(mesh["coords"])//3, dtype=np.double)
+    for i in range(len(mesh["coords"])//3):
         send_field2_data[i] = mesh["coords"][3*i+1]
-    recv_field2_data = np.zeros(mesh["n_vtx"], dtype=np.double)
+    recv_field2_data = np.zeros(len(mesh["coords"])//3, dtype=np.double)
 
     if (proc0) :
         exchange_type = pycwp.FIELD_EXCH_SEND
@@ -334,7 +334,7 @@ def runTest():
     pycwp.time_step_end(code_name)
 
     # CHECK
-    for i in range(mesh["n_vtx"]):
+    for i in range(len(mesh["coords"])//3):
       if (proc1) :
         egal1 = abs(recv_field1_data[i] - mesh["coords"][3*i]) < 1e-9
         if not egal1:

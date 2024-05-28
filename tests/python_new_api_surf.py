@@ -19,73 +19,13 @@
 #-----------------------------------------------------------------------------
 
 import mpi4py.MPI as MPI
-import Pypdm.Pypdm as PDM
+import pycwpt.pycwpt as CWPT
 import numpy as np
 import sys
 import argparse
 import ctypes
 from pycwp import pycwp
 from pycwp.pycwp import gnum_dtype
-
-
-def gen_mesh(comm, n_part, n, center, radius, part_method):
-
-  dmn_capsule = PDM.sphere_surf_icosphere_gen_nodal(comm,
-                                                    n,
-                                                    center[0],
-                                                    center[1],
-                                                    center[2],
-                                                    radius)
-
-  mpart = PDM.MultiPart(1,
-                        np.array([n_part]).astype(np.int32),
-                        0,
-                        part_method,
-                        1,
-                        np.ones(1).astype(np.double),
-                        comm)
-
-  mpart.dmesh_nodal_set(0, dmn_capsule)
-
-  mpart.compute()
-
-
-#  pvtx_coord     = [mpart.vtx_coord_get(i, 0)["np_vtx_coord"] for i in range(n_part)]
-#  pvtx_ln_to_gn  = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VERTEX)["np_entity_ln_to_gn"] for i in range(n_part)]
-#  pface_ln_to_gn = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE)  ["np_entity_ln_to_gn"] for i in range(n_part)]
-
-  pvtx_coord     = [mpart.vtx_coord_get(i, 0) for i in range(n_part)]
-  pvtx_ln_to_gn  = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VTX) for i in range(n_part)]
-  pface_ln_to_gn = [mpart.ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE) for i in range(n_part)]
-
-
-  pface_vtx_idx = []
-  pface_vtx     = []
-  for i in range(n_part):
-    edges = mpart.connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_EDGE_VTX)
-    faces = mpart.connectivity_get(i, 0, PDM._PDM_CONNECTIVITY_TYPE_FACE_EDGE)
-
-    # face_edge_idx = faces["np_entity1_entity2_idx"]
-    # face_edge     = faces["np_entity1_entity2"]
-    face_edge_idx = faces[0]
-    face_edge     = faces[1]
-
-    face_vtx = PDM.compute_face_vtx_from_face_and_edge(face_edge_idx,
-                                                       face_edge,
-                                                       edges[1])
-    pface_vtx_idx.append(face_edge_idx)
-    pface_vtx.append(face_vtx)
-
-
-  return {
-    "pvtx_coord"     : pvtx_coord,
-    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=gnum_dtype) for pg in pvtx_ln_to_gn],
-    "pface_vtx_idx"  : pface_vtx_idx,
-    "pface_vtx"      : pface_vtx,
-    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=gnum_dtype) for pg in pface_ln_to_gn]
-  }
-
-
 
 
 def runTest():
@@ -232,28 +172,27 @@ def runTest():
   # Define interface mesh
   mesh = []
   for icode in range(n_code):
-    mesh.append(gen_mesh(intra_comm[icode],
-                         n_part[icode],
-                         n_subdiv,
-                         [0., 0., 0.],
-                         1.,
-                         part_method))
+    mesh.append(CWPT.generate_mesh_sphere_ngon(intra_comm[icode],
+                                               CWPT.MESH_NODAL_TRIA3,
+                                               1,
+                                               "",
+                                               1.,
+                                               0.,
+                                               0.,
+                                               0.,
+                                               10,
+                                               10,
+                                               n_part[icode],
+                                               CWPT.SPLIT_DUAL_WITH_HILBERT))
 
     for ipart in range(n_part[icode]):
       cpl[icode].mesh_interf_vtx_set(ipart,
-                                     mesh[icode]["pvtx_coord"]   [ipart],
+                                     mesh[icode]["pvtx_coord"][ipart],
                                      mesh[icode]["pvtx_ln_to_gn"][ipart])
 
-      # id_block = cpl[icode].mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
-
-      # cpl[icode].mesh_interf_f_poly_block_set(ipart,
-      #                                         id_block,
-      #                                         mesh[icode]["pface_vtx_idx"] [ipart],
-      #                                         mesh[icode]["pface_vtx"]     [ipart],
-      #                                         mesh[icode]["pface_ln_to_gn"][ipart])
       cpl[icode].mesh_interf_from_facevtx_set(ipart,
-                                              mesh[icode]["pface_vtx_idx"] [ipart],
-                                              mesh[icode]["pface_vtx"]     [ipart],
+                                              mesh[icode]["pface_edge_idx"][ipart],
+                                              mesh[icode]["pface_vtx"][ipart],
                                               mesh[icode]["pface_ln_to_gn"][ipart])
 
     cpl[icode].mesh_interf_finalize()

@@ -1,0 +1,492 @@
+# cython: c_string_type=str, c_string_encoding=ascii
+#-----------------------------------------------------------------------------
+# This file is part of the CWIPI library.
+#
+# Copyright (C) 2022-2023  ONERA
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library. If not, see <http://www.gnu.org/licenses/>.
+#-----------------------------------------------------------------------------
+
+"""
+cwipi - Coupling With Interpolation Parallel Interface library.
+"""
+
+#-----------------------------------------------------------------------------
+# IMPORTS
+
+# --> Python
+import numpy     as np
+from mpi4py import MPI
+import ctypes
+import sys
+
+# --> Cython
+cimport cython
+from libc.stdlib       cimport malloc, free
+from libc.stdint       cimport uintptr_t
+from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
+from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
+from libc.stdio cimport FILE, fdopen, fopen
+from cpython.object cimport PyObject_AsFileDescriptor
+cimport numpy as np
+cimport mpi4py.MPI as MPI
+from cpython cimport array
+
+# initialize the numpy C API
+np.import_array()
+
+# CWP Specific type :
+# -----------------
+
+ctypedef @PYX_NPY_G_NUM@ npy_cwp_gnum_t
+ctypedef @PYX_NPY_L_NUM@ npy_cwp_lnum_t
+gnum_dtype = @PYX_NPY_G_NUM_DTYPE@
+ctypedef @PYX_G_NUM@ CWP_g_num_t
+ctypedef @PYX_L_NUM@ CWP_l_num_t
+
+ctypedef enum CWP_g_num_npy_t:
+  CWP_G_NUM_NPY_INT = @CWP_G_NUM_NPY_INT@
+
+#-----------------------------------------------------------------------------
+# EXTERN
+
+cdef extern from "cwipi_cython.h":
+    ctypedef enum cwipi_fake_enum_t:
+      CWIPI_FAKE_ENUM
+
+cdef extern from "cwp.h":
+
+  # TYPES
+
+  ctypedef enum CWPT_Mesh_nodal_elt_t:
+      CWPT_MESH_NODAL_POINT
+      CWPT_MESH_NODAL_BAR2
+      CWPT_MESH_NODAL_TRIA3
+      CWPT_MESH_NODAL_QUAD4
+      CWPT_MESH_NODAL_POLY_2D
+      CWPT_MESH_NODAL_TETRA4
+      CWPT_MESH_NODAL_PYRAMID5
+      CWPT_MESH_NODAL_PRISM6
+      CWPT_MESH_NODAL_HEXA8
+      CWPT_MESH_NODAL_POLY_3D
+      CWPT_MESH_NODAL_BARHO
+      CWPT_MESH_NODAL_TRIAHO
+      CWPT_MESH_NODAL_QUADHO
+      CWPT_MESH_NODAL_TETRAHO
+      CWPT_MESH_NODAL_PYRAMIDHO
+      CWPT_MESH_NODAL_PRISMHO
+      CWPT_MESH_NODAL_HEXAHO
+      CWPT_MESH_NODAL_BARHO_BEZIER
+      CWPT_MESH_NODAL_TRIAHO_BEZIER
+      CWPT_MESH_NODAL_N_ELEMENT_TYPES
+
+  ctypedef enum CWPT_split_dual_t:
+      CWPT_SPLIT_DUAL_WITH_HILBERT
+
+  #-----------------------------------------------------------------------------
+  # Utilities
+  void CWPT_generate_mesh_rectangle_simplified(MPI.MPI_Comm         comm,
+                                               const CWP_g_num_t    n_vtx_seg,
+                                               int                 *n_vtx,
+                                               int                 *n_elt,
+                                               double             **coords,
+                                               int                **elt_vtx_idx,
+                                               int                **elt_vtx)
+
+  void CWPT_generate_mesh_sphere_simplified(MPI.MPI_Comm         comm,
+                                            int                 *n_vtx,
+                                            int                 *n_elt,
+                                            double             **coords,
+                                            int                **elt_vtx_idx,
+                                            int                **elt_vtx)
+
+  void CWPT_generate_mesh_parallelepiped_simplified(MPI.MPI_Comm         comm,
+                                                    const CWP_g_num_t    n_vtx_seg,
+                                                    int                 *n_vtx,
+                                                    int                 *n_elt,
+                                                    double             **coords,
+                                                    int                **elt_vtx_idx,
+                                                    int                **elt_vtx)
+
+  void CWPT_generate_mesh_sphere_ngon(MPI.MPI_Comm                 comm,
+                                      const CWPT_Mesh_nodal_elt_t  elt_type,
+                                      const int                    order,
+                                      const char                  *ho_ordering,
+                                      const double                 radius,
+                                      const double                 center_x,
+                                      const double                 center_y,
+                                      const double                 center_z,
+                                      const CWP_g_num_t            n_u,
+                                      const CWP_g_num_t            n_v,
+                                      const int                    n_part,
+                                      const CWPT_split_dual_t       part_method,
+                                      int                         **pn_vtx,
+                                      int                         **pn_edge,
+                                      int                         **pn_face,
+                                      double                     ***pvtx_coord,
+                                      int                        ***pedge_vtx,
+                                      int                        ***pface_edge_idx,
+                                      int                        ***pface_edge,
+                                      int                        ***pface_vtx,
+                                      CWP_g_num_t                ***pvtx_ln_to_gn,
+                                      CWP_g_num_t                ***pedge_ln_to_gn,
+                                      CWP_g_num_t                ***pface_ln_to_gn)
+
+#-----------------------------------------------------------------------------
+# ENUM
+
+MESH_NODAL_POINT           = CWPT_MESH_NODAL_POINT
+MESH_NODAL_BAR2            = CWPT_MESH_NODAL_BAR2
+MESH_NODAL_TRIA3           = CWPT_MESH_NODAL_TRIA3
+MESH_NODAL_QUAD4           = CWPT_MESH_NODAL_QUAD4
+MESH_NODAL_POLY_2D         = CWPT_MESH_NODAL_POLY_2D
+MESH_NODAL_TETRA4          = CWPT_MESH_NODAL_TETRA4
+MESH_NODAL_PYRAMID5        = CWPT_MESH_NODAL_PYRAMID5
+MESH_NODAL_PRISM6          = CWPT_MESH_NODAL_PRISM6
+MESH_NODAL_HEXA8           = CWPT_MESH_NODAL_HEXA8
+MESH_NODAL_POLY_3D         = CWPT_MESH_NODAL_POLY_3D
+MESH_NODAL_BARHO           = CWPT_MESH_NODAL_BARHO
+MESH_NODAL_TRIAHO          = CWPT_MESH_NODAL_TRIAHO
+MESH_NODAL_QUADHO          = CWPT_MESH_NODAL_QUADHO
+MESH_NODAL_TETRAHO         = CWPT_MESH_NODAL_TETRAHO
+MESH_NODAL_PYRAMIDHO       = CWPT_MESH_NODAL_PYRAMIDHO
+MESH_NODAL_PRISMHO         = CWPT_MESH_NODAL_PRISMHO
+MESH_NODAL_HEXAHO          = CWPT_MESH_NODAL_HEXAHO
+MESH_NODAL_BARHO_BEZIER    = CWPT_MESH_NODAL_BARHO_BEZIER
+MESH_NODAL_TRIAHO_BEZIER   = CWPT_MESH_NODAL_TRIAHO_BEZIER
+MESH_NODAL_N_ELEMENT_TYPES = CWPT_MESH_NODAL_N_ELEMENT_TYPES
+
+SPLIT_DUAL_WITH_HILBERT = CWPT_SPLIT_DUAL_WITH_HILBERT
+
+#-----------------------------------------------------------------------------
+# UTILS
+
+cdef extern from "numpy/arrayobject.h":
+    void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
+
+py_mem_domain = 42440
+
+cdef extern from "Python.h":
+  int PyTraceMalloc_Track(unsigned int domain, uintptr_t ptr, size_t size)
+  int PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
+
+# General
+cdef void dealloc_array_capsule(object capsule):
+    data = PyCapsule_GetPointer(capsule, NULL)
+    PyTraceMalloc_Untrack(py_mem_domain, <uintptr_t> data)
+    # Here we choose free() because the arrays were allocated in C
+    free(data)
+
+cdef create_numpy(void* array, int nptype, int size, bint flag_owndata=True):
+    dim = <np.npy_intp> size
+    nparray = np.PyArray_SimpleNewFromData(1, &dim, nptype, array)
+    if flag_owndata and array != NULL:
+        # Create a capsule linked to the numpy array to choose how its
+        # data will be freed
+        capsule = PyCapsule_New(array, NULL, &dealloc_array_capsule)
+        np.set_array_base(nparray, capsule)
+        # Use tracemalloc Python module to trace memory allocations
+        PyTraceMalloc_Track(py_mem_domain, <uintptr_t> array, nparray.nbytes)
+    return nparray
+
+cdef create_numpy_or_none(void* array, int nptype, int size, bint flag_owndata=True):
+    if array == NULL:
+        return None
+    else:
+        return create_numpy(array, nptype, size, flag_owndata)
+
+# Typed
+cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
+    return create_numpy(<void *> array, np.NPY_INT32, size, flag_owndata)
+
+cdef create_numpy_g(CWP_g_num_t* array, int size, bint flag_owndata=True):
+    return create_numpy(<void *> array, CWP_G_NUM_NPY_INT, size, flag_owndata)
+
+cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
+    return create_numpy(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
+
+cdef create_numpy_or_none_i(int* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, np.NPY_INT32, size, flag_owndata)
+
+cdef create_numpy_or_none_g(CWP_g_num_t* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, CWP_G_NUM_NPY_INT, size, flag_owndata)
+
+cdef create_numpy_or_none_d(double* array, int size, bint flag_owndata=True):
+    return create_numpy_or_none(<void *> array, np.NPY_DOUBLE, size, flag_owndata)
+
+# Other
+cdef void** np_list_to_void_pointers(list datas):
+  cdef np.ndarray numpy_void
+  cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
+  for i, numpy_void in enumerate(datas):
+    array[i] = <void *> numpy_void.data
+  return array
+
+cdef int* list_to_int_pointer(list data):
+  cdef int* array = <int *> malloc(len(data) * sizeof(int))
+  for i,d in enumerate(data):
+    array[i] = <int> d
+  return array
+
+cdef CWP_g_num_t** np_list_to_gnum_pointers(list datas):
+  cdef np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] numpy_gnum
+  cdef CWP_g_num_t** array = <CWP_g_num_t **> malloc(len(datas) * sizeof(CWP_g_num_t*))
+  for i, numpy_gnum in enumerate(datas):
+    array[i] = <CWP_g_num_t *> numpy_gnum.data
+  return array
+
+#-----------------------------------------------------------------------------
+def generate_mesh_rectangle_simplified(MPI.Comm    comm,
+                                       CWP_g_num_t n_vtx_seg):
+  """
+  generate_mesh_rectangle_simplified(comm, n_vtx_seg)
+  Create a simple partitioned rectangle mesh (2D)
+
+  Parameters:
+    comm      (MPI.comm) : MPI communicator
+    n_vtx_seg (CWP_g_num_t) : Number of vertices along each side of the rectangle
+
+  Returns:
+    Dictionary
+      - ``"coords"``      : Array of vertex coordinates
+      - ``"elt_vtx_idx"`` : Index array of the element vertex connectivity
+      - ``"elt_vtx"``     : Array of the element vertex connectivity
+  """
+
+  cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+
+  cdef int n_elt = -1
+  cdef int n_vtx = -1
+
+  cdef double *coords      = NULL
+  cdef int    *elt_vtx_idx = NULL
+  cdef int    *elt_vtx     = NULL
+
+  CWPT_generate_mesh_rectangle_simplified(c_comm,
+                                          n_vtx_seg,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx)
+
+  return {
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
+         }
+
+#-----------------------------------------------------------------------------
+def generate_mesh_sphere_simplified(MPI.Comm comm):
+  """
+  generate_mesh_sphere_simplified(comm)
+  Create a simple partitioned sphere mesh (2D)
+
+  Parameters:
+    comm (MPI.comm) : MPI communicator
+
+  Returns:
+    Dictionary
+      - ``"coords"``      : Array of vertex coordinates
+      - ``"elt_vtx_idx"`` : Index array of the element vertex connectivity
+      - ``"elt_vtx"``     : Array of the element vertex connectivity
+  """
+
+  cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+
+  cdef int n_elt = -1
+  cdef int n_vtx = -1
+
+  cdef double *coords      = NULL
+  cdef int    *elt_vtx_idx = NULL
+  cdef int    *elt_vtx     = NULL
+
+  CWPT_generate_mesh_sphere_simplified(c_comm,
+                                       &n_vtx,
+                                       &n_elt,
+                                       &coords,
+                                       &elt_vtx_idx,
+                                       &elt_vtx)
+
+  return {
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
+         }
+
+#-----------------------------------------------------------------------------
+def generate_mesh_parallelepiped_simplified(MPI.Comm    comm,
+                                            CWP_g_num_t n_vtx_seg):
+  """
+  generate_mesh_parallelepiped_simplified(comm, n_vtx_seg)
+  Create a simple partitioned parallelepiped mesh (3D)
+
+  Parameters:
+    comm      (MPI.comm)    : MPI communicator
+    n_vtx_seg (CWP_g_num_t) : Number of vertices along each side of the rectangle
+
+  Returns:
+    Dictionary
+      - ``"coords"``      : Array of vertex coordinates
+      - ``"elt_vtx_idx"`` : Index array of the element vertex connectivity
+      - ``"elt_vtx"``     : Array of the element vertex connectivity
+  """
+
+  cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+
+  cdef int n_elt = -1
+  cdef int n_vtx = -1
+
+  cdef double *coords      = NULL
+  cdef int    *elt_vtx_idx = NULL
+  cdef int    *elt_vtx     = NULL
+
+  CWPT_generate_mesh_parallelepiped_simplified(c_comm,
+                                               n_vtx_seg,
+                                               &n_vtx,
+                                               &n_elt,
+                                               &coords,
+                                               &elt_vtx_idx,
+                                               &elt_vtx)
+
+  return {
+          'coords'      : create_numpy_d(coords, 3*n_vtx, True),
+          'elt_vtx_idx' : create_numpy_i(elt_vtx_idx, n_elt+1, True),
+          'elt_vtx'     : create_numpy_i(elt_vtx, elt_vtx_idx[n_elt], True),
+         }
+
+#-----------------------------------------------------------------------------
+def generate_mesh_sphere_ngon(MPI.Comm          comm,
+                              int               elt_type,
+                              int               order,
+                              str               ho_ordering,
+                              double            radius,
+                              double            center_x,
+                              double            center_y,
+                              double            center_z,
+                              CWP_g_num_t       n_u,
+                              CWP_g_num_t       n_v,
+                              int               n_part,
+                              CWPT_split_dual_t part_method):
+  """
+  generate_mesh_sphere_ngon(comm, elt_type, order, ho_ordering, radius, center_x, center_y, center_z, n_u, n_v, n_part, part_method)
+  Create a partitioned sphere mesh (2D) with descending connectivities
+
+  Parameters:
+    comm        (MPI.Comm         ) : MPI communicator
+    elt_type    (int              ) : Element type
+    order       (int              ) : Element order
+    ho_ordering (str              ) : Ordering of nodes of the HO element
+    radius      (double           ) : Radius of the sphere
+    center_x    (double           ) : x-coordinate of the sphere center
+    center_y    (double           ) : y-coordinate of the sphere center
+    center_z    (double           ) : z-coordinate of the sphere center
+    n_u         (CWP_g_num_t      ) : Number of vertices in the u-direction
+    n_v         (CWP_g_num_t      ) : Number of vertices in the v-direction
+    n_part      (int              ) : Number of partitions
+    part_method (CWPT_split_dual_t) : Partitioning method
+
+  Returns:
+    Dictionary
+      - ``"pvtx_coord    "`` : Vertex coordinates
+      - ``"pedge_vtx     "`` : edge->vertex connectivity
+      - ``"pface_edge_idx"`` : Index of face->edge connectivity
+      - ``"pface_edge    "`` : face->edge connectivity
+      - ``"pface_vtx     "`` : face->vertex connectivity
+      - ``"pvtx_ln_to_gn "`` : Vertex global number
+      - ``"pedge_ln_to_gn"`` : Edge global number
+      - ``"pface_ln_to_gn"`` : Face global number
+  """
+
+  cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+
+  cdef int          *pn_vtx         = NULL
+  cdef int          *pn_edge        = NULL
+  cdef int          *pn_face        = NULL
+  cdef double      **pvtx_coord     = NULL
+  cdef int         **pedge_vtx      = NULL
+  cdef int         **pface_edge_idx = NULL
+  cdef int         **pface_edge     = NULL
+  cdef int         **pface_vtx      = NULL
+  cdef CWP_g_num_t **pvtx_ln_to_gn  = NULL
+  cdef CWP_g_num_t **pedge_ln_to_gn = NULL
+  cdef CWP_g_num_t **pface_ln_to_gn = NULL
+
+  CWPT_generate_mesh_sphere_ngon(c_comm,
+         <CWPT_Mesh_nodal_elt_t> elt_type,
+                                 order,
+                                 ho_ordering,
+                                 radius,
+                                 center_x,
+                                 center_y,
+                                 center_z,
+                                 n_u,
+                                 n_v,
+                                 n_part,
+                                 part_method,
+                                 &pn_vtx,
+                                 &pn_edge,
+                                 &pn_face,
+                                 &pvtx_coord,
+                                 &pedge_vtx,
+                                 &pface_edge_idx,
+                                 &pface_edge,
+                                 &pface_vtx,
+                                 &pvtx_ln_to_gn,
+                                 &pedge_ln_to_gn,
+                                 &pface_ln_to_gn)
+
+  # Cast
+  py_vtx_coord     = []
+  py_edge_vtx      = []
+  py_face_edge_idx = []
+  py_face_edge     = []
+  py_face_vtx      = []
+  py_vtx_ln_to_gn  = []
+  py_edge_ln_to_gn = []
+  py_face_ln_to_gn = []
+
+  for i_part in range(n_part):
+    py_vtx_coord.append(create_numpy_d(pvtx_coord[i_part], 3*pn_vtx[i_part], True))
+    py_edge_vtx.append(create_numpy_i(pedge_vtx[i_part], 2*pn_edge[i_part], True))
+    py_face_edge_idx.append(create_numpy_i(pface_edge_idx[i_part], pn_face[i_part]+1, True))
+    py_face_edge.append(create_numpy_i(pface_edge[i_part], pface_edge_idx[i_part][pn_face[i_part]], True))
+    py_face_vtx.append(create_numpy_i(pface_vtx[i_part], pface_edge_idx[i_part][pn_face[i_part]], True))
+    py_vtx_ln_to_gn.append(create_numpy_g(pvtx_ln_to_gn[i_part], pn_vtx[i_part], True))
+    py_edge_ln_to_gn.append(create_numpy_g(pedge_ln_to_gn[i_part], pn_edge[i_part], True))
+    py_face_ln_to_gn.append(create_numpy_g(pface_ln_to_gn[i_part], pn_face[i_part], True))
+
+  # Free
+  free(pn_vtx);
+  free(pn_edge);
+  free(pn_face);
+  free(pvtx_coord);
+  free(pedge_vtx);
+  free(pface_edge_idx);
+  free(pface_edge);
+  free(pface_vtx);
+  free(pvtx_ln_to_gn);
+  free(pedge_ln_to_gn);
+  free(pface_ln_to_gn);
+
+  return {
+          "pvtx_coord"     : py_vtx_coord,
+          "pedge_vtx"      : py_edge_vtx,
+          "pface_edge_idx" : py_face_edge_idx,
+          "pface_edge"     : py_face_edge,
+          "pface_vtx"      : py_face_vtx,
+          "pvtx_ln_to_gn"  : py_vtx_ln_to_gn,
+          "pedge_ln_to_gn" : py_edge_ln_to_gn,
+          "pface_ln_to_gn" : py_face_ln_to_gn
+         }

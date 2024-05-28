@@ -523,7 +523,7 @@ namespace cwipi {
     int globalRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&globalRank);
 
-    int mesh_dimension;
+    int mesh_dimension = -1;
     switch (_cpl->entitiesDimGet()) {
       case CWP_INTERFACE_POINT:
         mesh_dimension = 0;
@@ -594,7 +594,7 @@ namespace cwipi {
 
     if (_faceEdgeMethod == 1) {
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
           compute_gnum = 1;
@@ -602,7 +602,8 @@ namespace cwipi {
         }
       }
 
-      int _compute_gnum = compute_gnum;
+      _compute_gnum = compute_gnum;
+
       PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
                          _pdm_localComm);
 
@@ -641,7 +642,7 @@ namespace cwipi {
 
     else if (_faceVtxMethod == 1) {
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
           compute_gnum = 1;
@@ -649,7 +650,8 @@ namespace cwipi {
         }
       }
 
-      int _compute_gnum = compute_gnum;
+      _compute_gnum = compute_gnum;
+
       PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
                          _pdm_localComm);
 
@@ -685,11 +687,15 @@ namespace cwipi {
 
       int compute_face_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
-          compute_face_gnum = 1;
+        if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
+          compute_gnum = 1;
           break;
         }
       }
+
+      int _compute_face_gnum = compute_face_gnum;
+      PDM_MPI_Allreduce (&_compute_face_gnum, &compute_face_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
 
       if (compute_face_gnum) {
 
@@ -708,7 +714,7 @@ namespace cwipi {
       }
 
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_cellLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
           compute_gnum = 1;
@@ -716,7 +722,8 @@ namespace cwipi {
         }
       }
 
-      int _compute_gnum = compute_gnum;
+      _compute_gnum = compute_gnum;
+
       PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
                          _pdm_localComm);
 
@@ -841,7 +848,7 @@ namespace cwipi {
         }
       }
 
-      int compute_gnum = 0;
+      compute_gnum = 0;
 
       for(int i_part = 0; i_part < _npart; i_part++){
 
@@ -854,7 +861,8 @@ namespace cwipi {
         }
       }
 
-      int _compute_gnum = compute_gnum;
+      _compute_gnum = compute_gnum;
+
       PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
                          _pdm_localComm);
 

@@ -27,14 +27,6 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_logging.h"
-#include "pdm_io.h"
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_generate_mesh.h"
 #include "client_server/client.h"
 
 #include "cwp_priv.h"
@@ -46,7 +38,7 @@
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -n_rank1 \n\n"
@@ -228,13 +220,13 @@ main
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
-  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm),
-                                         10,
-                                         &n_vtx,
-                                         &n_elt,
-                                         &coords,
-                                         &elt_vtx_idx,
-                                         &elt_vtx);
+  CWPT_generate_mesh_rectangle_simplified(intra_comm,
+                                          10,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx);
 
   // Create new mesh
   CWP_client_Mesh_interf_vtx_set(code_name,
@@ -245,8 +237,8 @@ main
                                  NULL);
 
   int block_id = CWP_client_Mesh_interf_block_add(code_name,
-                                                        cpl_name,
-                                                        CWP_BLOCK_FACE_TRIA3);
+                                                  cpl_name,
+                                                  CWP_BLOCK_FACE_TRIA3);
 
   CWP_client_Mesh_interf_block_std_set(code_name,
                                        cpl_name,

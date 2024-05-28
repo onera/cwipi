@@ -7,9 +7,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm.h"
-#include "pdm_generate_mesh.h"
-
 int
 main(int argc, char *argv[]) {
 
@@ -63,20 +60,20 @@ main(int argc, char *argv[]) {
   double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
-  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
-                                         10,
-                                         &n_vtx,
-                                         &n_elt,
-                                         &coords,
-                                         &elt_vtx_idx,
-                                         &elt_vtx);
+  CWPT_generate_mesh_rectangle_simplified(intra_comm[0],
+                                          10,
+                                          &n_vtx,
+                                          &n_elt,
+                                          &coords,
+                                          &elt_vtx_idx,
+                                          &elt_vtx);
 
   CWP_Mesh_interf_vtx_set(code_name[0],
-                              coupling_name,
-                              0,
-                              n_vtx,
-                              coords,
-                              NULL);
+                          coupling_name,
+                          0,
+                          n_vtx,
+                          coords,
+                          NULL);
 
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                            coupling_name,

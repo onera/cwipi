@@ -27,17 +27,7 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "grid_mesh.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_io.h"
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_part_connectivity_transform.h"
-#include "pdm_generate_mesh.h"
 #include "client_server/client.h"
-
-#include "cwp_priv.h"
 
 /*=============================================================================
  * Util functions
@@ -46,7 +36,7 @@
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -n_rank1 \n\n"

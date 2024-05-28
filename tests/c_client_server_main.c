@@ -33,15 +33,10 @@
  *----------------------------------------------------------------------------*/
 
 #include "client_server/client.h"
-#include <pdm_error.h>
-#include <pdm_io.h>
-#include <pdm_mpi.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "pdm_logging.h"
-#include "pdm_printf.h"
 #include "cwp.h"
 
 #include "cwp_priv.h"
@@ -60,7 +55,7 @@ extern "C" {
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"

@@ -25,9 +25,6 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_error.h"
-#include "pdm_priv.h"
-#include "pdm_generate_mesh.h"
 
 /*----------------------------------------------------------------------
  *
@@ -82,10 +79,8 @@ main(int argc, char *argv[]) {
   // ---------------------------------------------------- End To fill in
 
   // Create mesh :
-  // A ParaDiGM library function is used to generate the rectangular mesh.
-  // PDM_MPI_mpi_2_pdm_mpi_comm is used to convert the MPI communicator into
-  // the expected ParaDiGM format. It is the users responsability to
-  // free arrays from _simplified mesh generation functions. In a real life
+  // It is the users responsability to free arrays from
+  // _simplified mesh generation functions. In a real life
   // coupling case here a user generated mesh would be read/loaded/given.
   int     n_vtx = 0;
   int     n_elt = 0;
@@ -95,13 +90,13 @@ main(int argc, char *argv[]) {
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
   // TO UNCOMMENT -->>
-  // PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
-  //                                        10,
-  //                                        &n_vtx,
-  //                                        &n_elt,
-  //                                        &coords,
-  //                                        &elt_vtx_idx,
-  //                                        &elt_vtx);
+  // CWPT_generate_mesh_rectangle_simplified(intra_comm[0],
+  //                                         10,
+  //                                         &n_vtx,
+  //                                         &n_elt,
+  //                                         &coords,
+  //                                         &elt_vtx_idx,
+  //                                         &elt_vtx);
   // <<--
 
   // Interations :
@@ -204,8 +199,8 @@ main(int argc, char *argv[]) {
 
     // ---------------------------------------------------- End To fill in
 
-    PDM_UNUSED(n_uncomputed_tgts);
-    PDM_UNUSED(uncomputed_tgts);
+    CWP_UNUSED(n_uncomputed_tgts);
+    CWP_UNUSED(uncomputed_tgts);
 
     // End time step
     // ------------------------------------------------------- To fill in

@@ -25,10 +25,6 @@
 #include <assert.h>
 
 #include "cwp.h"
-#include "pdm_io.h"
-#include "pdm_mpi.h"
-#include "pdm_error.h"
-#include "pdm_printf.h"
 #include "client_server/client.h"
 
 #include "cwp_priv.h"
@@ -144,7 +140,7 @@ static int read_mesh(FILE *f,
 static void
 _usage(int exit_code)
 {
-  PDM_printf
+  printf
     ("\n"
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"

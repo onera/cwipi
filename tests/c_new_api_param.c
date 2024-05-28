@@ -26,11 +26,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_array.h"
-#include "pdm_printf.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -102,6 +97,17 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 
+  FILE *file_log = NULL;
+  if (verbose) {
+    char file_log_name[999];
+    sprintf(file_log_name, "c_new_api_param_%d.log", i_rank);
+    file_log = fopen(file_log_name, "w");
+    if (file_log == NULL) {
+      printf("Warning : failed to open %s\n", file_log_name);
+      verbose = 0;
+    }
+  }
+
   // Initialize CWIPI
   int n_code = 1;
   const char  **code_name      = malloc(sizeof(char *) * n_code);
@@ -155,7 +161,7 @@ main(int argc, char *argv[]) {
   // Get number of parameters
   int n_param = CWP_Param_n_get("code1", CWP_INT);
   if (verbose) {
-    log_trace("n_param code1 : %d\n", n_param);
+    fprintf(file_log, "n_param code1 : %d\n", n_param);
   }
 
   // Get parameter
@@ -163,14 +169,14 @@ main(int argc, char *argv[]) {
   if (I_am_code1) {
     CWP_Param_get("code1", "toto", CWP_INT, &get_toto);
     if (verbose) {
-      log_trace("toto code1 : %d\n", get_toto);
+      fprintf(file_log, "toto code1 : %d\n", get_toto);
     }
   }
 
   char *get_tata = NULL;
   CWP_Param_get("code1", "tata", CWP_CHAR, &get_tata);
   if (verbose) {
-    log_trace("tata code1 : %s\n", get_tata);
+    fprintf(file_log, "tata code1 : %s\n", get_tata);
   }
 
   // Get parameter list
@@ -178,7 +184,7 @@ main(int argc, char *argv[]) {
   CWP_Param_list_get("code1", CWP_INT, &n_param, &param_list);
   if (verbose) {
     for (int i = 0; i < n_param; i++) {
-      log_trace("param_list[%d] : %s\n", i, param_list[i]);
+      fprintf(file_log, "param_list[%d] : %s\n", i, param_list[i]);
     }
   }
 
@@ -187,7 +193,7 @@ main(int argc, char *argv[]) {
   const char **code_list = CWP_Codes_list_get();
   if (verbose) {
     for (int i = 0; i < n_codes; i++) {
-      log_trace("code_list[%d] : %s\n", i, code_list[i]);
+      fprintf(file_log, "code_list[%d] : %s\n", i, code_list[i]);
     }
   }
 
@@ -195,7 +201,7 @@ main(int argc, char *argv[]) {
   const char **loc_code_list = CWP_Loc_codes_list_get();
   if (verbose) {
     for (int i = 0; i < n_loc_codes; i++) {
-      log_trace("loc_code_list[%d] : %s\n", i, loc_code_list[i]);
+      fprintf(file_log, "loc_code_list[%d] : %s\n", i, loc_code_list[i]);
     }
   }
 
@@ -219,7 +225,8 @@ main(int argc, char *argv[]) {
                    code_list);
 
   if (verbose) {
-    log_trace("param_value code1 : %d\n", param_value);
+    fprintf(file_log, "param_value code1 : %d\n", param_value);
+    fclose(file_log);
   }
 
   // Finalize CWIPI

@@ -27,10 +27,6 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-#include "pdm_sphere_surf_gen.h"
-#include "pdm_array.h"
-#include "pdm_logging.h"
-
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -59,10 +55,9 @@ _read_args
 (
   int                    argc,
   char                 **argv,
-  PDM_g_num_t           *n,
+  CWP_g_num_t           *n,
   int                   *n_part1,
   int                   *n_part2,
-  PDM_split_dual_t      *part_method,
   int                   *disjoint_comm,
   int                   *verbose,
   int                   *swap_codes
@@ -82,7 +77,7 @@ _read_args
       }
       else {
         long _n = atol(argv[i]);
-        *n = (PDM_g_num_t) _n;
+        *n = (CWP_g_num_t) _n;
       }
     }
     else if (strcmp(argv[i], "-n_part1") == 0) {
@@ -102,15 +97,6 @@ _read_args
       else {
         *n_part2 = atoi(argv[i]);
       }
-    }
-    else if (strcmp(argv[i], "-pt-scotch") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
-    }
-    else if (strcmp(argv[i], "-parmetis") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
-    }
-    else if (strcmp(argv[i], "-hilbert") == 0) {
-      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
     }
     else if (strcmp(argv[i], "-disjoint") == 0) {
       *disjoint_comm = 1;
@@ -141,10 +127,10 @@ int main
  )
 {
   /* Set default values */
-  PDM_g_num_t      n             = 0;
+  CWP_g_num_t      n             = 0;
   int              n_part1       = 1;
   int              n_part2       = 1;
-  PDM_split_dual_t part_method   = PDM_SPLIT_DUAL_WITH_HILBERT;
+  CWPT_split_dual_t part_method  = CWPT_SPLIT_DUAL_WITH_HILBERT;
   int              disjoint_comm = 0;
   int              verbose       = 0;
   int              swap_codes    = 0;
@@ -153,7 +139,6 @@ int main
              &n,
              &n_part1,
              &n_part2,
-             &part_method,
              &disjoint_comm,
              &verbose,
              &swap_codes);
@@ -209,7 +194,7 @@ int main
       n_part           [n_code] = all_n_part    [icode];
 
       if (verbose) {
-        log_trace("Running %s, coupled with %s, n_part = %d\n",
+        printf("Running %s, coupled with %s, n_part = %d\n",
                   code_name[n_code], coupled_code_name[n_code], n_part[n_code]);
       }
       n_code++;
@@ -233,7 +218,7 @@ int main
 
   for (int icode = 0; icode < n_code; icode++) {
     if (verbose) {
-      log_trace("Cpl_create %s\n", code_name[icode]);
+      printf("Cpl_create %s\n", code_name[icode]);
     }
     CWP_Cpl_create(code_name[icode],
                    cpl_name,
@@ -256,31 +241,41 @@ int main
 
   /* Define mesh */
   int          **pn_face        = malloc(sizeof(int          *) * n_code);
+  int          **pn_edge        = malloc(sizeof(int          *) * n_code);
   int          **pn_vtx         = malloc(sizeof(int          *) * n_code);
+  int         ***pedge_vtx      = malloc(sizeof(int         **) * n_code);
   int         ***pface_vtx_idx  = malloc(sizeof(int         **) * n_code);
+  int         ***pface_edge     = malloc(sizeof(int         **) * n_code);
   int         ***pface_vtx      = malloc(sizeof(int         **) * n_code);
   double      ***pvtx_coord     = malloc(sizeof(double      **) * n_code);
-  PDM_g_num_t ***pface_ln_to_gn = malloc(sizeof(PDM_g_num_t **) * n_code);
-  PDM_g_num_t ***pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t **) * n_code);
+  CWP_g_num_t ***pface_ln_to_gn = malloc(sizeof(CWP_g_num_t **) * n_code);
+  CWP_g_num_t ***pedge_ln_to_gn = malloc(sizeof(CWP_g_num_t **) * n_code);
+  CWP_g_num_t ***pvtx_ln_to_gn  = malloc(sizeof(CWP_g_num_t **) * n_code);
 
   for (int icode = 0; icode < n_code; icode++) {
-    PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
-
-    PDM_sphere_surf_icosphere_gen_part(mesh_comm,
-                                       n,
-                                       0.,
-                                       0.,
-                                       0.,
-                                       1.,
-                                       n_part[icode],
-                                       part_method,
-                                       &pn_vtx        [icode],
-                                       &pvtx_coord    [icode],
-                                       &pvtx_ln_to_gn [icode],
-                                       &pn_face       [icode],
-                                       &pface_vtx_idx [icode],
-                                       &pface_vtx     [icode],
-                                       &pface_ln_to_gn[icode]);
+    CWPT_generate_mesh_sphere_ngon(intra_comm[icode],
+                                   CWPT_MESH_NODAL_TRIA3,
+                                   1,
+                                   NULL,
+                                   1.0,
+                                   0.,
+                                   0.,
+                                   0.,
+                                   n,
+                                   n,
+                                   n_part[icode],
+                                   part_method,
+                                   &pn_vtx[icode],
+                                   &pn_edge[icode],
+                                   &pn_face[icode],
+                                   &pvtx_coord[icode],
+                                   &pedge_vtx[icode],
+                                   &pface_vtx_idx[icode],
+                                   &pface_edge[icode],
+                                   &pface_vtx[icode],
+                                   &pvtx_ln_to_gn[icode],
+                                   &pedge_ln_to_gn[icode],
+                                   &pface_ln_to_gn[icode]);
   }
 
   MPI_Barrier(comm);
@@ -519,7 +514,7 @@ int main
               recv_val2[icode][1][ipart][2*i  ] !=  expected ||
               recv_val2[icode][1][ipart][2*i+1] != -expected) {
             error = 1;
-            printf("[%d] error for "PDM_FMT_G_NUM" : received %d %d %d, expected %d %d %d\n",
+            printf("[%d] error for %ld : received %d %d %d, expected %d %d %d\n",
                      i_rank,
                      pvtx_ln_to_gn[icode][ipart][i],
                      recv_val2[icode][0][ipart][i    ],
@@ -549,7 +544,7 @@ CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
               recv_val1[icode][1][ipart][i    ] != expected_x) {
 CWP_GCC_SUPPRESS_WARNING_POP
             error = 1;
-            printf("[%d] error for "PDM_FMT_G_NUM" : received %f %f %f %f, expected %f %f %f %f\n",
+            printf("[%d] error for %ld : received %f %f %f %f, expected %f %f %f %f\n",
                    i_rank,
                    pvtx_ln_to_gn[icode][ipart][i],
                    recv_val1[icode][0][ipart][3*i  ],
@@ -606,18 +601,25 @@ CWP_GCC_SUPPRESS_WARNING_POP
 
   for (int icode = 0; icode < n_code; icode++) {
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+      free(pedge_vtx     [icode][ipart]);
       free(pface_vtx_idx [icode][ipart]);
+      free(pface_edge    [icode][ipart]);
       free(pface_vtx     [icode][ipart]);
       free(pvtx_coord    [icode][ipart]);
       free(pface_ln_to_gn[icode][ipart]);
+      free(pedge_ln_to_gn[icode][ipart]);
       free(pvtx_ln_to_gn [icode][ipart]);
     }
     free(pn_face       [icode]);
+    free(pn_edge       [icode]);
     free(pn_vtx        [icode]);
+    free(pedge_vtx     [icode]);
     free(pface_vtx_idx [icode]);
+    free(pface_edge    [icode]);
     free(pface_vtx     [icode]);
     free(pvtx_coord    [icode]);
     free(pface_ln_to_gn[icode]);
+    free(pedge_ln_to_gn[icode]);
     free(pvtx_ln_to_gn [icode]);
 
     for (int i = 0; i < 2; i++) {
@@ -634,11 +636,15 @@ CWP_GCC_SUPPRESS_WARNING_POP
     }
   }
   free(pn_face       );
+  free(pn_edge       );
   free(pn_vtx        );
+  free(pedge_vtx     );
   free(pface_vtx_idx );
+  free(pface_edge    );
   free(pface_vtx     );
   free(pvtx_coord    );
   free(pface_ln_to_gn);
+  free(pedge_ln_to_gn);
   free(pvtx_ln_to_gn );
 
   free(code_id);
