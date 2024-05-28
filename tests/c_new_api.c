@@ -253,7 +253,6 @@ main(int argc, char *argv[]) {
 
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
-  // cpl1: code1 (0, 1, 2, 5, 7) <-> code2 (0, 2, 6, 7, 9)
   if (cond_code1) {
     int v = -1;
     if (rank == 0) {
@@ -262,6 +261,86 @@ main(int argc, char *argv[]) {
     MPI_Bcast(&v, 1, MPI_INT, 0, localComm[0]);
     printf("code 1 v : %d\n", v);
     fflush(stdout);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (cond_code2) {
+    int v = -2;
+    if (rank == 0) {
+      v = 21;
+    }
+    MPI_Comm intraComm;
+    if (rank == 0 || rank == 2 || rank == 7) {
+      intraComm = localComm[1];
+    }
+    else if (rank == 6 || rank == 9) {
+      intraComm = localComm[0];
+    }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
+    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
+    printf("code 2 v : %d\n", v);
+    fflush(stdout);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (cond_code3) {
+    int v = -2;
+    if (rank == 2) {
+      v = 31;
+    }
+    MPI_Comm intraComm;
+    if (rank == 2 || rank == 7) {
+      intraComm = localComm[2];
+    }
+    else if (rank == 3 || rank == 4) {
+      intraComm = localComm[0];
+    }
+    else if (rank == 5 || rank == 9) {
+      intraComm = localComm[1];
+    }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
+    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
+    printf("code 3 v : %d\n", v);
+    fflush(stdout);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (cond_code4) {
+    int v = -2;
+    if (rank == 2) {
+      v = 41;
+    }
+    MPI_Comm intraComm;
+    if (rank == 2) {
+      intraComm = localComm[3];
+    }
+    else if (rank == 4) {
+      intraComm = localComm[1];
+    }
+    else if (rank == 8) {
+      intraComm = localComm[0];
+    }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
+    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
+    printf("code 4 v : %d\n", v);
+    fflush(stdout);
+  }
+
+  // cpl1: code1 (0, 1, 2, 5, 7) <-> code2 (0, 2, 6, 7, 9)
+
+  if (cond_code1) {
     CWP_Cpl_create("code1",
                    cpl_id1,
                    "code2",
@@ -282,24 +361,6 @@ main(int argc, char *argv[]) {
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
-    int v = -2;
-    if (rank == 0) {
-      v = 21;
-    }
-    MPI_Comm intraComm;
-    if (rank == 0 || rank == 2 || rank == 7) {
-      intraComm = localComm[1];
-    }
-    else if (rank == 6 || rank == 9) {
-      intraComm = localComm[0];
-    }
-    else {
-      intraComm = MPI_COMM_NULL;
-    }
-
-    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf("code 2 v : %d\n", v);
-    fflush(stdout);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -327,28 +388,9 @@ main(int argc, char *argv[]) {
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
-    int v = -2;
-    if (rank == 2) {
-      v = 31;
-    }
-    MPI_Comm intraComm;
-    if (rank == 2 || rank == 7) {
-      intraComm = localComm[2];
-    }
-    else if (rank == 3 || rank == 4) {
-      intraComm = localComm[0];
-    }
-    else if (rank == 5 || rank == 9) {
-      intraComm = localComm[1];
-    }
-    else {
-      intraComm = MPI_COMM_NULL;
-    }
-
-    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf("code 3 v : %d\n", v);
-    fflush(stdout);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // cpl3: code2 (0, 2, 6, 7, 9) <-> code3 (2, 3, 4, 5, 7, 9)
   if (cond_code2) {
@@ -375,6 +417,8 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
   if (cond_code3) {
     CWP_Cpl_create("code3",
@@ -398,28 +442,9 @@ main(int argc, char *argv[]) {
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
-    int v = -2;
-    if (rank == 2) {
-      v = 41;
-    }
-    MPI_Comm intraComm;
-    if (rank == 2) {
-      intraComm = localComm[3];
-    }
-    else if (rank == 4) {
-      intraComm = localComm[1];
-    }
-    else if (rank == 8) {
-      intraComm = localComm[0];
-    }
-    else {
-      intraComm = MPI_COMM_NULL;
-    }
-
-    MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    //    printf("code 4 v : %d\n", v);
-    //    fflush(stdout);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // cpl5: code1 (0, 1, 2, 5, 7) <-> code4 (2, 4, 8)
   if (cond_code1) {
@@ -446,6 +471,8 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // cpl6: code2 (0, 2, 6, 7, 9) <-> code4 (2, 4, 8)
   if (cond_code2) {
     CWP_Cpl_create("code2",
@@ -469,6 +496,8 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Create Visu
   if (cond_code1) {
