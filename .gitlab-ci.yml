@@ -16,6 +16,9 @@ variables:
   #SCHEDULER_PARAMETERS:  "-M rhel8 --qos=el8_gbe --ntasks=24 --time=10:00:00"
   # CI_DEBUG_TRACE: "true" #Uncomment to debug CI
 default:
+  id_tokens:
+    CI_JOB_JWT:
+      aud: https://gitlab.onera.net
   tags: #All jobs uses jamacar-slurm executor
     - slurm
 
