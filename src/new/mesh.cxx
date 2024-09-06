@@ -179,15 +179,15 @@ namespace cwipi {
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
     // pdm_nodal building
 
-    _npart                 = npart;
+    _npart = npart;
     _nVertex   .resize(npart,0);
     _nElts     .resize(npart,0);
     _connec_idx.resize(npart,NULL);
     _connec    .resize(npart,NULL);
     _gnum_elt  .resize(npart,NULL);
-    _elt_centers  .resize(npart,NULL);
-    _elt_id_block  .resize(npart,NULL);
-    _elt_in_block  .resize(npart,NULL);
+    _elt_centers .resize(npart,NULL);
+    _elt_id_block.resize(npart,NULL);
+    _elt_in_block.resize(npart,NULL);
 
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);
@@ -235,12 +235,15 @@ namespace cwipi {
       free (_gnum_elt[i]);
       if (_elt_centers[i] != NULL) {
         free (_elt_centers[i]);
+        _elt_centers[i] = NULL;
       }
       if (_elt_id_block[i] != NULL) {
         free (_elt_id_block[i]);
+        _elt_id_block[i] = NULL;
       }
       if (_elt_in_block[i] != NULL) {
         free (_elt_in_block[i]);
+        _elt_in_block[i] = NULL;
       }
 
       if (_isFaceGnumComputed) {
@@ -1396,6 +1399,12 @@ namespace cwipi {
 
 
     for (int i = 0; i < _npart; i++) {
+
+      if (_elt_centers[i] != NULL) {
+        free (_elt_centers[i]);
+        _elt_centers[i] = NULL;
+      }
+
       if (_elt_id_block[i] != NULL) {
         free(_elt_id_block[i]);
         _elt_id_block[i] = NULL;
