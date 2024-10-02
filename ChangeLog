@@ -1,8 +1,16 @@
+## [1.2.1] - 2024-10-02
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fortran interface module
+- Mesh arrays reallocation for dynamic meshes
 ## [1.2.0] - 2024-05-28
 ### Added
 ### Changed
 - New version of ParaDiGM : 2.5.0
-- ParaDiGM symbols are hidden 
+- ParaDiGM symbols are hidden
 - macOS porting
 ### Deprecated
 ### Removed
