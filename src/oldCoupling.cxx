@@ -896,6 +896,7 @@ namespace cwipi {
   void oldCoupling::updateLocation()
   {
     if (_isCoupledRank) {
+      _supportMesh->update();
       _toLocate = true;
     }
     else
