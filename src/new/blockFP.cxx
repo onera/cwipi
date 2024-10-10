@@ -21,7 +21,6 @@
 
 #include "blockFP.hxx"
 #include "cwp.h"
-#include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
 #include <map>
 #include <vector>
@@ -47,8 +46,8 @@ namespace cwipi {
   void BlockFP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
   {
     Block::BlockAdd(blockType, mesh);
-    _connec_idx.resize(_n_part, NULL); 
-    _connec.resize(_n_part, NULL); 
+    _connec_idx.resize(_n_part, NULL);
+    _connec.resize(_n_part, NULL);
   }
 
   void BlockFP::blockSet(int i_part,
@@ -59,7 +58,7 @@ namespace cwipi {
   {
 
     _global_num [i_part] = mesh_global_num;
-    
+
     _n_elt[i_part] = n_elt;
     _connec[i_part] = connec;
     _connec_idx[i_part] = connec_idx;
@@ -84,10 +83,10 @@ namespace cwipi {
                          CWP_g_num_t **mesh_global_num)
   {
 
-    *mesh_global_num = _global_num [i_part];  
-    *n_elts          = _n_elt[i_part];       
-    *connec          = _connec[i_part];      
-    *connec_idx      = _connec_idx[i_part];  
+    *mesh_global_num = _global_num [i_part];
+    *n_elts          = _n_elt[i_part];
+    *connec          = _connec[i_part];
+    *connec_idx      = _connec_idx[i_part];
 
   }
 

@@ -35,7 +35,6 @@
 
 #include "pdm_dmesh_nodal.h"
 #include "pdm_block_to_part.h"
-#include "pdm_mesh_nodal.h"
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_vtk.h"
 #include "pdm_part_to_block.h"

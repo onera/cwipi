@@ -21,7 +21,6 @@
 
 #include "blockStd.hxx"
 #include "cwp.h"
-#include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
 #include <pdm_error.h>
 #include <pdm_printf.h>
@@ -51,7 +50,7 @@ namespace cwipi {
   void BlockStd::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
   {
     Block::BlockAdd(blockType, mesh);
-    _connec.resize(_n_part, NULL); 
+    _connec.resize(_n_part, NULL);
   }
 
 
