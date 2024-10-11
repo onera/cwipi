@@ -24,7 +24,6 @@
 
 #include <mpi.h>
 
-#include <pdm_mesh_nodal.h>
 #include <pdm_part_mesh_nodal.h>
 #include <pdm_printf.h>
 #include "pdm_error.h"
@@ -100,8 +99,8 @@ namespace cwipi {
      *
      */
 
-    void 
-    coordSet 
+    void
+    coordSet
     (
       const int   i_part,
       const int   n_pts,
@@ -115,7 +114,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     meshDel();
 
     /**
@@ -128,8 +127,8 @@ namespace cwipi {
      * \return block_id  Block Identifier
      */
 
-    int 
-    blockAdd 
+    int
+    blockAdd
     (
       const CWP_Block_t  block_type
     );
@@ -253,9 +252,9 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     poly2DBlockSet
-    ( 
+    (
       const int    i_part,
       const int    block_id,
       const int    n_elts,
@@ -276,9 +275,9 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     poly2DBlockGet
-    ( 
+    (
       const int    i_part,
       const int    block_id,
       int         *n_elts,
@@ -303,9 +302,9 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     poly3DBlockSet
-    ( 
+    (
       const int   i_part,
       const int   block_id,
       const int   n_elts,
@@ -319,7 +318,7 @@ namespace cwipi {
 
 
     /**
-     * \brief get a face polhedron block 
+     * \brief get a face polhedron block
      *
      * \param [in] i_part            Partition identifier
      * \param [in] block_id          Block identifier
@@ -333,9 +332,9 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     poly3DBlockGet
-    ( 
+    (
       const int    i_part,
       const int    block_id,
       int         *n_elts,
@@ -715,7 +714,7 @@ namespace cwipi {
     CWP_Dynamic_mesh_t                      _displacement;           /*!< Type of mesh displacement */
     Coupling                               *_cpl;
 
-    std::vector<int>                        _nCells;        
+    std::vector<int>                        _nCells;
     std::vector<int*>                       _cellFaceIdx;
     std::vector<int*>                       _cellFace;
 

@@ -62,7 +62,6 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_logging.h"
-#include "pdm_mesh_nodal.h"
 #include "pdm_generate_mesh.h"
 #include "pdm_timer.h"
 #include "spatialInterpClosestPoint.hxx"
@@ -422,7 +421,7 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  int my_rank;  
+  int my_rank;
   MPI_Comm_rank (global_comm, &my_rank);
 
   if (my_rank == 0) {
@@ -737,8 +736,8 @@ CWP_Time_step_end
 
 /**
  * \brief Define a user structure associated to a code
- * 
- * This structure can be called into a callback 
+ *
+ * This structure can be called into a callback
  *
  * \param [in] local_code_name  Local code name
  * \param [in] user_structure   User structure
@@ -754,16 +753,16 @@ CWP_User_structure_set
 {
   cwipi::CodePropertiesDB & properties =
   cwipi::CodePropertiesDB::getInstance();
-  properties.userStructureSet(string(local_code_name), user_structure);  
+  properties.userStructureSet(string(local_code_name), user_structure);
 }
 
 /**
- * \brief Return the user structure associated 
- * 
- * This structure can be called into a callback 
+ * \brief Return the user structure associated
+ *
+ * This structure can be called into a callback
  *
  * \param [in] local_code_name  Local code name
- * 
+ *
  * \return  User structure
  *
  */
@@ -776,7 +775,7 @@ CWP_User_structure_get
 {
   cwipi::CodePropertiesDB & properties =
   cwipi::CodePropertiesDB::getInstance();
-  return properties.userStructureGet(string(local_code_name));  
+  return properties.userStructureGet(string(local_code_name));
 
 }
 
@@ -1258,7 +1257,7 @@ CWP_Involved_srcs_get
  * \param [in]  cpl_id           Coupling identifier
  *
  * \return               Distance
- * 
+ *
  * A supprimer ???
  *
  */
@@ -1844,7 +1843,7 @@ CWP_Mesh_interf_f_poly_block_get
                         connec_idx,
                         connec,
                         global_num);
-  
+
 }
 
 
@@ -3888,7 +3887,7 @@ void
 CWPT_generate_mesh_sphere_simplified
 (
  const MPI_Comm       comm,
- int                 *n_vtx,  
+ int                 *n_vtx,
  int                 *n_elt,
  double             **coords,
  int                **elt_vtx_idx,
@@ -4490,7 +4489,7 @@ CWP_timer_create
  *
  */
 
-void 
+void
 CWP_timer_init
 (
   CWP_timer_t timer
@@ -4506,13 +4505,13 @@ CWP_timer_init
  *
  */
 
-void 
+void
 CWP_timer_resume
 (
   CWP_timer_t timer
 )
 {
-  PDM_timer_resume((PDM_timer_t *) timer);  
+  PDM_timer_resume((PDM_timer_t *) timer);
 }
 
 /**
@@ -4522,13 +4521,13 @@ CWP_timer_resume
  *
  */
 
-void 
+void
 CWP_timer_hang_on
 (
   CWP_timer_t timer
 )
 {
-  PDM_timer_hang_on((PDM_timer_t *) timer);  
+  PDM_timer_hang_on((PDM_timer_t *) timer);
 }
 
 /**
@@ -4537,10 +4536,10 @@ CWP_timer_hang_on
  * \param[in] timer
  *
  * \return User time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu
 (
   CWP_timer_t timer
@@ -4555,16 +4554,16 @@ CWP_timer_cpu
  * \param[in] timer
  *
  * \return User cpu time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu_user
 (
   CWP_timer_t timer
 )
 {
- return PDM_timer_cpu_user((PDM_timer_t *) timer);  
+ return PDM_timer_cpu_user((PDM_timer_t *) timer);
 }
 
 /**
@@ -4573,16 +4572,16 @@ CWP_timer_cpu_user
  * \param[in] timer
  *
  * \return System cpu time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu_sys
 (
   CWP_timer_t timer
 )
 {
-  return PDM_timer_cpu_sys((PDM_timer_t *) timer);   
+  return PDM_timer_cpu_sys((PDM_timer_t *) timer);
 }
 
 /**
@@ -4591,16 +4590,16 @@ CWP_timer_cpu_sys
  * \param[in] timer
  *
  * \return Elapsed time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_elapsed
 (
   CWP_timer_t timer
 )
 {
-  return PDM_timer_elapsed((PDM_timer_t *) timer);     
+  return PDM_timer_elapsed((PDM_timer_t *) timer);
 }
 
 /**
@@ -4610,13 +4609,13 @@ CWP_timer_elapsed
  *
  */
 
-void 
+void
 CWP_timer_free
 (
   CWP_timer_t timer
 )
 {
-  PDM_timer_free((PDM_timer_t *) timer); 
+  PDM_timer_free((PDM_timer_t *) timer);
 }
 
 

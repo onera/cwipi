@@ -10,8 +10,7 @@ file(GLOB SOURCES
      *.[ch]
      *.[ch]xx)
 
-set(SOURCESPDM  "")
-set(SOURCESPDMF "")
+set(SOURCESPDM "")
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
   file(GLOB_RECURSE SOURCESPDM
       ${PDM_SOURCE_DIR}/src/*.[ch])
@@ -48,13 +47,6 @@ if (CWP_ENABLE_Fortran)
   list(APPEND SOURCES fortran/callfortinterpfct.f90)
   list(APPEND SOURCES fortran/callforthointerpfct.f90)
   list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
-  if (NOT CWP_ENABLE_EXTERNAL_PDM)
-    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/util/pdm_fortran.F90)
-    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/pdm.F90)
-    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/struct/pdm_pointer_array.F90)
-    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_generate_mesh.F90)
-    list(APPEND SOURCESPDMF ${PDM_SOURCE_DIR}/src/meshgen/pdm_sphere_surf_gen.F90)
-  endif()
 endif()
 
 add_library(cwp OBJECT ${SOURCES} ${SOURCESPDM})
@@ -105,7 +97,7 @@ endif()
 
 if (CWP_ENABLE_Fortran)
 
-  add_library(cwpf OBJECT ${SOURCESF} ${SOURCESPDMF} ${SOURCESPDM})
+  add_library(cwpf OBJECT ${SOURCESF} ${SOURCESPDM})
 
   target_include_directories(cwpf
                              INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -127,29 +119,6 @@ if (CWP_ENABLE_Fortran)
                              PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
                              PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
                              PRIVATE   $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
-
-  if (NOT CWP_ENABLE_EXTERNAL_PDM)
-
-#    add_library(pdmf OBJECT ${SOURCESPDMF})
-
-#    target_include_directories(pdmf
-#                               PRIVATE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/meshgen>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mesh>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/struct>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/pario>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ppart>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/util>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/ext_wrapper>
-#                               PRIVATE $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/mpi_wrapper>)
-#
-#    add_dependencies(cwpf pdmf)
-#    get_target_property(PDM_INC pdmf INCLUDE_DIRECTORIES)
-#    target_include_directories(cwpf PRIVATE ${PDM_INC})
-
-  endif()
 
   add_dependencies(cwpf cwp)
 
@@ -221,10 +190,10 @@ if (CWP_ENABLE_SHARED)
         set(EXPORTED_SYMBOLS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../cwp_apple.map)
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -exported_symbols_list ${EXPORTED_SYMBOLS_FILE}")
         set_target_properties(cwp_shared PROPERTIES LINK_DEPENDS ${EXPORTED_SYMBOLS_FILE})
-      else()  
+      else()
         set_target_properties(cwp_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
       endif()
-    endif()  
+    endif()
   endif ()
   add_dependencies(cwp_shared cwp)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
@@ -248,7 +217,7 @@ if (CWP_ENABLE_SHARED)
           set(EXPORTED_SYMBOLS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../cwp_apple.map)
           set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -exported_symbols_list ${EXPORTED_SYMBOLS_FILE}")
           set_target_properties(cwpf_shared PROPERTIES LINK_DEPENDS ${EXPORTED_SYMBOLS_FILE})
-        else()  
+        else()
           set_target_properties(cwpf_shared PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../cwp.map")
         endif()
       endif()
