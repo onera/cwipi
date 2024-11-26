@@ -19,7 +19,7 @@
 #-----------------------------------------------------------------------------
 
 """
-cwipi - Coupling With Interpolation Parallel Interface library.
+pycwpt - Coupling With Interpolation Parallel Interface library.
 """
 
 #-----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ cdef extern from "Python.h":
   int PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
 
 # General
-cdef void dealloc_array_capsule(object capsule):
+cdef void dealloc_array_capsule(object capsule) noexcept:
     data = PyCapsule_GetPointer(capsule, NULL)
     PyTraceMalloc_Untrack(py_mem_domain, <uintptr_t> data)
     # Here we choose free() because the arrays were allocated in C
