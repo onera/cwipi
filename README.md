@@ -62,12 +62,16 @@ Refer to [FindPython](https://cmake.org/cmake/help/latest/module/FindPython.html
 #### Hide symbols of internal ParaDiGM library
     CWP_ENABLE_HIDE_PDM_SYMBOLS=<ON | OFF> (default : ON)
 
+If [```CWP_ENABLE_STATIC=ON```](#build-static-library) then ```CWP_ENABLE_HIDE_PDM_SYMBOLS=OFF``` is forced
+
 #### Enable the use of external ParaDiGM library
     CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)
 
-If CWP_ENABLE_EXTERNAL_PDM=ON, you must define this variable to find ParaDiGM :
+If ```CWP_ENABLE_EXTERNAL_PDM=ON```, you must define this variable to find ParaDiGM :
 
     PDM_SOURCE_DIR=<path> Where to find the base directory of ParaDiGM
+
+If [```CWP_ENABLE_HIDE_PDM_SYMBOLS=ON```](#hide-symbols-of-internal-paradigm-library) then ```CWP_ENABLE_EXTERNAL_PDM=OFF``` if forced
 
 #### Enable the use of [BLAS](https://www.netlib.org/blas/) (linear algebra)
     CWP_ENABLE_BLASLAPACK=<ON | OFF> (default : OFF)
