@@ -65,9 +65,9 @@ Refer to [FindPython](https://cmake.org/cmake/help/latest/module/FindPython.html
 #### Enable the use of external ParaDiGM library
     CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)
 
-You must define this variable to find ParaDiGM :
+If CWP_ENABLE_EXTERNAL_PDM=ON, you must define this variable to find ParaDiGM :
 
-    PDM_DIR=<path> Where to find the base directory of ParaDiGM
+    PDM_SOURCE_DIR=<path> Where to find the base directory of ParaDiGM
 
 #### Enable the use of [BLAS](https://www.netlib.org/blas/) (linear algebra)
     CWP_ENABLE_BLASLAPACK=<ON | OFF> (default : OFF)
