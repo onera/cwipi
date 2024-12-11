@@ -2083,6 +2083,43 @@ CWP_Mesh_interf_from_facevtx_set
 
 
 /**
+ * \brief Define the volume interface mesh from a cell-to-vertex connectivity.
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  n_cells           Number of cells
+ * \param [in]  cell_vtx_idx      Polygon to vertex index
+ *                                (\p cell_vtx_idx[0] = 0 and
+ *                                 size =  \p n_cells + 1)
+ * \param [in]  cell_vtx          Cell to vertex connectivity
+ *                                (size = \p cell_vtx_idx[\p n_cells])
+ * \param [in]  global_num        Global cell ids (size = \p n_cells or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_from_cellvtx_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          n_cells,
+       int          cell_vtx_idx[],
+       int          cell_vtx[],
+       CWP_g_num_t  global_num[]
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
+  cpl.meshFromCellsVtxSet(i_part,
+                          n_cells,
+                          cell_vtx_idx,
+                          cell_vtx,
+                          global_num);
+}
+
+
+/**
  * \brief Delete interface mesh.
  *
  * \param [in] local_code_name  Local code name

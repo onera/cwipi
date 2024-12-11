@@ -349,6 +349,10 @@ module cwp
         CWP_Mesh_interf_from_cellface_set_
     end interface CWP_Mesh_interf_from_cellface_set
 
+    interface CWP_Mesh_interf_from_cellvtx_set ; module procedure &
+        CWP_Mesh_interf_from_cellvtx_set_
+    end interface CWP_Mesh_interf_from_cellvtx_set
+
     interface CWP_Mesh_interf_from_faceedge_set ; module procedure &
         CWP_Mesh_interf_from_faceedge_set_
     end interface CWP_Mesh_interf_from_faceedge_set
@@ -668,6 +672,7 @@ module cwp
              CWP_Mesh_interf_c_poly_block_get_ ,&
              CWP_Mesh_interf_del_ ,&
              CWP_Mesh_interf_from_cellface_set_ ,&
+             CWP_Mesh_interf_from_cellvtx_set_ ,&
              CWP_Mesh_interf_from_faceedge_set_ ,&
              CWP_Mesh_interf_from_facevtx_set_ ,&
              CWP_Field_create_ ,&
@@ -1137,6 +1142,17 @@ module cwp
         type(c_ptr), value :: cell_face_idx, cell_face, face_vtx_idx, face_vtx, parent_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_cellface_set_cf
+
+      subroutine CWP_Mesh_interf_from_cellvtx_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_cells, &
+        cell_vtx_idx, cell_vtx, global_num) &
+        bind(c, name = 'CWP_Mesh_interf_from_cellvtx_set_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(c_int), value :: i_part, n_cells
+        type(c_ptr), value :: cell_vtx_idx, cell_vtx, global_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Mesh_interf_from_cellvtx_set_cf
 
       subroutine CWP_Mesh_interf_from_faceedge_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_faces, &
             face_edge_idx, face_edge, n_edges, edge_vtx, parent_num) &
@@ -3728,6 +3744,57 @@ contains
                                                c_face_vtx,           &
                                                c_global_num)
   end subroutine CWP_Mesh_interf_from_cellface_set_
+
+
+  subroutine CWP_Mesh_interf_from_cellvtx_set_(local_code_name, &
+                                               cpl_id,          &
+                                               i_part,          &
+                                               n_cells,         &
+                                               cell_vtx_idx,    &
+                                               cell_vtx,        &
+                                               global_num)
+    ! Define the volume interface mesh from a cell-to-vertex connectivity.
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *)      :: local_code_name ! Local code name
+    character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
+    integer(c_int)                         :: i_part          ! Partition identifier
+    integer(c_int)                         :: n_cells         ! Number of cells
+    integer(c_int),  dimension(:), pointer :: cell_vtx_idx    ! Index for cell to vertex connectivity (``cell_vtx_idx(0)`` = 0 and size = ``n_cells`` + 1
+    integer(c_int),  dimension(:), pointer :: cell_vtx        ! cell to vertex connectivity (size = ``cell_vtx_idx(n_cells+1)``)
+    integer(c_long), dimension(:), pointer :: global_num      ! Global cell ids (size = ``n_cells`` or ``null()``)
+
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_cell_vtx
+    type(c_ptr) :: c_global_num
+
+    if (associated(cell_vtx)) then
+      c_cell_vtx = c_loc(cell_vtx)
+    else
+      c_cell_vtx = c_null_ptr
+    endif
+
+    if (associated(global_num)) then
+      c_global_num = c_loc(global_num)
+    else
+      c_global_num = c_null_ptr
+    endif
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Mesh_interf_from_cellvtx_set_cf(local_code_name,     &
+                                             l_local_code_name,   &
+                                             cpl_id,              &
+                                             l_cpl_id,            &
+                                             i_part,              &
+                                             n_cells,             &
+                                             c_loc(cell_vtx_idx), &
+                                             c_cell_vtx,          &
+                                             c_global_num)
+
+  end subroutine CWP_Mesh_interf_from_cellvtx_set_
 
 
   subroutine CWP_Mesh_interf_from_faceedge_set_(local_code_name, &
