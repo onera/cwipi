@@ -32,11 +32,11 @@ program testf
 #endif
 
   type my_mesh
-    integer(c_int)                     :: n_part
-    integer(c_int),            pointer :: pn_vtx(:)      => null()
+    integer(c_int)                      :: n_part
+    integer(c_int),             pointer :: pn_vtx(:)      => null()
     type(CWPT_pointer_array_t), pointer :: pvtx_coord     => null()
     type(CWPT_pointer_array_t), pointer :: pvtx_ln_to_gn  => null()
-    integer(c_int),            pointer :: pn_face(:)     => null()
+    integer(c_int),             pointer :: pn_face(:)     => null()
     type(CWPT_pointer_array_t), pointer :: pface_vtx_idx  => null()
     type(CWPT_pointer_array_t), pointer :: pface_vtx      => null()
     type(CWPT_pointer_array_t), pointer :: pface_ln_to_gn => null()
@@ -63,7 +63,7 @@ program testf
   double precision                   :: radius      = 1.d0
 
   type(my_mesh), allocatable         :: mesh(:)
-  integer(c_int)                     :: id_block
+  ! integer(c_int)                     :: id_block
 
   type(c_ptr)                        :: c_vtx_coord = C_NULL_PTR
   double precision,          pointer :: vtx_coord1(:)    => null()

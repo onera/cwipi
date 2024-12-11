@@ -416,6 +416,12 @@ namespace cwipi {
                          int         face_vtx[],
                          CWP_g_num_t global_num[]);
 
+    void fromCellsVtxSet(const int   i_part,
+                         const int   n_cells,
+                         int         cell_vtx_idx[],
+                         int         cell_vtx[],
+                         CWP_g_num_t global_num[]);
+
 
     /**
     * \brief Update the block database.
@@ -717,6 +723,8 @@ namespace cwipi {
     std::vector<int>                        _nCells;
     std::vector<int*>                       _cellFaceIdx;
     std::vector<int*>                       _cellFace;
+    std::vector<int*>                       _cellVtxIdx;
+    std::vector<int*>                       _cellVtx;
 
     std::vector<int>                        _nFace;
     std::vector<int*>                       _faceEdgeIdx;
@@ -733,6 +741,7 @@ namespace cwipi {
     int                                     _faceEdgeMethod;
     int                                     _faceVtxMethod;
     int                                     _cellFaceMethod;
+    int                                     _cellVtxMethod;
 
     PDM_part_mesh_nodal_t                  *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
     PDM_geometry_kind_t                     _geom_kind;

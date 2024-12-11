@@ -131,9 +131,9 @@ _n_vtx_block_get
 
 static char *
 _fortran_to_c_string (
-  const char *application_name_f, 
+  const char *application_name_f,
   const int l_application_name_f
-) 
+)
 {
   char *application_name_c;
   int imin = 0;
@@ -163,8 +163,8 @@ _fortran_to_c_string (
     for (int k = imin ; k <= imax ; k++) {
       application_name_c[index++] = application_name_f[k];
     }
-    application_name_c[index] = '\0';   
-  } 
+    application_name_c[index] = '\0';
+  }
 
   return application_name_c;
 }
@@ -190,15 +190,15 @@ _fortran_to_c_string (
  *
  */
 
-void 
+void
 CWP_Init_cf (
-  MPI_Fint f_global_comm, 
-  const int n_code, 
+  MPI_Fint f_global_comm,
+  const int n_code,
   const char *f_code_names,
-  const int *l_code_names, 
+  const int *l_code_names,
   const int  is_active_rank,
   MPI_Fint *f_intra_comms
-) 
+)
 {
   // Convert code names dealing with different size characters
   char **c_code_names = (char **) malloc(n_code * sizeof(char *));
@@ -481,7 +481,7 @@ CWP_Loc_codes_list_get_cf
  * \param [in]  f_cpl_id            Fortran Coupling identifier
  * \param [in]  l_cpl_id            Length of Fortran coupling identifier
  * \param [in]  f_coupled_code_name Distant or local coupled code name (Fortran)
- * \param [in]  l_coupled_code_name Length of Distant or local coupled code name 
+ * \param [in]  l_coupled_code_name Length of Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  spatial_interp      Spatial interpolation method
  * \param [in]  n_part              Number of interface partition
@@ -491,21 +491,21 @@ CWP_Loc_codes_list_get_cf
  */
 
 
-void 
+void
 CWP_Cpl_create_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
   const char *f_cpl_id,
-  const int l_cpl_id, 
-  const char *f_coupled_code_name, 
-  const int l_coupled_code_name, 
+  const int l_cpl_id,
+  const char *f_coupled_code_name,
+  const int l_coupled_code_name,
   const CWP_Interface_t entities_dim,
   const CWP_Comm_t comm_type,
-  const CWP_Spatial_interp_t spatial_interp, 
-  const int n_part, 
-  const CWP_Dynamic_mesh_t displacement, 
+  const CWP_Spatial_interp_t spatial_interp,
+  const int n_part,
+  const CWP_Dynamic_mesh_t displacement,
   const CWP_Time_exch_t freq
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_coupled_code_name;
 
@@ -513,13 +513,13 @@ CWP_Cpl_create_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_coupled_code_name = _fortran_to_c_string(f_coupled_code_name, l_coupled_code_name);
 
-  CWP_Cpl_create((const char *) c_local_code_name, 
-                 (const char *) c_cpl_id, 
-                 (const char *) c_coupled_code_name, 
-                 entities_dim, comm_type, 
-                 spatial_interp, 
-                 n_part, 
-                 displacement, 
+  CWP_Cpl_create((const char *) c_local_code_name,
+                 (const char *) c_cpl_id,
+                 (const char *) c_coupled_code_name,
+                 entities_dim, comm_type,
+                 spatial_interp,
+                 n_part,
+                 displacement,
                  freq);
 
   free ( c_local_code_name);
@@ -570,13 +570,13 @@ CWP_Cpl_barrier_cf
  *
  */
 
-void 
+void
 CWP_Cpl_del_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
   const int l_cpl_id
-) 
+)
 {
 
   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
@@ -680,18 +680,18 @@ CWP_Involved_srcs_bcast_enable_cf (
  * \return                Number of uncomputed targets
  */
 
-int 
+int
 CWP_N_uncomputed_tgts_get_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_field_id, 
-  const int l_field_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id,
   int i_part
-) 
+)
 {
- 
+
   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
@@ -725,12 +725,12 @@ const int *
 CWP_Uncomputed_tgts_get_cf (
   const char *f_local_code_name,
   const int l_local_code_name,
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_field_id, 
-  const int l_field_id, 
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id,
   int i_part
-) 
+)
 {
 
   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
@@ -761,16 +761,16 @@ CWP_Uncomputed_tgts_get_cf (
  * \return                Number of computed targets
  */
 
-int 
+int
 CWP_N_computed_tgts_get_cf (
-  const char *f_local_code_name, 
+  const char *f_local_code_name,
   const int l_local_code_name,
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_field_id, 
-  const int l_field_id, 
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id,
   int i_part
-) 
+)
 {
   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
@@ -802,12 +802,12 @@ CWP_N_computed_tgts_get_cf (
 
 const int *
 CWP_Computed_tgts_get_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_field_id, 
-  const int l_field_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_field_id,
+  const int l_field_id,
   int i_part
 )
 {
@@ -946,13 +946,13 @@ CWP_Involved_srcs_get_cf (
  *
  */
 
-void 
+void
 CWP_Spatial_interp_weights_compute_cf (
-  const char *f_local_code_name, 
+  const char *f_local_code_name,
   const int l_local_code_name,
-  const char *f_cpl_id, 
+  const char *f_cpl_id,
   const int l_cpl_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -983,19 +983,19 @@ CWP_Spatial_interp_weights_compute_cf (
  * \param [in]  f_format_option     Fortran Output options "opt1, opt2, ..."
  *                                  - text : output text files
  *                                  - binary : output binary files (default)
- * \param [in]  l_format_option    Length of Fortran option 
+ * \param [in]  l_format_option    Length of Fortran option
  */
 
 void CWP_Visu_set_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  int freq, 
-  CWP_Visu_format_t format, 
-  const char *f_format_option, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  int freq,
+  CWP_Visu_format_t format,
+  const char *f_format_option,
   const int l_format_option
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_format_option;
 
@@ -1070,14 +1070,14 @@ void CWP_User_tgt_pts_set_cf (
  *
  */
 
-void 
+void
 CWP_Mesh_interf_finalize_cf
 (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
   int l_cpl_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1105,15 +1105,15 @@ CWP_Mesh_interf_finalize_cf
  *
  */
 
-void 
+void
 CWP_Mesh_interf_vtx_set_cf(
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, int i_part, 
-  int n_pts, double coord[], 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id, int i_part,
+  int n_pts, double coord[],
   CWP_g_num_t global_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1139,14 +1139,14 @@ CWP_Mesh_interf_vtx_set_cf(
  * \return block identifier
  */
 
-int 
+int
 CWP_Mesh_interf_block_add_cf (
-  const char *f_local_code_name, 
+  const char *f_local_code_name,
   int l_local_code_name,
-  const char *f_cpl_id, 
-  int l_cpl_id, 
+  const char *f_cpl_id,
+  int l_cpl_id,
   CWP_Block_t block_type
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1259,18 +1259,18 @@ CWP_Mesh_interf_block_add_cf (
  *
  */
 
-void 
+void
 CWP_Mesh_interf_block_std_set_cf (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  int i_part, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
   int block_id,
-  int n_elts, 
-  int connec[], 
+  int n_elts,
+  int connec[],
   CWP_g_num_t global_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1352,19 +1352,19 @@ CWP_Mesh_interf_block_std_get_cf
  *
  */
 
-void 
+void
 CWP_Mesh_interf_f_poly_block_set_cf (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  int i_part, 
-  int block_id, 
-  int n_elts, 
-  int connec_idx[], 
-  int connec[], 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int block_id,
+  int n_elts,
+  int connec_idx[],
+  int connec[],
   CWP_g_num_t global_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1444,22 +1444,22 @@ CWP_Mesh_interf_f_poly_block_get_cf
  *
  */
 
-void 
+void
 CWP_Mesh_interf_c_poly_block_set_cf (
   const char *f_local_code_name,
   int l_local_code_name,
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  int i_part, 
-  int block_id, 
-  int n_elts, 
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int block_id,
+  int n_elts,
   int n_faces,
-  int connec_faces_idx[], 
-  int connec_faces[], 
-  int connec_cells_idx[], 
-  int connec_cells[], 
+  int connec_faces_idx[],
+  int connec_faces[],
+  int connec_cells_idx[],
+  int connec_cells[],
   CWP_g_num_t global_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1577,21 +1577,21 @@ CWP_Mesh_interf_del_cf (
  *
  */
 
-void 
+void
 CWP_Mesh_interf_from_cellface_set_cf (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  int i_part, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
   int n_cells,
-  int cell_face_idx[], 
-  int cell_face[], 
-  int n_faces, 
-  int face_vtx_idx[], 
-  int face_vtx[], 
+  int cell_face_idx[],
+  int cell_face[],
+  int n_faces,
+  int face_vtx_idx[],
+  int face_vtx[],
   CWP_g_num_t parent_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
@@ -1602,6 +1602,37 @@ CWP_Mesh_interf_from_cellface_set_cf (
 
   free ( c_local_code_name);
   free ( c_cpl_id);
+}
+
+
+void
+CWP_Mesh_interf_from_cellvtx_set_cf (
+  const char *f_local_code_name,
+  int         l_local_code_name,
+  const char *f_cpl_id,
+  int         l_cpl_id,
+  int         i_part,
+  int         n_cells,
+  int         cell_vtx_idx[],
+  int         cell_vtx[],
+  CWP_g_num_t global_num[]
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+
+  CWP_Mesh_interf_from_cellvtx_set(c_local_code_name,
+                                   c_cpl_id,
+                                   i_part,
+                                   n_cells,
+                                   cell_vtx_idx,
+                                   cell_vtx,
+                                   global_num);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
 }
 
 
@@ -1626,34 +1657,34 @@ CWP_Mesh_interf_from_cellface_set_cf (
  *
  */
 
-void 
+void
 CWP_Mesh_interf_from_faceedge_set_cf (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  int i_part, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
   int n_faces,
-  int face_edge_idx[], 
-  int face_edge[], 
-  int n_edges, 
-  int edge_vtx[], 
+  int face_edge_idx[],
+  int face_edge[],
+  int n_edges,
+  int edge_vtx[],
   CWP_g_num_t parent_num[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id;
 
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_from_faceedge_set(c_local_code_name, 
-                                    c_cpl_id, 
+  CWP_Mesh_interf_from_faceedge_set(c_local_code_name,
+                                    c_cpl_id,
                                     i_part,
-                                    n_faces, 
-                                    face_edge_idx, 
-                                    face_edge, 
-                                    n_edges, 
-                                    edge_vtx, 
+                                    n_faces,
+                                    face_edge_idx,
+                                    face_edge,
+                                    n_edges,
+                                    edge_vtx,
                                     parent_num);
 
   free ( c_local_code_name);
@@ -1716,22 +1747,22 @@ CWP_Mesh_interf_from_facevtx_set_cf (
  *
  */
 
-void 
+void
 CWP_Field_create_cf
 (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  const char *f_field_id, 
-  int l_field_id, 
-  CWP_Type_t data_type, 
-  CWP_Field_storage_t storage, 
-  int n_component, 
-  CWP_Dof_location_t target_location, 
-  CWP_Field_exch_t exch_type, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_field_id,
+  int l_field_id,
+  CWP_Type_t data_type,
+  CWP_Field_storage_t storage,
+  int n_component,
+  CWP_Dof_location_t target_location,
+  CWP_Field_exch_t exch_type,
   CWP_Status_t visu_status
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_field_id;
 
@@ -1739,14 +1770,14 @@ CWP_Field_create_cf
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  CWP_Field_create(c_local_code_name, 
-                   c_cpl_id, 
-                   c_field_id, 
+  CWP_Field_create(c_local_code_name,
+                   c_cpl_id,
+                   c_field_id,
                    data_type,
-                   storage, 
-                   n_component, 
-                   target_location, 
-                   exch_type, 
+                   storage,
+                   n_component,
+                   target_location,
+                   exch_type,
                    visu_status);
 
   free ( c_local_code_name);
@@ -1769,18 +1800,18 @@ CWP_Field_create_cf
  *
  */
 
-void 
+void
 CWP_Field_data_set_cf (
-  const char *f_local_code_name, 
-  int l_local_code_name, 
-  const char *f_cpl_id, 
-  int l_cpl_id, 
-  const char *f_field_id, 
-  int l_field_id, 
-  int i_part, 
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_field_id,
+  int l_field_id,
+  int i_part,
   int map_type,
   double data[]
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_field_id;
 
@@ -1925,18 +1956,18 @@ CWP_Field_del_cf
  * \param [in]  f_src_field_id      Fortran Source field id
  * \param [in]  l_src_field_id      Length of Source field id
  *
- *    
+ *
  */
 
-void 
+void
 CWP_Field_issend_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_src_field_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_src_field_id,
   const int l_src_field_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
@@ -1969,15 +2000,15 @@ CWP_Field_issend_cf (
  *
  */
 
-void 
+void
 CWP_Field_irecv_cf(
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_tgt_field_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_tgt_field_id,
   const int l_tgt_field_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_tgt_field_id;
 
@@ -2005,15 +2036,15 @@ CWP_Field_irecv_cf(
  *
  */
 
-void 
+void
 CWP_Field_wait_issend_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
   const char *f_cpl_id,
-  const int l_cpl_id, 
-  const char *f_src_field_id, 
+  const int l_cpl_id,
+  const char *f_src_field_id,
   const int l_src_field_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
@@ -2044,15 +2075,15 @@ CWP_Field_wait_issend_cf (
  *
  */
 
-void 
+void
 CWP_Field_wait_irecv_cf (
-  const char *f_local_code_name, 
-  const int l_local_code_name, 
-  const char *f_cpl_id, 
-  const int l_cpl_id, 
-  const char *f_tgt_field_id, 
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id,
+  const char *f_tgt_field_id,
   const int l_tgt_field_id
-) 
+)
 {
   char *c_local_code_name, *c_cpl_id, *c_tgt_field_id;
 

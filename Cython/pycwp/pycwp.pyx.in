@@ -380,6 +380,13 @@ cdef extern from "cwp.h":
                                          int            *face_vtx_idx,
                                          int            *face_vtx,
                                          CWP_g_num_t    *global_num)
+  void CWP_Mesh_interf_from_cellvtx_set(char           *local_code_name,
+                                        char           *cpl_id,
+                                        int             i_part,
+                                        int             n_cells,
+                                        int            *cell_vtx_idx,
+                                        int            *cell_vtx,
+                                        CWP_g_num_t    *global_num)
   void CWP_Mesh_interf_from_faceedge_set(char           *local_code_name,
                                          char           *cpl_id,
                                          int             i_part,
@@ -882,7 +889,7 @@ def init(MPI.Comm global_comm,
     Returns:
       MPI intra-communicators of each code (size = number of codes on current MPI rank) (MPI.Comm list)
     """
-   
+
     n_code = len(code_names)
 
     # code names
@@ -916,7 +923,7 @@ def init(MPI.Comm global_comm,
       py_intra_comms[i_code] = tmp_comm # hidden cast to (PyObject *)
 
     free (intra_comms)
-    free (c_code_names)  
+    free (c_code_names)
 
     return py_intra_comms
 
@@ -927,7 +934,7 @@ def finalize():
     After this call, no other function from this module can be called.
     It is a synchronization point between all applications.
     """
- 
+
     CWP_Finalize()
 
 # --> functions about current code properties
@@ -3167,6 +3174,40 @@ cdef class Coupling (object):
                                             <int *> face_vtx_idx.data,
                                             <int *> face_vtx.data,
                                             <CWP_g_num_t *> global_num.data)
+
+    def mesh_interf_from_cellvtx_set(self,
+                                     int                                          i_part,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c']     cell_vtx_idx not None,
+                                     np.ndarray[np.int32_t, ndim=1, mode='c']     cell_vtx     not None,
+                                     np.ndarray[npy_cwp_gnum_t, ndim=1, mode='c'] global_num):
+        """
+        mesh_interf_from_cellvtx_set(i_part, cell_vtx_idx, cell_vtx, global_num)
+        Define the volume interface mesh from a cell to vertex connectivity.
+
+        Parameters:
+          i_part       (int)                        : Current partition
+          cell_vtx_idx (np.ndarray[np.int32_t])     : Polygon to vertex index (``cell_vtx_idx`` [0] = 0 and size =  *n_cells* + 1)
+          cell_vtx     (np.ndarray[np.int32_t])     : Polygon to vertex connectivity (size = ``cell_vtx_idx`` [*n_cells*])
+          global_num   (np.ndarray[npy_cwp_gnum_t]) : Global element ids (size = *n_cells* or None)
+        """
+        cdef int n_cells = len(cell_vtx_idx) - 1
+
+        if (global_num is None):
+          CWP_Mesh_interf_from_cellvtx_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           n_cells,
+                                           <int *> cell_vtx_idx.data,
+                                           <int *> cell_vtx.data,
+                                           NULL)
+        else:
+          CWP_Mesh_interf_from_cellvtx_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           n_cells,
+                                           <int *> cell_vtx_idx.data,
+                                           <int *> cell_vtx.data,
+                                           <CWP_g_num_t *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
                                       int                                      i_part,
