@@ -69,6 +69,43 @@
 
 using namespace std;
 
+static void 
+_check_cpl_consistency
+(
+  const CWP_Interface_t      entities_dim,
+  const CWP_Spatial_interp_t spatialInterpAlgo,
+        MPI_Comm             cpl_comm
+)
+{
+  if (cpl_comm == MPI_COMM_NULL) {
+    return;
+  }
+
+  int i_rank_cpl, n_rank_cpl;
+  MPI_Comm_rank(cpl_comm, &i_rank_cpl);
+  MPI_Comm_size(cpl_comm, &n_rank_cpl);
+
+  int *recv_buf = NULL;
+  if (i_rank_cpl == 0) {
+    recv_buf = (int *) malloc(sizeof(int) * n_rank_cpl * 2);
+  }
+
+  int send_buf[2] = {entities_dim, spatialInterpAlgo};
+  MPI_Gather(send_buf, 2, MPI_INT, recv_buf, 2, MPI_INT, 0, cpl_comm);
+
+  if (i_rank_cpl == 0) {
+    for (int i = 1; i < n_rank_cpl; i++) {
+      if (recv_buf[2*i] != entities_dim) {
+        PDM_error(__FILE__, __LINE__, 0, "Inconsistent interface dimension (%d / %d)\n", recv_buf[2*i], entities_dim);
+      }
+      if (recv_buf[2*i+1] != spatialInterpAlgo) {
+        PDM_error(__FILE__, __LINE__, 0, "Inconsistent spatial interpolation method (%d / %d)\n", recv_buf[2*i+1], spatialInterpAlgo);
+      }
+    }
+    free(recv_buf);
+  }
+}
+
 namespace cwipi {
 
   /**
@@ -166,8 +203,7 @@ namespace cwipi {
    _n_step(0)
 
    {
-
-     //In case where the both codes are on the same MPI process.
+     //In case where both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
       if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
         const int localRootRank = localCodeProperties.rootRankGet();
@@ -189,6 +225,10 @@ namespace cwipi {
           distCpl._communication.init(_communication);
         }
 
+        MPI_Comm cpl_comm = _communication.cplCommGet();
+        _check_cpl_consistency(entities_dim,
+                               spatialInterpAlgo,
+                               cpl_comm);
       }
     } // if (coupledCodeProperties.localCodeIs())
 
@@ -196,6 +236,10 @@ namespace cwipi {
       //Communication initialization, MPI communicator creation ...
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
 
+      MPI_Comm cpl_comm = _communication.cplCommGet();
+      _check_cpl_consistency(entities_dim,
+                             spatialInterpAlgo,
+                             cpl_comm);
     } // end else
 
     //entitiesDimGet();
