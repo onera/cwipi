@@ -25,7 +25,6 @@ CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
 CWP_GCC_SUPPRESS_WARNING_POP
 
 
-#include "pdm_mesh_nodal.h"
 #include "pdm_geom_elem.h"
 #include "pdm_gnum.h"
 
@@ -207,7 +206,6 @@ namespace cwipi {
   protected:
 
     CWP_Block_t                _blockType;              /*!< Block Type */
-    PDM_Mesh_nodal_t          *_pdmNodal_handle_index;  /*!< PDM Nodal Index */
     MPI_Comm                  *_localComm;              /*!< Communicator */
     int                        _n_part;                 /*!< Number of partitions */
     std::vector <int>          _n_elt;                  /*!< Number of elements for each partition */

@@ -31,7 +31,8 @@ else ()
     ${PDM_SOURCE_DIR}/src/*/pdm_file_par.c
     ${PDM_SOURCE_DIR}/src/*/pdm_mpi_node_first_rank.c
     ${PDM_SOURCE_DIR}/src/*/pdm_printf.c
-    ${PDM_SOURCE_DIR}/src/*/pdm_error.c)
+    ${PDM_SOURCE_DIR}/src/*/pdm_error.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_mem_tool.c)
 endif ()
 
 add_executable (cwp_server server_main.c ${SOURCESPDM})
