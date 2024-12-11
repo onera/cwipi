@@ -1657,8 +1657,8 @@ module cwp
       implicit none
       character(kind = c_char, len = 1) :: local_code_name, param_name
       integer(c_int), value             :: l_local_code_name, l_param_name
-      type(c_ptr)                       :: val
-      integer(c_int)                    :: l_value
+      character(kind = c_char, len = 1) :: val
+      integer(c_int), value             :: l_value
     end subroutine CWP_Param_get_char_cf
 
 
@@ -5052,21 +5052,19 @@ contains
     character(kind = c_char, len = *) :: param_name
     integer(kind = c_int)             :: l_code_name
     integer(kind = c_int)             :: l_param_name
-    character(c_char), pointer        :: val(:)
-    type(c_ptr)                       :: cptr = C_NULL_PTR
-    integer(c_int)                    :: l_value
+    character(kind = c_char, len = *) :: val
+    integer(kind = c_int)             :: l_val
 
     l_code_name  = len(code_name)
     l_param_name = len(param_name)
+    l_val        = len(val)
 
     call CWP_Param_get_char_cf(code_name,    &
                                l_code_name,  &
                                param_name,   &
                                l_param_name, &
-                               cptr,         &
-                               l_value)
-
-    call c_f_pointer(cptr, val, [l_value])
+                               val,          &
+                               l_val)
 
   end subroutine CWP_Param_get_char
 

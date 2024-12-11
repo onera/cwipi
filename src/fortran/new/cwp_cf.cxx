@@ -3144,19 +3144,31 @@ CWP_Param_get_char_cf
  const int         l_code_name,
  const char       *f_param_name,
  const int         l_param_name,
-       char      **value,
-       int        *l_value
+       char       *f_value,
+ const int         l_f_value
 )
 {
   char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
   char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+  char *c_value      = NULL;
 
   CWP_Param_get(c_code_name,
                 c_param_name,
                 CWP_CHAR,
-                value);
+               &c_value);
 
-  *l_value = strlen(*value);
+  int l_c_value = strlen((const char*) c_value);
+
+  int i = 0;
+  while (i < l_c_value && i < l_f_value) {
+    f_value[i] = c_value[i];
+    i+=1;
+  }
+
+  while (i < l_f_value) {
+    f_value[i] = ' ';
+    i+=1;
+  }
 
   free(c_code_name);
   free(c_param_name);

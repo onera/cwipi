@@ -199,7 +199,7 @@ program testf
   real(c_double)                     :: tata
   real(c_double)                     :: check_tata
   character(len = 99)                :: str_param
-  character(c_char),         pointer :: check_str_param(:) => null()
+  character(len = 33)                :: check_str_param
 
   integer(c_int)                     :: n_elt2
   integer(c_int),            pointer :: connec_idx2(:) => null()
