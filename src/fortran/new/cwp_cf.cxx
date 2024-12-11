@@ -3172,6 +3172,7 @@ CWP_Param_get_char_cf
 
   free(c_code_name);
   free(c_param_name);
+  free(c_value);
 }
 
 /**
