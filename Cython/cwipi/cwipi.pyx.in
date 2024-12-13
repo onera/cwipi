@@ -1322,7 +1322,7 @@ cdef void callback(int entities_dim,
                    int stride,
                    cwipi_solver_type_t  solver_type,
                    const void *local_field,
-                   void *distant_field):
+                   void *distant_field) noexcept:
     """
     """
     global current_cpl
@@ -1502,7 +1502,7 @@ cdef void ho_callback(int entities_dim,
                       int stride,
                       cwipi_solver_type_t  solver_type,
                       void *local_field,
-                      void *distant_field):
+                      void *distant_field) noexcept:
     """
     """
     global current_cpl
@@ -1680,7 +1680,7 @@ cdef void ho_bas_callback(int entities_dim,
                           int n_nodes,
                           int n_pts,
                           double *uvw,
-                          double *weights):
+                          double *weights) noexcept:
     """
     """
     global interp_ho_bas_f
@@ -1721,7 +1721,7 @@ cdef double ho_loc_callback(int entities_dim,
                             double *nodes_coords,
                             double *point_coords,
                             double *projected_coords,
-                            double *projected_uvw):
+                            double *projected_uvw) noexcept:
     """
     """
     global interp_ho_loc_f

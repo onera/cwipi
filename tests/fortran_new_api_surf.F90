@@ -25,21 +25,20 @@
                               c_buffer_in,       &
                               c_buffer_out)      &
 
-    bind(c)                                      
+    bind(c)
 
     use, intrinsic :: iso_c_binding
 
-#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE
     use mpi
 #endif
     use cwp
-!    use pdm_pointer_array
-  
+
     implicit none
 
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
     include "mpif.h"
-#endif  
+#endif
 
     character(kind=c_char,len=1) :: c_local_code_name(*)
     character(kind=c_char,len=1) :: c_cpl_id(*)
@@ -145,16 +144,16 @@
   end subroutine my_interpolation
 
 program testf
-#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE
     use mpi
 #endif
   use cwp
 
   implicit none
 
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
     include "mpif.h"
-#endif  
+#endif
 
 
   type my_type
@@ -200,7 +199,8 @@ program testf
   real(c_double)                     :: tata
   real(c_double)                     :: check_tata
   character(len = 99)                :: str_param
-  character(c_char),         pointer :: check_str_param(:) => null()
+  character(c_char),         pointer :: check_str_param_ptr(:) => null()
+  character(len = 33)                :: check_str_param
 
   integer(c_int)                     :: n_elt2
   integer(c_int),            pointer :: connec_idx2(:) => null()
@@ -255,20 +255,20 @@ program testf
                                 i_part,            &
                                 c_buffer_in,       &
                                 c_buffer_out) bind(c)
-     
+
       use, intrinsic :: iso_c_binding
-  
+
       implicit none
-  
+
       character(kind=c_char,len=1) :: c_local_code_name(*)
       character(kind=c_char,len=1) :: c_cpl_id(*)
       character(kind=c_char,len=1) :: c_field_id(*)
       integer(kind=c_int), value   :: i_part
       type(c_ptr), value           :: c_buffer_in
       type(c_ptr), value           :: c_buffer_out
-  
+
     end subroutine
-  end interface  
+  end interface
 
   !! Initialize MPI
   call MPI_Init(ierr)
@@ -424,6 +424,19 @@ program testf
       write(iiunit,*) "check_str_param = ", check_str_param
       call flush(iiunit)
     endif
+
+    call CWP_Param_get("code1",  &
+                       "str_param",   &
+                       check_str_param_ptr)
+    call CWPT_fortran_free_c(c_loc(check_str_param_ptr))
+    call CWP_Param_get("code1",  &
+                       "str_param",   &
+                       check_str_param_ptr)
+    if (debug) then
+      write(iiunit,*) "check_str_param_ptr = ", check_str_param_ptr
+      call flush(iiunit)
+    endif
+    call CWPT_fortran_free_c(c_loc(check_str_param_ptr))
   endif
   !<<--
 

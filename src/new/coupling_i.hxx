@@ -1,7 +1,7 @@
 #ifndef __COUPLING_I_H__
 #define __COUPLING_I_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -37,8 +37,8 @@ namespace cwipi {
 
     /**
      * \brief Return kind of displacement
-     *  
-     * 
+     *
+     *
      * \return kind of displacement
      *
      */
@@ -99,7 +99,7 @@ namespace cwipi {
    *
    */
 
-  PDM_writer_t* 
+  PDM_writer_t*
   Coupling::writerGet ()
   {
     return _writer;
@@ -115,7 +115,7 @@ namespace cwipi {
    *
    */
 
-  int 
+  int
   Coupling::freqWriterGet ()
   {
     return _freq_writer;
@@ -124,13 +124,13 @@ namespace cwipi {
 
   /**
    * \brief Curent number of coupling step
-   *  
-   * 
+   *
+   *
    * \return the current number of coupling step
    *
    */
 
-  int 
+  int
   Coupling::NStepGet (
   )
   {
@@ -166,7 +166,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshVtcsSet (
     const int          i_part,
     const int          n_pts,
@@ -198,7 +198,7 @@ namespace cwipi {
   * \return block identifier
   */
 
-  int 
+  int
   Coupling::meshBlockAdd (
     const CWP_Block_t     block_type
   )
@@ -300,7 +300,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshStdBlockSet (
     const int           i_part,
     const int           block_id,
@@ -446,7 +446,7 @@ namespace cwipi {
     PDM_UNUSED (connec);
     PDM_UNUSED (global_num);
 
-    PDM_error(__FILE__, __LINE__, 0, "meshHighOrderBlockSet not implemented yet\n"); 
+    PDM_error(__FILE__, __LINE__, 0, "meshHighOrderBlockSet not implemented yet\n");
   }
 
 
@@ -464,7 +464,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshFPolyBlockSet (
     const int            i_part,
     const int            block_id,
@@ -522,7 +522,7 @@ namespace cwipi {
                          n_elts,
                          connec_idx,
                          connec,
-                         global_num);  
+                         global_num);
   }
 
 
@@ -549,7 +549,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshCPolyBlockSet (
     const int           i_part,
     const int           block_id,
@@ -631,7 +631,7 @@ namespace cwipi {
                          connec_faces,
                          connec_cells_idx,
                          connec_cells,
-                         global_num);  
+                         global_num);
   }
 
 
@@ -659,7 +659,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshFromCellFaceSet(
     const int         i_part,
     const int         n_cells,
@@ -719,7 +719,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshFromFacesEdgeSet (
     const int         i_part,
     const int         n_faces,
@@ -777,6 +777,32 @@ namespace cwipi {
   }
 
 
+  void
+  Coupling::meshFromCellsVtxSet (
+    const int         i_part,
+    const int         n_cells,
+          int         cell_vtx_idx[],
+          int         cell_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    if (has_mesh()) {
+      _mesh.fromCellsVtxSet(i_part,
+                            n_cells,
+                            cell_vtx_idx,
+                            cell_vtx,
+                            global_num);
+    }
+    else {
+      _mesh.fromCellsVtxSet(i_part,
+                            0,
+                            NULL,
+                            NULL,
+                            NULL);
+    }
+  }
+
+
   /**
    * \brief SpatialInterp mesh removal
    *
@@ -784,7 +810,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::meshDel()
   {
     if (_writer != NULL) {
@@ -841,7 +867,7 @@ namespace cwipi {
    *
    */
 
-  void Coupling::meshFinalize() 
+  void Coupling::meshFinalize()
   {
     _is_mesh_finalized = 1;
     _mesh.geomFinalize();
@@ -997,7 +1023,7 @@ namespace cwipi {
    * \return                Number of uncomputed targets
    */
 
-  int 
+  int
   Coupling::nUncomputedTargetsGet
   (
     const string &field_id,
@@ -1013,7 +1039,7 @@ namespace cwipi {
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
@@ -1048,7 +1074,7 @@ namespace cwipi {
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error unncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+      PDM_error(__FILE__, __LINE__, 0, "Error unncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
@@ -1080,7 +1106,7 @@ namespace cwipi {
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
@@ -1112,7 +1138,7 @@ namespace cwipi {
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
@@ -1211,7 +1237,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::interpFunctionSet (
     const string                     field_id,
           CWP_Interp_function_t      fct
@@ -1335,12 +1361,12 @@ namespace cwipi {
    *
    * \brief Return the dimesnion of geometric entities of this coupling
    *
-   * \return Entities dimension 
+   * \return Entities dimension
    *
    */
 
-  CWP_Interface_t 
-  Coupling::entitiesDimGet() 
+  CWP_Interface_t
+  Coupling::entitiesDimGet()
   {
      return _entities_dim;
   }
@@ -1350,12 +1376,12 @@ namespace cwipi {
    *
    * \brief Return the local code fields defined for this coupling
    *
-   * \return Fields 
+   * \return Fields
    *
    */
 
-  std::map < string, Field * >* 
-  Coupling::fieldsGet() 
+  std::map < string, Field * >*
+  Coupling::fieldsGet()
   {
      return &_fields;
   }
@@ -1364,14 +1390,14 @@ namespace cwipi {
   /**
    *
    * \brief Return the spatial interpolation objects according to direction of the exchange
-   * 
+   *
    * \param [in] exchDirection     Direction of the exchange
    *
    * \return Local  spatial interpolation objects
    *
    */
 
-  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* 
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>*
   Coupling::spatialInterpGet(
     CWP_Field_exch_t exchDirection
   )
@@ -1384,15 +1410,15 @@ namespace cwipi {
     }
     else {
       PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-      return nullptr;     
-    } 
+      return nullptr;
+    }
 
   }
 
   /**
    *
    * \brief Return the spatial interpolation according to parameters
-   * 
+   *
    * \param [in] localLocation     Local location of degrees of freedom
    * \param [in] cplLocation       Coupled location of degrees of freedom
    * \param [in] exchDirection     Direction of the exchange
@@ -1401,11 +1427,11 @@ namespace cwipi {
    *
    */
 
-  SpatialInterp* 
+  SpatialInterp*
   Coupling::spatialInterpGet (
-    CWP_Dof_location_t localLocation, 
-    CWP_Dof_location_t cplLocation, 
-    CWP_Field_exch_t exch_t) 
+    CWP_Dof_location_t localLocation,
+    CWP_Dof_location_t cplLocation,
+    CWP_Field_exch_t exch_t)
   {
 
     if (exch_t == CWP_FIELD_EXCH_SEND) {
@@ -1426,7 +1452,7 @@ namespace cwipi {
 
     else {
       PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-      return nullptr;     
+      return nullptr;
     }
 
   }
@@ -1441,8 +1467,8 @@ namespace cwipi {
    */
 
 
-  CodeProperties* 
-  Coupling::localCodePropertiesGet() 
+  CodeProperties*
+  Coupling::localCodePropertiesGet()
   {
     return const_cast<CodeProperties*>(&_localCodeProperties);
   }
@@ -1456,8 +1482,8 @@ namespace cwipi {
    *
    */
 
-  CodeProperties* 
-  Coupling::coupledCodePropertiesGet() 
+  CodeProperties*
+  Coupling::coupledCodePropertiesGet()
   {
     return const_cast<CodeProperties*>(&_coupledCodeProperties);
   }
@@ -1465,13 +1491,13 @@ namespace cwipi {
 
   /**
    *
-   * \brief Return the communication way 
+   * \brief Return the communication way
    *
    * \return Local code properties
    *
    */
 
-  Communication* 
+  Communication*
   Coupling::communicationGet() {
     return const_cast<Communication*>(&_communication);
   }
@@ -1482,24 +1508,24 @@ namespace cwipi {
    * \brief Return the couplings data base
    *
    * \return Coupling data base
-   *  
+   *
    */
 
-  CouplingDB* 
+  CouplingDB*
   Coupling::couplingDBGet() {
     return &_cplDB;
   }
 
-    
+
   /**
    *
    * \brief Return the coupling id
    *
    * \return id
-   *  
+   *
    */
 
-  string 
+  string
   Coupling::IdGet(){
     return _cplId;
   }
@@ -1511,10 +1537,10 @@ namespace cwipi {
    * \brief Return sendSpatial map
    *
    * \return id
-   *  
+   *
    */
 
-  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &
   Coupling::sendSpatialInterpGet() {
     return _spatial_interp_send;
   }
@@ -1525,10 +1551,10 @@ namespace cwipi {
    * \brief Return recvSpatial map
    *
    * \return id
-   *  
+   *
    */
 
-  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &
   Coupling::recvSpatialInterpGet(){
     return _spatial_interp_recv;
   }
@@ -1537,7 +1563,7 @@ namespace cwipi {
    * methods about user target                                                  *
    *----------------------------------------------------------------------------*/
 
-  
+
   /**
    * \brief Setting user target points
    *
@@ -1565,12 +1591,12 @@ namespace cwipi {
         _userTargetN[iPart1] = 0;
       }
       if (gNum != nullptr) {
-        _userTargetGnum = (const PDM_g_num_t**) malloc (sizeof(PDM_g_num_t *) * _nPart); 
+        _userTargetGnum = (const PDM_g_num_t**) malloc (sizeof(PDM_g_num_t *) * _nPart);
         for (int iPart1 = 0; iPart1 < _nPart; iPart1++) {
           _userTargetGnum[iPart1] = nullptr;
         }
       }
-      _userTargetCoord = (const double**) malloc (sizeof(double *) * _nPart); 
+      _userTargetCoord = (const double**) malloc (sizeof(double *) * _nPart);
       for (int iPart1 = 0; iPart1 < _nPart; iPart1++) {
         _userTargetCoord[iPart1] = nullptr;
       }
@@ -1586,12 +1612,12 @@ namespace cwipi {
 
 
   /**
-   * \brief Return global number of user targets 
-   * 
+   * \brief Return global number of user targets
+   *
    * \param [in]  iPart     Current partition
-   * 
-   * 
-   * \return Global Number 
+   *
+   *
+   * \return Global Number
    *
    */
 
@@ -1608,12 +1634,12 @@ namespace cwipi {
 
 
   /**
-   * \brief Return coords of user targets 
-   * 
+   * \brief Return coords of user targets
+   *
    * \param [in]  iPart     Current partition
-   * 
-   * 
-   * \return Coordinates 
+   *
+   *
+   * \return Coordinates
    *
    */
 
@@ -1623,16 +1649,16 @@ namespace cwipi {
   ) const
   {
     assert (_userTargetCoord != nullptr);
-    return _userTargetCoord[iPart]; 
+    return _userTargetCoord[iPart];
   }
 
 
   /**
-   * \brief Return number of user targets 
-   * 
+   * \brief Return number of user targets
+   *
    * \param [in]  iPart     Current partition
-   * 
-   * 
+   *
+   *
    * \return Number of user targets
    *
    */
@@ -1643,17 +1669,17 @@ namespace cwipi {
   )
   {
     assert (_userTargetN != nullptr);
-    return _userTargetN[iPart];   
+    return _userTargetN[iPart];
   }
 
   /**
-   * \brief Return number of partition 
-   *  
-   * 
+   * \brief Return number of partition
+   *
+   *
    * \return Number of partition
    *
    */
-  
+
   int
   Coupling::nPartGet (
   ) const
@@ -1664,12 +1690,12 @@ namespace cwipi {
 
   /**
    * \brief Return number of partition of coupled code
-   *  
-   * 
+   *
+   *
    * \return Number of partition
    *
    */
-  
+
   int
   Coupling::cplNPartGet (
   )

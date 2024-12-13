@@ -508,7 +508,7 @@ namespace cwipi {
      *
      */
 
-    inline Visu* 
+    inline Visu*
     visuGet ();
 
     /**
@@ -529,7 +529,7 @@ namespace cwipi {
      *
      */
 
-    inline PDM_writer_t* 
+    inline PDM_writer_t*
     writerGet ();
 
 
@@ -542,7 +542,7 @@ namespace cwipi {
      *
      */
 
-    inline  int 
+    inline  int
     freqWriterGet ();
 
 
@@ -998,6 +998,16 @@ namespace cwipi {
     );
 
 
+    inline void
+    meshFromCellsVtxSet(
+      const int   i_part,
+      const int   n_cells,
+      int         cell_vtx_idx[],
+      int         cell_vtx[],
+      CWP_g_num_t global_num[]
+    );
+
+
     /**
      * \brief SpatialInterp mesh removal
      *
@@ -1015,7 +1025,7 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    inline void
     meshFinalize();
 
     /**
@@ -1026,7 +1036,7 @@ namespace cwipi {
      *
      */
 
-    inline Mesh* 
+    inline Mesh*
     meshGet();
 
 
@@ -1048,7 +1058,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     fieldCreate (
      const string               &field_id,
      const CWP_Type_t           data_type,
@@ -1448,11 +1458,11 @@ namespace cwipi {
      *
      * \brief Return the dimesnion of geometric entities of this coupling
      *
-     * \return Entities dimension 
+     * \return Entities dimension
      *
      */
 
-    inline CWP_Interface_t 
+    inline CWP_Interface_t
     entitiesDimGet();
 
 
@@ -1460,25 +1470,25 @@ namespace cwipi {
      *
      * \brief Return the local code fields defined for this coupling
      *
-     * \return Fields 
+     * \return Fields
      *
      */
 
-    inline std::map < string, Field * >* 
+    inline std::map < string, Field * >*
     fieldsGet();
 
 
     /**
      *
      * \brief Return the spatial interpolation objects according to direction of the exchange
-     * 
+     *
      * \param [in] exchDirection     Direction of the exchange
      *
      * \return Local  spatial interpolation objects
      *
      */
 
-    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* 
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>*
     spatialInterpGet(
       CWP_Field_exch_t exchDirection
     );
@@ -1487,7 +1497,7 @@ namespace cwipi {
     /**
      *
      * \brief Return the spatial interpolation according to parameters
-     * 
+     *
      * \param [in] localLocation     Local location of degrees of freedom
      * \param [in] cplLocation       Coupled location of degrees of freedom
      * \param [in] exchDirection     Direction of the exchange
@@ -1496,10 +1506,10 @@ namespace cwipi {
      *
      */
 
-    inline SpatialInterp* 
+    inline SpatialInterp*
     spatialInterpGet (
-      CWP_Dof_location_t localLocation, 
-      CWP_Dof_location_t cplLocation, 
+      CWP_Dof_location_t localLocation,
+      CWP_Dof_location_t cplLocation,
       CWP_Field_exch_t   exchDirection
     );
 
@@ -1510,10 +1520,10 @@ namespace cwipi {
      * \return Local code properties
      *
      */
-    
-    inline CodeProperties* 
+
+    inline CodeProperties*
     localCodePropertiesGet();
-    
+
 
     /**
      *
@@ -1522,19 +1532,19 @@ namespace cwipi {
      * \return Local code properties
      *
      */
-    
-    inline CodeProperties* 
+
+    inline CodeProperties*
     coupledCodePropertiesGet();
 
     /**
      *
-     * \brief Return the communication way 
+     * \brief Return the communication way
      *
      * \return Local code properties
      *
      */
 
-    inline Communication* 
+    inline Communication*
     communicationGet();
 
     /**
@@ -1542,22 +1552,22 @@ namespace cwipi {
      * \brief Return the couplings data base
      *
      * \return Coupling data base
-     *  
+     *
      */
 
-    inline CouplingDB*  
+    inline CouplingDB*
     couplingDBGet();
-    
+
 
     /**
      *
      * \brief Return the coupling id
      *
      * \return id
-     *  
+     *
      */
- 
-    inline string       
+
+    inline string
     IdGet();
 
     /**
@@ -1565,10 +1575,10 @@ namespace cwipi {
      * \brief Return sendSpatial map
      *
      * \return id
-     *  
+     *
      */
- 
-    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &
     sendSpatialInterpGet();
 
 
@@ -1577,10 +1587,10 @@ namespace cwipi {
      * \brief Return recvSpatial map
      *
      * \return id
-     *  
+     *
      */
- 
-    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &
     recvSpatialInterpGet();
 
     /*----------------------------------------------------------------------------*
@@ -1589,8 +1599,8 @@ namespace cwipi {
 
 
     /**
-     * \brief Define user target points 
-     * 
+     * \brief Define user target points
+     *
      * \param [in]  iPart     Current partition
      * \param [in]  nPts      Number of points
      * \param [in]  coords    Coordinates
@@ -1608,12 +1618,12 @@ namespace cwipi {
 
 
     /**
-     * \brief Return global number of user targets 
-     * 
+     * \brief Return global number of user targets
+     *
      * \param [in]  iPart     Current partition
-     * 
-     * 
-     * \return Global Number 
+     *
+     *
+     * \return Global Number
      *
      */
 
@@ -1624,12 +1634,12 @@ namespace cwipi {
 
 
     /**
-     * \brief Return coords of user targets 
-     * 
+     * \brief Return coords of user targets
+     *
      * \param [in]  iPart     Current partition
-     * 
-     * 
-     * \return Coordinates 
+     *
+     *
+     * \return Coordinates
      *
      */
 
@@ -1640,11 +1650,11 @@ namespace cwipi {
 
 
     /**
-     * \brief Return number of user targets 
-     * 
+     * \brief Return number of user targets
+     *
      * \param [in]  iPart     Current partition
-     * 
-     * 
+     *
+     *
      * \return Number of user targets
      *
      */
@@ -1656,9 +1666,9 @@ namespace cwipi {
 
 
     /**
-     * \brief Return number of partition 
-     *  
-     * 
+     * \brief Return number of partition
+     *
+     *
      * \return Number of partition
      *
      */
@@ -1670,8 +1680,8 @@ namespace cwipi {
 
     /**
      * \brief Return number of partition of coupled code
-     *  
-     * 
+     *
+     *
      * \return Number of partition
      *
      */
@@ -1683,8 +1693,8 @@ namespace cwipi {
 
     /**
      * \brief Return the number of user spatial interpolation properties
-     *  
-     * 
+     *
+     *
      * \return Number of partition
      *
      */
@@ -1696,8 +1706,8 @@ namespace cwipi {
 
     /**
      * \brief Return the values of user spatial interpolation properties
-     *  
-     * 
+     *
+     *
      * \return Number of partition
      *
      */
@@ -1729,8 +1739,8 @@ namespace cwipi {
 
     /**
      * \brief Return the names of user spatial interpolation properties
-     *  
-     * 
+     *
+     *
      * \return Number of partition
      *
      */
@@ -1742,8 +1752,8 @@ namespace cwipi {
 
     /**
      * \brief Return kind of displacement
-     *  
-     * 
+     *
+     *
      * \return kind of displacement
      *
      */
@@ -1755,13 +1765,13 @@ namespace cwipi {
 
     /**
      * \brief Curent number of coupling step
-     *  
-     * 
+     *
+     *
      * \return the current number of coupling step
      *
      */
 
-    inline int 
+    inline int
     NStepGet (
     );
 
@@ -1769,7 +1779,7 @@ namespace cwipi {
 
   public:
 
-    // A supprimer 
+    // A supprimer
 
     CWP_g_num_t*
     globalNumGet(int id_block,int i_part);
@@ -1815,7 +1825,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     exportMesh(Coupling &cpl);
 
     /**
@@ -1824,7 +1834,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     userTargetGnumCompute();
 
 
@@ -1869,9 +1879,9 @@ namespace cwipi {
           CWP_g_num_t                       **_localUserTargetGnum;                    /*!< Target global numbering by partition (used if _gnum_user_target is not setted by user) */
     const double                            **_userTargetCoord;                        /*!< Target coordinates by partition (size number partitions of the mesh) */
 
-    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects 
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects
                                                                                                                   to associate with receive distant spatial interpolatiol */
-    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects
                                                                                                                   to associate with sent distant spatial interpolatiol */
 
     std::map<std::string, double>          &_spatial_interp_properties_double; /*!< Spatial interpolation properties of type double */
@@ -1880,7 +1890,7 @@ namespace cwipi {
 //    int                                     _is_up_to_date;
           // Visu                             &_visu;                  /*!< Visualization */
 
-          int                               _is_mesh_finalized;     /*!< Flag which indicates mesh is finalized  */              
+          int                               _is_mesh_finalized;     /*!< Flag which indicates mesh is finalized  */
           int                               _is_first_field_created;  /*!< Flag which indicates a first variable is created */
           int                               _n_step;                  /*!< Number of time step (number of timeUpdate call ) */
 

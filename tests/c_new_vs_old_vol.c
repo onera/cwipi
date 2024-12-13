@@ -878,70 +878,47 @@ _cube_mesh
 
     }
 
-    PDM_Mesh_nodal_t *nodal = PDM_Mesh_nodal_create (n_part, comm);
-    PDM_l_num_t      **face_vtx_nb  = malloc (sizeof(int*) * n_part);
-    PDM_l_num_t      **cell_face_nb = malloc (sizeof(int*) * n_part);
+    PDM_part_mesh_nodal_t *nodal = PDM_part_mesh_nodal_create (3, n_part, comm);
 
     for (int i_part = 0; i_part < n_part; i_part++) {
-      PDM_Mesh_nodal_coord_set (nodal,
-                                i_part,
-                                (*pn_vtx)[i_part],
-                                (*pvtx_coord)[i_part],
-                                (*pvtx_ln_to_gn)[i_part],
-                                PDM_OWNERSHIP_USER);
+      PDM_part_mesh_nodal_coord_set (nodal,
+                                     i_part,
+                                     (*pn_vtx)[i_part],
+                                     (*pvtx_coord)[i_part],
+                                     (*pvtx_ln_to_gn)[i_part],
+                                     PDM_OWNERSHIP_USER);
 
-      face_vtx_nb[i_part]  = malloc (sizeof(int) * (*pn_face)[i_part]);
-      cell_face_nb[i_part] = malloc (sizeof(int) * (*pn_cell)[i_part]);
-
-      for (int i = 0; i < (*pn_cell)[i_part]; i++) {
-        cell_face_nb[i_part][i] = (*pcell_face_idx)[i_part][i + 1] - (*pcell_face_idx)[i_part][i];
-      }
-
-      for (int i = 0; i < (*pn_face)[i_part]; i++) {
-        face_vtx_nb[i_part][i] = (*pface_vtx_idx)[i_part][i + 1] - (*pface_vtx_idx)[i_part][i];
-      }
-
-      PDM_Mesh_nodal_cell3d_cellface_add (nodal,
-                                          i_part,
-                                          (*pn_cell)[i_part],
-                                          (*pn_face)[i_part],
-                                          (*pface_vtx_idx)[i_part],
-                                          face_vtx_nb[i_part],
-                                          (*pface_vtx)[i_part],
-                                          NULL,
-                                          (*pcell_face_idx)[i_part],
-                                          cell_face_nb[i_part],
-                                          (*pcell_face)[i_part],
-                                          (*pcell_ln_to_gn)[i_part],
-                                          PDM_OWNERSHIP_USER);
+      PDM_part_mesh_nodal_cell3d_cellface_add (nodal,
+                                               i_part,
+                                               (*pn_cell)[i_part],
+                                               (*pn_face)[i_part],
+                                               (*pface_vtx_idx)[i_part],
+                                               (*pface_vtx)[i_part],
+                                               (*pface_ln_to_gn)[i_part],
+                                               (*pcell_face_idx)[i_part],
+                                               (*pcell_face)[i_part],
+                                               (*pcell_ln_to_gn)[i_part],
+                                               PDM_OWNERSHIP_USER);
     }
 
     for (int i_part = 0; i_part < n_part; i_part++) {
-      free (cell_face_nb[i_part]);
-      free (face_vtx_nb[i_part]);
-    }
-
-    free (cell_face_nb);
-    free (face_vtx_nb);
-
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      PDM_Mesh_nodal_block_std_get (nodal,
-                                    0,
-                                    i_part,
-                                    &((*pcell_vtx)[i_part]));
-
-      int *parent_num = PDM_Mesh_nodal_block_parent_num_get(nodal,
-                                                            0,
-                                                            i_part);
-      free(parent_num);
-
-      PDM_g_num_t *numabs = PDM_Mesh_nodal_g_num_get(nodal,
-                                                     0,
-                                                     i_part);
+      PDM_g_num_t *numabs        = NULL;
+      int         *parent_num    = NULL;
+      PDM_g_num_t *parent_numabs = NULL;
+      PDM_part_mesh_nodal_section_std_get (nodal,
+                                           0,
+                                           i_part,
+                                           &((*pcell_vtx)[i_part]),
+                                           &numabs,
+                                           &parent_num,
+                                           &parent_numabs,
+                                           PDM_OWNERSHIP_USER);
       free(numabs);
+      free(parent_num);
+      free(parent_numabs);
     }
 
-    PDM_Mesh_nodal_free(nodal);
+    PDM_part_mesh_nodal_free(nodal);
 
     PDM_multipart_free (mpart);
     PDM_dmesh_free (dmesh);

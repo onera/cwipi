@@ -349,6 +349,10 @@ module cwp
         CWP_Mesh_interf_from_cellface_set_
     end interface CWP_Mesh_interf_from_cellface_set
 
+    interface CWP_Mesh_interf_from_cellvtx_set ; module procedure &
+        CWP_Mesh_interf_from_cellvtx_set_
+    end interface CWP_Mesh_interf_from_cellvtx_set
+
     interface CWP_Mesh_interf_from_faceedge_set ; module procedure &
         CWP_Mesh_interf_from_faceedge_set_
     end interface CWP_Mesh_interf_from_faceedge_set
@@ -461,6 +465,7 @@ module cwp
       module procedure CWP_Param_get_int
       module procedure CWP_Param_get_double
       module procedure CWP_Param_get_char
+      module procedure CWP_Param_get_char_as_f_string
     end interface CWP_Param_get
 
     interface CWP_Param_reduce
@@ -668,6 +673,7 @@ module cwp
              CWP_Mesh_interf_c_poly_block_get_ ,&
              CWP_Mesh_interf_del_ ,&
              CWP_Mesh_interf_from_cellface_set_ ,&
+             CWP_Mesh_interf_from_cellvtx_set_ ,&
              CWP_Mesh_interf_from_faceedge_set_ ,&
              CWP_Mesh_interf_from_facevtx_set_ ,&
              CWP_Field_create_ ,&
@@ -704,6 +710,7 @@ module cwp
              CWP_Param_get_int ,&
              CWP_Param_get_double ,&
              CWP_Param_get_char, &
+             CWP_Param_get_char_as_f_string, &
              CWP_Param_reduce_int,&
              CWP_Param_reduce_double,&
              CWP_Param_reduce_char, &
@@ -1137,6 +1144,17 @@ module cwp
         type(c_ptr), value :: cell_face_idx, cell_face, face_vtx_idx, face_vtx, parent_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_cellface_set_cf
+
+      subroutine CWP_Mesh_interf_from_cellvtx_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_cells, &
+        cell_vtx_idx, cell_vtx, global_num) &
+        bind(c, name = 'CWP_Mesh_interf_from_cellvtx_set_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(c_int), value :: i_part, n_cells
+        type(c_ptr), value :: cell_vtx_idx, cell_vtx, global_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Mesh_interf_from_cellvtx_set_cf
 
       subroutine CWP_Mesh_interf_from_faceedge_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_faces, &
             face_edge_idx, face_edge, n_edges, edge_vtx, parent_num) &
@@ -1644,6 +1662,21 @@ module cwp
       type(c_ptr)                       :: val
       integer(c_int)                    :: l_value
     end subroutine CWP_Param_get_char_cf
+
+    subroutine CWP_Param_get_char_as_f_string_cf(local_code_name,   &
+                                                 l_local_code_name, &
+                                                 param_name,        &
+                                                 l_param_name,      &
+                                                 val,               &
+                                                 l_value)           &
+      bind(c, name='CWP_Param_get_char_as_f_string_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value             :: l_local_code_name, l_param_name
+      character(kind = c_char, len = 1) :: val
+      integer(c_int), value             :: l_value
+    end subroutine CWP_Param_get_char_as_f_string_cf
 
 
     subroutine CWP_Param_reduce_int_cf(op,           &
@@ -3736,6 +3769,57 @@ contains
   end subroutine CWP_Mesh_interf_from_cellface_set_
 
 
+  subroutine CWP_Mesh_interf_from_cellvtx_set_(local_code_name, &
+                                               cpl_id,          &
+                                               i_part,          &
+                                               n_cells,         &
+                                               cell_vtx_idx,    &
+                                               cell_vtx,        &
+                                               global_num)
+    ! Define the volume interface mesh from a cell-to-vertex connectivity.
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *)      :: local_code_name ! Local code name
+    character(kind = c_char, len = *)      :: cpl_id          ! Coupling identifier
+    integer(c_int)                         :: i_part          ! Partition identifier
+    integer(c_int)                         :: n_cells         ! Number of cells
+    integer(c_int),  dimension(:), pointer :: cell_vtx_idx    ! Index for cell to vertex connectivity (``cell_vtx_idx(0)`` = 0 and size = ``n_cells`` + 1
+    integer(c_int),  dimension(:), pointer :: cell_vtx        ! cell to vertex connectivity (size = ``cell_vtx_idx(n_cells+1)``)
+    integer(c_long), dimension(:), pointer :: global_num      ! Global cell ids (size = ``n_cells`` or ``null()``)
+
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_cell_vtx
+    type(c_ptr) :: c_global_num
+
+    if (associated(cell_vtx)) then
+      c_cell_vtx = c_loc(cell_vtx)
+    else
+      c_cell_vtx = c_null_ptr
+    endif
+
+    if (associated(global_num)) then
+      c_global_num = c_loc(global_num)
+    else
+      c_global_num = c_null_ptr
+    endif
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Mesh_interf_from_cellvtx_set_cf(local_code_name,     &
+                                             l_local_code_name,   &
+                                             cpl_id,              &
+                                             l_cpl_id,            &
+                                             i_part,              &
+                                             n_cells,             &
+                                             c_loc(cell_vtx_idx), &
+                                             c_cell_vtx,          &
+                                             c_global_num)
+
+  end subroutine CWP_Mesh_interf_from_cellvtx_set_
+
+
   subroutine CWP_Mesh_interf_from_faceedge_set_(local_code_name, &
                                                 cpl_id,          &
                                                 i_part,          &
@@ -5008,6 +5092,33 @@ contains
     call c_f_pointer(cptr, val, [l_value])
 
   end subroutine CWP_Param_get_char
+
+  subroutine CWP_Param_get_char_as_f_string(code_name,  &
+                                            param_name, &
+                                            val)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+    character(kind = c_char, len = *) :: val
+    integer(kind = c_int)             :: l_val
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+    l_val        = len(val)
+
+    call CWP_Param_get_char_as_f_string_cf(code_name,    &
+                                           l_code_name,  &
+                                           param_name,   &
+                                           l_param_name, &
+                                           val,          &
+                                           l_val)
+
+  end subroutine CWP_Param_get_char_as_f_string
 
 
   !>

@@ -3065,16 +3065,16 @@ static const char* _timer_step_label[TIMER_N_STEP] = {
   "locate all distant"
 };
 
-static const char* _timer_step_label2[8] = {
-  "location",
-  "location",
-  "exchange",
-  "exchange",
-  "issend  ",
-  "issend  ",
-  "irecv   ",
-  "irecv   "
-};
+// static const char* _timer_step_label2[8] = {
+//   "location",
+//   "location",
+//   "exchange",
+//   "exchange",
+//   "issend  ",
+//   "issend  ",
+//   "irecv   ",
+//   "irecv   "
+// };
 
 
 void

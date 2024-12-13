@@ -102,14 +102,14 @@ namespace cwipi {
       MPI_Group_translate_ranks(globalGroup, 1, &cplRootRankInGlobalComm,
                                 unionGroup, &cplRootRankInUnionComm);
       int *excludeRanks = (int *) malloc(sizeof(int) * (cplRanks.size() - 1));
-      int j = 0;
+      int n_exclude = 0;
       for (size_t i = 0; i < cplRanks.size(); i++) {
         if ((*_unionCommCplRanks)[i] != cplRootRankInUnionComm) {
-          excludeRanks[j++] = (*_unionCommCplRanks)[i];
+          excludeRanks[n_exclude++] = (*_unionCommCplRanks)[i];
         }
       }
 
-      MPI_Group_excl(unionGroup, cplRanks.size()-1, excludeRanks, &_cplGroup);
+      MPI_Group_excl(unionGroup, n_exclude, excludeRanks, &_cplGroup);
       free(excludeRanks);
 
       MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
