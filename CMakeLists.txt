@@ -378,6 +378,7 @@ configure_file(cwp_config_priv.h.in "${CMAKE_CURRENT_BINARY_DIR}/config_priv.h")
 configure_file(bftc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/bftc_config.h")
 configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
+include(cwp_generate_build_defs)
 
 if (CWP_ENABLE_Fortran)
   if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
