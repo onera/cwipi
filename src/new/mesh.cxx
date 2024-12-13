@@ -170,6 +170,7 @@ namespace cwipi {
     _faceEdgeMethod(0),
     _faceVtxMethod(0),
     _cellFaceMethod(0),
+    _cellVtxMethod(0),
     _pdmNodal_handle_index(),
     _isVtxGnumComputed(false),
     _isEltGnumComputed(false),
@@ -197,6 +198,8 @@ namespace cwipi {
     _nCells      .resize(npart, 0)  ;
     _cellFaceIdx .resize(npart, NULL);
     _cellFace    .resize(npart, NULL);
+    _cellVtxIdx  .resize(npart, NULL);
+    _cellVtx     .resize(npart, NULL);
     _nFace       .resize(npart,0)   ;
     _faceEdgeIdx .resize(npart,NULL);
     _faceEdge    .resize(npart,NULL);
@@ -597,6 +600,8 @@ namespace cwipi {
 
     if (_faceEdgeMethod == 1) {
 
+      assert(mesh_dimension == 2);
+
       compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
@@ -645,6 +650,8 @@ namespace cwipi {
 
     else if (_faceVtxMethod == 1) {
 
+      assert(mesh_dimension == 2);
+
       compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
@@ -687,6 +694,8 @@ namespace cwipi {
     }
 
     else if (_cellFaceMethod == 1) {
+
+      assert(mesh_dimension == 3);
 
       int compute_face_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
@@ -811,6 +820,53 @@ namespace cwipi {
       }//end i_part loop
 
       updateBlockDB();
+
+    }
+
+    else if (_cellVtxMethod == 1) {
+
+      assert(mesh_dimension == 3);
+
+      compute_gnum = 0;
+      for (int i_part = 0; i_part < _npart; i_part++) {
+        if (_cellLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
+          compute_gnum = 1;
+          break;
+        }
+      }
+
+      _compute_gnum = compute_gnum;
+      PDM_MPI_Allreduce (&_compute_gnum, &compute_gnum, 1, PDM_MPI_INT, PDM_MPI_MAX,
+                         _pdm_localComm);
+
+      if (compute_gnum) {
+        _isEltGnumComputed = true;
+
+        _gen_face_gnum(false,
+                       _pdm_localComm,
+                       _npart,
+                       _nCells,
+                       _cellVtxIdx,
+                       _cellVtx,
+                       _cellFace, // not used
+                       _faceVtx,  // not used
+                       _coords,
+                       _cellLNToGN);
+      }
+
+      for (int i_part = 0; i_part < _npart; i_part++) {
+        PDM_part_mesh_nodal_cells_cellvtx_add(_pdmNodal_handle_index,
+                                              i_part,
+                                              _nCells    [i_part],
+                                              _cellVtxIdx[i_part],
+                                              _cellVtx   [i_part],
+                                              _cellLNToGN[i_part],
+                                              PDM_OWNERSHIP_KEEP);
+      }
+
+      updateBlockDB();
+
+      // TODO: check there are no Poly3d?
 
     }
 
@@ -1550,6 +1606,25 @@ namespace cwipi {
     _faceVtxIdx[i_part] = face_vtx_idx;
     _faceVtx[i_part]    = face_vtx;
     _nFace[i_part]      = n_faces;
+  }
+
+
+  void
+  Mesh::fromCellsVtxSet
+  (
+    const int   i_part,
+    const int   n_cells,
+    int         cell_vtx_idx[],
+    int         cell_vtx[],
+    CWP_g_num_t global_num[]
+  )
+  {
+    _cellVtxMethod = 1;
+
+    _cellLNToGN[i_part] = global_num;
+    _cellVtxIdx[i_part] = cell_vtx_idx;
+    _cellVtx   [i_part] = cell_vtx;
+    _nCells    [i_part] = n_cells;
   }
 
 

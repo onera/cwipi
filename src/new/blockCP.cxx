@@ -1,7 +1,7 @@
 
 
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -21,7 +21,6 @@
 
 #include "blockCP.hxx"
 #include "cwp.h"
-#include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
 #include <map>
 #include <vector>
@@ -37,7 +36,7 @@ namespace cwipi {
 
   BlockCP::~BlockCP()
   {
-  
+
   }
 
 
@@ -59,7 +58,7 @@ namespace cwipi {
                          int*         connec_faces,
                          int*         connec_cells_idx,
                          int*         connec_cells,
-                         CWP_g_num_t* global_num) 
+                         CWP_g_num_t* global_num)
   {
 
 
@@ -67,18 +66,18 @@ namespace cwipi {
 
     _n_elt[i_part]            = n_elts;
     _n_faces[i_part]          = n_faces;
-    _connec_cells_idx[i_part] = connec_cells_idx;  
-    _connec_cells[i_part]     = connec_cells;   
-    _connec_faces_idx[i_part] = connec_faces_idx;  
+    _connec_cells_idx[i_part] = connec_cells_idx;
+    _connec_cells[i_part]     = connec_cells;
+    _connec_faces_idx[i_part] = connec_faces_idx;
     _connec_faces[i_part]     = connec_faces;
-  
+
   }
 
 
 
    /**
    * \brief Get a CWIPI block in a partition
-   * 
+   *
    * \param [in]  i_part     Partition identifier
    * \param [out]  n_elts     Number of elements of the block in the partition
    * \param [out]  n_faces    Number of faces of the block in the partition
@@ -88,12 +87,12 @@ namespace cwipi {
    * \param [out]  connec_cells     Faces to cells connectivity
    * \param [out]  global_num Mesh  Global numbering of the block
    *
-   */ 
-         
+   */
+
    void BlockCP::blockGet(int         i_part,
                          int         *n_elts,
                          int         *n_faces,
-                         int         **connec_faces_idx, 
+                         int         **connec_faces_idx,
                          int         **connec_faces,
                          int         **connec_cells_idx,
                          int         **connec_cells,
@@ -103,11 +102,11 @@ namespace cwipi {
     *global_num       = _global_num[i_part];
     *n_elts           = _n_elt[i_part];
     *n_faces          = _n_faces[i_part];
-    *connec_cells_idx = _connec_cells_idx[i_part];  
-    *connec_cells     = _connec_cells[i_part];   
-    *connec_faces_idx = _connec_faces_idx[i_part];  
+    *connec_cells_idx = _connec_cells_idx[i_part];
+    *connec_cells     = _connec_cells[i_part];
+    *connec_faces_idx = _connec_faces_idx[i_part];
     *connec_faces     = _connec_faces[i_part];
-  
+
    }
 
 

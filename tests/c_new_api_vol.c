@@ -1138,6 +1138,5 @@ int main
   /* Finalize MPI */
   MPI_Finalize();
 
-  // return error;
   return error;
 }

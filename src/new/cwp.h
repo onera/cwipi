@@ -490,7 +490,7 @@ FILE *output_file
 
 /**
  * \brief Define a user structure associated to a code
- * 
+ *
  * This structure can be accessed into a callback
  *
  * \param [in] local_code_name  Local code name
@@ -507,12 +507,12 @@ CWP_User_structure_set
 
 
 /**
- * \brief Return the user structure associated 
- * 
- * This structure can be called into a callback 
+ * \brief Return the user structure associated
+ *
+ * This structure can be called into a callback
  *
  * \param [in] local_code_name  Local code name
- * 
+ *
  * \return  User structure
  *
  */
@@ -1286,7 +1286,7 @@ CWP_Mesh_interf_c_poly_block_set
  int                   connec_cells_idx[],
  int                   connec_cells[],
  CWP_g_num_t           global_num[]
-); 
+);
 
 
 /**
@@ -1444,6 +1444,36 @@ CWP_Mesh_interf_from_facevtx_set
        int          face_vtx[],
        CWP_g_num_t  global_num[]
 );
+
+
+/**
+ * \brief Define the volume interface mesh from a cell-to-vertex connectivity.
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  n_cells           Number of cells
+ * \param [in]  cell_vtx_idx      Cell to vertex index
+ *                                (\p cell_vtx_idx[0] = 0 and
+ *                                 size =  \p n_cells + 1)
+ * \param [in]  cell_vtx          Cell to vertex connectivity
+ *                                (size = \p cell_vtx_idx[\p n_cells])
+ * \param [in]  global_num        Global cell ids (size = \p n_cells or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_from_cellvtx_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          n_cells,
+       int          cell_vtx_idx[],
+       int          cell_vtx[],
+       CWP_g_num_t  global_num[]
+);
+
 
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
@@ -2968,7 +2998,7 @@ CWP_timer_create
  *
  */
 
-void 
+void
 CWP_timer_init
 (
   CWP_timer_t timer
@@ -2981,7 +3011,7 @@ CWP_timer_init
  *
  */
 
-void 
+void
 CWP_timer_resume
 (
   CWP_timer_t timer
@@ -2994,7 +3024,7 @@ CWP_timer_resume
  *
  */
 
-void 
+void
 CWP_timer_hang_on
 (
   CWP_timer_t timer
@@ -3006,10 +3036,10 @@ CWP_timer_hang_on
  * \param[in] timer
  *
  * \return User time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu
 (
   CWP_timer_t timer
@@ -3021,10 +3051,10 @@ CWP_timer_cpu
  * \param[in] timer
  *
  * \return User cpu time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu_user
 (
   CWP_timer_t timer
@@ -3036,10 +3066,10 @@ CWP_timer_cpu_user
  * \param[in] timer
  *
  * \return System cpu time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_cpu_sys
 (
   CWP_timer_t timer
@@ -3051,10 +3081,10 @@ CWP_timer_cpu_sys
  * \param[in] timer
  *
  * \return Elapsed time
- * 
+ *
  */
 
-double 
+double
 CWP_timer_elapsed
 (
   CWP_timer_t timer
@@ -3067,7 +3097,7 @@ CWP_timer_elapsed
  *
  */
 
-void 
+void
 CWP_timer_free
 (
   CWP_timer_t timer

@@ -25,7 +25,6 @@
 #include "coupling_i.hxx"
 #include <mpi.h>
 
-#include "pdm_mesh_nodal.h"
 #include "pdm_dist_cloud_surf.h"
 #include "pdm_gnum.h"
 #include "pdm_timer.h"
@@ -105,12 +104,12 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   SpatialInterp::init(
-    Coupling                  *coupling, 
+    Coupling                  *coupling,
     CWP_Dof_location_t         localCodeDofLocation,
     CWP_Dof_location_t         cplCodeDofLocation,
-    SpatialInterpExchDirection exchDirection 
+    SpatialInterpExchDirection exchDirection
   )
   {
     _cpl                    = coupling;
@@ -171,12 +170,12 @@ namespace cwipi {
       _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
       _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
 
-      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
         _src_gnum[i_part] = nullptr;
       }
 
-      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
+      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
         _tgt_gnum[i_part] = nullptr;
       }
@@ -188,12 +187,12 @@ namespace cwipi {
       _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
       _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
 
-      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
+      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
         _src_gnum[i_part] = nullptr;
       }
 
-      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
         _tgt_gnum[i_part] = nullptr;
       }
@@ -389,7 +388,7 @@ namespace cwipi {
       // A n_elt1
 
       for (int i = 0; i < _nPart; i++) {
-        _send_buffer[intId][i] = 
+        _send_buffer[intId][i] =
           (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
       }
 
@@ -502,7 +501,7 @@ namespace cwipi {
         }
 
 
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
         Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
@@ -639,7 +638,7 @@ namespace cwipi {
 
         const int intId            = referenceField->fieldIDIntGet();
 
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
         Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
@@ -942,13 +941,13 @@ namespace cwipi {
 
         int          **gnum1_come_from_idx;
         PDM_g_num_t  **gnum1_come_from;
-       
+
         PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                               &gnum1_come_from_idx,
                                               &gnum1_come_from);
 
 
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
         Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
@@ -1168,7 +1167,7 @@ namespace cwipi {
 
         const int intId = referenceField->fieldIDIntGet();
 
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.sendSpatialInterpGet(); 
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.sendSpatialInterpGet();
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
         Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];

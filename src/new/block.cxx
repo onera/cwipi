@@ -18,7 +18,6 @@
 */
 
 #include "pdm.h"
-#include "pdm_mesh_nodal.h"
 #include "pdm_part_mesh_nodal.h"
 #include "pdm_gnum.h"
 #include "block.hxx"
