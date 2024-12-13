@@ -1,6 +1,21 @@
+## [1.3.0] - 2024-12-13
+### Added
+- cwp_Build.defs : Configuration recap file
+- CWP_Mesh_interf_from_cellvtx_set
+- Check settings consistency in CWP_Cpl_create
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fix cell-centered fields in variable mesh mode (new and old APIs)
+- Fix misspelled configuration variables in README
+- Fix Cython for Python 3.11+
+- Fix definition of control parameters in Fortran
 ## [1.2.1] - 2024-10-02
 ### Added
 ### Changed
+- New version of ParaDiGM : 2.6.0
+- Transfer GitLab CI from Spiro to Juno
 ### Deprecated
 ### Removed
 ### Fixed
