@@ -199,6 +199,7 @@ program testf
   real(c_double)                     :: tata
   real(c_double)                     :: check_tata
   character(len = 99)                :: str_param
+  character(c_char),         pointer :: check_str_param_ptr(:) => null()
   character(len = 33)                :: check_str_param
 
   integer(c_int)                     :: n_elt2
@@ -423,6 +424,19 @@ program testf
       write(iiunit,*) "check_str_param = ", check_str_param
       call flush(iiunit)
     endif
+
+    call CWP_Param_get("code1",  &
+                       "str_param",   &
+                       check_str_param_ptr)
+    call CWPT_fortran_free_c(c_loc(check_str_param_ptr))
+    call CWP_Param_get("code1",  &
+                       "str_param",   &
+                       check_str_param_ptr)
+    if (debug) then
+      write(iiunit,*) "check_str_param_ptr = ", check_str_param_ptr
+      call flush(iiunit)
+    endif
+    call CWPT_fortran_free_c(c_loc(check_str_param_ptr))
   endif
   !<<--
 
