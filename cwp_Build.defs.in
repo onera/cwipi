@@ -1,0 +1,37 @@
+# this file contains the options and libraries used for
+# building and linking CWIPI code, and is intended to be
+# included in a user's Makefile from the installation
+
+#-----------------------------------------------------------------------
+CMAKE_INSTALL_PREFIX = @CMAKE_INSTALL_PREFIX@
+
+CWP_ENABLE_Fortran            = @CWP_ENABLE_Fortran@
+CWP_ENABLE_Fortran_MPI_MODULE = @CWP_ENABLE_Fortran_MPI_MODULE@
+
+CWP_ENABLE_PYTHON_BINDINGS    = @CWP_ENABLE_PYTHON_BINDINGS@
+
+CWP_ENABLE_SHARED             = @CWP_ENABLE_SHARED@
+CWP_ENABLE_STATIC             = @CWP_ENABLE_STATIC@
+
+CWP_ENABLE_MPI_CHECK          = @CWP_ENABLE_MPI_CHECK@
+
+CWP_ENABLE_HIDE_PDM_SYMBOLS   = @CWP_ENABLE_HIDE_PDM_SYMBOLS@
+
+CWP_ENABLE_EXTERNAL_PDM       = @CWP_ENABLE_EXTERNAL_PDM@
+PDM_SOURCE_DIR                = @PDM_SOURCE_DIR@
+
+CWP_ENABLE_BLASLAPACK         = @CWP_ENABLE_BLASLAPACK@
+
+CWP_ENABLE_CLIENT_SERVER      = @CWP_ENABLE_CLIENT_SERVER@
+
+CWP_ENABLE_TESTS              = @CWP_ENABLE_TESTS@
+CWP_ENABLE_DOCUMENTATION      = @CWP_ENABLE_DOCUMENTATION@
+CWP_ENABLE_TRANING            = @CWP_ENABLE_TRANING@
+
+# Compiler used
+#-----------------------------------------------------------------------
+CC  = @CMAKE_C_COMPILER@
+CXX = @CMAKE_CXX_COMPILER@
+FC  = @CMAKE_Fortran_COMPILER@
+
+#MPI_Wrapper
