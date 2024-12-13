@@ -465,6 +465,7 @@ module cwp
       module procedure CWP_Param_get_int
       module procedure CWP_Param_get_double
       module procedure CWP_Param_get_char
+      module procedure CWP_Param_get_char_as_f_string
     end interface CWP_Param_get
 
     interface CWP_Param_reduce
@@ -709,6 +710,7 @@ module cwp
              CWP_Param_get_int ,&
              CWP_Param_get_double ,&
              CWP_Param_get_char, &
+             CWP_Param_get_char_as_f_string, &
              CWP_Param_reduce_int,&
              CWP_Param_reduce_double,&
              CWP_Param_reduce_char, &
@@ -1657,9 +1659,24 @@ module cwp
       implicit none
       character(kind = c_char, len = 1) :: local_code_name, param_name
       integer(c_int), value             :: l_local_code_name, l_param_name
+      type(c_ptr)                       :: val
+      integer(c_int)                    :: l_value
+    end subroutine CWP_Param_get_char_cf
+
+    subroutine CWP_Param_get_char_as_f_string_cf(local_code_name,   &
+                                                 l_local_code_name, &
+                                                 param_name,        &
+                                                 l_param_name,      &
+                                                 val,               &
+                                                 l_value)           &
+      bind(c, name='CWP_Param_get_char_as_f_string_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value             :: l_local_code_name, l_param_name
       character(kind = c_char, len = 1) :: val
       integer(c_int), value             :: l_value
-    end subroutine CWP_Param_get_char_cf
+    end subroutine CWP_Param_get_char_as_f_string_cf
 
 
     subroutine CWP_Param_reduce_int_cf(op,           &
@@ -5052,6 +5069,35 @@ contains
     character(kind = c_char, len = *) :: param_name
     integer(kind = c_int)             :: l_code_name
     integer(kind = c_int)             :: l_param_name
+    character(c_char), pointer        :: val(:)
+    type(c_ptr)                       :: cptr = C_NULL_PTR
+    integer(c_int)                    :: l_value
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    call CWP_Param_get_char_cf(code_name,    &
+                               l_code_name,  &
+                               param_name,   &
+                               l_param_name, &
+                               cptr,         &
+                               l_value)
+
+    call c_f_pointer(cptr, val, [l_value])
+
+  end subroutine CWP_Param_get_char
+
+  subroutine CWP_Param_get_char_as_f_string(code_name,  &
+                                            param_name, &
+                                            val)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
     character(kind = c_char, len = *) :: val
     integer(kind = c_int)             :: l_val
 
@@ -5059,14 +5105,14 @@ contains
     l_param_name = len(param_name)
     l_val        = len(val)
 
-    call CWP_Param_get_char_cf(code_name,    &
-                               l_code_name,  &
-                               param_name,   &
-                               l_param_name, &
-                               val,          &
-                               l_val)
+    call CWP_Param_get_char_as_f_string_cf(code_name,    &
+                                           l_code_name,  &
+                                           param_name,   &
+                                           l_param_name, &
+                                           val,          &
+                                           l_val)
 
-  end subroutine CWP_Param_get_char
+  end subroutine CWP_Param_get_char_as_f_string
 
 
   !>
