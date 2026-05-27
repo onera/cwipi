@@ -1897,6 +1897,8 @@ namespace cwipi {
           vector<CWP_Dof_location_t>        _sis_loc_r;               /*!< Location ofsource dof associated to target spatial interpolation objects*/
           vector<CWP_Dof_location_t>        _cpl_sis_loc_r;           /*!< Location ofsource dof associated to target spatial interpolation objects (for the coupled if present)*/
 
+          int                               _is_spatial_interp_init;  /*!< Flag which indicates  is _spatial_interp_* initialized  */
+          int                               _is_writer_init;  /*!< Flag which indicates  is _writer initialized  */
 
   };
 }
