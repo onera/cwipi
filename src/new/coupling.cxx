@@ -200,8 +200,9 @@ namespace cwipi {
    _spatial_interp_properties_int(*new std::map<std::string, int>),
    _is_mesh_finalized(0),
    _is_first_field_created(0),
-   _n_step(0)
-
+   _n_step(0),
+   _is_spatial_interp_init(0),
+   _is_writer_init(0)
    {
      //In case where both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
@@ -1282,7 +1283,7 @@ namespace cwipi {
     if (cpl._writer != NULL) {
 
       /* First, create geometry and variables if necessary */
-      if (cpl._n_step == 0) {
+      if (cpl._is_writer_init == 0) {
 
         // Geometry
         cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl._writer,
@@ -1385,8 +1386,8 @@ namespace cwipi {
 
 
       /* Finally write geometry and variables */
-      if (cpl._n_step == 0) {
-
+      if (cpl._is_writer_init == 0) {
+        cpl._is_writer_init++;
         // Geometry
         PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
 
@@ -1664,7 +1665,8 @@ namespace cwipi {
       int cplCodeID = coupledCodePropertiesGet()->idGet();
 
 
-      if (_n_step == 0) {
+      if (_is_spatial_interp_init == 0) {
+
 
         std::string localFieldsName="";
         vector<int> localFieldsNameIdx;
@@ -1907,7 +1909,7 @@ namespace cwipi {
       }
 
 
-      int clear_data = (_n_step > 0);//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+      int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
       if (codeID < cplCodeID) {
 
@@ -1986,7 +1988,7 @@ namespace cwipi {
         int codeID    = localCodePropertiesGet()->idGet();
         int cplCodeID = coupledCodePropertiesGet()->idGet();
 
-        if (_n_step == 0) {
+        if ( _is_spatial_interp_init == 0) {
 
           std::string localFieldsName="";
           vector<int> localFieldsNameIdx;
@@ -2342,7 +2344,7 @@ namespace cwipi {
                                                                      (void *) &(cpl_sir_loc_r[0]));
         }
 
-        int clear_data = (_n_step > 0);//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
         if (codeID < cplCodeID) {
   
@@ -2439,6 +2441,8 @@ namespace cwipi {
         }
       }
     }
+
+    _is_spatial_interp_init++;
 
   }
 
