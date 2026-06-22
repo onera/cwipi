@@ -18,7 +18,7 @@
         </childnode>
       </node>
       <node id="1">
-        <label>/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h</label>
+        <label>/stck/thennion/cwipi/src/new/client_server/client.h</label>
         <link refid="client_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="66" column="9"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="66" column="9"/>
       </memberdef>
       <memberdef kind="typedef" id="client_8h_1a2a29d6a499fbc0952ef7fbea711b3627" prot="public" static="no">
         <type>struct <ref refid="structt__client" kindref="compound">t_client</ref> *</type>
@@ -56,7 +56,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="66" column="18"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="66" column="18"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="func">
@@ -122,7 +122,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="83" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="83" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="83" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="83" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac580c377af1ad176d1dd1362ad96b843" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -139,7 +139,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="98" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="98" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="98" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="98" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a5a872532b2db47588df626b2a48501db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -167,7 +167,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="112" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="112" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="112" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="112" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1afebe3307606825bf713649521862d62f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -195,7 +195,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="127" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="127" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="127" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="127" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aaec431a11c18922fdf0031d8f6336ee2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -259,7 +259,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="144" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="144" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="144" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="144" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a639ba77e355d6ab332d3bf4e0e967d04" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -323,7 +323,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="164" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="164" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="164" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="164" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1accb917f7de07e23eaf737c7a93899968" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -387,7 +387,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="184" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="184" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="184" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="184" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a8a0e688652f7ccbdb84d6e3db8843dd5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -439,7 +439,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="203" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="203" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="203" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="203" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a409020de6a1ad97f46d614ac9a592c4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -479,7 +479,7 @@ return Number of parameters </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="222" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="222" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="222" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="222" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1af5dbdf878dd4efd9749697eea4c1ec00" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -544,7 +544,7 @@ return Number of parameters </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="242" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="242" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="242" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="242" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a112887da6df635f5dccfa0fa08cbcd8f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -596,7 +596,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="263" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="263" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="263" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="263" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aabfb3ae8f17102c1c640b50e3303d082" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -685,7 +685,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="286" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="286" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="286" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="286" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ae4fa5b3545163a57c7d83856601417ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -809,7 +809,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="312" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="312" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="312" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="312" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a9140b80fa153e243664e73ec39ac3be1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -849,7 +849,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="335" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="335" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="335" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="335" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1acfaf12b10cbdc046a030a27f202c92be" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -889,7 +889,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="351" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="351" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="351" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="351" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a5f2063e3fd3838a2725a58078e640bf1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -929,7 +929,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="366" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="366" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="366" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="366" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ae4a78dde7e576b6f6d4e35676da75c26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -969,7 +969,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="381" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="381" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="381" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="381" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac76d969b9c05f05a162b8442f93579c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -997,7 +997,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="395" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="395" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="395" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="395" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a6624d37f1abf8e30d63e8e078a9e73c0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1026,7 +1026,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="410" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="410" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="410" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="410" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a2b83ff7767c44383aa732439c56691e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1067,7 +1067,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="427" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="427" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="427" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="427" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a1704cf2521242e46dd45f4e4d3fd0996" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
@@ -1098,7 +1098,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="446" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="446" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="446" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="446" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a882db101d05807b0928582a7829ed7a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cwp_8h_1a3f38cbdb63aa54e698aafbffd885b753" kindref="member">CWP_State_t</ref></type>
@@ -1128,7 +1128,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="460" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="460" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="460" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="460" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a087d1f0939d2160a189cd1a9a61e1cad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1148,7 +1148,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="474" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="474" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="474" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="474" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a0cf8acfbf36f7a1e8624c48359ec64bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char **</type>
@@ -1168,7 +1168,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="486" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="486" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="486" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="486" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a56fdd6e945dd7929613511f091d77acd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1188,7 +1188,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="499" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="499" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="499" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="499" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a708f18fcd712d7a396a730e5b5660d7f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char **</type>
@@ -1208,7 +1208,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="512" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="512" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="512" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="512" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a6f3520f67963dcec628a781496418d0e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1225,7 +1225,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="523" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="523" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="523" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="523" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ae88a71cb396cfaef247d02f8bba07329" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1277,7 +1277,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="538" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="538" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="538" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="538" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a8cdcc84554e4851e70c837582932ba4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1329,7 +1329,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="555" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="555" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="555" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="555" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a5b6e8564da07076a71e41e0c172d38fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1395,7 +1395,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="575" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="575" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="575" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="575" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ae0dc48ea865f918cb4f9751024c2b06b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1461,7 +1461,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="597" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="597" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="597" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="597" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a4ab510d481b101d46a047b4c1453ccac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1527,7 +1527,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="618" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="618" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="618" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="618" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a5d780b0d3c8d71fa7d72693912978bea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1593,7 +1593,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="639" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="639" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="639" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="639" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a9c3360417e9e94c2bea76d5efe11bb38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1659,7 +1659,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="661" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="661" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="661" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="661" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a3cd7d7692ffcaa9b2a32aea054ce6c77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1725,7 +1725,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="683" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="683" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="683" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="683" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a860e07f37e0f3296bf55fb6ccd4e7fcd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1765,7 +1765,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="700" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="700" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="700" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="700" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aa2a2ed5eab543ff79740ddcb55cf14c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1842,7 +1842,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="722" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="722" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="722" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="722" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ab2d75897017e34802623faf1733aadda" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1925,7 +1925,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="746" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="746" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="746" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="746" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1affddc1276942759765669f42e1ceaa95" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2016,7 +2016,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="771" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="771" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="771" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="771" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a8ecddf424ea6522c2522b445aadc18aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2057,7 +2057,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="793" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="793" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="793" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="793" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a8ec8dd424af2a40e0d52d6b8842855d0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2147,7 +2147,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="813" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="813" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="813" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="813" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a108cd95a8f85c40f62845198b2fb4ec0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -2201,7 +2201,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="835" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="835" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="835" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="835" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a4281e27a9b6c4531d3b6fc7839672332" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2303,7 +2303,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="857" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="857" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="857" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="857" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac251e4c467f0793bbd6dcb88270824b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2404,7 +2404,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="884" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="884" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="884" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="884" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1acde8d02afa8f9998a654c0440d14ca44" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827" kindref="member">CWP_Block_t</ref></type>
@@ -2458,7 +2458,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="906" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="906" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="906" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="906" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a88e0ddbb7e6b9bf40d7a6cc5e903d52a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2573,7 +2573,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="929" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="929" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="929" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="929" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a3a1b734443372a9ca7d6cd831cef7b5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2686,7 +2686,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="960" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="960" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="960" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="960" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac9c24c570dd0356d95ad23e70873244f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2839,7 +2839,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="997" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="997" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="997" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="997" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aebd077fecd17d3aef8c785f3178fbf9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -2988,7 +2988,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1039" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1039" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1039" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1039" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac4a02760f08a06358548a09429482cae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3028,7 +3028,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1064" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1064" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1064" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1064" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a97a3c58ba44169f98c6355fde893aec4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3169,7 +3169,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1094" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1094" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1094" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1094" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a4d2afb3101fabe8854e18c54a9e1debf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3297,7 +3297,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1129" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1129" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1129" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1129" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aa06423085853b38c3b6b62af1132468c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3421,7 +3421,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1159" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1159" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1159" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1159" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a007898c5290105220ce9b25142a84dd5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3509,7 +3509,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1187" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1187" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1187" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1187" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a6d05b176ebd4d06debf5433260a32adf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cwp_8h_1adacba39e3a9266b8fe360f89eb1cc428" kindref="member">CWP_Dof_location_t</ref></type>
@@ -3563,7 +3563,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1210" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1210" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1210" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1210" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a67f910253d32bdfba696aeb75abc4883" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cwp_8h_1ad272744fa7be177defad5783fc291faa" kindref="member">CWP_Field_storage_t</ref></type>
@@ -3617,7 +3617,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1229" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1229" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1229" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1229" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a88cc74dcfe818294e50bf6dc45b41f0b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -3669,7 +3669,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1247" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1247" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1247" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1247" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a1a9af50699db172f14ee9ea2123c5d2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -3733,7 +3733,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1266" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1266" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1266" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1266" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac83e7f2ff6e5a1c686abda7a5dd9c53a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3785,7 +3785,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1284" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1284" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1284" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1284" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1af0da7ce537d9fd5b3755522f488e916f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3838,7 +3838,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1305" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1305" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1305" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1305" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a42905846ac4093a01722547ea71ddb54" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3891,7 +3891,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1327" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1327" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1327" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1327" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a88aa4df9afc0d301b0143f7c35d4da11" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3943,7 +3943,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1345" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1345" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1345" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1345" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a955e5ad33d709b7191ed0157ac5de7db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -3996,7 +3996,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1367" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1367" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1367" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1367" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1abe5f31e4f5c3f5c2c4c53d7672cabba3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4048,7 +4048,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1385" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1385" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1385" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1385" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a06eda08e9e556bb6376974cfd1d409a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4113,7 +4113,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1408" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1408" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1408" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1408" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ad2564086dc4919df6c65427d2d9e5348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4227,7 +4227,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1433" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1433" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1433" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1433" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a871336234b16d3959a9aaaf5d14d6823" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4339,7 +4339,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1461" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1461" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1461" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1461" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a558a26ee05a656efa217cefa8e7bcd41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4427,7 +4427,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1487" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1487" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1487" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1487" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a0b7aed82e3e1225adcb8fda5c7944618" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cwp_8h_1a6df9399bce4aaefcd60ff43761cba8af" kindref="member">CWP_Spatial_interp_t</ref></type>
@@ -4469,7 +4469,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1508" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1508" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1508" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1508" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aa1acdb6f0dae6b05da68b847e0540725" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4569,7 +4569,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1528" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1528" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1528" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1528" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a94773f279caf160640889057c9a5e68b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4669,7 +4669,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1553" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1553" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1553" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1553" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1abf33f4610bf1f299607a39a21b83611a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4721,7 +4721,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1574" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1574" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1574" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1574" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a68030ec6008d165fa4fb188777059e43" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4773,7 +4773,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1591" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1591" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1591" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1591" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a64877214fe4889eac3baab77b50769c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4873,7 +4873,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1612" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1612" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1612" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1612" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a3ec5306f73cc0a001092ba0abcf76f99" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -4925,7 +4925,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1633" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1633" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1633" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1633" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1af904bc4b13fee9443d5ca4168dc61d29" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -5025,7 +5025,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1655" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1655" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1655" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1655" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aab8f413af7eddf518b8882de0fead11c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -5125,7 +5125,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1680" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1680" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1680" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1680" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1a75eda16f8ba5be46587f64886cb486e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -5189,7 +5189,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1702" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1702" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1702" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1702" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1ac97c2aaae771cfac4c7640d12cb26bbb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -5253,7 +5253,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1721" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1721" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1721" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1721" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1aa5670026cef037ec6cac7512d3ef5588" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -5282,7 +5282,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1736" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1736" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1736" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1736" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="client_8h_1abadabacf6b071bb9ce7fb9e741e14880" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -5298,7 +5298,7 @@ return 1 : true / 0 : false </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" line="1747" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h" declline="1747" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/new/client_server/client.h" line="1747" column="1" declfile="/stck/thennion/cwipi/src/new/client_server/client.h" declline="1747" declcolumn="1"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -6147,6 +6147,6 @@ return 1 : true / 0 : false </para>
 <codeline lineno="1755"><highlight class="normal"></highlight></codeline>
 <codeline lineno="1756"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__CLIENT_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server/client.h"/>
+    <location file="/stck/thennion/cwipi/src/new/client_server/client.h"/>
   </compounddef>
 </doxygen>

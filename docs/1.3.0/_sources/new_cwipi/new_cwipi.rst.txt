@@ -206,7 +206,7 @@ User-defined spatial interpolation
 .. f:autosubroutine:: CWP_Cpl_spatial_interp_algo_get_
 
 Location methods
-""""""""""""""""
+~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_location_weights_get_
 
@@ -215,14 +215,14 @@ Location methods
 .. f:autosubroutine:: CWP_Field_location_point_data_get_
 
 Intersection method
-"""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_intersection_volumes_get_
 
 .. f:autosubroutine:: CWP_Field_intersection_tgt_elt_volumes_get_
 
 Nearest neighbors methods
-"""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_nearest_neighbors_distances_get_
 

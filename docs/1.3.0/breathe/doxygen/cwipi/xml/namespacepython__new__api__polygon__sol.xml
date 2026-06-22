@@ -16,13 +16,13 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/python_new_api_polygon_sol.py" line="25" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/python_new_api_polygon_sol.py" bodystart="25" bodyend="256"/>
+        <location file="/stck/thennion/cwipi/tests/tutorial/python_new_api_polygon_sol.py" line="25" column="1" bodyfile="/stck/thennion/cwipi/tests/tutorial/python_new_api_polygon_sol.py" bodystart="25" bodyend="256"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/python_new_api_polygon_sol.py" line="1" column="1"/>
+    <location file="/stck/thennion/cwipi/tests/tutorial/python_new_api_polygon_sol.py" line="1" column="1"/>
   </compounddef>
 </doxygen>

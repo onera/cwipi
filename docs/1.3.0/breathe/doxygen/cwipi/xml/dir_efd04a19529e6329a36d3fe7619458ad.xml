@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir">
+    <compoundname>/stck/thennion/cwipi/src/new</compoundname>
+    <innerdir refid="dir_6436889afbb88510d481ef1bf0094be4">/stck/thennion/cwipi/src/new/client_server</innerdir>
+    <innerfile refid="cwp_8h">cwp.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/stck/thennion/cwipi/src/new/"/>
+  </compounddef>
+</doxygen>

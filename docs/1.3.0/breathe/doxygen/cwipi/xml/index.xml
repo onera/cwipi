@@ -455,26 +455,16 @@
   </compound>
   <compound refid="python__new__api__polygon__sol_8py" kind="file"><name>python_new_api_polygon_sol.py</name>
   </compound>
-  <compound refid="dir_282f381f3d1d4eba3d2b2931005a9461" kind="dir"><name>/home/bandrieu</name>
+  <compound refid="dir_6436889afbb88510d481ef1bf0094be4" kind="dir"><name>/stck/thennion/cwipi/src/new/client_server</name>
   </compound>
-  <compound refid="dir_9f483ecc491769a45397c372a3cc849b" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/src/new/client_server</name>
+  <compound refid="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir"><name>/stck/thennion/cwipi/src/new</name>
   </compound>
-  <compound refid="dir_c990aa40ab1a3cccdc1283067a4968c3" kind="dir"><name>/home/bandrieu/workspace/cwipi</name>
+  <compound refid="dir_8fdb7f4d27c6340e06275085d6f34a15" kind="dir"><name>/stck/thennion/cwipi/pattern</name>
   </compound>
-  <compound refid="dir_384e033db4295ba8c079347f5f170852" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi</name>
+  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>/stck/thennion/cwipi/src</name>
   </compound>
-  <compound refid="dir_43e0a1f539e00dcfa1a6bc4d4fee4fc2" kind="dir"><name>/home</name>
+  <compound refid="dir_59425e443f801f1f2fd8bbe4959a3ccf" kind="dir"><name>/stck/thennion/cwipi/tests</name>
   </compound>
-  <compound refid="dir_a9fc941a15239d1169a4490c9f1363ed" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/src/new</name>
-  </compound>
-  <compound refid="dir_5730ae40a1a565a09c060f520dab0a87" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/pattern</name>
-  </compound>
-  <compound refid="dir_29c761003f1f9207a632e76805e887dc" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/src</name>
-  </compound>
-  <compound refid="dir_112f2716a397909b1208898b1a10bd4a" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/tests</name>
-  </compound>
-  <compound refid="dir_d1177b61720374334b066e0ec9a82553" kind="dir"><name>/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial</name>
-  </compound>
-  <compound refid="dir_fd278e4d403ac4d65371940b21a12138" kind="dir"><name>/home/bandrieu/workspace</name>
+  <compound refid="dir_401b27da25eab5df96b3acf87382f9ab" kind="dir"><name>/stck/thennion/cwipi/tests/tutorial</name>
   </compound>
 </doxygenindex>

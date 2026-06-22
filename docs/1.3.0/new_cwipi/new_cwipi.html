@@ -1,21 +1,23 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>New CWIPI &mdash; CWIPI 1.3.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
   
-      <script src="../_static/jquery.js?v=5d32c60e"></script>
-      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=3d533f9b"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,6 +37,9 @@
             CWIPI
               <img src="../_static/cwipiNew.svg" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                1.3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -91,7 +96,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#interface-mesh">Interface mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#spatial-interpolation">Spatial interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id4">Fields</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">User-defined spatial interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">User-defined spatial interpolation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#location-methods">Location methods</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#intersection-method">Intersection method</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nearest-neighbors-methods">Nearest neighbors methods</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#id6">Global data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#partitioned-data">Partitioned data</a></li>
 </ul>
@@ -295,13 +305,15 @@ The degrees-of-freedom (dof) of a Field can either be located at mesh nodes, cel
 There can be no more than one user-defined point cloud per Coupling object.</p>
 <p>For <cite>Solver1</cite> a field instance for sending the temperature will be created and another instance for receiving the pressure.
 For <cite>Solver2</cite> the opposite will be done.</p>
-<p>There are ways to store field components:
-- CWP_FIELD_STORAGE_INTERLACED   : The number of components is constant for each element. The field is stored according to this pattern :math:` left(c_{1,1} … c_{s,1} … c_{1,n} … c_{s,n}right)` , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements ;
-- CWP_FIELD_STORAGE_INTERLEAVED  : The number of components is constant for each element. The field is stored according to this pattern :math:` left(c_{1,1} … c_{1,n} … c_{s,1} … c_{s,n}right)` , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements. In this mode,</p>
+<p>There are ways to store field components:</p>
+<ul class="simple">
+<li><p>CWP_FIELD_STORAGE_INTERLACED   : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/017b5799bd4df4410bf7918e6ecd513c413e867e.png" alt="(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n})"/>, where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements ;</p></li>
+<li><p>CWP_FIELD_STORAGE_INTERLEAVED  : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/94b5a5c7ae4fa059629fdc53a49c92695bf92c9b.png" alt="(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n})"/>, where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements.</p></li>
+</ul>
 </section>
 <section id="control-parameters">
 <h3>Control Parameters<a class="headerlink" href="#control-parameters" title="Permalink to this heading"></a></h3>
-<p><em>à remplir</em></p>
+<p><em>Not documented yet</em></p>
 </section>
 </section>
 <section id="spatial-interpolation-methods">
@@ -442,153 +454,153 @@ The following sections show how to retrieve all the information required to writ
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*=============================================================================</span>
 <span class="cm"> * This file contains the functions in C to be called in a user interpolation</span>
 <span class="cm"> * function (ie. callback) to retrieve local geometric data.</span>
-<span class="cm"> *============================================================================*/</span>
+<span class="cm"> *============================================================================*/</span><span class="w"></span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
-<span class="nf">user_interp_function_c</span>
-<span class="p">(</span>
-<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">       </span><span class="kt">int</span><span class="w">             </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">       </span><span class="kt">double</span><span class="w">         </span><span class="o">*</span><span class="n">buffer_in</span><span class="p">,</span>
-<span class="w">       </span><span class="kt">double</span><span class="w">         </span><span class="o">*</span><span class="n">buffer_out</span>
-<span class="p">)</span>
-<span class="p">{</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">user_interp_function_c</span><span class="w"></span>
+<span class="p">(</span><span class="w"></span>
+<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">           </span><span class="o">*</span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="kt">int</span><span class="w">             </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="kt">double</span><span class="w">         </span><span class="o">*</span><span class="n">buffer_in</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="kt">double</span><span class="w">         </span><span class="o">*</span><span class="n">buffer_out</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// GENERAL GEOMETRIC DATA</span>
 
 <span class="w">  </span><span class="c1">// Get the number of components of the field</span>
 
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_n_components_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                                </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                                </span><span class="n">field_id</span><span class="p">);</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_n_components_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">field_id</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get the field data storage type</span>
 
-<span class="w">  </span><span class="n">CWP_Field_storage_t</span><span class="w"> </span><span class="n">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_storage_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                                      </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                                      </span><span class="n">field_id</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_storage_t</span><span class="w"> </span><span class="n">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_storage_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                      </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                      </span><span class="n">field_id</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get the location of the degrees of freedom</span>
 
-<span class="w">  </span><span class="n">CWP_Dof_location_t</span><span class="w"> </span><span class="n">dof_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_dof_location_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                                               </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                                               </span><span class="n">field_id</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Dof_location_t</span><span class="w"> </span><span class="n">dof_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_dof_location_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                               </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                               </span><span class="n">field_id</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get data from the source of the exchange</span>
 
-<span class="w">  </span><span class="kt">int</span><span class="w">  </span><span class="n">n_elt_src</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">src_to_tgt_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w">  </span><span class="n">n_elt_src</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">src_to_tgt_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_src_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_elt_src</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">src_to_tgt_idx</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_src_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_elt_src</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">src_to_tgt_idx</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get data from the target of the exchange</span>
 
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_elt_tgt</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_computed_tgt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_elt_tgt</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_computed_tgt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">computed_tgt</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">tgt_to_src_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">computed_tgt</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">tgt_to_src_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_tgt_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_elt_tgt</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_computed_tgt</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">computed_tgt</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">tgt_to_src_idx</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_tgt_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_elt_tgt</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">n_computed_tgt</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">computed_tgt</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">tgt_to_src_idx</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// LOCATION SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">  </span><span class="c1">// Get the weights computed by the location spatial interpolation algorithm</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">weights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">weights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_location_weights_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                 </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                 </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                 </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                 </span><span class="o">&amp;</span><span class="n">weights</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_location_weights_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                 </span><span class="o">&amp;</span><span class="n">weights</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get the point data</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_coords</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_uvw</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_dist2</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_projected_coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_coords</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_uvw</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_dist2</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">points_projected_coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_location_point_data_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_coords</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_uvw</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_dist2</span><span class="p">,</span>
-<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_projected_coords</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_location_point_data_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_coords</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_uvw</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_dist2</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="o">&amp;</span><span class="n">points_projected_coords</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get the spatial interpolation internal cell-&gt;vertex connectivity</span>
 
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">cell_vtx_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">cell_vtx</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">cell_vtx_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">cell_vtx</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_location_internal_cell_vtx_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                           </span><span class="o">&amp;</span><span class="n">cell_vtx_idx</span><span class="p">,</span>
-<span class="w">                                          </span><span class="o">&amp;</span><span class="n">cell_vtx</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_location_internal_cell_vtx_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                           </span><span class="o">&amp;</span><span class="n">cell_vtx_idx</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                          </span><span class="o">&amp;</span><span class="n">cell_vtx</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// INTERSECTION SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">  </span><span class="c1">// Get the intersection volumes</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">volumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">volumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_intersection_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                     </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                     </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                     </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                     </span><span class="o">&amp;</span><span class="n">volumes</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_intersection_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                     </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                     </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                     </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                     </span><span class="o">&amp;</span><span class="n">volumes</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get local target elements volumes</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">tgt_elt_volumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">tgt_elt_volumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_intersection_tgt_elt_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                             </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                             </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                             </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                             </span><span class="o">&amp;</span><span class="n">tgt_elt_volumes</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_intersection_tgt_elt_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                             </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                             </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                             </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                             </span><span class="o">&amp;</span><span class="n">tgt_elt_volumes</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">  </span><span class="c1">// Get squared distances to nearest source points</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">distances2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">distances2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_nearest_neighbors_distances_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                            </span><span class="o">&amp;</span><span class="n">distances2</span><span class="p">);</span>
+<span class="w">  </span><span class="n">CWP_Field_nearest_neighbors_distances_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                            </span><span class="o">&amp;</span><span class="n">distances2</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Get coordinates of nearest source points</span>
 
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">nearest_src_coord</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">nearest_src_coord</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">  </span><span class="n">CWP_Field_nearest_neighbors_coord_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span>
-<span class="w">                                        </span><span class="n">cpl_id</span><span class="p">,</span>
-<span class="w">                                        </span><span class="n">field_id</span><span class="p">,</span>
-<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span>
-<span class="w">                                        </span><span class="o">&amp;</span><span class="n">nearest_src_coord</span><span class="p">);</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="n">CWP_Field_nearest_neighbors_coord_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                        </span><span class="o">&amp;</span><span class="n">nearest_src_coord</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </section>
@@ -599,197 +611,197 @@ The following sections show how to retrieve all the information required to writ
 <span class="c">! function (ie. callback) to retrieve local geometric data.</span>
 <span class="c">!=============================================================================</span>
 
-<span class="k">subroutine </span><span class="n">user_interp_function_fortran</span><span class="p">(</span><span class="n">c_local_code_name</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">c_cpl_id</span><span class="p">,</span><span class="w">                 </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">c_field_id</span><span class="p">,</span><span class="w">               </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">              </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">c_buffer_out</span><span class="p">)</span><span class="w">             </span><span class="p">&amp;</span>
-<span class="w">    </span><span class="k">bind</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="k">subroutine </span><span class="n">user_interp_function_fortran</span><span class="p">(</span><span class="n">c_local_code_name</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">c_cpl_id</span><span class="p">,</span><span class="w">                 </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">c_field_id</span><span class="p">,</span><span class="w">               </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">              </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">c_buffer_out</span><span class="p">)</span><span class="w">             </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">    </span><span class="k">bind</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="w"></span>
 <span class="w">    </span><span class="k">use</span><span class="p">,</span><span class="w"> </span><span class="k">intrinsic</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">iso_c_binding</span>
 
-<span class="nb">    </span><span class="k">use </span><span class="n">cwp</span>
+<span class="nb">    </span><span class="k">use </span><span class="n">cwp</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">implicit none</span>
+<span class="w">    </span><span class="k">implicit none</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! VARIABLES</span>
 
 <span class="w">    </span><span class="c">! --&gt; of the user interpolation function</span>
 
-<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_char</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"> </span><span class="n">field_id</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">i_part</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">spatial_interp_algorithm</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">storage</span>
-<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">c_buffer_in</span>
-<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">c_buffer_out</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_char</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="n">cpl_id</span><span class="p">,</span><span class="w"> </span><span class="n">field_id</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">i_part</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">spatial_interp_algorithm</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">storage</span><span class="w"></span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">c_buffer_in</span><span class="w"></span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">c_buffer_out</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! --&gt; Fortran specific</span>
 
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">buffer_in</span><span class="p">(:)</span><span class="w">  </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">buffer_in</span><span class="p">(:)</span><span class="w">  </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! --&gt; for general geometric data</span>
 
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_components</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">storage</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">dof_location</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_components</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">storage</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">dof_location</span><span class="w"></span>
 
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_elt_src</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">src_to_tgt_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_elt_src</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">src_to_tgt_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_elt_tgt</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_computed_tgt</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">computed_tgt</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">tgt_to_src_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_elt_tgt</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">n_computed_tgt</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">computed_tgt</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">tgt_to_src_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! --&gt; for location spatial interpolation algorithm</span>
 
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">weights</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">weights</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_coords</span><span class="p">(:)</span><span class="w">           </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_uvw</span><span class="p">(:)</span><span class="w">              </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_dist2</span><span class="p">(:)</span><span class="w">            </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_projected_coords</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_coords</span><span class="p">(:)</span><span class="w">           </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_uvw</span><span class="p">(:)</span><span class="w">              </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_dist2</span><span class="p">(:)</span><span class="w">            </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">points_projected_coords</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w">          </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cell_vtx_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w">          </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cell_vtx</span><span class="p">(:)</span><span class="w">     </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w">          </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cell_vtx_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w">          </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cell_vtx</span><span class="p">(:)</span><span class="w">     </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! --&gt; for intersection spatial interpolation algorithm</span>
 
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">volumes</span><span class="p">(:)</span><span class="w">         </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tgt_elt_volumes</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">volumes</span><span class="p">(:)</span><span class="w">         </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tgt_elt_volumes</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! --&gt; for nearest neighbors spatial interpolation algorithm</span>
 
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">distances2</span><span class="p">(:)</span><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
-<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nearest_src_coord</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">distances2</span><span class="p">(:)</span><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double precision</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nearest_src_coord</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! GENERAL GEOMETRIC DATA</span>
 
 <span class="w">    </span><span class="c">! Get the number of components of the field</span>
 
-<span class="w">    </span><span class="n">n_components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_n_components_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                              </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                              </span><span class="n">field_id</span><span class="p">)</span>
+<span class="w">    </span><span class="n">n_components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_n_components_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">field_id</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get the field data storage type</span>
 
-<span class="w">    </span><span class="n">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_storage_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                    </span><span class="n">field_id</span><span class="p">)</span>
+<span class="w">    </span><span class="n">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_storage_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">field_id</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get the location of the degrees of freedom</span>
 
-<span class="w">    </span><span class="n">dof_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_dof_location_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                              </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                              </span><span class="n">field_id</span><span class="p">)</span>
+<span class="w">    </span><span class="n">dof_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Field_dof_location_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">field_id</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get data from the source of the exchange</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_src_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">n_elt_src</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">src_to_tgt_idx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_src_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">n_elt_src</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">src_to_tgt_idx</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get data from the target of the exchange</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_tgt_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">n_elt_tgt</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">n_computed_tgt</span><span class="p">,</span><span class="w">  </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">computed_tgt</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">tgt_to_src_idx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_tgt_data_properties_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">n_elt_tgt</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">n_computed_tgt</span><span class="p">,</span><span class="w">  </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">computed_tgt</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">tgt_to_src_idx</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Transform input C pointers to Fortran pointers</span>
 
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">        </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">        </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
 <span class="w">        </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 
-<span class="k">      call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">  </span><span class="n">buffer_in</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_elt_src</span><span class="p">])</span>
-<span class="w">      </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_out</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">src_to_tgt_idx</span><span class="p">(</span><span class="n">n_elt_src</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+<span class="k">      call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">  </span><span class="n">buffer_in</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_elt_src</span><span class="p">])</span><span class="w"></span>
+<span class="w">      </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_out</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">src_to_tgt_idx</span><span class="p">(</span><span class="n">n_elt_src</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">             </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">             </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_INTERSECTION</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">             </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">             </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_INTERSECTION</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
 <span class="w">             </span><span class="n">spatial_interp_algorithm</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SPATIAL_INTERP_FROM_IDENTITY</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 
-<span class="k">      call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">  </span><span class="n">buffer_in</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tgt_to_src_idx</span><span class="p">(</span><span class="n">n_computed_tgt</span><span class="p">)])</span>
-<span class="w">      </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_out</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_elt_tgt</span><span class="p">])</span>
+<span class="k">      call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_in</span><span class="p">,</span><span class="w">  </span><span class="n">buffer_in</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tgt_to_src_idx</span><span class="p">(</span><span class="n">n_computed_tgt</span><span class="p">)])</span><span class="w"></span>
+<span class="w">      </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">c_buffer_out</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_out</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">n_components</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_elt_tgt</span><span class="p">])</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">endif</span>
+<span class="w">    </span><span class="k">endif</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! LOCATION SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">    </span><span class="c">! Get the weights computed by the location spatial interpolation algorithm</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_weights_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">field_id</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span>
-<span class="w">                                        </span><span class="n">weights</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_weights_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">field_id</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">i_part</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">weights</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get the point data</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_point_data_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">              </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">points_coords</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">points_uvw</span><span class="p">,</span><span class="w">            </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">points_dist2</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                           </span><span class="n">points_projected_coords</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_point_data_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w">              </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">points_coords</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">points_uvw</span><span class="p">,</span><span class="w">            </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">points_dist2</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">points_projected_coords</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get the spatial interpolation internal cell-&gt;vertex connectivity</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_internal_cell_vtx_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                                 </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span>
-<span class="w">                                                 </span><span class="n">field_id</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span>
-<span class="w">                                                 </span><span class="n">i_part</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span>
-<span class="w">                                                 </span><span class="n">cell_vtx_idx</span><span class="p">,</span><span class="w">     </span><span class="p">&amp;</span>
-<span class="w">                                                 </span><span class="n">cell_vtx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_location_internal_cell_vtx_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                 </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                 </span><span class="n">field_id</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                 </span><span class="n">i_part</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                 </span><span class="n">cell_vtx_idx</span><span class="p">,</span><span class="w">     </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                 </span><span class="n">cell_vtx</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! INTERSECTION SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">    </span><span class="c">! Get the intersection volumes</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_intersection_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">volumes</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_intersection_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">volumes</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get local target elements volumes</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_intersection_tgt_elt_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                                    </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                                    </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                                    </span><span class="n">tgt_elt_volumes</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_intersection_tgt_elt_volumes_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                    </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                    </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                    </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                    </span><span class="n">tgt_elt_volumes</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! NEAREST NEIGHBORS SPATIAL INTERPOLATION ALGORITHM</span>
 
 <span class="w">    </span><span class="c">! Get squared distances to nearest source points</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_nearest_points_distances_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                                </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                                </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                                </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                                </span><span class="n">distances2</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_nearest_points_distances_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                </span><span class="n">distances2</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="c">! Get coordinates of nearest source points</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_nearest_points_coord_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span>
-<span class="w">                                            </span><span class="n">nearest_src_coord</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_nearest_points_coord_get</span><span class="p">(</span><span class="n">local_code_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">cpl_id</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">field_id</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">i_part</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">nearest_src_coord</span><span class="p">)</span><span class="w"></span>
 
-<span class="k">end subroutine </span><span class="n">user_interp_function_fortran</span>
+<span class="k">end subroutine </span><span class="n">user_interp_function_fortran</span><span class="w"></span>
 </pre></div>
 </div>
 </section>
@@ -800,9 +812,9 @@ The following sections show how to retrieve all the information required to writ
 <span class="c1"># function (ie. callback) to retrieve local geometric data.</span>
 <span class="c1">#=============================================================================</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">user_interp_function_python</span><span class="p">(</span><span class="n">field</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">user_interp_function_python</span><span class="p">(</span><span class="n">field</span><span class="p">,</span>
                                 <span class="n">i_part</span><span class="p">,</span>
                                 <span class="n">buffer_in</span><span class="p">,</span>
                                 <span class="n">buffer_out</span><span class="p">):</span>
@@ -810,7 +822,7 @@ The following sections show how to retrieve all the information required to writ
   <span class="c1"># IMPORT</span>
 
   <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">pycwp</span><span class="w"> </span><span class="kn">import</span> <span class="n">pycwp</span>
+    <span class="kn">from</span> <span class="nn">pycwp</span> <span class="kn">import</span> <span class="n">pycwp</span>
   <span class="k">except</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
       <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;      Error : CWIPI module not found (update PYTHONPATH variable)&quot;</span><span class="p">)</span>
@@ -2069,38 +2081,35 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
 <li><p>edge (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a02c65dac85793955da8298276bc3d560"><span class="std std-ref">CWP_BLOCK_EDGE2</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>triangle (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827aded2628133670fd5de68d5b098f4e96d"><span class="std std-ref">CWP_BLOCK_FACE_TRIA3</span></a>):</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">3</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">3</span>
    \     <span class="o">/</span>
     \   <span class="o">/</span>
      \ <span class="o">/</span>
       <span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>quadrangle (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a00f90834a75cf39db8c6723fa133eb4c"><span class="std std-ref">CWP_BLOCK_FACE_QUAD4</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="mi">4</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">3</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="mi">4</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">3</span>
     <span class="o">/</span>       <span class="o">/</span>
    <span class="o">/</span>       <span class="o">/</span>
 <span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>tetrahedron (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a0feeb13c5beafd90dc01bbdd2bd0fc4b"><span class="std std-ref">CWP_BLOCK_CELL_TETRA4</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>      <span class="n">x</span> <span class="mi">4</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>      <span class="n">x</span> <span class="mi">4</span>
      <span class="o">/|</span>\
     <span class="o">/</span> <span class="o">|</span> \
    <span class="o">/</span>  <span class="o">|</span>  \
@@ -2111,12 +2120,11 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
       <span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>pyramid (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a20e5ab71aa1a74c64e9b0284ccebe285"><span class="std std-ref">CWP_BLOCK_CELL_PYRAM5</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       <span class="mi">5</span> <span class="n">x</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       <span class="mi">5</span> <span class="n">x</span>
         <span class="o">/|</span>\
        <span class="o">//|</span> \
       <span class="o">//</span> <span class="o">|</span>  \
@@ -2126,12 +2134,11 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
 <span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>prism (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a0f7051d16a7a9c8b23463182a18eb390"><span class="std std-ref">CWP_BLOCK_CELL_PRISM6</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">4</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">6</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">4</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">6</span>
   <span class="o">|</span>\     <span class="o">/|</span>
   <span class="o">|</span> \   <span class="o">/</span> <span class="o">|</span>
 <span class="mi">1</span> <span class="n">x</span><span class="o">-</span> \<span class="o">-/</span> <span class="o">-</span><span class="n">x</span> <span class="mi">3</span>
@@ -2141,12 +2148,11 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
       <span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <p><ul class="simple">
 <li><p>hexahedron (<a class="reference internal" href="#cwp_8h_1a9da3a7c3b28a687e91e3359d7356d827a98c599dd407f9e230b27e47596df9ff4"><span class="std std-ref">CWP_BLOCK_CELL_HEXA8</span></a>) :</p></li>
 </ul>
 </p>
-<p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="mi">8</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">7</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="mi">8</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">7</span>
     <span class="o">/|</span>      <span class="o">/|</span>
    <span class="o">/</span> <span class="o">|</span>     <span class="o">/</span> <span class="o">|</span>
 <span class="mi">5</span> <span class="n">x</span><span class="o">-------</span><span class="n">x6</span> <span class="o">|</span>
@@ -2156,7 +2162,6 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
 <span class="mi">1</span> <span class="n">x</span><span class="o">-------</span><span class="n">x</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4413,14 +4418,8 @@ manually check the consistency of the exchanges.</p>
 </dl>
 </dd></dl>
 
-<aside class="system-message">
-<p class="system-message-title">System Message: SEVERE/4 (<span class="docutils literal">/home/bandrieu/workspace/cwipi/cwipi/doc/sphinx/source/new_cwipi/new_cwipi.rst</span>, line 208)</p>
-<p>Title level inconsistent:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Location</span> <span class="n">methods</span>
-<span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span><span class="s2">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
-</pre></div>
-</div>
-</aside>
+<section id="location-methods">
+<h4>Location methods<a class="headerlink" href="#location-methods" title="Permalink to this heading"></a></h4>
 <dl>
 <dt class="sig sig-object f" id="f/_/cwp_field_location_weights_get_">
 <em class="property"><span class="pre">subroutine</span>&#160; </em><span class="sig-name descname"><span class="pre">cwp_field_location_weights_get_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">local_code_name</span></em>, <em class="sig-param"><span class="pre">cpl_id</span></em>, <em class="sig-param"><span class="pre">field_id</span></em>, <em class="sig-param"><span class="pre">i_part</span></em>, <em class="sig-param"><span class="pre">weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cwp_field_location_weights_get_" title="Permalink to this definition"></a></dt>
@@ -4478,14 +4477,9 @@ manually check the consistency of the exchanges.</p>
 </dl>
 </dd></dl>
 
-<aside class="system-message">
-<p class="system-message-title">System Message: SEVERE/4 (<span class="docutils literal">/home/bandrieu/workspace/cwipi/cwipi/doc/sphinx/source/new_cwipi/new_cwipi.rst</span>, line 217)</p>
-<p>Title level inconsistent:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Intersection</span> <span class="n">method</span>
-<span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span><span class="s2">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
-</pre></div>
-</div>
-</aside>
+</section>
+<section id="intersection-method">
+<h4>Intersection method<a class="headerlink" href="#intersection-method" title="Permalink to this heading"></a></h4>
 <dl>
 <dt class="sig sig-object f" id="f/_/cwp_field_intersection_volumes_get_">
 <em class="property"><span class="pre">subroutine</span>&#160; </em><span class="sig-name descname"><span class="pre">cwp_field_intersection_volumes_get_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">local_code_name</span></em>, <em class="sig-param"><span class="pre">cpl_id</span></em>, <em class="sig-param"><span class="pre">field_id</span></em>, <em class="sig-param"><span class="pre">i_part</span></em>, <em class="sig-param"><span class="pre">volumes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cwp_field_intersection_volumes_get_" title="Permalink to this definition"></a></dt>
@@ -4520,14 +4514,9 @@ manually check the consistency of the exchanges.</p>
 </dl>
 </dd></dl>
 
-<aside class="system-message">
-<p class="system-message-title">System Message: SEVERE/4 (<span class="docutils literal">/home/bandrieu/workspace/cwipi/cwipi/doc/sphinx/source/new_cwipi/new_cwipi.rst</span>, line 224)</p>
-<p>Title level inconsistent:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Nearest</span> <span class="n">neighbors</span> <span class="n">methods</span>
-<span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span><span class="s2">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
-</pre></div>
-</div>
-</aside>
+</section>
+<section id="nearest-neighbors-methods">
+<h4>Nearest neighbors methods<a class="headerlink" href="#nearest-neighbors-methods" title="Permalink to this heading"></a></h4>
 <dl>
 <dt class="sig sig-object f" id="f/_/cwp_field_nearest_neighbors_distances_get_">
 <em class="property"><span class="pre">subroutine</span>&#160; </em><span class="sig-name descname"><span class="pre">cwp_field_nearest_neighbors_distances_get_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">local_code_name</span></em>, <em class="sig-param"><span class="pre">cpl_id</span></em>, <em class="sig-param"><span class="pre">field_id</span></em>, <em class="sig-param"><span class="pre">i_part</span></em>, <em class="sig-param"><span class="pre">distances2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cwp_field_nearest_neighbors_distances_get_" title="Permalink to this definition"></a></dt>
@@ -4562,6 +4551,7 @@ manually check the consistency of the exchanges.</p>
 </dl>
 </dd></dl>
 
+</section>
 </section>
 <section id="id6">
 <h3>Global data<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
@@ -5645,7 +5635,7 @@ on non-root ranks</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycwp.PartData.wait_irecv">
-<span class="sig-name descname"><span class="pre">wait_irecv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycwp.PartData.wait_irecv" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wait_irecv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exch_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycwp.PartData.wait_irecv" title="Permalink to this definition"></a></dt>
 <dd><p>Finalize the reception of a data array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -5656,7 +5646,7 @@ on non-root ranks</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycwp.PartData.wait_issend">
-<span class="sig-name descname"><span class="pre">wait_issend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycwp.PartData.wait_issend" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wait_issend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exch_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycwp.PartData.wait_issend" title="Permalink to this definition"></a></dt>
 <dd><p>Finalize the sending of a partitioned data array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

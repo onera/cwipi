@@ -5,7 +5,7 @@
     <includes local="yes">cwipi_configf.h</includes>
     <incdepgraph>
       <node id="1">
-        <label>/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90</label>
+        <label>/stck/thennion/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90</label>
         <link refid="fortran__new__api__polygon__sol_8_f90"/>
         <childnode refid="2" relation="include">
         </childnode>
@@ -27,7 +27,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90" line="3" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90" bodystart="3" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90" line="3" column="1" bodyfile="/stck/thennion/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90" bodystart="3" bodyend="-1"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -396,6 +396,6 @@
 <codeline lineno="359"><highlight class="normal"></highlight></codeline>
 <codeline lineno="360"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>program<sp/></highlight><highlight class="normal">fortran_new_api_polygon_sol</highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90"/>
+    <location file="/stck/thennion/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90"/>
   </compounddef>
 </doxygen>

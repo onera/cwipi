@@ -5,16 +5,16 @@
     <includes local="no">mpi.h</includes>
     <includes local="no">stdio.h</includes>
     <incdepgraph>
+      <node id="2">
+        <label>mpi.h</label>
+      </node>
       <node id="1">
-        <label>/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h</label>
+        <label>/stck/thennion/cwipi/src/cwipi.h</label>
         <link refid="cwipi_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-      </node>
-      <node id="2">
-        <label>mpi.h</label>
       </node>
       <node id="3">
         <label>stdio.h</label>
@@ -32,7 +32,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="35" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="35" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="35" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="35" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="enum">
@@ -66,7 +66,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="55" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="55" bodyend="61"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="55" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="55" bodyend="61"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1ab5e0ef247a2f4692d53da084aca814d0" prot="public" static="no" strong="no">
         <type></type>
@@ -91,7 +91,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="67" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="67" bodyend="72"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="67" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="67" bodyend="72"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1a1f14ece0d0a27493cba15c7419091812" prot="public" static="no" strong="no">
         <type></type>
@@ -123,7 +123,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="78" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="78" bodyend="84"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="78" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="78" bodyend="84"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1a5282f26f6f494ada4fff56c03517fd2c" prot="public" static="no" strong="no">
         <type></type>
@@ -148,7 +148,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="90" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="90" bodyend="95"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="90" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="90" bodyend="95"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1a4d1eb43b2d110fcaf1b72707684b2d00" prot="public" static="no" strong="no">
         <type></type>
@@ -173,7 +173,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="101" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="101" bodyend="106"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="101" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="101" bodyend="106"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1afd0b9d4eb0aefeb9a8abc53f70d96851" prot="public" static="no" strong="no">
         <type></type>
@@ -198,7 +198,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="112" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="112" bodyend="117"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="112" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="112" bodyend="117"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1ac5b6a48fdb9556e3e182a7b442b01d53" prot="public" static="no" strong="no">
         <type></type>
@@ -223,7 +223,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="123" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="123" bodyend="128"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="123" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="123" bodyend="128"/>
       </memberdef>
       <memberdef kind="enum" id="cwipi_8h_1acf5ba875d3593cd41cac3c382f36d9d7" prot="public" static="no" strong="no">
         <type></type>
@@ -353,7 +353,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="134" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="134" bodyend="154"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="134" column="1" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="134" bodyend="154"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="typedef">
@@ -368,7 +368,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="198" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="199" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="198" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="199" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="cwipi_8h_1ac29aa354db9fe16d9278ed70a32500aa" prot="public" static="no">
         <type>void(*</type>
@@ -381,7 +381,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="268" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="269" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="268" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="269" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="cwipi_8h_1ad41e65fd4c8780d9ccbd97ee320e241c" prot="public" static="no">
         <type>double(*</type>
@@ -394,7 +394,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="311" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="312" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="311" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="312" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="cwipi_8h_1ad237f57e4415a098886ae9fa25ae64dc" prot="public" static="no">
         <type>void(*</type>
@@ -407,7 +407,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="335" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="336" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="335" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="336" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="cwipi_8h_1a1d61d106395a04dde1ed12732166d524" prot="public" static="no">
         <type>void(*</type>
@@ -420,7 +420,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="356" column="9" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" bodystart="357" bodyend="-1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="356" column="9" bodyfile="/stck/thennion/cwipi/src/cwipi.h" bodystart="357" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="func">
@@ -447,7 +447,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="387" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="387" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="387" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="387" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a134f4edbc9363d997c08eb5905a1d58e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -466,7 +466,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="400" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="400" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="400" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="400" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a6f7136eb08406eb34bfac0c58c96bc66" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -483,7 +483,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="402" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="402" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="402" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="402" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1add914a6da6baf66c149a908d77fa9244" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -504,7 +504,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="414" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="414" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="414" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="414" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ae52ca596cae1a4b5957c81a3f8feab58" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -525,7 +525,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="426" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="426" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="426" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="426" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aef35bb7f73f4ef51619f55fc36409ada" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -546,7 +546,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="438" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="438" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="438" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="438" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a03331ce52630a3432afaf30865bc0e53" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -567,7 +567,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="450" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="450" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="450" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="450" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1afca15b6c034f6d126c905d7307f41d8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -588,7 +588,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="462" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="462" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="462" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="462" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad2c0a3bc9fa78ed2d050e7bba5324076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -609,7 +609,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="474" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="474" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="474" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="474" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1add684d6c91790200dfef95847465adaa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -626,7 +626,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="485" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="485" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="485" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="485" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a9b7b1aec2fb1884c28ca8cfdfe1c60fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>double</type>
@@ -643,7 +643,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="496" column="8" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="496" declcolumn="8"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="496" column="8" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="496" declcolumn="8"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a1df2bff6f0e9cff0fa738eebb6223cfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
@@ -660,7 +660,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="507" column="12" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="507" declcolumn="12"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="507" column="12" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="507" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a4f609bed5f899c15f18dec1956e6f623" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -677,7 +677,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="518" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="518" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="518" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="518" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a9a84c4ed260fbab9bfca4adf422f74ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -694,7 +694,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="529" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="529" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="529" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="529" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad63b95db670a76baa81c83392069a451" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -711,7 +711,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="540" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="540" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="540" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="540" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a2eba096defd700cbc9d746982063c7d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -732,7 +732,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="552" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="552" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="552" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="552" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a25852a0a4464f69032cf560e533a700d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>double</type>
@@ -753,7 +753,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="566" column="8" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="566" declcolumn="8"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="566" column="8" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="566" declcolumn="8"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a76c35f259292e61907598da184999cbc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
@@ -774,7 +774,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="580" column="12" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="580" declcolumn="12"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="580" column="12" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="580" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad175a8c124069b92ea9c2e9731111326" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -795,7 +795,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="638" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="638" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="638" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="638" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a60eabe6fd6b45af61e3a518aabe21392" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -816,7 +816,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="654" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="654" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="654" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="654" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a737fcf6776e0b0ff177da4a80873b658" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -837,7 +837,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="670" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="670" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="670" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="670" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a673df1fedd153d413f01578f7819541a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -854,7 +854,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="685" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="685" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="685" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="685" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a743c518bd915a5c98071d4ec853ec8da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -871,7 +871,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="699" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="699" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="699" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="699" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ab1a459cafcd289b4ef56991068404fcb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -888,7 +888,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="713" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="713" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="713" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="713" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a8125e2972e70e988077cbc0a4d7b94bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>char **</type>
@@ -905,7 +905,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="727" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="727" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="727" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="727" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aa25e89bebed777fa88fa8e309893bf27" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>char **</type>
@@ -922,7 +922,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="741" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="741" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="741" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="741" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1acac6b640b4051a01b10a31cc61ab4a69" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>char **</type>
@@ -939,7 +939,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="755" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="755" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="755" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="755" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a2b162f30af655f1587a2d5e05f1252c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -956,7 +956,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="768" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="768" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="768" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="768" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a378c8295153beb7809cd0593b2471a6d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -972,7 +972,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="776" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="776" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="776" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="776" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a8ba48e8ec9c601d07ade0064c86c77a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1028,7 +1028,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="819" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="819" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="819" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="819" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1afc1e729d8ae5b2182f609f1c37f168bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1049,7 +1049,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="859" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="859" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="859" column="1" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="859" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a74125b2ed838591b7b4c294453933964" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
@@ -1066,7 +1066,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="878" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="878" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="878" column="1" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="878" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1af01f2f02b7341ae0901329ca885113b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1087,7 +1087,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="892" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="892" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="892" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="892" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ab02d9eaf64368e7d9a3c20214bdebe11" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1104,7 +1104,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="904" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="904" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="904" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="904" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aca20dfd136f935a39477043c4f8018d0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1121,7 +1121,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="905" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="905" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="905" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="905" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad77d27721894226ab58899f79c65f2c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1146,7 +1146,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="919" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="919" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="919" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="919" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1af1447d28591584e831df32ba37ed99bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1163,7 +1163,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="930" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="930" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="930" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="930" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a6e7ef5bfd130fc48244f9f96afca82d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1189,7 +1189,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="946" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="946" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="946" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="946" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aabd58445a1a5aefa5b1e9080c3d65def" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1229,7 +1229,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1048" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1048" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1048" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1048" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad36dcc6b9ea9627f688ec7adc65fb4da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1250,7 +1250,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1055" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1055" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1055" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1055" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a00ee98994e271b50f8a760e90d5d7137" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1294,7 +1294,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1081" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1081" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1081" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1081" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a9cd9a14bbd7ebb03874b0f2a9e6ac79f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1319,7 +1319,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1108" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1108" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1108" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1108" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aae51b490ffd15339f37a585dcc253625" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1348,7 +1348,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1124" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1124" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1124" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1124" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a4b9b9345cf0ba12c5519ebc8771cd349" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1377,7 +1377,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1141" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1141" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1141" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1141" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a35fd0e8a248b2c07e2d216c65c79382a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1402,7 +1402,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1159" column="1" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1159" declcolumn="1"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1159" column="1" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1159" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a97e56f53e0a15f1d93d3d973e64723df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1447,7 +1447,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1182" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1182" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1182" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1182" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a64277a9d977e6ac8d87cefaa2f0e9206" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1464,7 +1464,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1199" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1199" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1199" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1199" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a2c825a86494e6ef15148427231e3940b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1481,7 +1481,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1209" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1209" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1209" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1209" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a44215768b27a0ac9d4f4552e8692d5a1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1498,7 +1498,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1221" column="11" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1221" declcolumn="11"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1221" column="11" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1221" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a0f4cba551aef91278c5d37f00702b3e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const float *</type>
@@ -1515,7 +1515,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1233" column="13" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1233" declcolumn="13"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1233" column="13" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1233" declcolumn="13"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a305925c78da6efdaa9ee4cff23f19498" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1532,7 +1532,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1245" column="11" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1245" declcolumn="11"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1245" column="11" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1245" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a78027ae65e9f2ef83a53efa286f31119" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const double *</type>
@@ -1549,7 +1549,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1257" column="14" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1257" declcolumn="14"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1257" column="14" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1257" declcolumn="14"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a91f99a314dcb9914c7ed4e1c6def989c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const double *</type>
@@ -1566,7 +1566,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1269" column="14" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1269" declcolumn="14"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1269" column="14" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1269" declcolumn="14"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a6b489539abe79999fd4386189e1b7a91" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>cwipi_exchange_status_t</type>
@@ -1619,7 +1619,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1294" column="25" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1294" declcolumn="25"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1294" column="25" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1294" declcolumn="25"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a6453a719a363cfe92e276594bdd9d3a5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1668,7 +1668,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1323" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1323" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1323" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1323" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a7338c3024e38b780c0d5c65dffa9c5eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1717,7 +1717,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1352" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1352" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1352" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1352" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1afdf8302c9f79a2bf52faefd9a109d0d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1738,7 +1738,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1373" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1373" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1373" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1373" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a3533fba0aa11a56af7b1cbad589cf591" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1759,7 +1759,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1386" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1386" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1386" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1386" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ae40a8648b305216c67d1981b95299d40" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const float *</type>
@@ -1776,7 +1776,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1398" column="13" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1398" declcolumn="13"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1398" column="13" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1398" declcolumn="13"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ada6fc9ac74c72fccd57629a97f43177b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1797,7 +1797,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1410" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1410" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1410" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1410" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a65e4947b3a8c5f7075776f1898c7f485" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1818,7 +1818,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1424" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1424" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1424" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1424" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a2e8c29122f460db0c8278df4ea0c2c8a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1839,7 +1839,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1438" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1438" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1438" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1438" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a69f584b078b250400c2ad0c73ac3f24b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1856,7 +1856,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1451" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1451" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1451" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1451" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aed53a503221264805809baf01c89c73e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1872,7 +1872,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1459" column="6" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1459" declcolumn="6"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1459" column="6" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1459" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a4d5c44784abadf7b2f893b9d08601248" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1889,7 +1889,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1472" column="12" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1472" declcolumn="12"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1472" column="12" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1472" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1aa5c7d790b8a8a87f85c59e5de537e4f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1906,7 +1906,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1486" column="12" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1486" declcolumn="12"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1486" column="12" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1486" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1ad66e430a98dd124198302de7b4a188a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1923,7 +1923,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1500" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1500" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1500" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1500" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a11dbc110013462a77a4f5e4b9023a35f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1940,7 +1940,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1514" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1514" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1514" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1514" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a42633fd2c759ce66e1f8384ca324902b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1957,7 +1957,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1529" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1529" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1529" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1529" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a130b0261efff052fc2110d83bac3377a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1974,7 +1974,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1544" column="5" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1544" declcolumn="5"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1544" column="5" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1544" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a43fa91772f406fe0742db07aa07ec14f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -1991,7 +1991,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1559" column="11" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1559" declcolumn="11"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1559" column="11" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1559" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="cwipi_8h_1a29faa3fe27ecc834f369a424b6b5a9ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const int *</type>
@@ -2008,7 +2008,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" line="1574" column="11" declfile="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h" declline="1574" declcolumn="11"/>
+        <location file="/stck/thennion/cwipi/src/cwipi.h" line="1574" column="11" declfile="/stck/thennion/cwipi/src/cwipi.h" declline="1574" declcolumn="11"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -3599,6 +3599,6 @@
 <codeline lineno="1581"><highlight class="normal"></highlight></codeline>
 <codeline lineno="1582"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__CWIPI_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/src/cwipi.h"/>
+    <location file="/stck/thennion/cwipi/src/cwipi.h"/>
   </compounddef>
 </doxygen>

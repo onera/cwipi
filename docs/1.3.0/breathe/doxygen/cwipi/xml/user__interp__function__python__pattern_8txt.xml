@@ -101,6 +101,6 @@
 <codeline lineno="92"><highlight class="normal"></highlight></codeline>
 <codeline lineno="93"><highlight class="normal"><sp/><sp/>clst_src_point_coords<sp/>=<sp/>field.nearest_neighbors_coord_get(i_part)</highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/pattern/user_interp_function_python_pattern.txt"/>
+    <location file="/stck/thennion/cwipi/pattern/user_interp_function_python_pattern.txt"/>
   </compounddef>
 </doxygen>

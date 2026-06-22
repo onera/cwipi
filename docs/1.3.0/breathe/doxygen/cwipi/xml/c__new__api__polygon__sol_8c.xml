@@ -27,8 +27,11 @@
         <childnode refid="7" relation="include">
         </childnode>
       </node>
+      <node id="8">
+        <label>cwp_priv.h</label>
+      </node>
       <node id="1">
-        <label>/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/c_new_api_polygon_sol.c</label>
+        <label>/stck/thennion/cwipi/tests/tutorial/c_new_api_polygon_sol.c</label>
         <link refid="c__new__api__polygon__sol_8c"/>
         <childnode refid="2" relation="include">
         </childnode>
@@ -40,9 +43,6 @@
         </childnode>
         <childnode refid="8" relation="include">
         </childnode>
-      </node>
-      <node id="8">
-        <label>cwp_priv.h</label>
       </node>
       <node id="6">
         <label>mpi.h</label>
@@ -72,7 +72,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/c_new_api_polygon_sol.c" line="34" column="1" bodyfile="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/c_new_api_polygon_sol.c" bodystart="34" bodyend="340"/>
+        <location file="/stck/thennion/cwipi/tests/tutorial/c_new_api_polygon_sol.c" line="34" column="1" bodyfile="/stck/thennion/cwipi/tests/tutorial/c_new_api_polygon_sol.c" bodystart="34" bodyend="340"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -422,6 +422,6 @@
 <codeline lineno="340"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="341"><highlight class="normal"></highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/c_new_api_polygon_sol.c"/>
+    <location file="/stck/thennion/cwipi/tests/tutorial/c_new_api_polygon_sol.c"/>
   </compounddef>
 </doxygen>

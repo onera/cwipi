@@ -267,6 +267,6 @@
 <codeline lineno="257"><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>__name__<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;__main__&apos;</highlight><highlight class="normal">:</highlight></codeline>
 <codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/>runTest()</highlight></codeline>
     </programlisting>
-    <location file="/home/bandrieu/workspace/cwipi/cwipi/tests/tutorial/python_new_api_polygon_sol.py"/>
+    <location file="/stck/thennion/cwipi/tests/tutorial/python_new_api_polygon_sol.py"/>
   </compounddef>
 </doxygen>
