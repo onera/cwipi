@@ -453,7 +453,7 @@ namespace cwipi {
 
       if (_interpolationFunction == NULL &&
           interpolationFunctionP == NULL) {
-        PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+        PDM_error("Undefined user interpolation function");
       }
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -577,32 +577,32 @@ namespace cwipi {
 
   void SpatialInterpLocation::localization_init()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
   void SpatialInterpLocation::localization_points_cloud_setting()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
   void SpatialInterpLocation::localization_surface_setting()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
   void SpatialInterpLocation::localization_compute()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
   void SpatialInterpLocation::localization_get()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
   void SpatialInterpLocation::localization_free()
   {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
+    PDM_error("Unknown location method.");
   }
 
 

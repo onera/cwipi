@@ -77,8 +77,7 @@ namespace cwipi {
   )
   {
     if (couplingIs(localCodeProperties, cplId)) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' existing coupling\n", cplId.c_str());
+      PDM_error("'%s' existing coupling", cplId.c_str());
     }
 
     Coupling *newCoupling = new Coupling(cplId,
@@ -109,8 +108,7 @@ namespace cwipi {
     Iterator p = _couplingDB.find(&localCodeProperties);
 
     if (p == _couplingDB.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' coupling not found for '%s' code\n", cplId.c_str(),
+      PDM_error("'%s' coupling not found for '%s' code", cplId.c_str(),
                 localCodeProperties.nameGet().c_str());
     }
     else {
@@ -118,8 +116,7 @@ namespace cwipi {
       Iterator2 p1 = p->second.find(cplId);
 
       if (p1 == p->second.end()) {
-        PDM_error(__FILE__, __LINE__, 0,
-                  "'%s' coupling not found '%s' code\n", cplId.c_str(),
+        PDM_error("'%s' coupling not found '%s' code", cplId.c_str(),
                   localCodeProperties.nameGet().c_str());
       }
 
@@ -142,8 +139,7 @@ namespace cwipi {
     Iterator p = _couplingDB.find(&localCodeProperties);
 
     if (p == _couplingDB.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' code not found in couplingDB\n",
+      PDM_error("'%s' code not found in couplingDB",
                 localCodeProperties.nameGet().c_str());
     }
 
@@ -165,8 +161,7 @@ namespace cwipi {
     Iterator p = _couplingDB.find(&localCodeProperties);
 
     if (p == _couplingDB.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' code not found in couplingDB\n",
+      PDM_error("'%s' code not found in couplingDB",
                 localCodeProperties.nameGet().c_str());
     }
 

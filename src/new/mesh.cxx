@@ -326,7 +326,7 @@ namespace cwipi {
         _geom_kind = PDM_GEOMETRY_KIND_VOLUMIC;
         break;
       default:
-        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
+        PDM_error("Invalid entity dimension %d", _cpl->entitiesDimGet());
     }
   }
 

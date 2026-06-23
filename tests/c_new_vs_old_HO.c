@@ -371,7 +371,7 @@ _ijk_grid
       break;
     }
     default:
-      PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+      PDM_error("Invalid t_elt");
   }
 
   return n_node;
@@ -692,7 +692,7 @@ main
       old_block_type = CWIPI_CELL_PYRAMHO;
       break;
     default:
-      PDM_error (__FILE__, __LINE__, 0, "invalid elt type %d\n", (int) elt_type);
+      PDM_error("Invalid elt type %d", (int) elt_type);
     }
 
 

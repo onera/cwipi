@@ -139,8 +139,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
+      PDM_error("'%s' code not found", codeName.c_str());
     assert(p->second != NULL);
     return *(p->second);
   }
@@ -244,8 +243,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", localCodeName.c_str());
+      PDM_error("'%s' is not a local code", localCodeName.c_str());
     p->second->ctrlParamAdd(name, value);
   }
 
@@ -270,8 +268,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", localCodeName.c_str());
+      PDM_error("'%s' is not a local code", localCodeName.c_str());
     p->second->ctrlParamSet(name, value);
   }
 
@@ -294,8 +291,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", localCodeName.c_str());
+      PDM_error("'%s' is not a local code", localCodeName.c_str());
     p->second->ctrlParamCancel<T>(name);
   }
 
@@ -318,8 +314,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
+      PDM_error("'%s' code not found", codeName.c_str());
     return p->second->ctrlParamNGet<T>();
   }
 
@@ -344,8 +339,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
+      PDM_error("'%s' code not found", codeName.c_str());
     T value;
     p->second->ctrlParamGet(name, &value);
     return value;
@@ -387,8 +381,7 @@ namespace cwipi {
         _codePropertiesDB.find(codeName);
 
       if (p == _codePropertiesDB.end())
-        PDM_error(__FILE__, __LINE__, 0,
-                   "'%s' code not found \n", codeName.c_str());
+        PDM_error("'%s' code not found", codeName.c_str());
 
       T distParam = this->ctrlParamGet < T > (codeName, name);
 
@@ -424,8 +417,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", codeName.c_str());
+      PDM_error("'%s' is not a local code", codeName.c_str());
     p->second->paramLock();
   }
 
@@ -445,8 +437,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", codeName.c_str());
+      PDM_error("'%s' is not a local code", codeName.c_str());
     return p->second->paramIsLocked();
   }
 
@@ -466,8 +457,7 @@ namespace cwipi {
     const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' is not a local code \n", codeName.c_str());
+      PDM_error("'%s' is not a local code", codeName.c_str());
     p->second->paramUnLock();
   }
 
@@ -493,8 +483,7 @@ namespace cwipi {
       _codePropertiesDB.find(codeName);
 
     if (p == _codePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                 "'%s' code not found \n", codeName.c_str());
+      PDM_error("'%s' code not found", codeName.c_str());
 
     return p->second->ctrlParamListGet<T>(nParam, paramNames);
   }
@@ -521,8 +510,7 @@ namespace cwipi {
       _codePropertiesDB.find(codeName);
 
     if (p == _codePropertiesDB.end())
-      PDM_error(__FILE__, __LINE__, 0,
-                 "'%s' code not found \n", codeName.c_str());
+      PDM_error("'%s' code not found", codeName.c_str());
 
     return p->second->ctrlParamIs<T>(name);
   }

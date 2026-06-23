@@ -89,12 +89,12 @@ namespace cwipi {
             _src_n_gnum[i_part] = _mesh->nEltsGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
+            PDM_error("node-centered version of PDM_mesh_intersection not implemented yet");
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet (i_part);
             _src_n_gnum[i_part] = _mesh->nVtxGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
+            PDM_error("Invalid dof location %d", (int) _localCodeDofLocation);
             _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
@@ -107,12 +107,12 @@ namespace cwipi {
             _tgt_n_gnum[i_part] = _mesh->nEltsGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
+            PDM_error("node-centered version of PDM_mesh_intersection not implemented yet");
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet (i_part);
             _tgt_n_gnum[i_part] = _mesh->nVtxGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
+            PDM_error("Invalid dof location %d", (int) _localCodeDofLocation);
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _tgt_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
@@ -255,14 +255,13 @@ namespace cwipi {
       local_mesh_dim = 3;
       break;
       default:
-      PDM_error(__FILE__, __LINE__, 0, "Invalid interface dimension %d\n", local_mesh_dim);
+      PDM_error("Invalid interface dimension %d", local_mesh_dim);
     }
 
     cpl_mesh_dim = local_mesh_dim; // ?
 
     if (local_mesh_dim != cpl_mesh_dim) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Both meshes must have the same dimension (got %d / %d)\n",
+      PDM_error("Both meshes must have the same dimension (got %d / %d)",
                 local_mesh_dim, cpl_mesh_dim);
     }
 
@@ -681,7 +680,7 @@ namespace cwipi {
 
       if (_interpolationFunction == NULL &&
           interpolationFunctionP == NULL) {
-        PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+        PDM_error("Undefined user interpolation function");
       }
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -726,7 +725,7 @@ namespace cwipi {
           n_tgt = _mesh->nVtxGet(i_part);
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");
+          PDM_error("user tgt not supported yet");
         }
 
         for (int j = 0; j < nComponent*n_tgt; j++) {

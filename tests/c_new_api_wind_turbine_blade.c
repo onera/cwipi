@@ -739,7 +739,7 @@ main(int argc, char *argv[]) {
   // Field
 
   if (n_vtx_field == 0) {
-    PDM_error(__FILE__, __LINE__, 0, "There must be at least one vtx_field\n");
+    PDM_error("There must be at least one vtx_field");
   }
 
   CWP_Status_t visu_status = CWP_STATUS_ON;

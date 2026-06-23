@@ -171,14 +171,14 @@ _check_interface_spatial_interp_compatibility
       if (spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
           spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES &&
           spatial_interp != CWP_SPATIAL_INTERP_FROM_IDENTITY) {
-        PDM_error(__FILE__, __LINE__, 0, "Only 'Nearest Neighbors' or 'Identity' spatial interpolation methods can be used with CWP_INTERFACE_POINT\n");
+        PDM_error("Only 'Nearest Neighbors' or 'Identity' spatial interpolation methods can be used with CWP_INTERFACE_POINT");
       }
       break;
     }
     case CWP_INTERFACE_LINEAR:
     {
       if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-        PDM_error(__FILE__, __LINE__, 0, "'Intersection' spatial interpolation is not yet implemented for CWP_INTERFACE_LINEAR\n");
+        PDM_error("'Intersection' spatial interpolation is not yet implemented for CWP_INTERFACE_LINEAR");
       }
       break;
     }
@@ -192,7 +192,7 @@ _check_interface_spatial_interp_compatibility
     }
     default:
     {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid coupling interface dimension (%d)\n", entities_dim);
+      PDM_error("Invalid coupling interface dimension (%d)", entities_dim);
     }
   }
 }
@@ -215,13 +215,11 @@ _check_dof_location_spatial_interp_compatibility
     case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
     {
       if (dof_location == CWP_DOF_LOCATION_USER) {
-        PDM_error(__FILE__, __LINE__, 0,
-                  "Field dofs must be located at mesh nodes or cell centers when using spatial interpolation from intersection\n");
+        PDM_error("Field dofs must be located at mesh nodes or cell centers when using spatial interpolation from intersection");
       }
 
       if (dof_location == CWP_DOF_LOCATION_NODE) {
-        PDM_error(__FILE__, __LINE__, 0,
-                  "Spatial interpolation from intersection is not yet implemented for dof located at mesh nodes\n");
+        PDM_error("Spatial interpolation from intersection is not yet implemented for dof located at mesh nodes");
       }
       break;
     }
@@ -234,8 +232,7 @@ _check_dof_location_spatial_interp_compatibility
       }
       else {
         if (dof_location == CWP_DOF_LOCATION_USER) {
-          PDM_error(__FILE__, __LINE__, 0,
-                    "Source field dofs must be located at mesh nodes or cell centers when using spatial interpolation from location\n");
+          PDM_error("Source field dofs must be located at mesh nodes or cell centers when using spatial interpolation from location");
         }
       }
       break;
@@ -247,7 +244,7 @@ _check_dof_location_spatial_interp_compatibility
     }
     default:
     {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid spatial interpolation method (%d)\n", spatial_interp);
+      PDM_error("Invalid spatial interpolation method (%d)", spatial_interp);
     }
   }
 }
@@ -2667,7 +2664,7 @@ CWP_Field_location_weights_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int    **tmp_weights_idx = NULL; // UNUSED
@@ -2714,7 +2711,7 @@ CWP_Field_location_point_data_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **tmp_points_coords           = NULL;
@@ -2764,7 +2761,7 @@ CWP_Field_location_internal_cell_vtx_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int **tmp_cell_vtx_idx = NULL;
@@ -2804,7 +2801,7 @@ CWP_Field_intersection_volumes_get
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int     **tmp_volumes_idx = NULL; // UNUSED
@@ -2844,7 +2841,7 @@ CWP_Field_intersection_tgt_elt_volumes_get
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **_tgt_elt_volumes = NULL;
@@ -2882,7 +2879,7 @@ CWP_Field_nearest_neighbors_distances_get
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
       spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int    **tmp_distances2_idx = NULL; // UNUSED
@@ -2923,7 +2920,7 @@ CWP_Field_nearest_neighbors_coord_get
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
       spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **_nearest_src_coord = NULL;
@@ -3108,8 +3105,7 @@ CWP_Param_add
     properties.ctrlParamAdd<char *>(codeNameStr,nameStr, *(char **)initial_value);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3151,8 +3147,7 @@ CWP_Param_set
     properties.ctrlParamSet<char *>(codeNameStr, nameStr, * (char **) value);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3192,8 +3187,7 @@ CWP_Param_del
     properties.ctrlParamCancel<char *>(codeNameStr, nameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3236,8 +3230,7 @@ CWP_Param_n_get
     nParam = properties.ctrlParamNGet<char *>(codeNameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-                "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   return nParam;
 }
@@ -3281,8 +3274,7 @@ CWP_Param_list_get
     properties.ctrlParamListGet<char *>(codeNameStr, nParam, paramNames);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3324,8 +3316,7 @@ CWP_Param_is
     isParam = properties.ctrlParamIs<char *>(codeNameStr, nameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   return isParam;
 }
@@ -3373,8 +3364,7 @@ CWP_Param_get
     break;
   }
   default : {
-    PDM_error(__FILE__, __LINE__, 0,
-              "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   }
 }
@@ -3423,8 +3413,7 @@ CWP_Param_reduce
     break;
   }
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 

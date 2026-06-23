@@ -67,7 +67,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (n_step);
-    PDM_error(__FILE__, __LINE__, 0, "recvFreqSet not implemented yet\n");
+    PDM_error("recvFreqSet not implemented yet");
   }
 
 
@@ -446,7 +446,7 @@ namespace cwipi {
     PDM_UNUSED (connec);
     PDM_UNUSED (global_num);
 
-    PDM_error(__FILE__, __LINE__, 0, "meshHighOrderBlockSet not implemented yet\n");
+    PDM_error("meshHighOrderBlockSet not implemented yet");
   }
 
 
@@ -909,7 +909,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
+       PDM_error("'%s' not existing field", field_id.c_str());
     }
     return It->second->nComponentGet();
   }
@@ -932,8 +932,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                 "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     return It->second->locationGet();
 
@@ -955,8 +954,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                 "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
 
     return It->second->storageTypeGet();
@@ -980,8 +978,7 @@ namespace cwipi {
 
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       delete It->second;
@@ -1004,13 +1001,13 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsBcastEnable : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error computedTargetsBcastEnable : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsBcastEnable : '%s' does not receive data\n", field_id.c_str());
+      PDM_error("Error computedTargetsBcastEnable : '%s' does not receive data", field_id.c_str());
     }
 
     field->computedTgtBcastEnable();
@@ -1033,17 +1030,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error nUncomputedTargetsGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+      PDM_error("Error nUncomputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error nUncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nUncomputedTargetsGet(i_part);
@@ -1068,17 +1065,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error uncomputedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error uncomputedTargetsGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error unncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+      PDM_error("Error unncomputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error uncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error uncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->uncomputedTargetsGet(i_part);
@@ -1100,17 +1097,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error nComputedTargetsGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+      PDM_error("Error nComputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error nComputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nComputedTargetsGet(i_part);
@@ -1132,17 +1129,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error computedTargetsGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+      PDM_error("Error computedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error computedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->computedTargetsGet(i_part);
@@ -1159,13 +1156,13 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error involvedSourcesBcastEnable : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' does not send data\n", field_id.c_str());
+      PDM_error("Error involvedSourcesBcastEnable : '%s' does not send data", field_id.c_str());
     }
 
     field->involvedSrcBcastEnable();
@@ -1181,17 +1178,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error nInvolvedSourcesGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : '%s' does not send data\n", field_id.c_str());
+      PDM_error("Error nInvolvedSourcesGet : '%s' does not send data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error nInvolvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nInvolvedSourcesGet(i_part);
@@ -1206,17 +1203,17 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error("Error involvedSourcesGet : '%s' not existing field", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' does not send data\n", field_id.c_str());
+      PDM_error("Error involvedSourcesGet : '%s' does not send data", field_id.c_str());
     }
 
     if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'\n", field_id.c_str());
+      PDM_error("Error involvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->involvedSourcesGet(i_part);
@@ -1245,8 +1242,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionSet(fct);
@@ -1261,8 +1257,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionFSet(fct);
@@ -1277,8 +1272,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionPSet(fct);
@@ -1292,8 +1286,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionPUnset();
@@ -1314,8 +1307,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionUnSet();
@@ -1329,8 +1321,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It -> second -> interpFunctionFUnSet();
@@ -1409,7 +1400,7 @@ namespace cwipi {
       return &_spatial_interp_recv;
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      PDM_error("SpatialInterp not found.");
       return nullptr;
     }
 
@@ -1438,7 +1429,7 @@ namespace cwipi {
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
       p = _spatial_interp_send.find(make_pair(localLocation, cplLocation));
       if (p == _spatial_interp_send.end())
-        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+        PDM_error("SpatialInterp not found.");
       return p->second;
     }
 
@@ -1446,12 +1437,12 @@ namespace cwipi {
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
       p = _spatial_interp_recv.find(make_pair(localLocation, cplLocation));
       if (p == _spatial_interp_recv.end())
-        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+        PDM_error("SpatialInterp not found.");
       return p->second;
     }
 
     else {
-      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      PDM_error("SpatialInterp not found.");
       return nullptr;
     }
 

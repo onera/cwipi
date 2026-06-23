@@ -96,10 +96,10 @@ _check_cpl_consistency
   if (i_rank_cpl == 0) {
     for (int i = 1; i < n_rank_cpl; i++) {
       if (recv_buf[2*i] != entities_dim) {
-        PDM_error(__FILE__, __LINE__, 0, "Inconsistent interface dimension (%d / %d)\n", recv_buf[2*i], entities_dim);
+        PDM_error("Inconsistent interface dimension (%d / %d)", recv_buf[2*i], entities_dim);
       }
       if (recv_buf[2*i+1] != spatialInterpAlgo) {
-        PDM_error(__FILE__, __LINE__, 0, "Inconsistent spatial interpolation method (%d / %d)\n", recv_buf[2*i+1], spatialInterpAlgo);
+        PDM_error("Inconsistent spatial interpolation method (%d / %d)", recv_buf[2*i+1], spatialInterpAlgo);
       }
     }
     free(recv_buf);
@@ -350,7 +350,7 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it != _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "'%s' partitionned data exchange object already exists\n", part_data_id.c_str());
+      PDM_error("'%s' partitionned data exchange object already exists", part_data_id.c_str());
     }
 
     // Create object
@@ -435,7 +435,7 @@ namespace cwipi {
                                            &n_ref,
                                            &ref);
             if (n_ref[i_part] != n_elt[i_part]) {
-              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+              PDM_error("Error in input data of CWP_Part_data_create : make sure the global numbering is continous");
             }
           }
 
@@ -490,7 +490,7 @@ namespace cwipi {
                                        &ref);
         for (int i_part = 0; i_part < n_part; i_part++) {
           if (n_ref[i_part] != n_elt[i_part]) {
-            PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+            PDM_error("Error in input data of CWP_Part_data_create : make sure the global numbering is continous");
           }
         }
       }
@@ -524,8 +524,7 @@ namespace cwipi {
   {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
+      PDM_error("'%s' not existing partitionned data exchange object", part_data_id.c_str());
     }
 
     // free ptp
@@ -566,12 +565,11 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
     if (it->second.exchTypeGet() != CWP_PARTDATA_SEND) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in SEND mode for %s\n",
+      PDM_error("PartData '%s' is not in SEND mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
@@ -621,12 +619,11 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
     if (it->second.exchTypeGet() != CWP_PARTDATA_RECV) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in RECV mode for %s\n",
+      PDM_error("PartData '%s' is not in RECV mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
@@ -672,12 +669,11 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
     if (it->second.exchTypeGet() != CWP_PARTDATA_SEND) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in SEND mode for %s\n",
+      PDM_error("PartData '%s' is not in SEND mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
@@ -709,12 +705,11 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
     if (it->second.exchTypeGet() != CWP_PARTDATA_RECV) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in RECV mode for %s\n",
+      PDM_error("PartData '%s' is not in RECV mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
@@ -797,7 +792,7 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n", global_data_id.c_str());
+      PDM_error("GlobalData %s is already in use", global_data_id.c_str());
     }
     it = _globalData.find(global_data_id.c_str());
 
@@ -839,7 +834,7 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n");
+      PDM_error("GlobalData %s is already in use");
     }
     it = _globalData.find(global_data_id.c_str());
 
@@ -1064,7 +1059,7 @@ namespace cwipi {
         spatial_interp_map = _spatial_interp_recv;
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "Invalid spatial_interp_algo %d\n", spatial_interp_algo);
+        PDM_error("Invalid spatial_interp_algo %d", spatial_interp_algo);
       }
 
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = spatial_interp_map.find(newKey);
@@ -1808,7 +1803,7 @@ namespace cwipi {
               field->linkedFieldLocationSet(cplFieldLocationV[j]);
 
               if (cplFieldNComponent[j] != field->nComponentGet()) {
-                PDM_error(__FILE__, __LINE__, 0, "Number of components for local (%i) and coupled (%i) fields '%s' not consistent\n",
+                PDM_error("Number of components for local (%i) and coupled (%i) fields '%s' not consistent",
                           cplFieldNComponent[j], field->nComponentGet(), cplFieldName.c_str());
               }
 
@@ -2221,12 +2216,11 @@ namespace cwipi {
               if (cplFieldName == localFieldName) {
                 field->linkedFieldLocationSet(cplFieldsLocationV[j]);
                 if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
-                  PDM_error(__FILE__, __LINE__, 0, "'%s' Field not found\n",
-                            cplFieldName.c_str());
+                  PDM_error("'%s' Field not found", cplFieldName.c_str());
                 }
 
                 if (cplFieldsNComponent[j] != field->nComponentGet()) {
-                  PDM_error(__FILE__, __LINE__, 0, "Number of components for local (%i) and coupled (%i) fields '%s' not consistent\n",
+                  PDM_error("Number of components for local (%i) and coupled (%i) fields '%s' not consistent",
                             cplFieldsNComponent[j], field->nComponentGet(), cplFieldName.c_str());
                 }
 
@@ -2484,15 +2478,11 @@ namespace cwipi {
     CWP_UNUSED(format);
 
     if (_is_first_field_created) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Error : CWP_Visu_set has to be called before CWP_Field_create.\n");
-      abort();
+      PDM_error("CWP_Visu_set has to be called before CWP_Field_create.\n");
     }
 
     if (_is_mesh_finalized) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Error : CWP_Visu_set has to be called before CWP_Mesh_interf_finalize.\n");
-      abort();
+      PDM_error("CWP_Visu_set has to be called before CWP_Mesh_interf_finalize.\n");
     }
 
     string CodeName = _localCodeProperties.nameGet();
@@ -2560,8 +2550,7 @@ namespace cwipi {
           fmt_fic = PDM_WRITER_FMT_BIN;
         }
         else if (option != "") {
-          PDM_error(__FILE__, __LINE__, 0,
-                    "Not a valid visualization option.\n");
+          PDM_error("Not a valid visualization option.");
         }
 
       }
@@ -2659,8 +2648,7 @@ namespace cwipi {
     _is_first_field_created = 1;
 
     if (fieldIs(field_id)) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' existing field\n", field_id.c_str());
+      PDM_error("'%s' existing field", field_id.c_str());
     }
 
     //
@@ -2744,8 +2732,7 @@ namespace cwipi {
 
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It->second->dataSet(i_part, map_type, data);
@@ -2776,8 +2763,7 @@ namespace cwipi {
 
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       *data = It->second->dataGet(i_part, map_type);
@@ -2804,7 +2790,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
+       PDM_error("'%s' not existing field", field_id.c_str());
     }
     return It->second->nDOFGet(i_part);
   }
@@ -2824,7 +2810,7 @@ namespace cwipi {
   void
   Coupling::exchange ()
   {
-    PDM_error(__FILE__, __LINE__, 0, "\nexchange not implemented yet\n");
+    PDM_error("\nexchange not implemented yet");
   }
 
 
@@ -2853,7 +2839,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (field_id);
-    PDM_error(__FILE__, __LINE__, 0, "\nsendrecv not implemented yet\n");
+    PDM_error("\nsendrecv not implemented yet");
   }
 
 
@@ -2892,7 +2878,7 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+          PDM_error("\nUnknown spatial interpolation for field %s (%d -> %d)",
                     sendingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
@@ -2906,7 +2892,7 @@ namespace cwipi {
 
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -2927,7 +2913,7 @@ namespace cwipi {
           recvField = it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -2946,21 +2932,21 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->irecv(recvField);
           }
 
           if (it2 == _spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->issend(sendingField);
           }
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3000,7 +2986,7 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error("\nUnknown spatial interpolation");
         }
         else {
           it2->second->waitIssend(sendingField);
@@ -3022,7 +3008,7 @@ namespace cwipi {
           recvField = cpl_it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3041,21 +3027,21 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->waitIrecv(recvField);
           }
 
           if (it2 == _spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->waitIssend(sendingField);
           }
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3098,7 +3084,7 @@ namespace cwipi {
         it2 = _spatial_interp_recv.find(newKey);
 
         if (it2 == _spatial_interp_recv.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+          PDM_error("\nUnknown spatial interpolation for field %s (%d -> %d)",
                     receivingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
@@ -3106,7 +3092,7 @@ namespace cwipi {
         }
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -3127,7 +3113,7 @@ namespace cwipi {
           sendField = it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3146,14 +3132,14 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->irecv(receivingField);
           }
 
           if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->issend(sendField);
@@ -3161,7 +3147,7 @@ namespace cwipi {
 
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3203,14 +3189,14 @@ namespace cwipi {
         it2 = _spatial_interp_recv.find(newKey);
 
         if (it2 == _spatial_interp_recv.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error("\nUnknown spatial interpolation");
         }
         else {
           it2->second->waitIrecv(receivingField);
         }
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -3231,7 +3217,7 @@ namespace cwipi {
           sendField = cpl_it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3250,14 +3236,14 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->waitIrecv(receivingField);
           }
 
           if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->waitIssend(sendField);
@@ -3265,7 +3251,7 @@ namespace cwipi {
 
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }

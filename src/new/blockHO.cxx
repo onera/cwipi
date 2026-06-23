@@ -135,8 +135,7 @@ namespace cwipi {
   BlockHO::_reorder()
   {
     if (PDM_ho_ordering_id_get(_ho_ordering) < 0) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "CWP_Mesh_interf_ho_ordering_from_IJK_set must be called to provide CWIPI with the user's high-order numbering\n");
+      PDM_error("CWP_Mesh_interf_ho_ordering_from_IJK_set must be called to provide CWIPI with the user's high-order numbering");
     }
 
     PDM_Mesh_nodal_elt_t elt_type = static_cast<PDM_Mesh_nodal_elt_t>(_block_type);
