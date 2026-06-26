@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------------
-! This file is part of the CWIPI library. 
+! This file is part of the CWIPI library.
 !
 ! Copyright (C) 2011  ONERA
 !
@@ -16,7 +16,7 @@
 ! You should have received a copy of the GNU Lesser General Public
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
- 
+
 #include "cwipi_configf.h"
 
 !  mpirun -n 1 ./fortran_surf_TriaPi_PiPj : -n 1 ./fortran_surf_TriaPi_PiPj
@@ -29,7 +29,7 @@ subroutine test_loc (entities_dim, &
      point_coords, &
      projected_coords,&
      projected_uvw) bind(c)
-  use, intrinsic :: ISO_C_BINDING 
+  use, intrinsic :: ISO_C_BINDING
   implicit none
   integer (C_INT), value :: entities_dim
   integer (C_INT), value :: order
@@ -43,7 +43,7 @@ subroutine test_loc (entities_dim, &
   print *, "test_loc entitiies_dim", entities_dim
   print *, "test_loc order", order
   print *, "test_loc n_nodes", n_nodes
-  
+
 end subroutine test_loc
 
 subroutine  test_basis (entities_dim, &
@@ -52,7 +52,7 @@ subroutine  test_basis (entities_dim, &
                         n_pts, &
                         uvw, &
                         weights) bind(c)
-  use, intrinsic :: ISO_C_BINDING 
+  use, intrinsic :: ISO_C_BINDING
   implicit none
   integer (C_INT), value :: entities_dim
   integer (C_INT), value :: order
@@ -65,7 +65,7 @@ subroutine  test_basis (entities_dim, &
   print *, "test_basis entitiies_dim", entities_dim
   print *, "test_basis order", order
   print *, "test_basis n_nodes", n_nodes
-  
+
 end subroutine test_basis
 
 
@@ -74,7 +74,7 @@ module variablesCommunes
   logical :: visu=.false.
   integer :: commWorld,rankWorld,sizeWorld
   integer :: commLocal,rankLocal,sizeLocal
-  
+
   real(8), pointer :: vand(:,:)
 end module variablesCommunes
 
@@ -89,12 +89,12 @@ module spaceCellTypes
   integer, parameter :: tetra        = 10  !> tetra4    (VTK_TETRA               )
   integer, parameter :: hexahedron   = 12  !> hexa8     (VTK_HEXAHEDRON          )
   integer, parameter :: wedge        = 13  !> penta6    (VTK_WEDGE               ) 06 nodes pentahedron
-  integer, parameter :: pyramid      = 14  !> pyramid5  (VTK_PYRAMID             )  
+  integer, parameter :: pyramid      = 14  !> pyramid5  (VTK_PYRAMID             )
   integer, parameter :: line2        = 21  !> bar3      (VTK_QUADRATIC_EDGE      )
   integer, parameter :: triangle2    = 22  !> tria6     (VTK_QUADRATIC_TRIANGLE  )
   integer, parameter :: quad2        = 23  !> quad8     (VTK_QUADRATIC_QUAD      )
   integer, parameter :: tetra2       = 24  !> tetra10   (VTK_QUADRATIC_TETRA     )
-  integer, parameter :: hexahedron2  = 25  !> hexa20    (VTK_QUADRATIC_HEXAHEDRON) 
+  integer, parameter :: hexahedron2  = 25  !> hexa20    (VTK_QUADRATIC_HEXAHEDRON)
   integer, parameter :: wedge2       = 26  !> penta15   (VTK_QUADRATIC_WEDGE     ) 15 nodes pentahedron
   integer, parameter :: pyramid2     = 27  !> pyramid13 (VTK_QUADRATIC_PYRAMID   ) 13 nodes pyramides
 
@@ -104,26 +104,26 @@ module spaceCellTypes
   integer, parameter :: tetra3       =104
   integer, parameter :: quad3        =105
   integer, parameter :: triangle3    =106
-  integer, parameter :: line3        =107 
-  
+  integer, parameter :: line3        =107
+
   integer, parameter :: hexahedron4  =201
   integer, parameter :: wedge4       =202
   integer, parameter :: pyramid4     =203
   integer, parameter :: tetra4       =204
   integer, parameter :: quad4        =205
   integer, parameter :: triangle4    =206
-  integer, parameter :: line4        =207 
-  
+  integer, parameter :: line4        =207
+
   integer, parameter :: hexahedron5  =301
   integer, parameter :: wedge5       =302
   integer, parameter :: pyramid5     =303
   integer, parameter :: tetra5       =304
   integer, parameter :: quad5        =305
   integer, parameter :: triangle5    =306
-  integer, parameter :: line5        =307 
-  
+  integer, parameter :: line5        =307
+
   contains
-  
+
   function cellTypeChar(iCell) result(char)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>
     implicit none
@@ -174,44 +174,44 @@ module spaceCellTypes
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function cellTypeChar
-    
+
 end module spaceCellTypes
 
 module spaceMessages
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-#ifdef CWP_HAVE_FORTRAN_MPI_MODULE 
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE
   use mpi
 #endif
   use variablesCommunes
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   implicit none
-  
+
 contains
 
   subroutine msg0(msg)
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   include "mpif.h"
-#endif  
+#endif
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                :: msg
     !>
     integer                     :: iRank,iErr
     integer, allocatable        :: iTab0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(iTab0(0:sizeWorld-1))
-    
+
     call mpi_gather(               &
     &    rankWorld, 1, mpi_integer,&
     &    iTab0(0) , 1, mpi_integer,&
     &    0                        ,&
     &    commWorld                ,&
     &    iErr                      )
-    
+
     if( rankWorld==0 )then
      if( sizeWorld>1 )write(*,'()')
       do iRank=0,sizeWorld-1
@@ -219,37 +219,37 @@ contains
         write(*,'(a,t130,"@rkw",i3)')trim(msg),iTab0(iRank)
       enddo
     endif
-    
+
     deallocate(iTab0)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     return
   end subroutine msg0
-  
+
   subroutine msg1(buffer)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   include "mpif.h"
-#endif  
+#endif
     character(*)                   :: buffer
     !>
     integer                        :: length, j
     integer                        :: iRank,iErr
     character(len=:), allocatable  :: cTab0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     length=len(buffer)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     allocate( character(len=length) :: cTab0(1:sizeWorld) )
 
     do iRank=1,sizeWorld
-      do j = 1, length 
+      do j = 1, length
        cTab0(iRank)(j:j) = ' '
-      enddo 
+      enddo
     enddo
 
     call mpi_gather(                      &
@@ -258,7 +258,7 @@ contains
     &    0                               ,&
     &    commWorld                       ,&
     &    iErr                             )
-    
+
     if( rankWorld==0 )then
       !if( sizeWorld>1 )write(*,'()')
       do iRank=1,sizeWorld
@@ -267,40 +267,40 @@ contains
         endif
       enddo
     endif
-    
+
     deallocate(cTab0)
-    
+
     call mpi_barrier(commWorld,iErr)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #undef msg1
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     return
   end subroutine msg1
-  
+
   subroutine msg2(buffer)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                   :: buffer
     !>
     !integer                        :: length
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    !length=len(buffer)
    !print '(">>> msg2 length=",i6,t130,"@rkw",i3)',length,rankWorld
-    
+
     if( rankWorld==0 )then
      !if( sizeWorld>1 )write(*,'()')
       write(*,'(a)')trim(buffer)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
    !print '("<<< msg2",t130,"@rkw",i3)',rankWorld
-    
+
     return
   end subroutine msg2
-  
+
   subroutine stopAlert(msg)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*) :: msg
@@ -320,7 +320,7 @@ end module spaceMessages
 module additionnal_Functions
 
 contains
-    
+
   subroutine mshToMesh(mshName)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> http://geuz.org/gmsh/doc/texinfo/#MSH-ASCII-file-format
@@ -358,14 +358,14 @@ contains
     !> 31:  56-node 5th  order tetrahedron (4 nodes associated with the vertices, 24 with the edges, 24 with the faces, 4 in the volume)
     !> 92:  64-node 3rd  order hexahedron  (8 nodes associated with the vertices, 24 with the edges, 24 with the faces, 8 in the volume)
     !> 93: 125-node 4th order hexahedron   (8 nodes associated with the vertices, 36 with the edges, 54 with the faces, 27 in the volume)
-    !>  
+    !>
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)    , intent(in)  :: mshName
     character(len=:), allocatable :: meshName
     !integer                       :: iArg
     integer                       :: length
-    
+
     integer              :: i,cellType,nbParam,entite,numPhysicalNames,dimEntity,mark
     integer              :: iVert,nVert,iCell,nCell,iNod
     integer              :: nL2  ,nT3  ,nQ4  ,nT4  ,nP5  ,nW5  ,nH6
@@ -394,18 +394,18 @@ contains
     !integer, parameter   :: hexaQ2test (1:27)=&
     ![01,02,03,04,05,06,07,08,09,12,14,10,17,19,20,18,11,13,15,16,21,26,22,24,25,23,27]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     length=index(mshName,'.',.true.)-1 ! print '("length=",i3)',length
-    
+
     allocate(character(len=length+5) :: meshName)
     write(meshName,'(a,".mesh")')mshName(1:length)
-    
+
     !print '("input:  ",a)',trim( mshName)
     !print '("output: ",a)',trim(meshName)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
+
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nH6=0 ; nH6P2=0
     nW5=0 ; nW5P2=0
@@ -415,36 +415,36 @@ contains
     nT3=0 ; nT3P2=0 ; nT3P3=0 ; nT3P4=0
     nL2=0 ; nL2P2=0 ; nL2P3=0 ; nL2P4=0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !print '(">>> Allocation")'
     open(unit=10,file=mshName,action='read')
     lecture0: do
       read(10,*)ligne
-      
+
       if( trim(ligne)=="$MeshFormat" )then
-        
+
         read(10,'(a8)')version ; !print '("msh version: ",a)',version
         !> End Item
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndMeshFormat" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
-        
+
       elseif( trim(ligne)=="$PhysicalNames" )then
-        
+
         read(10,*)numPhysicalNames ; !print '(3x,"numPhysicalNames=",i3)',numPhysicalNames
-        do i=1,numPhysicalNames    
+        do i=1,numPhysicalNames
           read(10,*)dimEntity,mark,ligne ; !print '(6x,"mark=",i3," -> ",a)',mark,trim(ligne)
         enddo
-        
+
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndPhysicalNames" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
-        
+
       elseif( trim(ligne)=="$Nodes" )then
-        read(10,*)nVert 
+        read(10,*)nVert
         do iVert=1,nVert
           read(10,*)!i,x,y,z
         enddo
@@ -454,19 +454,19 @@ contains
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
         !print '("nVert:",i10)',nVert
-        
+
       elseif( trim(ligne)=="$Elements" )then
-        
+
         !> $Elements
         !> number−of−elements
         !> elm−number elm−type number−of−tags <tags> node−number−
         !> list ...
         !> $EndElements
-         
+
         read(10,*)nCell ; !print '("nCell:",i10)',nCell
         do iCell=1,nCell
           read(10,'(a256)')ligne ! print '(a)',ligne
-          
+
           read(ligne,*)i,cellType,NbParam
           select case(cellType)
           case( 1) ; nL2  =nL2  +1 !> Edge
@@ -507,78 +507,78 @@ contains
         else
           exit lecture0
         endif
-        
+
       endif
     enddo lecture0
-    
+
     close(10)
-    
-    
+
+
 !     if( .not.nVert==0 )print '(3x,"nVert=",i10)',nVert
-!     
+!
 !     if( .not.nH6  ==0 )print '(3x,"nH6  =",i10)',nH6
 !     if( .not.nH6P2==0 )print '(3x,"nH6P2=",i10)',nH6P2
-!     
+!
 !     if( .not.nW5  ==0 )print '(3x,"nW5  =",i10)',nW5
 !     if( .not.nW5P2==0 )print '(3x,"nW5P2=",i10)',nW5P2
-!     
+!
 !     if( .not.nP5  ==0 )print '(3x,"nP5  =",i10)',nP5
 !     if( .not.nP5P2==0 )print '(3x,"nP5P2=",i10)',nP5P2
-!     
+!
 !     if( .not.nT4  ==0 )print '(3x,"nT4  =",i10)',nT4
 !     if( .not.nT4P2==0 )print '(3x,"nT4P2=",i10)',nT4P2
-!     
+!
 !     if( .not.nQ4  ==0 )print '(3x,"nQ4  =",i10)',nQ4
 !     if( .not.nQ4P2==0 )print '(3x,"nQ4P2=",i10)',nQ4P2
 !     if( .not.nQ4P3==0 )print '(3x,"nQ4P3=",i10)',nQ4P3
 !     if( .not.nQ4P4==0 )print '(3x,"nQ4P4=",i10)',nQ4P4
-!     
+!
 !     if( .not.nT3  ==0 )print '(3x,"nT3  =",i10)',nT3
 !     if( .not.nT3P2==0 )print '(3x,"nT3P2=",i10)',nT3P2
 !     if( .not.nT3P3==0 )print '(3x,"nT3P3=",i10)',nT3P3
 !     if( .not.nT3P4==0 )print '(3x,"nT3P4=",i10)',nT3P4
-!     
+!
 !     if( .not.nL2  ==0 )print '(3x,"nL2  =",i10)',nL2
 !     if( .not.nL2P2==0 )print '(3x,"nL2P2=",i10)',nL2P2
 !     if( .not.nL2P3==0 )print '(3x,"nL2P3=",i10)',nL2P3
 !     if( .not.nL2P4==0 )print '(3x,"nL2P4=",i10)',nL2P4
-    
+
     allocate(vert(1:3,1:nVert))
-    
+
     if( .not.nH6  ==0 )allocate( hexas (1:09,1:nH6  ) ) !>  8 + 1
     if( .not.nH6P2==0 )allocate( hexas2(1:28,1:nH6P2) ) !> 27 + 1
-    
+
     if( .not.nW5  ==0 )allocate( wedge (1:07,1:nW5  ) ) !>  6 + 1
     if( .not.nW5P2==0 )allocate( wedge2(1:19,1:nW5P2) ) !> 18 + 1
-    
+
     if( .not.nP5  ==0 )allocate( pyras (1:06,1:nP5  ) ) !>  5 + 1
     if( .not.nP5P2==0 )allocate( pyras2(1:15,1:nP5P2) ) !> 14 + 1
-    
+
     if( .not.nT4  ==0 )allocate( tetra (1:05,1:nT4  ) ) !>  4 + 1
     if( .not.nT4P2==0 )allocate( tetra2(1:11,1:nT4P2) ) !> 10 + 1
-    
+
     if( .not.nQ4  ==0 )allocate( quadr (1:05,1:nQ4  ) ) !>  4 + 1
     if( .not.nQ4P2==0 )allocate( quadr2(1:10,1:nQ4P2) ) !>  9 + 1
     if( .not.nQ4P3==0 )allocate( quadr3(1:17,1:nQ4P3) ) !> 16 + 1
     if( .not.nQ4P4==0 )allocate( quadr4(1:26,1:nQ4P4) ) !> 25 + 1
-    
+
     if( .not.nT3  ==0 )allocate( trian (1:04,1:nT3  ) ) !>  3 + 1
     if( .not.nT3P2==0 )allocate( trian2(1:07,1:nT3P2) ) !>  6 + 1
     if( .not.nT3P3==0 )allocate( trian3(1:11,1:nT3P3) ) !> 10 + 1
     if( .not.nT3P4==0 )allocate( trian4(1:16,1:nT3P4) ) !> 15 + 1
-    
+
     if( .not.nL2  ==0 )allocate( edges (1:03,1:nL2  ) ) !>  2 + 1
     if( .not.nL2P2==0 )allocate( edges2(1:04,1:nL2P2) ) !>  3 + 1
     if( .not.nL2P3==0 )allocate( edges3(1:05,1:nL2P3) ) !>  4 + 1
     if( .not.nL2P4==0 )allocate( edges4(1:06,1:nL2P4) ) !>  5 + 1
-    
+
     !print '("<<< Allocation")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
+
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !print '(">>> Reading")'
-    
+
     nH6=0 ; nH6P2=0
     nW5=0 ; nW5P2=0
     nP5=0 ; nP5P2=0
@@ -586,45 +586,45 @@ contains
     nQ4=0 ; nQ4P2=0 ; nQ4P3=0 ; nQ4P4=0
     nT3=0 ; nT3P2=0 ; nT3P3=0 ; nT3P4=0
     nL2=0 ; nL2P2=0 ; nL2P3=0 ; nL2P4=0
-    
+
     open(unit=10,file=mshName ,action='read' )
     lecture: do
       read(10,*)ligne
-      
+
       if( trim(ligne)=="$MeshFormat" )then
-        
+
         read(10,'(a8)')version
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndMeshFormat" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
-        
+
       elseif( trim(ligne)=="$PhysicalNames" )then
-        
+
         read(10,*)numPhysicalNames ! print '(3x,"numPhysicalNames=",i3)',numPhysicalNames
-        do i=1,numPhysicalNames    
+        do i=1,numPhysicalNames
           read(10,*)dimEntity,mark,ligne ! print '(6x,"mark=",i3," -> ",a)',mark,trim(ligne)
         enddo
-        
+
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndPhysicalNames" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
-        
+
       elseif( trim(ligne)=="$Nodes" )then
-        
+
         read(10,*)nVert
         do iVert=1,nVert
           read(10,*)i,vert(1:3,i)
         enddo
-        
+
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndNodes" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         endif
-        
+
       elseif( trim(ligne)=="$Elements" )then
-        
+
         read(10,*)nCell ! print '("nCell=",i10)',nCell
         do iCell=1,nCell
           read(10,'(a256)')ligne ! print '(a)',ligne
@@ -659,27 +659,27 @@ contains
           case default ; print '("iCell=",i6," kind of cell not implemented cellType=",i10)',iCell,cellType ; stop
           end select
         enddo
-        
+
         read(10,*)ligne
         if( .not.trim(ligne)=="$EndElements" )then
           print '("Problème durant lecture: ",a)',trim(ligne)
         else
           exit lecture
         endif
-        
+
       endif
     enddo lecture
-    
+
     close(10)
     !print '("<<< Reading")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Supression des points non connectés
-    
+
     !print '(">>> Supressing unconnected vertices")'
     allocate(connected(1:nVert)) ; connected(1:nVert)=.false.
-    
+
     do iCell=1,nH6
       do iNod=1,8
         connected(hexas (iNod,iCell))=.true.
@@ -690,7 +690,7 @@ contains
         connected(hexas2(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nW5
       do iNod=1,6
         connected(wedge (iNod,iCell))=.true.
@@ -701,7 +701,7 @@ contains
         connected(wedge2(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nP5
       do iNod=1,5
         connected(pyras (iNod,iCell))=.true.
@@ -712,7 +712,7 @@ contains
         connected(pyras2(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nT4
       do iNod=1,4
         connected(tetra (iNod,iCell))=.true.
@@ -723,7 +723,7 @@ contains
         connected(tetra2(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nQ4
       do iNod=1,4
         connected(quadr (iNod,iCell))=.true.
@@ -744,7 +744,7 @@ contains
         connected(quadr4(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nT3
       do iNod=1,3
         connected(trian (iNod,iCell))=.true.
@@ -765,7 +765,7 @@ contains
         connected(trian4(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     do iCell=1,nL2
       do iNod=1,2
         connected(edges (iNod,iCell))=.true.
@@ -786,11 +786,11 @@ contains
         connected(edges4(iNod,iCell))=.true.
       enddo
     enddo
-    
+
     nVert1=count(connected)
     if(.not.nVert1==nVert )then
       !print '(3x,"nVert=",i10," -> ",i10)',nVert,nVert1
-      
+
       allocate(idx(1:nVert))
       allocate(vert1(1:3,1:nVert1))
       iVert1=0
@@ -802,9 +802,9 @@ contains
          !print '("iVert=",i10,2x,"iVert1=",i10,2x,"xyz=",3(f12.5,1x))',iVert,iVert1,vert1(1:3,iVert1)
         endif
       enddo
-      
+
       nVert=nVert1 ; call move_alloc(from=vert1, to=vert)
-      
+
       do iCell=1,nH6
         do iNod=1,8
           hexas (iNod,iCell)=idx(hexas (iNod,iCell))
@@ -815,7 +815,7 @@ contains
           hexas2(iNod,iCell)=idx(hexas2(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nW5
         do iNod=1,6
           wedge (iNod,iCell)=idx(wedge (iNod,iCell))
@@ -826,7 +826,7 @@ contains
           wedge2(iNod,iCell)=idx(wedge2(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nP5
         do iNod=1,5
           pyras (iNod,iCell)=idx(pyras (iNod,iCell))
@@ -837,7 +837,7 @@ contains
           pyras2(iNod,iCell)=idx(pyras2(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nT4
         do iNod=1,4
           tetra (iNod,iCell)=idx(tetra (iNod,iCell))
@@ -848,7 +848,7 @@ contains
           tetra2(iNod,iCell)=idx(tetra2(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nQ4
         do iNod=1,4
           quadr (iNod,iCell)=idx(quadr (iNod,iCell))
@@ -869,7 +869,7 @@ contains
           quadr4(iNod,iCell)=idx(quadr4(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nT3
         do iNod=1,3
           trian (iNod,iCell)=idx(trian (iNod,iCell))
@@ -890,7 +890,7 @@ contains
           trian4(iNod,iCell)=idx(trian4(iNod,iCell))
         enddo
       enddo
-      
+
       do iCell=1,nL2
         do iNod=1,2
           edges (iNod,iCell)=idx(edges (iNod,iCell))
@@ -911,33 +911,33 @@ contains
           edges4(iNod,iCell)=idx(edges4(iNod,iCell))
         enddo
       enddo
-      
+
       deallocate(idx)
-      
+
     endif
     deallocate(connected)
-    
+
     !print '(3x,"x \in [",f12.5,",",f12.5,"]")',minval(vert(1,:)),maxval(vert(1,:))
     !print '(3x,"y \in [",f12.5,",",f12.5,"]")',minval(vert(2,:)),maxval(vert(2,:))
     !print '(3x,"z \in [",f12.5,",",f12.5,"]")',minval(vert(3,:)),maxval(vert(3,:))
-    
+
     !print '("<<< Supressing unconnected vertices")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !print '(">>> Writing")'
-    
+
     open(unit=20,file=meshName,action='write')
     write(20,'("MeshVersionFormatted 2")')
     write(20,'(/"Dimension"/"3"/)')
-    
+
     write(20,'(/"Vertices")')
     write(20,*)nVert
     do iVert=1,nVert
        write(20,'(3(e22.15,1x),1x,i1)')vert(1:3,iVert),0
       !write(20,'(3(f3.0,1x),1x,i2)')vert(1:3,iVert),iVert
     enddo
-    
+
     if( .not.nH6==0 )then
       write(20,'(/"Hexahedra")')
       write(20,'(i10)')nH6
@@ -949,7 +949,7 @@ contains
       write(20,'(/"HexahedraQ2")')
       write(20,'(i6)')nH6P2
       do iCell=1,nH6P2
-        
+
         !if( iCell==1 )then
         !print '(/"Cell:",i6)',iCell
         !do i=1,27
@@ -958,12 +958,12 @@ contains
         !  endif
         !enddo
         !endif
-        
+
         write(20,'(27(i10,1x),2x,i2)')hexas2(hexaQ2Gmsh2Inria(hexaQ2Inria2Medit(1:27)),iCell),hexas2(28,iCell)
       enddo
     endif
-    
-    
+
+
     if( .not.nW5==0 )then
       write(20,'(/"Prisms")')
       write(20,'(i10)')nW5
@@ -971,7 +971,7 @@ contains
         write(20,'(6(i10,1x),2x,i3)')wedge(:,iCell)
       enddo
     endif
-    
+
     if( .not.nP5==0 )then
       write(20,'(/"Pyramids")')
       write(20,'(i10)')nP5
@@ -979,7 +979,7 @@ contains
         write(20,'(5(i10,1x),2x,i3)')pyras(:,iCell)
       enddo
     endif
-    
+
     if( .not.nT4==0 )then
       write(20,'(/"Tetrahedra")')
       write(20,'(i10)')nT4
@@ -994,7 +994,7 @@ contains
         write(20,'(10(i10,1x),2x,i3)')tetra2(:,iCell)
       enddo
     endif
-    
+
     if( .not.nQ4==0 )then
       write(20,'(/"Quadrilaterals")')
       write(20,'(i10)')nQ4
@@ -1023,7 +1023,7 @@ contains
         write(20,'(26(i10,1x),2x,i3)')quadr4(:,iCell)
       enddo
     endif
-    
+
     if( .not.nT3==0 )then
       write(20,'(/"Triangles")')
       write(20,'(i10)')nT3
@@ -1052,7 +1052,7 @@ contains
         write(20,'(16(i10,1x),2x,i3)')trian4(:,iCell)
       enddo
     endif
-    
+
     if( .not.nL2==0 )then
       write(20,'(/"Edges")')
       write(20,'(i10)')nL2
@@ -1081,58 +1081,58 @@ contains
         write(20,'(5(i10,1x),2x,i3)')edges4(:,iCell)
       enddo
     endif
-    
+
     write(20,'(/"End")')
-    
+
     close(20)
     !print '("<<< Writing")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
+
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(vert)
     if( allocated(hexas ) )deallocate(hexas )
     if( allocated(hexas2) )deallocate(hexas2)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-  end subroutine mshToMesh  
+
+  end subroutine mshToMesh
 
   subroutine setT3MeshIJK(meshOrder,ij)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: meshOrder
     integer, intent(inout) :: ij(:,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if    ( meshOrder==1 )then !> TriangleP1
-    
+
       ! 03
       ! 01 02
-      
+
       ij(1:2,01)=[0,0] !> 1
       ij(1:2,02)=[1,0] !> 2
       ij(1:2,03)=[0,1] !> 3
-      
+
     elseif( meshOrder==2 )then !> TriangleP2
-      
+
       ! 03
       ! 06 05
       ! 01 04 02
-      
+
       ij(1:2,01)=[0,0] !> 1
       ij(1:2,02)=[2,0] !> 2
       ij(1:2,03)=[0,2] !> 3
       ij(1:2,04)=[1,0] !> 4
       ij(1:2,05)=[1,1] !> 5
       ij(1:2,06)=[0,1] !> 6
-      
+
     elseif(meshOrder==3 )then !> TriangleP3
-      
+
       ! 03
       ! 08 07
       ! 09 10 06
       ! 01 04 05 02
-      
+
       ij(1:2,01)=[0,0] !> 01
       ij(1:2,02)=[3,0] !> 02
       ij(1:2,03)=[0,3] !> 03
@@ -1143,15 +1143,15 @@ contains
       ij(1:2,08)=[0,2] !> 08
       ij(1:2,09)=[0,1] !> 09
       ij(1:2,10)=[1,1] !> 10
-      
+
     elseif(meshOrder==4 )then !> TriangleP4
-      
+
       !> 03
       !> 10 09
       !> 11 15 08
       !> 12 13 14 07
       !> 01 04 05 06 02
-      
+
       ij(1:2,01)=[0,0] !> 01
       ij(1:2,02)=[4,0] !> 02
       ij(1:2,03)=[0,4] !> 03
@@ -1167,19 +1167,19 @@ contains
       ij(1:2,13)=[1,1] !> 13
       ij(1:2,14)=[2,1] !> 14
       ij(1:2,15)=[1,2] !> 15
-      
+
     else ; stop "setT3MeshIJK meshOrder>4 not implemented"
     endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     return
   end subroutine setT3MeshIJK
-  
+
   subroutine setQ4MeshIJK(meshOrder,ij)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: meshOrder
     integer, intent(inout) :: ij(:,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Quad (2D/3D)
     !>
@@ -1233,26 +1233,26 @@ contains
     !>   f2 : 02 03 08 09 10
     !>   f3 : 03 04 11 12 13
     !>   f4 : 04 01 14 15 16
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    
-    
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if    ( meshOrder==1 )then !> QuadQ1
-      
+
       !>   04 03
       !>   01 02
-      
+
       ij(1:2,01)=[0,0] !> 1
       ij(1:2,02)=[1,0] !> 2
       ij(1:2,03)=[1,1] !> 3
       ij(1:2,04)=[0,1] !> 4
-      
+
     elseif( meshOrder==2 )then !> QuadQ2
-      
+
       !>   04 07 03
       !>   08 09 06
       !>   01 05 02
-      
+
       ij(1:2,01)=[0,0] !> 1
       ij(1:2,02)=[2,0] !> 2
       ij(1:2,03)=[2,2] !> 3
@@ -1262,19 +1262,19 @@ contains
       ij(1:2,07)=[1,2] !> 7
       ij(1:2,08)=[0,1] !> 8
       ij(1:2,09)=[1,1] !> 9
-      
+
     elseif(meshOrder==3 )then !> QuadQ3
-      
+
       !>   04 10 09 03
       !>   11 16 15 08
       !>   12 13 14 07
       !>   01 05 06 02
-      
+
       ij(1:2,01)=[0,0] !> 01
       ij(1:2,02)=[3,0] !> 02
       ij(1:2,03)=[3,3] !> 03
       ij(1:2,04)=[0,3] !> 04
-      
+
       ij(1:2,05)=[1,0] !> 05
       ij(1:2,06)=[2,0] !> 06
       ij(1:2,07)=[3,1] !> 07
@@ -1287,23 +1287,23 @@ contains
       ij(1:2,14)=[2,1] !> 14
       ij(1:2,15)=[2,2] !> 15
       ij(1:2,16)=[1,2] !> 16
-      
+
     elseif(meshOrder==4 )then !> QuadQ4
-      
+
       !>   04 13 12 11 03
       !>   14 20 23 19 10
       !>   15 24 25 22 09
       !>   16 17 21 18 08
       !>   01 05 06 07 02
-      
+
       ij(1:2,01)=[0,0] !> 01
       ij(1:2,02)=[4,0] !> 02
       ij(1:2,03)=[4,4] !> 03
       ij(1:2,04)=[0,4] !> 04
-      
+
       ij(1:2,05)=[1,0] !> 05
       ij(1:2,06)=[2,0] !> 06
-      ij(1:2,07)=[3,0] !> 07      
+      ij(1:2,07)=[3,0] !> 07
       ij(1:2,08)=[4,1] !> 08
       ij(1:2,09)=[4,2] !> 09
       ij(1:2,10)=[4,3] !> 10
@@ -1313,23 +1313,23 @@ contains
       ij(1:2,14)=[0,3] !> 14
       ij(1:2,15)=[0,2] !> 15
       ij(1:2,16)=[0,1] !> 16
-      
+
       ij(1:2,17)=[1,1] !> 17
       ij(1:2,18)=[3,1] !> 18
       ij(1:2,19)=[3,3] !> 19
       ij(1:2,20)=[1,3] !> 20
-      
+
       ij(1:2,21)=[2,1] !> 21
       ij(1:2,22)=[3,2] !> 22
       ij(1:2,23)=[2,3] !> 23
       ij(1:2,24)=[1,2] !> 24
-      
+
       ij(1:2,25)=[2,2] !> 25
-      
+
     else ; stop "setQ4MeshIJK meshOrder>4 not implemented"
     endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     return
   end subroutine setQ4MeshIJK
 
@@ -1339,7 +1339,7 @@ contains
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity triangle
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     logical, intent(in)           :: display
@@ -1349,12 +1349,12 @@ contains
     !integer                       :: m
     integer                       :: n
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Total number of nodes
     n=(ord+1)*(ord+2)/2
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Create equidistributed nodes on unity triangle
     allocate(uvw(1:2,1:n))
@@ -1375,7 +1375,7 @@ contains
       do iu=0,ord
         do iv=0,ord-iu
           do iw=0,ord-iu-iv
-            ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space            
+            ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space
             uvw(1:2,ad)=[real(iu,kind=8)/real(ord,kind=8),& !> u
             &            real(iv,kind=8)/real(ord,kind=8) ]
           enddo
@@ -1383,14 +1383,14 @@ contains
       enddo
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Triangle unité initial:")')
       print '("ad=",i5,2x,"u=",f19.16,2x,"v=",f19.16)',(ad,uvw(1:2,ad),ad=1,n)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     return
   end subroutine nodes2D
 
@@ -1399,7 +1399,7 @@ contains
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity edge
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(out), pointer :: uvw(:)
@@ -1407,23 +1407,23 @@ contains
     !---
     integer                       :: i
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Setting uvw
     allocate(uvw(1:ord+1))
     uvw(1:ord+1)=[( (-1d0+2d0*real(i-1,kind=8)/real(ord,kind=8)), i=1,ord+1)]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Points d''interpolation")')
       print '("uvw(",i2,")=",f22.15)',(i,uvw(i),i=1,ord+1)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     return
   end subroutine nodes1D
-  
+
 end module additionnal_Functions
 
 subroutine  userInterpolation                        ( &
@@ -1460,15 +1460,15 @@ subroutine  userInterpolation                        ( &
   use additionnal_Functions, only: setT3MeshIJK, setQ4MeshIJK
 
   use  mod_fvmc_ho_basis
-  
+
   use variablesCommunes
   use spaceMessages
   !---
   implicit none
   !---
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   include "mpif.h"
-#endif  
+#endif
   integer :: entitiesDim
   integer :: order
   integer :: nLocalVertex
@@ -1498,7 +1498,7 @@ subroutine  userInterpolation                        ( &
   integer          :: nQ4,nT3
   integer          :: iCell
   real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:), uvQ4(:,:)
-  type (C_PTR)     :: uvQ4_c, uvT3_c, lagrangeMeshQ4_c, lagrangeMeshT3_c 
+  type (C_PTR)     :: uvQ4_c, uvT3_c, lagrangeMeshQ4_c, lagrangeMeshT3_c
   integer          :: iVert,jVert,nVert
   integer, pointer :: ij(:,:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
@@ -1514,24 +1514,24 @@ subroutine  userInterpolation                        ( &
   real(8), pointer :: linkValues(:,:)
 
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !write(buffer,'(a,">>> userInterpolation (callback)")')char(10) ; call msg2(buffer)  
+  !write(buffer,'(a,">>> userInterpolation (callback)")')char(10) ; call msg2(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Broker (interfaçage façon fortran)
-  
+
   linkVertSize=nDistantPoint
   nVert=nLocalVertex
- 
-  call c_f_pointer(cptr=c_loc(localCoordinates), fptr=  myVert  , shape=[     3,nVert       ])  
-  call c_f_pointer(cptr=c_loc(localField       ), fptr=  myValues, shape=[stride,nVert       ])  
-  call c_f_pointer(cptr=c_loc(disPtsCoordinates), fptr=linkVert  , shape=[     3,linkVertSize])  
-  call c_f_pointer(cptr=c_loc(distantField     ), fptr=linkValues, shape=[stride,linkVertSize])  
-  call c_f_pointer(cptr=c_loc(dist_uvw         ), fptr=uv0       , shape=[     2,linkVertSize])  
+
+  call c_f_pointer(cptr=c_loc(localCoordinates), fptr=  myVert  , shape=[     3,nVert       ])
+  call c_f_pointer(cptr=c_loc(localField       ), fptr=  myValues, shape=[stride,nVert       ])
+  call c_f_pointer(cptr=c_loc(disPtsCoordinates), fptr=linkVert  , shape=[     3,linkVertSize])
+  call c_f_pointer(cptr=c_loc(distantField     ), fptr=linkValues, shape=[stride,linkVertSize])
+  call c_f_pointer(cptr=c_loc(dist_uvw         ), fptr=uv0       , shape=[     2,linkVertSize])
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Setting nQ4 nT3
   nQ4=0 ; nT3=0
@@ -1542,15 +1542,15 @@ subroutine  userInterpolation                        ( &
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1
     else ; call stopAlert("userInterpolation")
     endif
-  enddo  
+  enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Allocating uvQ4,uvT3
   if( .not.nQ4==0 )allocate(uQ4(1:nQ4),vQ4(1:nQ4), uvQ4(1:2,1:nQ4))
   if( .not.nT3==0 )allocate(uvT3(1:2,1:nT3))
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Setting uvQ4 uvT3
   nQ4=0 ; nT3=0
@@ -1566,15 +1566,15 @@ subroutine  userInterpolation                        ( &
       nT3=nT3+1
       uvT3(1:2,nT3)=uv0(1:2,iVert)
     endif
-  enddo    
+  enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if( .not.nQ4==0 )then ; allocate(nod((order+1)*(order+1)  ))
   else                  ; allocate(nod((order+1)*(order+2)/2))
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Computing lagrangeMeshQ4
   if( .not.nQ4==0 )then
@@ -1588,17 +1588,17 @@ subroutine  userInterpolation                        ( &
     call fvmc_ho_basis(type=fvmc_face_quad, order=order, &
                        n_nodes=nMod, n_pts=nQ4, &
                        uvw=uvQ4_c, weights=lagrangeMeshQ4_c)
-    ! deallocate(ij)              
-    deallocate(uQ4,vQ4,uvQ4)    
+    ! deallocate(ij)
+    deallocate(uQ4,vQ4,uvQ4)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Computing lagrangeMeshT3
   if( .not.nT3==0 )then
     nMod=(order+1)*(order+2)/2
     allocate(lagrangeMeshT3(1:nMod,1:nT3))
-    
+
     ! select case(order)
     ! case(1) ; call setT3MeshBasis_P1(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P1
     ! case(2) ; call setT3MeshBasis_P2(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
@@ -1617,23 +1617,23 @@ subroutine  userInterpolation                        ( &
     deallocate(uvT3)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Computing linkValues (distantField)
-  
+
   nQ4=0 ; nT3=0 ! j=0
 
   allocate(ij(1:2,1:nMod))
-  
+
   if    ( nMod==(order+1)*(order+1)   )then
     call setQ4MeshIJK(meshOrder=order,ij=ij)
   elseif( nMod==(order+1)*(order+2)/2 )then
     call setT3MeshIJK(meshOrder=order,ij=ij)
   endif
-  
+
   do iVert=1,linkVertSize
     linkValues(1:stride,iVert)=0d0
-    
+
     iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
@@ -1644,12 +1644,12 @@ subroutine  userInterpolation                        ( &
         jVert = nod(iMod)
         i = ij(1,iMod)
         j = ij(2,iMod)
-        iMod2 = j * (order+1) + i + 1 
+        iMod2 = j * (order+1) + i + 1
         linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod2,nQ4)*myValues(1:stride,jVert)
       end do
       ! do iMod=1,nMod
       !   jVert=nod(iMod)
-      !   linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)   
+      !   linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)
       ! enddo
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1
       do iMod=1,nMod
@@ -1668,13 +1668,13 @@ subroutine  userInterpolation                        ( &
   deallocate(ij)
 
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Deallocating lagrangeMeshQ4,lagrangeMeshT3
   if( .not.nQ4==0 )deallocate(lagrangeMeshQ4)
   if( .not.nT3==0 )deallocate(lagrangeMeshT3)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
 #if 0==1
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Visu focusing on one specific point
@@ -1683,14 +1683,14 @@ subroutine  userInterpolation                        ( &
     j=stride*(iVert-1)
     iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
-    nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))    
-    
+    nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
+
     i=stride*(iVert-1)
     j=     3*(iVert-1)
     delta(1:3)=disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
-    
+
     if( order==1 )then
-            
+
       write(buffer,'(                                                   &
       &                                                              a, &
       &              3x,"iCell=",i6," nod: ",3(i3,1x),t130,"@rkw",i3,a, &
@@ -1713,9 +1713,9 @@ subroutine  userInterpolation                        ( &
       & disPtsCoordinates(j+1:j+3)                      ,char(10),&
       & distantField     (i+1:i+3)                      ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
-      
+
     elseif( order==2 )then
-      
+
       write(buffer,'(                                                   &
       &                                                              a, &
       &              3x,"iCell=",i6," nod: ",6(i6,1x),t130,"@rkw",i3,a, &
@@ -1744,9 +1744,9 @@ subroutine  userInterpolation                        ( &
       & disPtsCoordinates(j+1:j+3)                      ,char(10),&
       & distantField     (i+1:i+3)                      ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
-      
+
     elseif( order==3 )then
-      
+
       write(buffer,'(                                                    &
       &                                                               a, &
       &              3x,"iCell=",i6," nod: ",10(i6,1x),t130,"@rkw",i3,a, &
@@ -1783,25 +1783,25 @@ subroutine  userInterpolation                        ( &
       & disPtsCoordinates(j+1:j+3)                       ,char(10),&
       & distantField     (i+1:i+3)                       ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
-      
+
     endif
-    call msg1(buffer)    
+    call msg1(buffer)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #endif
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(nod)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !call mpi_barrier(commWorld,iErr)
   !if( rankWorld==0 )print'(3x,"<<< userInterpolation")'
   !call mpi_barrier(commWorld,iErr)
-  
-  !write(buffer,'(a,"<<< userInterpolation (callback)")')char(10) ; call msg2(buffer)  
+
+  !write(buffer,'(a,"<<< userInterpolation (callback)")')char(10) ; call msg2(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   return
 end subroutine userInterpolation
 
@@ -1810,12 +1810,12 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   use iso_c_binding, only: c_loc,c_f_pointer,c_ptr
-  
-#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
+
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE
   use mpi
 #endif
   use cwipi
-  
+
   use variablesCommunes
   use additionnal_Functions, only: mshToMesh ,setQ4MeshIJK,setT3MeshIJK, nodes1D, nodes2D
   use spaceCellTypes
@@ -1827,9 +1827,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   !include "mpif.h"
-#endif  
+#endif
 
   interface
 
@@ -1840,17 +1840,17 @@ subroutine fortran_surf_PiQj_common (tmaillage)
          point_coords, &
          projected_coords,&
          projected_uvw) bind(c)
-      use, intrinsic :: ISO_C_BINDING 
+      use, intrinsic :: ISO_C_BINDING
       implicit none
       integer (C_INT), value :: entities_dim
       integer (C_INT), value :: order
       integer (C_INT), value :: n_nodes
-      
+
       type (C_PTR),    value  :: nodes_coords
       type (C_PTR),    value  :: point_coords
       type (C_PTR),    value  :: projected_coords
       type (C_PTR),    value  :: projected_uvw
-      
+
     end subroutine test_loc
 
     subroutine  test_basis (entities_dim, &
@@ -1859,19 +1859,19 @@ subroutine fortran_surf_PiQj_common (tmaillage)
                             n_pts, &
                             uvw, &
                             weights) bind(c)
-      use, intrinsic :: ISO_C_BINDING 
+      use, intrinsic :: ISO_C_BINDING
       implicit none
       integer (C_INT), value :: entities_dim
       integer (C_INT), value :: order
       integer (C_INT), value :: n_nodes
       integer (C_INT), value :: n_pts
-      
+
       type (C_PTR),    value :: uvw
       type (C_PTR),    value :: weights
 
-  
+
     end subroutine test_basis
-    
+
     subroutine  userInterpolation                      ( &
     &           entitiesDim                             ,&
     &           order                                   ,&
@@ -1929,89 +1929,86 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !include 'libmeshb7.ins'
-#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE
   include "mpif.h"
-#endif  
+#endif
 
   integer, intent(in) :: tmaillage
-  
+
   character(16)      :: couplingName
-  character(5)       :: codeName,codeCoupledName  
+  character(5)       :: codeName,codeCoupledName
   character(128)     :: meshName
-  
+
   integer             :: compOrder
   integer             :: meshOrder
-  
+
   integer            :: iVert,nVert
   real(8), pointer   :: vertx(:,:),vertxCwipi(:)
   integer, pointer   :: vertM(:)
   integer, pointer   :: cells(:),cellsIdx(:),mark(:),types(:)
   integer, pointer   :: nod(:)  !> ensemble des noeuds pour iCell : nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
-  
+
   character(256)     :: key
   integer, parameter :: iFile=100
   character(10)      :: maillage
-  
+
   integer            :: dim
   integer            :: iCell0
-  
+
   integer            :: meshUnit
-  
+
   integer            :: i,j,k, i1, j1
   integer            :: iMod,nMod, iMod2
   integer            :: nNod2, nNod
   integer            :: iCell,nCell
   integer            :: nQ4,nT3
-  
+
   integer, pointer :: ij(:,:),ijCwipi(:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
   real(8), pointer :: lagrangeMeshT3(:,:)
-  
+
   real(8)          :: tol
   real(8), pointer :: xyzTab(:,:)
   integer          :: linkVertSize
   real(8), pointer :: linkVert(:,:),linkVertCwipi(:)
   integer          :: notLocatedPoints
-  
+
   integer          :: stride
   real(8), pointer ::   myValues(:,:),  myValuesCwipi(:)
   real(8), pointer :: linkValues(:,:),linkValuesCwipi(:)
-  
+
   real(8), pointer :: u (  :)  !> pour les quad (segments tensorisés)
   real(8), pointer :: uv(:,:)  !> pour les triangles
 
-  type (C_PTR)     :: uv_c, lagrangeMeshQ4_c, lagrangeMeshT3_c 
+  type (C_PTR)     :: uv_c, lagrangeMeshQ4_c, lagrangeMeshT3_c
 
   integer          :: numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob
-  
+
   integer          :: iErr
-  
+
   integer          :: iVertMax
   real(8)          :: delta,deltaMin,deltaMax,sumDelta
   character(1024)  :: buffer
   real(8)          :: t0,t1
-  real(8), pointer :: funct  (:,:)
-
-  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call mpi_init(iErr)
   commWorld=mpi_comm_world
-  
+
   call mpi_comm_rank(commWorld, rankWorld, iErr)
   call mpi_comm_size(commWorld, sizeWorld, iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   write(couplingName,'(a)')"testPiPj"
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  !if( rankWorld==0) print '(/"START: fortran_surf_TriaPi_PiPj")'
   write(buffer,'("START: fortran_surf_TriaPi_PiPj")') ; call msg2(trim(buffer))
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   if (tmaillage == 1) then
@@ -2019,14 +2016,14 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   else
     maillage="carre"
   endif
-  
+
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do meshOrder=1,4
-    
+
     call cpu_time(t0)
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Initialisation de l'interface de couplage
     select case(rankWorld)
@@ -2037,17 +2034,17 @@ subroutine fortran_surf_PiQj_common (tmaillage)
        codeName        = "code2"
        codeCoupledName = "code1"
     end select
-    
+
     !> permet de recuperer un commLocal
     call cwipi_init_f(           &
     &    globalComm=commWorld   ,&
     &    appliName=codeName     ,&
     &    appliComm=commLocal     )
-    
+
     call mpi_comm_rank(commLocal,rankLocal,iErr)
     call mpi_comm_size(commLocal,sizeLocal,iErr)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !    select case(meshOrder)
 !    case(1) ; tol=5d-1
@@ -2069,12 +2066,12 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     endif
 
     print *, "tol =", tol
-    
+
     write(buffer,'("")')
     call msg2(trim(buffer))
     write(buffer,'("Code: ",a," creates coupling: ",a," with code: ",a," and tol=",e22.15,t130,"@rkw",i3)') &
     &  trim(codeName),trim(couplingName),trim(codeCoupledName),tol,rankWorld  ; call msg1(trim(buffer))
-    
+
     call cwipi_create_coupling_f(                  &
     &    couplingName=trim(couplingName)          ,&
     &    couplingType=cwipi_cpl_parallel_with_part,&
@@ -2085,45 +2082,45 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     &    solvert=cwipi_solver_cell_vertex         ,&
     &    outputfreq=-1                            ,& !> Frequence du post-traitement
     &    outputfmt="Ensight Gold"                 ,&
-    &    outputfmtopt="binary"                     )  
+    &    outputfmtopt="binary"                     )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     select case(rankWorld)
     case(0) ; compOrder=10 !07 !07
     case(1) ; compOrder=10 !07 !10
     end select
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Création des maillages avec gmsh
-    
+
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-    
+
     !write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," -o meshes/",a,"0",i1,"_order0",i1,".msh > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,trim(maillage),rankWorld+1,meshOrder,rankWorld+1
    !call msg1(trim(key))
-    !call execute_command_line (key, exitstat=iErr)      
-    
+    !call execute_command_line (key, exitstat=iErr)
+
     !write(buffer,'(" ./meshes/",a,"0",i1,"_order0",i1,".msh")')trim(maillage),rankWorld+1,meshOrder
    !call msg1(trim(buffer))
     !call mshToMesh(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Reading Geometric Mesh with INRIA libMesh7
     !> attention avec gmfGetBlock certains entiers sont integer(8)
-    
+
     write(buffer,'("")')                                               ; call msg2(trim(buffer))
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
-    
+
     !>>>>>>>
     write(meshName,'("meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
     !<<<<<<<
-    
-    
+
+
 #if 0==0
-    
+
     !>>>>>>>
     !> Initialisation
     nVert=0 ; nQ4=0 ; nT3=0
@@ -2140,39 +2137,39 @@ CWP_MESH_DIR&
     end select
     enddo lecture1
     close(meshUnit)
-    
+
     nCell=nT3+nQ4
     dim  = nT3*(meshOrder+1)*(meshOrder+2)/2 &
     &     +nQ4*(meshOrder+1)*(meshOrder+1)
-    
+
     write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld
-    call msg1(trim(buffer))  
+    call msg1(trim(buffer))
     !<<<<<<<
-    
+
     !>>>>>>>
     allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
-    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
-    
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])
+
     allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell),types(1:nCell))
     !<<<<<<<
-    
+
     !>>>>>>>
     !> Initialization (iCell0,cellsIdx(1))
     iCell0=0 ; cellsIdx(1)=0
-    
+
     open(newunit=meshUnit,file=trim(meshName),action='read',status='old')
     lecture2: do
       read(meshUnit,'(a)')key
       select case(trim(key))
       case("Vertices")
-        
+
         read(meshUnit,*)nVert
         do iVert=1,nVert
           read(meshUnit,*)vertx(1:3,iVert),vertM(iVert)
         enddo
-        
+
       case("Quadrilaterals","QuadrilateralsQ2","QuadrilateralsQ3","QuadrilateralsQ4")
-        
+
         nNod=(meshOrder+1)*(meshOrder+1)                 ! <=
         read(meshUnit,*)nQ4
         do i=1,nQ4
@@ -2190,9 +2187,9 @@ CWP_MESH_DIR&
         end select
         !>
         iCell0=iCell0+nQ4
-        
+
       case("Triangles"     ,"TrianglesP2"     ,"TrianglesP3"     ,"TrianglesP4"     )
-        
+
         nNod=(meshOrder+1)*(meshOrder+2)/2               ! <=
         read(meshUnit,*)nT3
         do i=1,nT3
@@ -2207,27 +2204,27 @@ CWP_MESH_DIR&
         case(3) ; types(iCell0+1:iCell0+nT3)=triangle3  ! <=
         case(4) ; types(iCell0+1:iCell0+nT3)=triangle4  ! <=
         case default ; call stopAlert("meshOrder>4")
-        end select        
+        end select
         !>
         iCell0=iCell0+nT3
-        
+
       case("End") ; exit lecture2
       end select
     enddo lecture2
     close(meshUnit)
     !<<<<<<<
-        
+
 #else
-    
+
     !>>>>>>>
     !> Opening File
     InpMsh = gmfOpenMesh(trim(meshName),GmfRead,ver,dim)
     !<<<<<<<
-    
+
     !>>>>>>>
     !> Mesh Sizes
     nVert = gmfStatKwd(InpMsh, GmfVertices)
-    
+
     nCell=0 ; dim=0
     select case(meshOrder)
     case(1) ; nQ4=gmfStatKwd(InpMsh, GmfQuadrilaterals  )
@@ -2238,7 +2235,7 @@ CWP_MESH_DIR&
     end select
     nCell=nCell+nQ4
     dim=dim    +nQ4*(meshOrder+1)*(meshOrder+1)
-    
+
     select case(meshOrder)
     case(1) ; nT3=gmfStatKwd(InpMsh, GmfTriangles  )
     case(2) ; nT3=gmfStatKwd(InpMsh, GmfTrianglesP2)
@@ -2248,22 +2245,22 @@ CWP_MESH_DIR&
     end select
     nCell=nCell+nT3
     dim  =dim  +nT3*(meshOrder+1)*(meshOrder+2)/2
-    
-   !write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
+
+   !write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<
-    
+
     !>>>>>>>
     !> Reading Vertices
-    
+
     !> allocation vertx,vertM
     allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
-    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
-    
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])
+
     !> read block
     ad0=int(1,kind=8)
     ad1=1
     ad2=nVert
-    !write(buffer,'(3x,"Vert: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))  
+    !write(buffer,'(3x,"Vert: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))
     res = gmfGetBlock(                         &
     &     InpMsh                              ,&
     &     GmfVertices                         ,&
@@ -2274,18 +2271,18 @@ CWP_MESH_DIR&
     &     GmfDouble,vertx(2,ad1),vertx(2,ad2) ,&
     &     GmfDouble,vertx(3,ad1),vertx(3,ad2) ,&
     &                                          &
-    &     GmfInt   ,vertM(  ad1),vertM(  ad2)  )  
+    &     GmfInt   ,vertM(  ad1),vertM(  ad2)  )
     !<<<<<<<
-    
+
     !>>>>>>>
     !> Setting cellsIdx and Reading cells,cellsRef
-    
+
     !> allocation cellsIdx,cells,mark
     allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell),types(1:nCell))
-    
+
     !> Initialization (iCell0,cellsIdx(1))
     iCell0=0 ; cellsIdx(1)=0
-    
+
     !> Reading Quadrilaterals
     ReadingQuadrilaterals: if( .not.nQ4==0 )then
       nCell=nQ4                                         ! <=
@@ -2294,7 +2291,7 @@ CWP_MESH_DIR&
       do i=1,nCell
         cellsIdx(iCell0+1+i)=cellsIdx(iCell0+1)+nNod*i
       enddo
-      
+
       !> types
       select case(meshOrder)
       case(1) ; types(iCell0+1:iCell0+nCell)=quad       ! <=
@@ -2303,13 +2300,13 @@ CWP_MESH_DIR&
       case(4) ; types(iCell0+1:iCell0+nCell)=quad4      ! <=
       case default ; call stopAlert("meshOrder>4")
       end select
-      
+
       !> Adr  Block
       ad0=1_8                    !> debut
       ad1=cellsIdx(iCell0    +1) !> iCell0+1
       ad2=cellsIdx(iCell0+nCell) !> iCell0+nCell
       !print '("Quad: ad1:ad2=",i6,":",i6)',ad1,ad2
-      
+
       !> Read Block
       select case(meshOrder)
       case(1)
@@ -2404,10 +2401,10 @@ CWP_MESH_DIR&
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
       case default ; call stopAlert("meshOrder>4")
       end select
-      
+
       iCell0=iCell0+nCell
     endif ReadingQuadrilaterals
-    
+
     !> Reading Triangles
     ReadingTriangle: if( .not.nT3==0 )then
       nCell=nT3                                         ! <=
@@ -2416,25 +2413,25 @@ CWP_MESH_DIR&
       do i=1,nCell
         cellsIdx(iCell0+1+i)=cellsIdx(iCell0+1)+nNod*i
       enddo
-      
+
       !> types
-      select case(meshOrder)                            
+      select case(meshOrder)
       case(1) ; types(iCell0+1:iCell0+nCell)=triangle   ! <=
       case(2) ; types(iCell0+1:iCell0+nCell)=triangle2  ! <=
       case(3) ; types(iCell0+1:iCell0+nCell)=triangle3  ! <=
       case(4) ; types(iCell0+1:iCell0+nCell)=triangle4  ! <=
       case default ; call stopAlert("meshOrder>4")
       end select
-      
+
       !> Adr  Block
       ad0=1_8                    !> debut
       ad1=cellsIdx(iCell0    +1) !> iCell0+1
       ad2=cellsIdx(iCell0+nCell) !> iCell0+nCell
       !write(buffer,'(3x,"Tria: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))
-      
+
       !> Read Block
       select case(meshOrder)
-      case(1)    
+      case(1)
         res=GmfGetBlock(                               &
         &   InpMsh                                    ,&
         &   GmfTriangles                              ,&  ! <=
@@ -2504,21 +2501,21 @@ CWP_MESH_DIR&
         &   GmfInt, cells(ad1+15) , cells(ad2+15)     ,&
         &                                              &
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
-        
+
       case default ; call stopAlert("reading Triangles meshOrder>4")
       end select
-      
+
       iCell0=iCell0+nCell
     endif ReadingTriangle
     !<<<<<<<
-    
+
     !>>>>>>>
     !> Closing File
     res = gmfclosemesh(InpMsh)
     !<<<<<<<
-    
+
 #endif
-    
+
     write(buffer,'(                                &
     &                                           a, &
     &              3x,"mesh=",a,t130,"@rkw",i3 ,a, &
@@ -2533,51 +2530,51 @@ CWP_MESH_DIR&
     & nVert                   ,char(10),&
     & nQ4                     ,char(10),&
     & nT3
-    
+
     call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Allocate xyzTab
     if( nQ4==0 )then ; allocate(xyzTab(1:3,(meshOrder+1)*(meshOrder+2)/2))
     else             ; allocate(xyzTab(1:3,(meshOrder+1)*(meshOrder+1)  ))
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> On se couple sur les sphères maillées
-    
+
    !write(buffer,'("")')                                              ; call msg2(trim(buffer))
    !write(buffer,'("Sending Mesh to Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
-    
+
     nCell=nQ4+nT3
 
     !> Test des user functions
     !call  cwipi_ho_user_elt_set_f (CWIPI_FACE_TRIAHO, test_basis, test_loc)
-    
+
     !> Transmission des maillages à cwipi
     call cwipi_ho_define_mesh_f(         & !> NEW Cwipi
     &   couplingName=trim(couplingName) ,&
     &   nVertex     =nVert              ,&
     &   nElts       =nQ4+nT3            ,&
-    &   order       =meshOrder          ,&  
+    &   order       =meshOrder          ,&
     &   coords      =vertxCwipi         ,&
     &   connecIndex =cellsIdx           ,&
-    &   connec      =cells               )  
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    &   connec      =cells               )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     !> Desactivation de la bounding box optimisee
     if (maillage == "carre") then
       call cwipi_ho_options_set_f(couplingName, "opt_bbox_step", "-1")
     endif
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Definition du Quad Qi (ijk)
     if( .not.nQ4==0 )then
       nMod=(meshOrder+1)*(meshOrder+1)
       allocate(ij(1:2,nMod))
-      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
-      
+      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])
+
       call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
 
       call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
@@ -2585,72 +2582,60 @@ CWP_MESH_DIR&
       &   tElt         = CWIPI_FACE_QUADHO  ,&
       &   nNodes       = nMod               ,&
       &   IJK          = ijCwipi             )
-      
+
       deallocate(ij)
     endif
-    
+
     !> Definition du Triangle géométrique Pi (ijk)
     if( .not.nT3==0 )then
       nMod=(meshOrder+1)*(meshOrder+2)/2
       allocate(ij(1:2,nMod))
       call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])
-      
+
       call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-      
+
       call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
       &   couplingName =trim(couplingName)  ,&
       &   tElt         = CWIPI_FACE_TRIAHO  ,&
       &   nNodes       = nMod               ,&
       &   IJK          = ijCwipi             )
-      
+
       deallocate(ij)
     endif
-    
+
     !write(buffer,'("")')                                                             ; call msg2(trim(buffer))
     !write(buffer,'("Geometric HO Cell ij P",i1,t130,"@rkw",i3)')meshOrder,rankWorld  ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Initialisation of myValues(:,:)
-    
-    stride=4 !> x,y,z,real(rankWorld,kind=8)    
+
+    stride=4 !> x,y,z,real(rankWorld,kind=8)
     allocate(myValues(1:stride,1:nVert))
     call c_f_pointer(cptr=c_loc(myValues), fptr=myValuesCwipi, shape=[stride*nVert])
-    
+
     i=0
     do iVert=1,nVert
       myValues(1:stride,iVert)=[vertx(1,iVert),vertx(2,iVert),vertx(3,iVert),real(rankWorld,kind=8)]
-      ! myValues(1:stride,iVert)=[vertx(1,iVert)**4-vertx(1,iVert)**3+vertx(1,iVert)**2-vertx(1,iVert), &
-      !                           vertx(2,iVert)**4-vertx(2,iVert)**3+vertx(2,iVert)**2-vertx(2,iVert), &
-      !                           vertx(3,iVert)**4-vertx(3,iVert)**3+vertx(3,iVert)**2-vertx(3,iVert), &
-      !                           real(rankWorld,kind=8)]
-      ! myValues(1:stride,iVert)=[vertx(1,iVert)**3-vertx(1,iVert)**2+vertx(1,iVert), &
-      !                           vertx(2,iVert)**3-vertx(2,iVert)**2+vertx(2,iVert), &
-      !                           vertx(3,iVert)**3-vertx(3,iVert)**2+vertx(3,iVert), &
-      !                           real(rankWorld,kind=8)]
-      ! myValues(1:stride,iVert)=[vertx(1,iVert)**2-vertx(1,iVert), &
-      !                           vertx(2,iVert)**2-vertx(2,iVert), &
-      !                           vertx(3,iVert)**2-vertx(3,iVert), &
-      !                           real(rankWorld,kind=8)]
       i=i+3
     enddo
-    
+
    !write(buffer,'("")')                                                                    ; call msg2(trim(buffer))
    !write(buffer,'("Allocate   myValues(1:",i10,")",t130,"@rkw",i3)')stride*nVert,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Points de couplage linkVertSize,linkVert(:,:),linkVertCwipi(:)
-    
+
 #if 0==0
-    
+
 ! 0==0 plusieurs points
 ! else un seul point (mise au point)
-    
+
     !> calcul lagrangeMeshQ4
-    if( .not.nQ4==0 )then      
+    if( .not.nQ4==0 )then
       nMod=(meshOrder+1)*(meshOrder+1)                  !> Quad meshOrder (entree)
-      call nodes1D(ord=compOrder,uvw=u,display=.false.) !> ordre du calcul  
+      call nodes1D(ord=compOrder,uvw=u,display=.false.) !> ordre du calcul
       nNod=size(u) ;
 
       !> tensorise
@@ -2664,7 +2649,7 @@ CWP_MESH_DIR&
         enddo
       enddo
       nNod = nNod2
-      
+
       allocate(lagrangeMeshQ4(1:nMod,1:nNod))
       ! allocate(ij(1:2,1:nMod))
       ! call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
@@ -2677,13 +2662,13 @@ CWP_MESH_DIR&
                          n_nodes=nMod, n_pts=nNod, &
                          uvw=uv_c, weights=lagrangeMeshQ4_c)
       deallocate(u, uv)
-      
+
     endif
-    
+
     !> calcul lagrangeMeshT3
     if( .not.nT3==0 )then
       nMod=(meshOrder+1)*(meshOrder+2)/2                 !> Triangle meshOrder (entree)
-      call nodes2D(ord=compOrder,uvw=uv,display=.false.) !> ordre du calcul  
+      call nodes2D(ord=compOrder,uvw=uv,display=.false.) !> ordre du calcul
       nNod=size(uv,2)
       allocate(lagrangeMeshT3(1:nMod,1:nNod))
 
@@ -2691,7 +2676,7 @@ CWP_MESH_DIR&
       ! case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
       ! case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
       ! case(03) ; call setT3MeshBasis_P3(uv=uv,ai=lagrangeMeshT3)
-        
+
       !   block
       !   real(8), pointer ::test(:,:)
       !   allocate(test(1:nMod,1:nNod))
@@ -2706,7 +2691,7 @@ CWP_MESH_DIR&
       !   enddo ; enddo
       !   deallocate(test)
       !   end block
-        
+
       ! case default
       !   allocate(ij(1:2,1:nMod))
       !   call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
@@ -2722,8 +2707,8 @@ CWP_MESH_DIR&
 
       deallocate(uv)
     endif
-    
-    
+
+
     !> calcul linkVert
     linkVertSize=0
     if( .not.nQ4==0 )then
@@ -2735,12 +2720,11 @@ CWP_MESH_DIR&
       linkVertSize=linkVertSize+nT3*nNod                 !> nombre total de point de couplages
     endif
     allocate(linkVert(1:3,1:linkVertSize))               !> 3 coordonnées par point de couplage
-    allocate(funct(1:3,1:linkVertSize))               !> 3 coordonnées par point de couplage
     call c_f_pointer(cptr=c_loc(linkVert), fptr=linkVertCwipi, shape=[3*linkVertSize])
-    
+
     !> Initialization
     iCell0=0 ; iVert=0
-    
+
     !> Quadrilaterals
     if( .not.nQ4==0 )then
       nMod=(meshOrder+1)*(meshOrder+1)                   !> Quad meshOrder (entree)
@@ -2750,15 +2734,15 @@ CWP_MESH_DIR&
       do i=1,nQ4
         iCell=iCell0+i
         nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))  !> nMod=size(node)
-        
+
         !> xyzTab(1:3,1:nMod)
         do iMod=1,nMod
           i1 = ij(1,iMod)
           j1 = ij(2,iMod)
-          iMod2 = j1 * (meshOrder+1) + i1 + 1 
+          iMod2 = j1 * (meshOrder+1) + i1 + 1
           xyzTab(1:3,iMod2)=vertx(1:3,nod(iMod))
         enddo
-        
+
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshQ4(1:nMod,1:nNod)
 
 #ifdef CWP_HAVE_BLAS
@@ -2770,17 +2754,16 @@ CWP_MESH_DIR&
         &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
 #else
         linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
-        
 #endif
         iVert=iVert+nNod
-        
+
       enddo
       !>
       deallocate(ij)
       deallocate(lagrangeMeshQ4)
       iCell0=iCell0+nQ4
     endif
-    
+
     !> Triangles
     if( .not.nT3==0 )then
       nMod=(meshOrder+1)*(meshOrder+2)/2                 !> Triangle meshOrder (entree)
@@ -2789,8 +2772,8 @@ CWP_MESH_DIR&
       call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
       do i=1,nT3
         iCell=iCell0+i
-        nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))        
-        
+        nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
+
         !> xyzTab(1:3,1:nMod)
         do iMod=1,nMod
           i1 = ij(1,iMod)
@@ -2809,7 +2792,7 @@ CWP_MESH_DIR&
         ! do iMod=1,nMod
         !   xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
         ! enddo
-        
+
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshT3(1:nMod,1:nNod)
 #ifdef CWP_HAVE_BLAS
         call dgemm('n','n', 3, nNod, nMod          ,&
@@ -2818,11 +2801,11 @@ CWP_MESH_DIR&
         &          lagrangeMeshT3(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
         &          0d0                             ,&
         &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod   ) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
-#else        
+#else
         linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshT3(1:nMod,1:nNod) )
-#endif          
+#endif
         iVert=iVert+nNod
-        
+
 !        do iNod=1,nNod
 !          !> linkVert
 !          iVert=iVert+1
@@ -2830,10 +2813,10 @@ CWP_MESH_DIR&
 !          do iMod=1,nMod
 !            jVert=nod(iMod)
 !           !k=3*(nod(iMod)-1)
-!            linkVert(1:3,iVert)=linkVert(1:3,iVert)+lagrangeMeshT3(iMod,iNod)*vertx(1:3,jVert)            
+!            linkVert(1:3,iVert)=linkVert(1:3,iVert)+lagrangeMeshT3(iMod,iNod)*vertx(1:3,jVert)
 !          enddo
 !        enddo
-        
+
       enddo
       !>
       deallocate(ij)
@@ -2841,82 +2824,69 @@ CWP_MESH_DIR&
       iCell0=iCell0+nT3
       !print *,linkVert
     endif
-    
+
     write(buffer,'("")') ; call msg2(trim(buffer))
     write(buffer,'("linkVert compOrder=",i3," -> linkVertSize=",i6,t130,"@rkw",i3)')compOrder,linkVertSize,rankWorld
     call msg1(trim(buffer))
-    
+
 #else
-    
+
     linkVertSize=1                         !> nombre total de point de couplages
     allocate(linkVert(1:3,1:linkVertSize)) !> 3 coordonnées par point de couplage
-    
+
     select case(rankWorld)
-    case(0) ; linkVert(1:3,1)=[-0.882008625194510E+00,-0.651604678905975E-03, 0.471232809228976E+00] 
+    case(0) ; linkVert(1:3,1)=[-0.882008625194510E+00,-0.651604678905975E-03, 0.471232809228976E+00]
     case(1) ; linkVert(1:3,1)=[-0.558966419849888E+00, 0.785077751154716E+00, 0.267347624405070E+00]
     end select
-    
+
     write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3,1),rankWorld     ; call msg1(trim(buffer))
-    
-#endif    
+
+#endif
 
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    ! do iVert=1,linkVertSize
-    !   ! funct(1:3,iVert)=[linkVert(1,iVert)**4-linkVert(1,iVert)**3+linkVert(1,iVert)**2-linkVert(1,iVert), &
-    !   !                   linkVert(2,iVert)**4-linkVert(2,iVert)**3+linkVert(2,iVert)**2-linkVert(2,iVert), &
-    !   !                   linkVert(3,iVert)**4-linkVert(3,iVert)**3+linkVert(3,iVert)**2-linkVert(3,iVert)]
-    !   ! funct(1:3,iVert)=[linkVert(1,iVert)**3-linkVert(1,iVert)**2+linkVert(1,iVert), &
-    !   !                   linkVert(2,iVert)**3-linkVert(2,iVert)**2+linkVert(2,iVert), &
-    !   !                   linkVert(3,iVert)**3-linkVert(3,iVert)**2+linkVert(3,iVert)]
-    !   funct(1:3,iVert)=[linkVert(1,iVert)**2-linkVert(1,iVert), &
-    !                     linkVert(2,iVert)**2-linkVert(2,iVert), &
-    !                     linkVert(3,iVert)**2-linkVert(3,iVert)]
-    ! enddo
-
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(linkValues(1:stride,1:linkVertSize))
     call c_f_pointer(cptr=c_loc(linkValues), fptr=linkValuesCwipi, shape=[stride*linkVertSize])
-    
+
    !write(buffer,'("")')                                                                                    ; call msg2(trim(buffer))
    !write(buffer,'("Allocate linkValues(1:",i1,",1:",i10,")",t130,"@rkw",i3)')stride,linkVertSize,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Transmission à cwipi des coordonnees de couplage
-    
+
     !write(buffer,'("")')                                                         ; call msg2(trim(buffer))
-    !write(buffer,'("Transmission de linkVert a cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-    
+    !write(buffer,'("Transmission de linkVert a cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
+
     call cwipi_set_points_to_locate_f(    &
     &    couplingName=trim(couplingName) ,&
     &    nPts  =linkVertSize             ,&
     &    coords=linkVertCwipi             )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Localisation par cwipi des coordonnees de couplage
-    
+
     write(buffer,'("")')                                              ; call msg2(trim(buffer))
-    write(buffer,'("Localisation by Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-    
+    write(buffer,'("Localisation by Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
+
     call cwipi_locate_f(couplingName=trim(couplingName))
-    
+
     call cwipi_get_n_not_located_pts_f(couplingName=trim(couplingName), nNotLocatedPoints=numberOfUnlocatedPoints)
-    
+
     call mpi_allreduce(numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob,1,mpi_integer,mpi_sum,commWorld,iErr)
     if( .not.numberOfUnlocatedPointsGlob==0 )then
-      write(buffer,'(3x,"nNotLocatedPoints=",i10,t130,"@rkw",i3)')numberOfUnlocatedPoints,rankWorld ; call msg1(trim(buffer))  
+      write(buffer,'(3x,"nNotLocatedPoints=",i10,t130,"@rkw",i3)')numberOfUnlocatedPoints,rankWorld ; call msg1(trim(buffer))
       write(buffer,'("fortran_surf_TriaPi_PiPj stop line: ",i6,t130,"@rkw",i3)')__LINE__+1,rankWorld
-      call stopAlert(trim(buffer))  
+      call stopAlert(trim(buffer))
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !write(buffer,'("")')                                                 ; call msg2(trim(buffer))
-    !write(buffer,'("Echange cwipi_exchange_f",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-    
+    !write(buffer,'("Echange cwipi_exchange_f",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
+
     call cwipi_exchange_f(                          &
     &    couplingName=          trim(couplingName) ,&
     &    exchangeName="exch1_"//trim(couplingName) ,&
@@ -2933,20 +2903,20 @@ CWP_MESH_DIR&
     &    nStep=1                                   ,&  !> pas utilisee juste pour visu cwipi
     &    timeValue=0d0                             ,&  !> pas utilisee juste pour visu cwipi
     &    nNotLocatedPoints=notLocatedPoints        ,&
-    &    status=iErr                                )  
+    &    status=iErr                                )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !write(buffer,'("")')                                        ; call msg2(trim(buffer))
-    !write(buffer,'("Delete coupling",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-    
+    !write(buffer,'("Delete coupling",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
+
     call cwipi_delete_coupling_f(trim(couplingName))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    !write(buffer,'("")')                                           ; call msg2(trim(buffer))
    !write(buffer,'("Controling Results",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
-    
+
     iVertMax=1
     sumDelta= 0d0
     deltaMax=-1d50
@@ -2954,7 +2924,6 @@ CWP_MESH_DIR&
     k=0
     do iVert=1,linkVertSize
       delta=norm2(linkVert(1:3,iVert)-linkValues(1:3,iVert))
-!      delta=norm2(funct(1:3,iVert)-linkValues(1:3,iVert))
       sumDelta=sumDelta+delta
       if( deltaMax<delta )then
         iVertMax=iVert
@@ -2963,9 +2932,9 @@ CWP_MESH_DIR&
       if( delta<deltaMin )deltaMin=delta
       k=k+4
     enddo
-    
-    sumDelta=sumDelta/real(linkVertSize,kind=8)  
-    
+
+    sumDelta=sumDelta/real(linkVertSize,kind=8)
+
     j=(iVertMax-1)*3
     k=(iVertMax-1)*stride
     write(buffer,'(                                                         a, &
@@ -2986,7 +2955,7 @@ CWP_MESH_DIR&
     &                                                                       )')&
     &                          char(10),&
     & meshOrder,rankWorld     ,char(10),&
-    & trim(meshName)          ,char(10),&    
+    & trim(meshName)          ,char(10),&
     & nVert,nQ4,nT3 ,char(10),&
     &                          char(10),&
     & linkVertSize            ,char(10),&
@@ -2999,34 +2968,34 @@ CWP_MESH_DIR&
     & linkVert  (1:3,iVertMax),char(10),&
     & linkValues(1:3,iVertMax),char(10),&
     & linkVert  (1:3,iVertMax)-linkValues(1:3,iVertMax)
-    
-    call msg1(trim(buffer))      
+
+    call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     vertxCwipi     =>null()
     myValuesCwipi  =>null()
     linkVertCwipi  =>null()
     linkValuesCwipi=>null()
-    
+
     deallocate(xyzTab)
     deallocate(vertx,vertM)
     deallocate(cellsIdx,cells,mark,types)
     deallocate(myValues,linkVert,linkValues)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call cwipi_finalize_f()
-    
+
     call cpu_time(t1)
     write(buffer,'("")')                                                       ; call msg2(trim(buffer))
     write(buffer,'(3x,"cpu_time=",f12.5," s",t130,"@rkw",i3)')t1-t0,rankWorld  ; call msg1(trim(buffer))
-    
+
   enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call mpi_finalize(iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
 end subroutine fortran_surf_PiQj_common
