@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python API documentation (cwipi) &mdash; CWIPI 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Old to New" href="../old_to_new/old_to_new.html" />
+    <link rel="prev" title="C API documentation" href="old_cwipi_c.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            CWIPI
+              <img src="../_static/cwipiNew.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Summary</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../philosophy.html">Philosophy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="old_cwipi.html">Old CWIPI</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="old_cwipi_c.html">C API documentation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Python API documentation (<code class="xref py py-mod docutils literal notranslate"><span class="pre">cwipi</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../old_to_new/old_to_new.html">Old to New</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../new_cwipi/new_cwipi.html">New CWIPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../client_server_cwipi/client_server_cwipi.html">Client-Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">CWIPI’s FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CWIPI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="old_cwipi.html">Old CWIPI</a></li>
+      <li class="breadcrumb-item active">Python API documentation (<code class="xref py py-mod docutils literal notranslate"><span class="pre">cwipi</span></code>)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/old_cwipi/old_cwipi_python.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cwipi">
+<span id="python-api-documentation-cwipi"></span><span id="old-cwipi-python"></span><h1>Python API documentation (<a class="reference internal" href="#module-cwipi" title="cwipi"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cwipi</span></code></a>)<a class="headerlink" href="#module-cwipi" title="Permalink to this heading"></a></h1>
+<p>Module cwipi</p>
+<p>Python3 interface to CWIPI coupling library.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cwipi.Coupling">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">Coupling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coupling_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupled_application</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entitiesDim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format_option</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Create a CWIPI coupling object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coupling_name</strong> (<em>str</em>) – a name for this object</p></li>
+<li><p><strong>coupling_type</strong> (<em>cwipi_coupling_type_t</em>) – either one of: COUPLING_PARALLEL_WITH_PARTITIONING, COUPLING_PARALLEL_WITHOUT_PARTITIONING, COUPLING_SEQUENTIAL</p></li>
+<li><p><strong>coupled_application</strong> (<em>str</em>) – the identifier of the distant code</p></li>
+<li><p><strong>entitiesDim</strong> (<em>int</em>) – dimension of the declared geometry</p></li>
+<li><p><strong>tolerance</strong> (<em>double</em>) – geometric matching tolerance</p></li>
+<li><p><strong>mesh_type</strong> (<em>cwipi_mesh_type_t</em>) – either one of: STATIC_MESH, MOBILE_MESH, CYCLIC_MESH</p></li>
+<li><p><strong>solver_type</strong> (<em>cwipi_solver_type_t</em>) – either one of: SOLVER_CELL_CENTER, SOLVER_CELL_VERTEX</p></li>
+<li><p><strong>output_frequency</strong> (<em>int</em>) – output frequency (0 disables output)</p></li>
+<li><p><strong>output_format</strong> (<em>str</em>) – either one of “EnSight Gold”, “MED_fichier”, “CGNS”</p></li>
+<li><p><strong>output_format_option</strong> (<em>str</em>) – extra output options</p></li>
+<li><p><strong>nb_locations</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.add_polyhedra">
+<span class="sig-name descname"><span class="pre">add_polyhedra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_to_face_connectivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_face</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_connectivity_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_connectivity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.add_polyhedra" title="Permalink to this definition"></a></dt>
+<dd><p>Add polyhedra</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.close_location_file">
+<span class="sig-name descname"><span class="pre">close_location_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.close_location_file" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.define_mesh">
+<span class="sig-name descname"><span class="pre">define_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_vertex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.define_mesh" title="Permalink to this definition"></a></dt>
+<dd><p>Define the mesh: nodes, elements and connectivity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_vertex</strong> (<em>int</em>) – number of vertices/nodes</p></li>
+<li><p><strong>n_element</strong> (<em>int</em>) – number of elements</p></li>
+<li><p><strong>coordinates</strong> (<em>double ndarray</em>) – the nodes coordinates, an array whose shape is either (n_vertex*3) or (n_vertex, 3)</p></li>
+<li><p><strong>connectivity_index</strong> (<em>int32 ndarray</em>) – the index of the first node of each element in <code class="docutils literal notranslate"><span class="pre">connectivity</span></code>; shape is <code class="docutils literal notranslate"><span class="pre">(n_element+1)</span></code>, indices start at zero.</p></li>
+<li><p><strong>connectivity</strong> (<em>int32 ndarray</em>) – the array defining elements’ connectivity; indices start at 1 (i.e. 1 is the first node).
+For example the nodes of element <code class="docutils literal notranslate"><span class="pre">iel</span></code> are given by the slice <code class="docutils literal notranslate"><span class="pre">connectivity[connectivity_index[iel]:connectivity_index[iel+1]]</span></code>.
+The array’s size is the sum over elements of el.nb_nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>coordinates is always an interlaced 3D array; if the mesh is 2D it should contain a column z=0.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.exchange">
+<span class="sig-name descname"><span class="pre">exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exchange_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sending_field_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sending_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiving_field_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiving_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.exchange" title="Permalink to this definition"></a></dt>
+<dd><p>Exchange quantities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.getName">
+<span class="sig-name descname"><span class="pre">getName</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.getName" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_barycentric_coordinates">
+<span class="sig-name descname"><span class="pre">get_distant_barycentric_coordinates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_barycentric_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant points barycentric coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_barycentric_coordinates_index">
+<span class="sig-name descname"><span class="pre">get_distant_barycentric_coordinates_index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_barycentric_coordinates_index" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant points barycentric coordinates index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_coordinates">
+<span class="sig-name descname"><span class="pre">get_distant_coordinates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant points coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_distance">
+<span class="sig-name descname"><span class="pre">get_distant_distance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_distance" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant points distance to location element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_distribution">
+<span class="sig-name descname"><span class="pre">get_distant_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant points distribution on distant ranks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_distant_location">
+<span class="sig-name descname"><span class="pre">get_distant_location</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_distant_location" title="Permalink to this definition"></a></dt>
+<dd><p>Get distant point location.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_located_points">
+<span class="sig-name descname"><span class="pre">get_located_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_located_points" title="Permalink to this definition"></a></dt>
+<dd><p>Get located points ranks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_located_points_distribution">
+<span class="sig-name descname"><span class="pre">get_located_points_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_located_points_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Get located points distribution on distant ranks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_n_distant_points">
+<span class="sig-name descname"><span class="pre">get_n_distant_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_n_distant_points" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of distant points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_n_distant_ranks">
+<span class="sig-name descname"><span class="pre">get_n_distant_ranks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_n_distant_ranks" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of distant ranks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_n_located_points">
+<span class="sig-name descname"><span class="pre">get_n_located_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_n_located_points" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of located points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_n_not_located_points">
+<span class="sig-name descname"><span class="pre">get_n_not_located_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_n_not_located_points" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of not located points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.get_not_located_points">
+<span class="sig-name descname"><span class="pre">get_not_located_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.get_not_located_points" title="Permalink to this definition"></a></dt>
+<dd><p>Get not located points ranks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.ho_define_mesh">
+<span class="sig-name descname"><span class="pre">ho_define_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_vertex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.ho_define_mesh" title="Permalink to this definition"></a></dt>
+<dd><p>Define high order mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>int</em>) – the mesh’s interpolation order.</p>
+</dd>
+</dl>
+<p>All other arguments are the same as in <a class="reference internal" href="#cwipi.Coupling.define_mesh" title="cwipi.Coupling.define_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">define_mesh()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.ho_options_set">
+<span class="sig-name descname"><span class="pre">ho_options_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.ho_options_set" title="Permalink to this definition"></a></dt>
+<dd><p>Set option for high order meshes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.ho_ordering_from_IJK_set">
+<span class="sig-name descname"><span class="pre">ho_ordering_from_IJK_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_elt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ijk_grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.ho_ordering_from_IJK_set" title="Permalink to this definition"></a></dt>
+<dd><p>Define ho element ordering from the location in the (I, J, K) grid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.irecv">
+<span class="sig-name descname"><span class="pre">irecv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exchange_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiving_field_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiving_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.irecv" title="Permalink to this definition"></a></dt>
+<dd><p>Non blocking receive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the request (that you should later pass to <a class="reference internal" href="#cwipi.Coupling.wait_irecv" title="cwipi.Coupling.wait_irecv"><code class="xref py py-func docutils literal notranslate"><span class="pre">wait_irecv()</span></code></a>).</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>exchange_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>tag</strong> (<em>int</em>) – an arbitraty MPI tag, that should match the corresponding send.</p></li>
+<li><p><strong>stride</strong> (<em>int</em>) – the stride, i.e. number of quantities received.</p></li>
+<li><p><strong>time_step</strong> (<em>int</em>) – the time step (only used in output files).</p></li>
+<li><p><strong>time_value</strong> (<em>double</em>) – the time (only used in output files).</p></li>
+<li><p><strong>receiving_field_name</strong> (<em>str</em>) – a name for this quantity (only used in output files).</p></li>
+<li><p><strong>receiving_field</strong> (<em>double ndarray</em>) – an array large enough (size should be at least n*stride, where n is the number of receiving points).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.issend">
+<span class="sig-name descname"><span class="pre">issend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exchange_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sending_field_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sending_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.issend" title="Permalink to this definition"></a></dt>
+<dd><p>Non blocking send.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the request (that you should later pass to <a class="reference internal" href="#cwipi.Coupling.wait_issend" title="cwipi.Coupling.wait_issend"><code class="xref py py-func docutils literal notranslate"><span class="pre">wait_issend()</span></code></a>).</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>exchange_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>tag</strong> (<em>int</em>) – an arbitraty MPI tag, that should match the corresponding recv.</p></li>
+<li><p><strong>stride</strong> (<em>int</em>) – the stride, i.e. number of quantities received.</p></li>
+<li><p><strong>time_step</strong> (<em>int</em>) – the time step (only used in output files).</p></li>
+<li><p><strong>time_value</strong> (<em>double</em>) – the time (only used in output files).</p></li>
+<li><p><strong>sending_field_name</strong> (<em>str</em>) – a name for this quantity (only used in output files).</p></li>
+<li><p><strong>sending_field</strong> (<em>double ndarray</em>) – the data to send.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.load_location">
+<span class="sig-name descname"><span class="pre">load_location</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.load_location" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.locate">
+<span class="sig-name descname"><span class="pre">locate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.locate" title="Permalink to this definition"></a></dt>
+<dd><p>Start the localization process (this is a synchronization point).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.open_location_file">
+<span class="sig-name descname"><span class="pre">open_location_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">char</span> <span class="pre">*filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char</span> <span class="pre">*mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.open_location_file" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.save_location">
+<span class="sig-name descname"><span class="pre">save_location</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.save_location" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.set_ho_interpolation_function">
+<span class="sig-name descname"><span class="pre">set_ho_interpolation_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.set_ho_interpolation_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.set_interpolation_function">
+<span class="sig-name descname"><span class="pre">set_interpolation_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.set_interpolation_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.set_location_index">
+<span class="sig-name descname"><span class="pre">set_location_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.set_location_index" title="Permalink to this definition"></a></dt>
+<dd><p>Set location index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.set_points_to_locate">
+<span class="sig-name descname"><span class="pre">set_points_to_locate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.set_points_to_locate" title="Permalink to this definition"></a></dt>
+<dd><p>Set points to locate, e.g. the receiving points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_points</strong> (<em>int</em>) – number of points</p></li>
+<li><p><strong>coords</strong> (<em>double ndarray</em>) – the coordinates, an array whose shape is (n_points, dim), with C-ordering.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.update_location">
+<span class="sig-name descname"><span class="pre">update_location</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.update_location" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.wait_irecv">
+<span class="sig-name descname"><span class="pre">wait_irecv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.wait_irecv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cwipi.Coupling.wait_issend">
+<span class="sig-name descname"><span class="pre">wait_issend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.Coupling.wait_issend" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.add_local_double_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">add_local_double_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.add_local_double_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.add_local_int_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">add_local_int_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.add_local_int_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.add_local_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">add_local_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.add_local_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Add an integer, double or string parameter to the coupling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – parameter’s name</p></li>
+<li><p><strong>value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em>) – its initial value</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parameter’s type is guessed from <code class="docutils literal notranslate"><span class="pre">type(value)</span></code>. So the following are different:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">add_local_parameter</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">add_local_parameter</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.add_local_string_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">add_local_string_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.add_local_string_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.delete_local_double_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">delete_local_double_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.delete_local_double_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Delete a local double control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.delete_local_int_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">delete_local_int_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.delete_local_int_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Delete a local integer control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.delete_local_string_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">delete_local_string_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.delete_local_string_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Delete a local string control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.dump_application_properties">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">dump_application_properties</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.dump_application_properties" title="Permalink to this definition"></a></dt>
+<dd><p>Dump application properties.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.finalize">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.finalize" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize this module.</p>
+<p>After this call, no other function from this module can be called.
+It is a synchronization point between all applications.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_distant_double_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_distant_double_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_distant_double_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return a distant double control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_distant_int_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_distant_int_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_distant_int_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return a distant integer control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_distant_string_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_distant_string_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_distant_string_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return a distant string control parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_list_double_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_list_double_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_list_double_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of double parameters in the given distant application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_list_int_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_list_int_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_list_int_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of integer parameters in the given distant application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_list_string_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_list_string_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_list_string_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of string parameters in the given distant application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_local_double_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_local_double_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_local_double_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the local double control parameter called <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_local_int_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_local_int_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_local_int_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the local integer control parameter called <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.get_local_string_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">get_local_string_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.get_local_string_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return the local string control parameter called <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.has_double_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">has_double_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.has_double_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the distant application has this double parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.has_int_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">has_int_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.has_int_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the distant application has this integer parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.has_string_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">has_string_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.has_string_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the distant application has this string parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.ho_user_elt_set">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">ho_user_elt_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_basis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_loc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.ho_user_elt_set" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.init">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">common_comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.init" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the cwipi library and create the current communicator application from <code class="docutils literal notranslate"><span class="pre">common_comm</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>common_comm</strong> (<em>MPI.Comm</em>) – Common MPI communicator between all applications</p></li>
+<li><p><strong>application_name</strong> (<em>str</em>) – Current local application name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Internal MPI communicator for the current application group.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>application_comm (MPI.Comm)</p>
+</dd>
+</dl>
+<p>It is a synchronization point between all applications.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.set_local_double_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">set_local_double_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.set_local_double_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.set_local_int_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">set_local_int_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.set_local_int_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.set_local_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">set_local_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.set_local_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Set a parameter’s value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – an (existing) parameter’s name</p></li>
+<li><p><strong>value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em>) – its new value</p></li>
+</ul>
+</dd>
+</dl>
+<p>See also: <a class="reference internal" href="#cwipi.add_local_parameter" title="cwipi.add_local_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_local_parameter()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.set_local_string_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">set_local_string_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.set_local_string_control_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.set_output_listing">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">set_output_listing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_listing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.set_output_listing" title="Permalink to this definition"></a></dt>
+<dd><p>Set up the file used for the output listing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>output_listing</strong> (<em>file</em><em> or </em><em>str</em>) – Output listing file</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this file is written by both cwipi and python, I/O buffering may mix up the output.
+In this case, calling output_listing.flush() before any cwipi call may help.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cwipi.synchronize_control_parameter">
+<span class="sig-prename descclassname"><span class="pre">cwipi.</span></span><span class="sig-name descname"><span class="pre">synchronize_control_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">application_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cwipi.synchronize_control_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>Synchronize local control parameters with an other application.</p>
+<p>It is a synchronization point with this second application.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="old_cwipi_c.html" class="btn btn-neutral float-left" title="C API documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../old_to_new/old_to_new.html" class="btn btn-neutral float-right" title="Old to New" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Read the Docs</span>
+      v: 1.1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
+        
+          <dd><a href="/cwipi/1.2.0/">1.2.0</a></dd>
+        
+          <dd><a href="/cwipi/1.1.0/">1.1.0</a></dd>
+        
+          <dd><a href="/cwipi/1.0.0/">1.0.0</a></dd>
+        
+      </dl>
+      
+      
+      
+      <hr/>
+      Free document hosting provided by <a href="http://www.readthedocs.org">Read the Docs</a>.
+
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

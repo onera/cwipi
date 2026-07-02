@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start &mdash; CWIPI 1.4.0-dev documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+
+  
+    <link rel="shortcut icon" href="_static/cwipiNew_woName.svg"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Old CWIPI" href="old_cwipi/old_cwipi.html" />
+    <link rel="prev" title="License" href="license.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            CWIPI
+              <img src="_static/cwipiNew.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                dev
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Summary</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="philosophy.html">Philosophy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cwipi-c">CWIPI C</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code">Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compilation">Compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#execution">Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cwipi-fortran">CWIPI Fortran</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cwipi-python">CWIPI Python</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Execution</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="old_cwipi/old_cwipi.html">Old CWIPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="old_to_new/old_to_new.html">Old to New</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_cwipi/new_cwipi.html">New CWIPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_server_cwipi/client_server_cwipi.html">Client-Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">CWIPI’s FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CWIPI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start">
+<span id="id1"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
+<p>Here is shown how to couple two codes using the 1.x version of CWIPI in the different
+programming languages in which CWIPI is available. Both codes have the same basic
+polygonal mesh (see figure). code1 sends a field on the nodes to code2 and the unmapped points are checked.</p>
+<a class="reference internal image-reference" href="_images/mesh.png"><img alt="_images/mesh.png" src="_images/mesh.png" style="width: 255.0px; height: 302.5px;" /></a>
+<section id="cwipi-c">
+<h2>CWIPI C<a class="headerlink" href="#cwipi-c" title="Permalink to this heading"></a></h2>
+<section id="code">
+<h3>Code<a class="headerlink" href="#code" title="Permalink to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cwp.h&quot;</span><span class="cp"></span>
+
+<span class="cm">/*----------------------------------------------------------------------</span>
+<span class="cm"> *</span>
+<span class="cm"> * Main : base test : Polygon</span>
+<span class="cm"> *</span>
+<span class="cm"> *---------------------------------------------------------------------*/</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"></span>
+<span class="nf">main</span><span class="w"></span>
+<span class="p">(</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w">   </span><span class="n">argc</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Initialize MPI</span>
+<span class="w">  </span><span class="n">MPI_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i_rank</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_rank</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">i_rank</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">n_rank</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// This test mimics the coupling between 2 codes running each</span>
+<span class="w">  </span><span class="c1">// on one processor.</span>
+<span class="w">  </span><span class="n">assert</span><span class="w"> </span><span class="p">(</span><span class="n">n_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Initialize CWIPI :</span>
+<span class="w">  </span><span class="c1">// In this version of CWIPI each MPI rank can execute multiple codes.</span>
+<span class="w">  </span><span class="c1">// In this particular tutorial, 2 codes are coupled :</span>
+<span class="w">  </span><span class="c1">// &#39;code1&#39; runs on MPI rank 0 and &#39;code2&#39; runs on MPI rank 1.</span>
+<span class="w">  </span><span class="c1">//</span>
+
+<span class="w">  </span><span class="c1">// Here 2 codes are coupled. code1 runs on the processor of</span>
+<span class="w">  </span><span class="c1">// MPI rank 0 and code2 runs on the processor if MPI rank 1.</span>
+<span class="w">  </span><span class="c1">// In this version of CWIPI several codes can execute on the</span>
+<span class="w">  </span><span class="c1">// same MPI rank (here only one code per processor, so n_code = 1).</span>
+<span class="w">  </span><span class="c1">// Therefore an array of code names is given at initialization.</span>
+<span class="w">  </span><span class="c1">// is_active_rank tells if current ranks will be used in</span>
+<span class="w">  </span><span class="c1">// the CWIPI coupling computations.</span>
+<span class="w">  </span><span class="c1">// intra_comm is an array of MPI communicators</span>
+<span class="w">  </span><span class="c1">// giving the for each code on the processors the communicator</span>
+<span class="w">  </span><span class="c1">// to communicate through the ranks of that code.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">  </span><span class="o">**</span><span class="n">code_name</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_code</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Status_t</span><span class="w">  </span><span class="n">is_active_rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_STATUS_ON</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">MPI_Comm</span><span class="w">     </span><span class="o">*</span><span class="n">intra_comm</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">MPI_Comm</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_code</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">I_am_code1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">I_am_code2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;code1&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">I_am_code1</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;code2&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">I_am_code2</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Init</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">n_code</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">)</span><span class="w"> </span><span class="n">code_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">is_active_rank</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">intra_comm</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Create the coupling :</span>
+<span class="w">  </span><span class="c1">// One CWIPI context can hold several couplings. Let us set up the</span>
+<span class="w">  </span><span class="c1">// coupling between code1 and code2. CWP_INTERFACE_SURFACE informs</span>
+<span class="w">  </span><span class="c1">// that the geometrical interface of the meshes of the coupled</span>
+<span class="w">  </span><span class="c1">// codes is a surface, still for CWIPI the coordinate system is 3D.</span>
+<span class="w">  </span><span class="c1">// CWP_COMM_PAR_WITH_PART means that each mesh is partitionned</span>
+<span class="w">  </span><span class="c1">// over the processors of its code. Here the mesh does not change</span>
+<span class="w">  </span><span class="c1">// over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.</span>
+<span class="w">  </span><span class="c1">// CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE designates</span>
+<span class="w">  </span><span class="c1">// which spatial interpolation algorithm is used to map data between</span>
+<span class="w">  </span><span class="c1">// the two codes.</span>
+<span class="w">  </span><span class="c1">// CWP_TIME_EXCH_USER_CONTROLLED is not used yet.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">  </span><span class="o">*</span><span class="n">coupling_name</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;code1_code2&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">coupled_code_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_code</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">coupled_code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;code2&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">coupled_code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;code1&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Cpl_create</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                 </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">coupled_code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                 </span><span class="n">CWP_INTERFACE_SURFACE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">CWP_COMM_PAR_WITH_PART</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">n_part</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">CWP_DYNAMIC_MESH_STATIC</span><span class="p">,</span><span class="w"></span>
+<span class="w">                 </span><span class="n">CWP_TIME_EXCH_USER_CONTROLLED</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Set coupling visualisation:</span>
+<span class="w">  </span><span class="c1">// Output files of the code fields will be written in Ensight ASCII</span>
+<span class="w">  </span><span class="c1">// format (easily readable by Paraview) at each iteration.</span>
+<span class="w">  </span><span class="n">CWP_Visu_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">               </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="n">CWP_VISU_FORMAT_ENSIGHT</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="s">&quot;text&quot;</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Create the field</span>
+<span class="w">  </span><span class="c1">// It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).</span>
+<span class="w">  </span><span class="c1">// For sake of simplicity, this example will only send the field</span>
+<span class="w">  </span><span class="c1">// of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).</span>
+<span class="w">  </span><span class="c1">// On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at</span>
+<span class="w">  </span><span class="c1">// the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)</span>
+<span class="w">  </span><span class="c1">// which is the x coordinate of the mesh in this test.</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">field_name</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;a super fancy field&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w">         </span><span class="n">n_components</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_create</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                     </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_FIELD_STORAGE_INTERLACED</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">n_components</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_DOF_LOCATION_NODE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_FIELD_EXCH_SEND</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_STATUS_ON</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_create</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                     </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_FIELD_STORAGE_INTERLACED</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">n_components</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_DOF_LOCATION_NODE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_FIELD_EXCH_RECV</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">CWP_STATUS_ON</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Begin time step :</span>
+<span class="w">  </span><span class="c1">// In this example there is only one time step. It is mandatory to create the</span>
+<span class="w">  </span><span class="c1">// coupling and the associated fields before starting the first time step.</span>
+<span class="w">  </span><span class="n">CWP_Time_step_beg</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                    </span><span class="mf">0.0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Set the mesh vertices coordinates :</span>
+<span class="w">  </span><span class="c1">// The coordinate system in CWIPI is always 3D, so</span>
+<span class="w">  </span><span class="c1">// we allocate an array of the time the number of vertices</span>
+<span class="w">  </span><span class="c1">// (11 here) to set the coordinates in. The coordinates are</span>
+<span class="w">  </span><span class="c1">// interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).</span>
+<span class="w">  </span><span class="c1">// The NULL argument will be explained later.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w">    </span><span class="n">n_vtx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">coords</span><span class="p">[</span><span class="mi">33</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Mesh_interf_vtx_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="n">n_vtx</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coords</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Set the mesh polygons connectivity :</span>
+<span class="w">  </span><span class="c1">// Let us set a mesh of 5 polygons (CWP_BLOCK_FACE_POLY).</span>
+<span class="w">  </span><span class="c1">// An index array (connec_idx) of size n_elts+1 contains the</span>
+<span class="w">  </span><span class="c1">// information of the number of vertices per polygon. The first</span>
+<span class="w">  </span><span class="c1">// index is always 0, from there we add up the number of vertices</span>
+<span class="w">  </span><span class="c1">// per element. Here one triangle, 2 quadrangles and 2 pentagons.</span>
+<span class="w">  </span><span class="c1">// The connectivity between elements and vertices is an array of</span>
+<span class="w">  </span><span class="c1">// size connec_idx(n_elts+1) (here 21).</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">block_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Mesh_interf_block_add</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                           </span><span class="n">CWP_BLOCK_FACE_POLY</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n_elts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">connec_idx</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">21</span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">connec</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="w">   </span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="w">   </span><span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="w">   </span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="w">   </span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">8</span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Mesh_interf_f_poly_block_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                   </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="n">block_id</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="n">n_elts</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="n">connec_idx</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="n">connec</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                   </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Finalize mesh :</span>
+<span class="w">  </span><span class="c1">// CWIPI hides the parallelism for users, so it is not</span>
+<span class="w">  </span><span class="c1">// mandatory to give a global numbering for mesh data (the</span>
+<span class="w">  </span><span class="c1">// NULL arguments earlier). If not given this numbering is</span>
+<span class="w">  </span><span class="c1">// generated by CWIPI by the following function,</span>
+<span class="w">  </span><span class="c1">// as well as the underlying mesh data structure</span>
+<span class="w">  </span><span class="n">CWP_Mesh_interf_finalize</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                           </span><span class="n">coupling_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Set the field values :</span>
+<span class="w">  </span><span class="c1">// Note that the user has to allocate the array for the</span>
+<span class="w">  </span><span class="c1">// field that will be received by code2 (CWP_FIELD_MAP_TARGET).</span>
+<span class="w">  </span><span class="kt">double</span><span class="w">     </span><span class="o">*</span><span class="n">send_field_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_vtx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_components</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w">     </span><span class="o">*</span><span class="n">recv_field_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_vtx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_components</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n_vtx</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">send_field_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">coords</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_data_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                       </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">CWP_FIELD_MAP_SOURCE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">send_field_data</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// for code2</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_data_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                       </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">CWP_FIELD_MAP_TARGET</span><span class="p">,</span><span class="w"></span>
+<span class="w">                       </span><span class="n">recv_field_data</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Compute interpolation weights :</span>
+<span class="w">  </span><span class="c1">// Set a geometric tolerance of 10% of an element size for</span>
+<span class="w">  </span><span class="c1">// point localisation.</span>
+<span class="w">  </span><span class="n">CWP_Spatial_interp_property_set</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                  </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                  </span><span class="s">&quot;tolerance&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                  </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                  </span><span class="s">&quot;0.1&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">CWP_Spatial_interp_weights_compute</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                     </span><span class="n">coupling_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Exchange field values between codes :</span>
+<span class="w">  </span><span class="c1">// The field exchange functions mimic the way the associated</span>
+<span class="w">  </span><span class="c1">// MPI functions work, see MPI documentation for more information.</span>
+<span class="w">  </span><span class="c1">// for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_issend</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                     </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">field_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// for code2</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_irecv</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                    </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="n">field_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_wait_issend</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="n">field_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// for code2</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">CWP_Field_wait_irecv</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                         </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                         </span><span class="n">field_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Check interpolation :</span>
+<span class="w">  </span><span class="c1">// These functions allow to know how many and for which target</span>
+<span class="w">  </span><span class="c1">// vertices the interpolation operation has been unsuccessful.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w">        </span><span class="n">n_uncomputed_tgts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">uncomputed_tgts</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">n_uncomputed_tgts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_N_uncomputed_tgts_get</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                                  </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                  </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                  </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">uncomputed_tgts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Uncomputed_tgts_get</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">field_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                              </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// End time step :</span>
+<span class="w">  </span><span class="n">CWP_Time_step_end</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Delete field :</span>
+<span class="w">  </span><span class="n">CWP_Field_del</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="n">field_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Delete Mesh :</span>
+<span class="w">  </span><span class="n">CWP_Mesh_interf_del</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">                      </span><span class="n">coupling_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Delete the coupling :</span>
+<span class="w">  </span><span class="n">CWP_Cpl_del</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">              </span><span class="n">coupling_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// free</span>
+<span class="w">  </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">n_uncomputed_tgts</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">uncomputed_tgts</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">send_field_data</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="n">free</span><span class="p">(</span><span class="n">send_field_data</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">recv_field_data</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="n">free</span><span class="p">(</span><span class="n">recv_field_data</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">free</span><span class="p">(</span><span class="n">code_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">free</span><span class="p">(</span><span class="n">intra_comm</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">free</span><span class="p">(</span><span class="n">coupled_code_name</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Finalize CWIPI :</span>
+<span class="w">  </span><span class="n">CWP_Finalize</span><span class="p">();</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Finalize MPI :</span>
+<span class="w">  </span><span class="n">MPI_Finalize</span><span class="p">();</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_SUCCESS</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+</pre></div>
+</div>
+</section>
+<section id="compilation">
+<h3>Compilation<a class="headerlink" href="#compilation" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CWIPI_INSTALL_DIR</span><span class="o">=</span>&lt;path&gt;/&lt;where&gt;/&lt;cwipi&gt;/&lt;is&gt;/&lt;installed&gt;
+mpicc -I<span class="nv">$CWIPI_INSTALL_DIR</span>/include -L<span class="nv">$CWIPI_INSTALL_DIR</span>/lib -o &lt;exec&gt; &lt;file&gt;.c -lcwp
+</pre></div>
+</div>
+</section>
+<section id="execution">
+<h3>Execution<a class="headerlink" href="#execution" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$LD_LIBRARY_PATH</span>:<span class="nv">$CWIPI_INSTALL_DIR</span>/lib/
+mpirun -np <span class="m">2</span> ./&lt;exec&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cwipi-fortran">
+<h2>CWIPI Fortran<a class="headerlink" href="#cwipi-fortran" title="Permalink to this heading"></a></h2>
+<section id="id2">
+<h3>Code<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="cp">#include &quot;cwipi_configf.h&quot;</span>
+
+<span class="k">program </span><span class="n">fortran_new_api_polygon_sol</span><span class="w"></span>
+
+<span class="cp">#ifdef CWP_HAVE_FORTRAN_MPI_MODULE</span>
+<span class="w">    </span><span class="k">use </span><span class="n">mpi</span><span class="w"></span>
+<span class="cp">#endif</span>
+<span class="w">    </span><span class="k">use </span><span class="n">cwp</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">implicit none</span><span class="w"></span>
+
+<span class="cp">#ifndef CWP_HAVE_FORTRAN_MPI_MODULE</span>
+<span class="w">    </span><span class="k">include</span><span class="w"> </span><span class="s2">&quot;mpif.h&quot;</span><span class="w"></span>
+<span class="cp">#endif</span>
+
+<span class="w">  </span><span class="c">!--------------------------------------------------------------------</span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">parameter</span><span class="w">          </span><span class="kd">::</span><span class="w"> </span><span class="n">n_vtx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="n">n_elts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">ierr</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">i_rank</span><span class="p">,</span><span class="w"> </span><span class="n">n_rank</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">n_code</span><span class="w"></span>
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">code_names</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">is_active_rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_STATUS_ON</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">intra_comms</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">n_part</span><span class="w"></span>
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">coupled_code_names</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span><span class="p">)</span><span class="w">         </span><span class="kd">::</span><span class="w"> </span><span class="n">coupling_name</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">coords</span><span class="p">(:,:)</span><span class="w">  </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vtx_g_num</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">connec_idx</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">connec</span><span class="p">(:)</span><span class="w">     </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">elt_g_num</span><span class="p">(:)</span><span class="w">  </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">              </span><span class="kd">::</span><span class="w"> </span><span class="n">id_block</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span><span class="p">)</span><span class="w">         </span><span class="kd">::</span><span class="w"> </span><span class="n">field_name</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">              </span><span class="kd">::</span><span class="w"> </span><span class="n">n_components</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">send_field_data</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">recv_field_data</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">              </span><span class="kd">::</span><span class="w"> </span><span class="n">n_uncomputed_tgts</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">uncomputed_tgts</span><span class="p">(:)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">  </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">I_am_code1</span><span class="w"></span>
+<span class="w">  </span><span class="c">!--------------------------------------------------------------------</span>
+
+<span class="w">  </span><span class="c">! MPI Initialization</span>
+<span class="w">  </span><span class="k">call </span><span class="n">MPI_Init</span><span class="p">(</span><span class="n">ierr</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">call </span><span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">mpi_comm_world</span><span class="p">,</span><span class="w"> </span><span class="n">i_rank</span><span class="p">,</span><span class="w"> </span><span class="n">ierr</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">call </span><span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">mpi_comm_world</span><span class="p">,</span><span class="w"> </span><span class="n">n_rank</span><span class="p">,</span><span class="w"> </span><span class="n">ierr</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! This test mimics the coupling between 2 codes running each</span>
+<span class="w">  </span><span class="c">! on one processor.</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">n_rank</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    print</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot; This executable must be executed on 2 processes&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">stop</span>
+<span class="k">  endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Initialize CWIPI :</span>
+<span class="w">  </span><span class="c">! Here 2 codes are coupled. code1 runs on the processor of</span>
+<span class="w">  </span><span class="c">! MPI rank 0 and code2 runs on the processor if MPI rank 1.</span>
+<span class="w">  </span><span class="c">! In this version of CWIPI several codes can execute on the</span>
+<span class="w">  </span><span class="c">! same MPI rank (here only one code per processor, so n_code = 1).</span>
+<span class="w">  </span><span class="c">! Therefore, an array of code names is given at initialization.</span>
+<span class="w">  </span><span class="c">! is_active_rank tells if current ranks will be used</span>
+<span class="w">  </span><span class="c">! in the CWIPI coupling computations.</span>
+<span class="w">  </span><span class="c">! intra_comm is an array of MPI communicators</span>
+<span class="w">  </span><span class="c">! giving the for each code on the processors the communicator</span>
+<span class="w">  </span><span class="c">! to communicate through the ranks of that code.</span>
+<span class="w">  </span><span class="n">n_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="n">n_code</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">           </span><span class="n">intra_comms</span><span class="p">(</span><span class="n">n_code</span><span class="p">))</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    </span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;code1&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="n">I_am_code1</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span><span class="w"></span>
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">    </span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;code2&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="n">I_am_code1</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span>
+
+<span class="k">  call </span><span class="n">CWP_Init</span><span class="p">(</span><span class="n">mpi_comm_world</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                </span><span class="n">n_code</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                </span><span class="n">code_names</span><span class="p">,</span><span class="w">     </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                </span><span class="n">is_active_rank</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                </span><span class="n">intra_comms</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Create the coupling :</span>
+<span class="w">  </span><span class="c">! One CWIPI context can hold several couplings. Let us set up the</span>
+<span class="w">  </span><span class="c">! coupling between code1 and code2. CWP_INTERFACE_SURFACE informs</span>
+<span class="w">  </span><span class="c">! that the geometrical interface of the meshes of the coupled</span>
+<span class="w">  </span><span class="c">! codes is a surface, still for CWIPI the coordinate system is 3D.</span>
+<span class="w">  </span><span class="c">! CWP_COMM_PAR_WITH_PART means that each mesh is partitionned</span>
+<span class="w">  </span><span class="c">! over the processors of its code. Here the mesh does not change</span>
+<span class="w">  </span><span class="c">! over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.</span>
+<span class="w">  </span><span class="c">! CWP_TIME_EXCH_USER_CONTROLLED is not used yet.</span>
+<span class="w">  </span><span class="n">coupling_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;code1_code2&quot;</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">coupled_code_names</span><span class="p">(</span><span class="n">n_code</span><span class="p">))</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    </span><span class="n">coupled_code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;code2&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">    </span><span class="n">coupled_code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;code1&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span>
+
+<span class="k">  </span><span class="n">n_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Cpl_create</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">                                         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">                                         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">coupled_code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">                                 </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">CWP_INTERFACE_SURFACE</span><span class="p">,</span><span class="w">                                 </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">CWP_COMM_PAR_WITH_PART</span><span class="p">,</span><span class="w">                                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">n_part</span><span class="p">,</span><span class="w">                                                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">CWP_DYNAMIC_MESH_STATIC</span><span class="p">,</span><span class="w">                               </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                      </span><span class="n">CWP_TIME_EXCH_USER_CONTROLLED</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Set coupling visualisation:</span>
+<span class="w">  </span><span class="c">! Output files of the code fields will be written in Ensight ASCII</span>
+<span class="w">  </span><span class="c">! format (easily readable by paraview) at each iteration.</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Visu_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                    </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                    </span><span class="mi">1</span><span class="p">,</span><span class="w">                       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                    </span><span class="n">CWP_VISU_FORMAT_ENSIGHT</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                    </span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Create the field</span>
+<span class="w">  </span><span class="c">! It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).</span>
+<span class="w">  </span><span class="c">! For sake of simplicity, this example will only send the field</span>
+<span class="w">  </span><span class="c">! of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).</span>
+<span class="w">  </span><span class="c">! On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at</span>
+<span class="w">  </span><span class="c">! the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)</span>
+<span class="w">  </span><span class="c">! which is the x coordinate of the mesh in this test.</span>
+<span class="w">  </span><span class="n">field_name</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;a super fancy field&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="n">n_components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+
+<span class="k">    call </span><span class="n">CWP_Field_create</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">field_name</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_FIELD_STORAGE_INTERLACED</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">n_components</span><span class="p">,</span><span class="w">                 </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_DOF_LOCATION_NODE</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_FIELD_EXCH_SEND</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_STATUS_ON</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+
+<span class="k">    call </span><span class="n">CWP_Field_create</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">                </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">field_name</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w">                   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_FIELD_STORAGE_INTERLACED</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">n_components</span><span class="p">,</span><span class="w">                 </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_DOF_LOCATION_NODE</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_FIELD_EXCH_RECV</span><span class="p">,</span><span class="w">          </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">CWP_STATUS_ON</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Begin time step :</span>
+<span class="w">  </span><span class="c">! In this example there is only one time step. It is mandatory to create the</span>
+<span class="w">  </span><span class="c">! coupling and the associated fields before starting the first time step.</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Time_step_beg</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                         </span><span class="mf">0.d0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Set the mesh vertices coordinates :</span>
+<span class="w">  </span><span class="c">! The coordinate system in CWIPI is always 3D, so</span>
+<span class="w">  </span><span class="c">! we allocate an array of the time the number of vertices</span>
+<span class="w">  </span><span class="c">! (11 here) to set the coordinates in. The coordinates are</span>
+<span class="w">  </span><span class="c">! interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).</span>
+<span class="w">  </span><span class="c">! vtx_g_num is a null() argument that will be explained later.</span>
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">coords</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">n_vtx</span><span class="p">))</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="n">coords</span><span class="p">(:,</span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Mesh_interf_vtx_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="mi">0</span><span class="p">,</span><span class="w">             </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">n_vtx</span><span class="p">,</span><span class="w">         </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">coords</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">vtx_g_num</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Set the mesh polygons connectivity :</span>
+<span class="w">  </span><span class="c">! Let us set a mesh of 5 polygons (CWP_BLOCK_FACE_POLY).</span>
+<span class="w">  </span><span class="c">! An index array (connec_idx) of size n_elts+1 contains the</span>
+<span class="w">  </span><span class="c">! information of the number of vertices per polygon. The first</span>
+<span class="w">  </span><span class="c">! index is always 0, from there we add up the number of vertices</span>
+<span class="w">  </span><span class="c">! per element. Here one triangle, 2 quadrangles and 2 pentagons.</span>
+<span class="w">  </span><span class="c">! The connectivity between elements and vertices is an array of</span>
+<span class="w">  </span><span class="c">! size connec_idx(n_elts+1) (here 21).</span>
+<span class="w">  </span><span class="n">id_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_Mesh_interf_block_add</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">       </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="n">CWP_BLOCK_FACE_POLY</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">connec_idx</span><span class="p">(</span><span class="n">n_elts</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="w"></span>
+<span class="w">  </span><span class="n">connec_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">connec</span><span class="p">(</span><span class="mi">21</span><span class="p">))</span><span class="w"></span>
+<span class="w">  </span><span class="n">connec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="w">   </span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="w">   </span><span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="w">   </span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="w">   </span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">8</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Mesh_interf_f_poly_block_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="mi">0</span><span class="p">,</span><span class="w">             </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">id_block</span><span class="p">,</span><span class="w">      </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">n_elts</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">connec_idx</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">connec</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">elt_g_num</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Finalize mesh :</span>
+<span class="w">  </span><span class="c">! CWIPI hides the parallelism for users, so it is not</span>
+<span class="w">  </span><span class="c">! mandatory to give a global numbering for mesh data (the</span>
+<span class="w">  </span><span class="c">! NULL arguments earlier). If not given this numbering is</span>
+<span class="w">  </span><span class="c">! generated by CWIPI by the following function,</span>
+<span class="w">  </span><span class="c">! as well as the underlying mesh data structure</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Mesh_interf_finalize</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                </span><span class="n">coupling_name</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Set the field values :</span>
+<span class="w">  </span><span class="c">! Note that the user has to allocate the array for the</span>
+<span class="w">  </span><span class="c">! field that will be received by code2 (CWP_FIELD_MAP_TARGET).</span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+
+<span class="k">    allocate</span><span class="p">(</span><span class="n">send_field_data</span><span class="p">(</span><span class="n">n_vtx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_components</span><span class="p">))</span><span class="w"></span>
+<span class="w">    </span><span class="k">do </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">n_vtx</span><span class="w"></span>
+<span class="w">      </span><span class="n">send_field_data</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">coords</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="k">end do</span>
+
+<span class="k">    call </span><span class="n">CWP_Field_data_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">field_name</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="mi">0</span><span class="p">,</span><span class="w">                    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">CWP_FIELD_MAP_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">send_field_data</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+
+<span class="k">    allocate</span><span class="p">(</span><span class="n">recv_field_data</span><span class="p">(</span><span class="n">n_vtx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_components</span><span class="p">))</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">call </span><span class="n">CWP_Field_data_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">        </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">field_name</span><span class="p">,</span><span class="w">           </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="mi">0</span><span class="p">,</span><span class="w">                    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">CWP_FIELD_MAP_TARGET</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                            </span><span class="n">recv_field_data</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Compute interpolation weights :</span>
+<span class="w">  </span><span class="c">! Set a geometric tolerance of 10% of an element size for</span>
+<span class="w">  </span><span class="c">! point localisation.</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Spatial_interp_property_set</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="s2">&quot;tolerance&quot;</span><span class="p">,</span><span class="w">   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="n">CWP_DOUBLE</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                       </span><span class="s2">&quot;0.1&quot;</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Spatial_interp_weights_compute</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                          </span><span class="n">coupling_name</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Exchange field values between codes :</span>
+<span class="w">  </span><span class="c">! The field exchange functions mimic the way the associated</span>
+<span class="w">  </span><span class="c">! MPI functions work, see MPI documentation for more information.</span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    call </span><span class="n">CWP_Field_issend</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                          </span><span class="n">field_name</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">    call </span><span class="n">CWP_Field_irecv</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                         </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                         </span><span class="n">field_name</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! for code1</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    call </span><span class="n">CWP_Field_wait_issend</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                               </span><span class="n">field_name</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="c">! for code2</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">    call </span><span class="n">CWP_Field_wait_irecv</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                              </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                              </span><span class="n">field_name</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Check interpolation :</span>
+<span class="w">  </span><span class="c">! These functions allow to know how many and for which target</span>
+<span class="w">  </span><span class="c">! vertices the interpolation operation has been unsuccessful.</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    </span><span class="n">n_uncomputed_tgts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CWP_N_uncomputed_tgts_get</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                  </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                  </span><span class="n">field_name</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                                  </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">send_field_data</span><span class="p">(</span><span class="n">n_uncomputed_tgts</span><span class="p">))</span><span class="w"></span>
+<span class="w">    </span><span class="n">uncomputed_tgts</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">CWP_Uncomputed_tgts_get</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">coupling_name</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="n">field_name</span><span class="p">,</span><span class="w">    </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                                              </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! End time step :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Time_step_end</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Delete field :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Field_Del</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                     </span><span class="n">coupling_name</span><span class="p">,</span><span class="w">   </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                     </span><span class="n">field_name</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Delete Mesh :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Mesh_interf_del</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                           </span><span class="n">coupling_name</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Delete the coupling :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Cpl_Del</span><span class="p">(</span><span class="n">code_names</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                   </span><span class="n">coupling_name</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! free</span>
+<span class="w">  </span><span class="k">deallocate</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">deallocate</span><span class="p">(</span><span class="n">connec</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">deallocate</span><span class="p">(</span><span class="n">connec_idx</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">I_am_code1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    deallocate</span><span class="p">(</span><span class="n">send_field_data</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">    deallocate</span><span class="p">(</span><span class="n">recv_field_data</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">endif</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Finalize CWIPI :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">CWP_Finalize</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">! Finalize MPI :</span>
+<span class="w">  </span><span class="k">call </span><span class="n">MPI_Finalize</span><span class="p">(</span><span class="n">ierr</span><span class="p">)</span><span class="w"></span>
+
+<span class="k">end program </span><span class="n">fortran_new_api_polygon_sol</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Compilation<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CWIPI_INSTALL_DIR</span><span class="o">=</span>&lt;path&gt;/&lt;where&gt;/&lt;cwipi&gt;/&lt;is&gt;/&lt;installed&gt;
+mpif90 -I<span class="nv">$CWIPI_INSTALL_DIR</span>/include -L<span class="nv">$CWIPI_INSTALL_DIR</span>/lib -o &lt;exec&gt; &lt;file&gt;.f90 -lcwpf -lcwp -cpp
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>Execution<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$LD_LIBRARY_PATH</span>:<span class="nv">$CWIPI_INSTALL_DIR</span>/lib/
+mpirun -np <span class="m">2</span> ./&lt;exec&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cwipi-python">
+<h2>CWIPI Python<a class="headerlink" href="#cwipi-python" title="Permalink to this heading"></a></h2>
+<section id="id5">
+<h3>Code<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">import</span> <span class="nn">mpi4py.MPI</span> <span class="k">as</span> <span class="nn">MPI</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">def</span> <span class="nf">runTest</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run tests on Python interface of new API</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initialize MPI</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+    <span class="n">i_rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span>
+    <span class="n">n_rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="c1"># This test mimics the coupling between 2 codes running each</span>
+    <span class="c1"># on one processor.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">n_rank</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;      Not executed : only available for 2 processes&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Load Python CWIPI module :</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pycwp</span> <span class="kn">import</span> <span class="n">pycwp</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;      Error : CWIPI module not found (update PYTHONPATH variable)&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Initialize CWIPI :</span>
+    <span class="c1"># Here 2 codes are coupled. code1 runs on the processor of</span>
+    <span class="c1"># MPI rank 0 and code2 runs on the processor if MPI rank 1.</span>
+    <span class="c1"># In this version of CWIPI several codes can execute on the</span>
+    <span class="c1"># same MPI rank (here only one code per processor, so n_code = 1).</span>
+    <span class="c1"># Therefore, an array of code names is given at initialization.</span>
+    <span class="c1"># is_active_rank tells if current ranks will be used</span>
+    <span class="c1"># in the CWIPI coupling computations.</span>
+    <span class="c1"># intra_comm is an array of MPI communicators</span>
+    <span class="c1"># giving the for each code on the processors the communicator</span>
+    <span class="c1"># to communicate through the ranks of that code.</span>
+    <span class="n">n_code</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">code_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;code1&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">code_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;code2&quot;</span><span class="p">]</span>
+
+    <span class="n">is_active_rank</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">intra_comm</span> <span class="o">=</span> <span class="n">pycwp</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span>
+                            <span class="n">code_name</span><span class="p">,</span>
+                            <span class="n">is_active_rank</span><span class="p">)</span>
+
+    <span class="c1"># Create the coupling :</span>
+    <span class="c1"># One CWIPI context can hold several couplings. Let us set up the</span>
+    <span class="c1"># coupling between code1 and code2. CWP_INTERFACE_SURFACE informs</span>
+    <span class="c1"># that the geometrical interface of the meshes of the coupled</span>
+    <span class="c1"># codes is a surface, still for CWIPI the coordinate system is 3D.</span>
+    <span class="c1"># CWP_COMM_PAR_WITH_PART means that each mesh is partitionned</span>
+    <span class="c1"># over the processors of its code. Here the mesh does not change</span>
+    <span class="c1"># over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.</span>
+    <span class="c1"># CWP_TIME_EXCH_USER_CONTROLLED is not used yet.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">coupled_code_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;code2&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">coupled_code_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;code1&quot;</span><span class="p">]</span>
+    <span class="n">n_part</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cpl</span> <span class="o">=</span> <span class="n">pycwp</span><span class="o">.</span><span class="n">Coupling</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                         <span class="s2">&quot;code1_code2&quot;</span><span class="p">,</span>
+                         <span class="n">coupled_code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                         <span class="n">pycwp</span><span class="o">.</span><span class="n">INTERFACE_SURFACE</span><span class="p">,</span>
+                         <span class="n">pycwp</span><span class="o">.</span><span class="n">COMM_PAR_WITH_PART</span><span class="p">,</span>
+                         <span class="n">pycwp</span><span class="o">.</span><span class="n">SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE</span><span class="p">,</span>
+                         <span class="n">n_part</span><span class="p">,</span>
+                         <span class="n">pycwp</span><span class="o">.</span><span class="n">DYNAMIC_MESH_STATIC</span><span class="p">,</span>
+                         <span class="n">pycwp</span><span class="o">.</span><span class="n">TIME_EXCH_USER_CONTROLLED</span><span class="p">)</span>
+
+    <span class="c1"># Set coupling visualisation:</span>
+    <span class="c1"># Output files of the code fields will be written in Ensight ASCII</span>
+    <span class="c1"># format (easily readable by Paraview) at each iteration.</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">visu_set</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">pycwp</span><span class="o">.</span><span class="n">VISU_FORMAT_ENSIGHT</span><span class="p">,</span>
+                 <span class="s2">&quot;text&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create the field</span>
+    <span class="c1"># It is possible to operate a bidirectional exchange (see c_new_vs_old_sendrecv).</span>
+    <span class="c1"># For sake of simplicity, this example will only send the field</span>
+    <span class="c1"># of code1 (CWP_FIELD_EXCH_SEND) to code2 (CWP_FIELD_EXCH_RECV).</span>
+    <span class="c1"># On code1 there is a field (CWP_FIELD_MAP_SOURCE) located at</span>
+    <span class="c1"># the vertices (CWP_DOF_LOCATION_NODE) with one component (n_components)</span>
+    <span class="c1"># which is the x coordinate of the mesh in this test.</span>
+    <span class="n">n_components</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># for code1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+      <span class="n">field</span> <span class="o">=</span> <span class="n">cpl</span><span class="o">.</span><span class="n">field_create</span><span class="p">(</span><span class="s2">&quot;a super fancy field&quot;</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">DOUBLE</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_STORAGE_INTERLACED</span><span class="p">,</span>
+                               <span class="n">n_components</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">DOF_LOCATION_NODE</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_EXCH_SEND</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">STATUS_ON</span><span class="p">)</span>
+
+    <span class="c1"># for code2</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">field</span> <span class="o">=</span> <span class="n">cpl</span><span class="o">.</span><span class="n">field_create</span><span class="p">(</span><span class="s2">&quot;a super fancy field&quot;</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">DOUBLE</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_STORAGE_INTERLACED</span><span class="p">,</span>
+                               <span class="n">n_components</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">DOF_LOCATION_NODE</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_EXCH_RECV</span><span class="p">,</span>
+                               <span class="n">pycwp</span><span class="o">.</span><span class="n">STATUS_ON</span><span class="p">)</span>
+
+    <span class="c1"># Begin time step :</span>
+    <span class="c1"># In this example there is only one time step. It is mandatory to create the</span>
+    <span class="c1"># coupling and the associated fields before starting the first time step.</span>
+    <span class="n">pycwp</span><span class="o">.</span><span class="n">time_step_beg</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="c1"># Set the mesh vertices coordinates :</span>
+    <span class="c1"># The coordinate system in CWIPI is always 3D, so</span>
+    <span class="c1"># we allocate an array of the time the number of vertices</span>
+    <span class="c1"># (11 here) to set the coordinates in. The coordinates are</span>
+    <span class="c1"># interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).</span>
+    <span class="c1"># The None argument will be explained later.</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">mesh_interf_vtx_set</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">coords</span><span class="p">,</span>
+                            <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Set the mesh polygons connectivity :</span>
+    <span class="c1"># Let us set a mesh of 5 polygons (CWP_BLOCK_FACE_POLY).</span>
+    <span class="c1"># An index array (connec_idx) of size n_elts+1 contains the</span>
+    <span class="c1"># information of the number of vertices per polygon. The first</span>
+    <span class="c1"># index is always 0, from there we add up the number of vertices</span>
+    <span class="c1"># per element. Here one triangle, 2 quadrangles and 2 pentagons.</span>
+    <span class="c1"># The connectivity between elements and vertices is an array of</span>
+    <span class="c1"># size connec_idx(n_elts+1) (here 21).</span>
+    <span class="n">block_id</span> <span class="o">=</span> <span class="n">cpl</span><span class="o">.</span><span class="n">mesh_interf_block_add</span><span class="p">(</span><span class="n">pycwp</span><span class="o">.</span><span class="n">BLOCK_FACE_POLY</span><span class="p">)</span>
+
+    <span class="n">connec_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">21</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">connec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span>   <span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span>   <span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span>   <span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">mesh_interf_f_poly_block_set</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">block_id</span><span class="p">,</span>
+                                     <span class="n">connec_idx</span><span class="p">,</span>
+                                     <span class="n">connec</span><span class="p">,</span>
+                                     <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Finalize mesh :</span>
+    <span class="c1"># CWIPI hides the parallelism for users, so it is not</span>
+    <span class="c1"># mandatory to give a global numbering for mesh data (the</span>
+    <span class="c1"># None arguments earlier). If not given this numbering is</span>
+    <span class="c1"># generated by CWIPI by the following function,</span>
+    <span class="c1"># as well as the underlying mesh data structure</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">mesh_interf_finalize</span><span class="p">()</span>
+
+    <span class="c1"># Set the field values :</span>
+    <span class="c1"># Note that the user has to allocate the array for the</span>
+    <span class="c1"># field that will be received by code2 (CWP_FIELD_MAP_TARGET).</span>
+    <span class="n">n_vtx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span><span class="o">//</span><span class="mi">3</span>
+    <span class="n">send_field_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vtx</span><span class="o">*</span><span class="n">n_components</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">recv_field_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vtx</span><span class="o">*</span><span class="n">n_components</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vtx</span><span class="p">):</span>
+      <span class="n">send_field_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="c1"># for code1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">data_set</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_MAP_SOURCE</span><span class="p">,</span>
+                     <span class="n">send_field_data</span><span class="p">)</span>
+
+    <span class="c1"># for code2</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">data_set</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">pycwp</span><span class="o">.</span><span class="n">FIELD_MAP_TARGET</span><span class="p">,</span>
+                     <span class="n">recv_field_data</span><span class="p">)</span>
+
+    <span class="c1"># Compute interpolation weights :</span>
+    <span class="c1"># Set a geometric tolerance of 10% of an element size for</span>
+    <span class="c1"># point localisation.</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">spatial_interp_property_set</span><span class="p">(</span><span class="s2">&quot;tolerance&quot;</span><span class="p">,</span>
+                                    <span class="n">pycwp</span><span class="o">.</span><span class="n">DOUBLE</span><span class="p">,</span>
+                                    <span class="s2">&quot;0.1&quot;</span><span class="p">)</span>
+
+    <span class="n">cpl</span><span class="o">.</span><span class="n">spatial_interp_weights_compute</span><span class="p">()</span>
+
+    <span class="c1"># Exchange field values between codes :</span>
+    <span class="c1"># The field exchange functions mimic the way the associated</span>
+    <span class="c1"># MPI functions work, see MPI documentation for more information.</span>
+
+    <span class="c1"># for code1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">issend</span><span class="p">()</span>
+
+    <span class="c1"># for code2</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">irecv</span><span class="p">()</span>
+
+    <span class="c1"># for code1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">wait_issend</span><span class="p">()</span>
+
+    <span class="c1"># for code2</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">field</span><span class="o">.</span><span class="n">wait_irecv</span><span class="p">()</span>
+
+    <span class="c1"># Check interpolation :</span>
+    <span class="c1"># These functions allow to know how many and for which target</span>
+    <span class="c1"># vertices the interpolation operation has been unsuccessful.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">n_uncomputed_tgts</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">n_uncomputed_tgts_get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+      <span class="n">uncomputed_tgts</span>   <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">uncomputed_tgts_get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># End time step :</span>
+    <span class="n">pycwp</span><span class="o">.</span><span class="n">time_step_end</span><span class="p">(</span><span class="n">code_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Delete field :</span>
+    <span class="k">del</span> <span class="n">field</span>
+
+    <span class="c1"># Delete Mesh :</span>
+    <span class="n">cpl</span><span class="o">.</span><span class="n">mesh_interf_del</span><span class="p">()</span>
+
+    <span class="c1"># Delete the coupling :</span>
+    <span class="k">del</span> <span class="n">cpl</span>
+
+    <span class="c1"># Finalize CWIPI :</span>
+    <span class="n">pycwp</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+
+    <span class="c1"># Finalize MPI :</span>
+    <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">runTest</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>Execution<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CWIPI_INSTALL_DIR</span><span class="o">=</span>&lt;path&gt;/&lt;where&gt;/&lt;cwipi&gt;/&lt;is&gt;/&lt;installed&gt;
+<span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$CWIPI_INSTALL_DIR</span>/lib/python&lt;version&gt;/site-packages:<span class="nv">$PYTHONPATH</span>
+mpirun -np <span class="m">2</span> python &lt;file&gt;.py
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="license.html" class="btn btn-neutral float-left" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="old_cwipi/old_cwipi.html" class="btn btn-neutral float-right" title="Old CWIPI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Read the Docs</span>
+      v: dev
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
+        
+          <dd><a href="/cwipi/1.2.0/">1.2.0</a></dd>
+        
+          <dd><a href="/cwipi/1.1.0/">1.1.0</a></dd>
+        
+          <dd><a href="/cwipi/1.0.0/">1.0.0</a></dd>
+        
+      </dl>
+      
+      
+      
+      <hr/>
+      Free document hosting provided by <a href="http://www.readthedocs.org">Read the Docs</a>.
+
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

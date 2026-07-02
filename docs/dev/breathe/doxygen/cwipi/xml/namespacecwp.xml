@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="namespacecwp" kind="namespace" language="Fortran">
+    <compoundname>cwp</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/tests/tutorial/fortran_new_api_polygon_sol.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

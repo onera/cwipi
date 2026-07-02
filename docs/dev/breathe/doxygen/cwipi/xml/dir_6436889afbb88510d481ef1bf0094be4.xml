@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="dir_6436889afbb88510d481ef1bf0094be4" kind="dir">
+    <compoundname>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server</compoundname>
+    <innerfile refid="client_8h">client.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/"/>
+  </compounddef>
+</doxygen>

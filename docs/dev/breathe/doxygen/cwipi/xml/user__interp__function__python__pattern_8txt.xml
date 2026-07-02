@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="user__interp__function__python__pattern_8txt" kind="file" language="C++">
+    <compoundname>user_interp_function_python_pattern.txt</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#=============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>This<sp/>file<sp/>contains<sp/>the<sp/>functions<sp/>in<sp/>Python<sp/>to<sp/>be<sp/>called<sp/>in<sp/>a<sp/>user<sp/>interpolation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>function<sp/>(ie.<sp/>callback)<sp/>to<sp/>retrieve<sp/>local<sp/>geometric<sp/>data.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#=============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>sys</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal">def<sp/>user_interp_function_python(field,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i_part,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer_in,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer_out):</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/>#<sp/>IMPORT</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/>try:</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>from<sp/>pycwp<sp/>import<sp/>pycwp</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/>except:</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>i_rank<sp/>==<sp/>0:</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;<sp/><sp/><sp/><sp/><sp/><sp/>Error<sp/>:<sp/>CWIPI<sp/>module<sp/>not<sp/>found<sp/>(update<sp/>PYTHONPATH<sp/>variable)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>sys.exit(1)</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/>#<sp/>GENERAL<sp/>GEOMETRIC<sp/>DATA</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>number<sp/>of<sp/>components<sp/>of<sp/>the<sp/>field</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/>n_components<sp/>=<sp/>field.n_components</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>field<sp/>data<sp/>storage<sp/>type</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/>storage<sp/>=<sp/>field.storage</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>location<sp/>of<sp/>the<sp/>degrees<sp/>of<sp/>freedom</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/>dof_location<sp/>=<sp/>field.dof_location</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>data<sp/>from<sp/>the<sp/>source<sp/>of<sp/>the<sp/>exchange</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/>src_data<sp/>=<sp/>field.src_data_properties_get(i_part)</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/>n_src<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>src_data[</highlight><highlight class="stringliteral">&quot;n_src&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/>src_to_tgt_idx<sp/>=<sp/>src_data[</highlight><highlight class="stringliteral">&quot;src_to_tgt_idx&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>data<sp/>from<sp/>the<sp/>target<sp/>of<sp/>the<sp/>exchange</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/>tgt_data<sp/>=<sp/>field.tgt_data_properties_get(i_part)</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/>n_tgt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>tgt_data[</highlight><highlight class="stringliteral">&quot;n_tgt&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/>computed_tgt<sp/><sp/><sp/>=<sp/>tgt_data[</highlight><highlight class="stringliteral">&quot;computed_tgt&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/>tgt_to_src_idx<sp/>=<sp/>tgt_data[</highlight><highlight class="stringliteral">&quot;tgt_to_src_idx&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/>spatial_interp_algorithm<sp/>=<sp/>field.spatial_interp_algo</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/>#<sp/>LOCATION<sp/>SPATIAL<sp/>INTERPOLATION<sp/>ALGORITHM</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>weights<sp/>computed<sp/>by<sp/>the<sp/>location<sp/>spatial<sp/>interpolation<sp/>algorithm</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/>weights<sp/>=<sp/>field.location_weights_get(i_part)</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>point<sp/>data</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>point_data<sp/>=<sp/>location_point_data_get(i_part)</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/>points_coords<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>point_data[</highlight><highlight class="stringliteral">&quot;points_coords&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>points_uvw<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>point_data[</highlight><highlight class="stringliteral">&quot;points_uvw&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/>points_dist2<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>point_data[</highlight><highlight class="stringliteral">&quot;points_dist2&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/>points_projected_coords<sp/>=<sp/>point_data[</highlight><highlight class="stringliteral">&quot;points_projected_coords&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>spatial<sp/>interpolation<sp/>internal<sp/>cell-&gt;vertex<sp/>connectivity</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/>connectivity_data<sp/>=<sp/>field.location_internal_cell_vtx_get(i_part)</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/>cell_vtx_idx<sp/>=<sp/>connectivity_data[</highlight><highlight class="stringliteral">&quot;cell_vtx_idx&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/>cell_vtx<sp/><sp/><sp/><sp/><sp/>=<sp/>connectivity_data[</highlight><highlight class="stringliteral">&quot;cell_vtx&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/>#<sp/>INTERSECTION<sp/>SPATIAL<sp/>INTERPOLATION<sp/>ALGORITHM</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>the<sp/>intersection<sp/>volumes</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/>volumes<sp/>=<sp/>field.intersection_volumes_get(i_part)</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>local<sp/>target<sp/>elements<sp/>volumes</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/>elt_tgt_volume<sp/>=<sp/>field.intersection_tgt_elt_volumes_get(i_part)</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>#<sp/>NEAREST<sp/>NEIGHBORS<sp/>SPATIAL<sp/>INTERPOLATION<sp/>ALGORITHM</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>squared<sp/>distances<sp/>to<sp/>nearest<sp/>source<sp/>points</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/>distances2<sp/>=<sp/>field.nearest_neighbors_distances_get(i_part)</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/>#<sp/>Get<sp/>coordinates<sp/>of<sp/>nearest<sp/>source<sp/>points</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/>clst_src_point_coords<sp/>=<sp/>field.nearest_neighbors_coord_get(i_part)</highlight></codeline>
+    </programlisting>
+    <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/pattern/user_interp_function_python_pattern.txt"/>
+  </compounddef>
+</doxygen>

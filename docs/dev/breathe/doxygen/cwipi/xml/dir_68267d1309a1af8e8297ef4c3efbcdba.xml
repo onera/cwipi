@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
+    <compoundname>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src</compoundname>
+    <innerdir refid="dir_efd04a19529e6329a36d3fe7619458ad">/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new</innerdir>
+    <innerfile refid="cwipi_8h">cwipi.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/"/>
+  </compounddef>
+</doxygen>

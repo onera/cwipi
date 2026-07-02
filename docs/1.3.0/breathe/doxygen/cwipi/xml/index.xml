@@ -455,16 +455,16 @@
   </compound>
   <compound refid="python__new__api__polygon__sol_8py" kind="file"><name>python_new_api_polygon_sol.py</name>
   </compound>
-  <compound refid="dir_6436889afbb88510d481ef1bf0094be4" kind="dir"><name>/stck/thennion/cwipi/src/new/client_server</name>
+  <compound refid="dir_6436889afbb88510d481ef1bf0094be4" kind="dir"><name>/stck/ndelling/CODES/cwipi/src/new/client_server</name>
   </compound>
-  <compound refid="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir"><name>/stck/thennion/cwipi/src/new</name>
+  <compound refid="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir"><name>/stck/ndelling/CODES/cwipi/src/new</name>
   </compound>
-  <compound refid="dir_8fdb7f4d27c6340e06275085d6f34a15" kind="dir"><name>/stck/thennion/cwipi/pattern</name>
+  <compound refid="dir_8fdb7f4d27c6340e06275085d6f34a15" kind="dir"><name>/stck/ndelling/CODES/cwipi/pattern</name>
   </compound>
-  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>/stck/thennion/cwipi/src</name>
+  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>/stck/ndelling/CODES/cwipi/src</name>
   </compound>
-  <compound refid="dir_59425e443f801f1f2fd8bbe4959a3ccf" kind="dir"><name>/stck/thennion/cwipi/tests</name>
+  <compound refid="dir_59425e443f801f1f2fd8bbe4959a3ccf" kind="dir"><name>/stck/ndelling/CODES/cwipi/tests</name>
   </compound>
-  <compound refid="dir_401b27da25eab5df96b3acf87382f9ab" kind="dir"><name>/stck/thennion/cwipi/tests/tutorial</name>
+  <compound refid="dir_401b27da25eab5df96b3acf87382f9ab" kind="dir"><name>/stck/ndelling/CODES/cwipi/tests/tutorial</name>
   </compound>
 </doxygenindex>

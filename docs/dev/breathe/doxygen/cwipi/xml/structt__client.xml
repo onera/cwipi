@@ -1,0 +1,197 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.20" xml:lang="en-US">
+  <compounddef id="structt__client" kind="struct" language="C++" prot="public">
+    <compoundname>t_client</compoundname>
+    <includes refid="client_8h" local="no">client.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structt__client_1a2677588656b3ca258b4036a93f8eda85" prot="public" static="no" mutable="no">
+        <type>MPI_Comm</type>
+        <definition>MPI_Comm t_client::comm</definition>
+        <argsstring></argsstring>
+        <name>comm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>comm </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="53" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1adcf60e0cf993efc97122e396d18d8127" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::i_rank</definition>
+        <argsstring></argsstring>
+        <name>i_rank</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>i_rank </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="54" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a998a10f1522195af93fb72b2c866ffbd" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* t_client::code_name</definition>
+        <argsstring></argsstring>
+        <name>code_name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>code_name </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="55" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a5a07cf5049bf11504fb26d467aa7b45d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::server_port</definition>
+        <argsstring></argsstring>
+        <name>server_port</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>server_port </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="56" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a8ca108874e657bfe2f84514288be80c8" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>flags </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="57" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a7d051eef4e818817962a3a2d29465c21" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::socket</definition>
+        <argsstring></argsstring>
+        <name>socket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>socket </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="58" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a6ba49fa607e53ed8714c26fbbaf083d4" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::max_msg_size</definition>
+        <argsstring></argsstring>
+        <name>max_msg_size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>max_msg_size </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="59" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a854e1eb147730faacf1085fc3f82b463" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::listen_socket</definition>
+        <argsstring></argsstring>
+        <name>listen_socket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>listen_socket </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="60" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a728417d77804361dc25b35f8f28a670f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::connected_socket</definition>
+        <argsstring></argsstring>
+        <name>connected_socket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>connected_socket </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="61" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a789eb76ca9b07e772a9229b4bdf99bca" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::client_endianess</definition>
+        <argsstring></argsstring>
+        <name>client_endianess</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>client_endianess </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="62" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1ab2cd80d3da8eec6fa90deff8c85656f9" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int t_client::server_endianess</definition>
+        <argsstring></argsstring>
+        <name>server_endianess</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>server_endianess </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="63" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structt__client_1a36f57fa1ddf0d4a0535707e014c2f4ce" prot="public" static="no" mutable="no">
+        <type>char</type>
+        <definition>char t_client::server_name[256]</definition>
+        <argsstring>[256]</argsstring>
+        <name>server_name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>server_name </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="64" column="12" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Client storage structure. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" line="51" column="1" bodyfile="/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server/client.h" bodystart="52" bodyend="66"/>
+    <listofallmembers>
+      <member refid="structt__client_1a789eb76ca9b07e772a9229b4bdf99bca" prot="public" virt="non-virtual"><scope>t_client</scope><name>client_endianess</name></member>
+      <member refid="structt__client_1a998a10f1522195af93fb72b2c866ffbd" prot="public" virt="non-virtual"><scope>t_client</scope><name>code_name</name></member>
+      <member refid="structt__client_1a2677588656b3ca258b4036a93f8eda85" prot="public" virt="non-virtual"><scope>t_client</scope><name>comm</name></member>
+      <member refid="structt__client_1a728417d77804361dc25b35f8f28a670f" prot="public" virt="non-virtual"><scope>t_client</scope><name>connected_socket</name></member>
+      <member refid="structt__client_1a8ca108874e657bfe2f84514288be80c8" prot="public" virt="non-virtual"><scope>t_client</scope><name>flags</name></member>
+      <member refid="structt__client_1adcf60e0cf993efc97122e396d18d8127" prot="public" virt="non-virtual"><scope>t_client</scope><name>i_rank</name></member>
+      <member refid="structt__client_1a854e1eb147730faacf1085fc3f82b463" prot="public" virt="non-virtual"><scope>t_client</scope><name>listen_socket</name></member>
+      <member refid="structt__client_1a6ba49fa607e53ed8714c26fbbaf083d4" prot="public" virt="non-virtual"><scope>t_client</scope><name>max_msg_size</name></member>
+      <member refid="structt__client_1ab2cd80d3da8eec6fa90deff8c85656f9" prot="public" virt="non-virtual"><scope>t_client</scope><name>server_endianess</name></member>
+      <member refid="structt__client_1a36f57fa1ddf0d4a0535707e014c2f4ce" prot="public" virt="non-virtual"><scope>t_client</scope><name>server_name</name></member>
+      <member refid="structt__client_1a5a07cf5049bf11504fb26d467aa7b45d" prot="public" virt="non-virtual"><scope>t_client</scope><name>server_port</name></member>
+      <member refid="structt__client_1a7d051eef4e818817962a3a2d29465c21" prot="public" virt="non-virtual"><scope>t_client</scope><name>socket</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
