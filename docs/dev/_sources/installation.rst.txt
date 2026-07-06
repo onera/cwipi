@@ -28,8 +28,6 @@ Follow these steps to build **CWIPI** from the sources:
 
 If installation fails, use the following CMake options.
 
-
-
 CMake general options
 =====================
 
@@ -63,7 +61,6 @@ If a simple autodetection fails, you can use these options to find Python :
     PYTHON_INCLUDE_DIR=<path>
 
 Refer to `FindPython <https://cmake.org/cmake/help/latest/module/FindPython.html>`_ in the CMake documentation for more information.
-
 
 **Build shared library**
 
@@ -127,7 +124,6 @@ or use the following CMake options
     CMAKE_C_COMPILER=<C compiler>
     CMAKE_CXX_COMPILER=<CXX compiler>
     CMAKE_Fortran_COMPILER=<Fortran compiler>
-
 
 CMake MPI options
 =================

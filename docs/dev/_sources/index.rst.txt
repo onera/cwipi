@@ -21,6 +21,10 @@ General presentation
 
 :ref:`License <license>`
 
+`How to contribute to CWIPI? <https://github.com/onera/cwipi/blob/dev/CONTRIBUTING.md>`_
+
+`Community and Support <https://github.com/onera/cwipi/blob/dev/COMMUNITY.md>`_
+
 ###########
 User manual
 ###########
