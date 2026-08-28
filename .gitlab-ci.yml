@@ -177,6 +177,7 @@ unit_test:cwipi:
     - fi
   script:
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
+    - export NAvailRank=12
     - ./cwp_run -ics -timeout 5
 
 unit_test:clt-intel-oneapi:

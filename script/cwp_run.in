@@ -191,7 +191,9 @@ NrankUser=0
 runMake=0
 Test=""
 IsSrunMPI=0
-NAvailRank=$(getconf _NPROCESSORS_CONF)
+if [[ -z "${NAvailRank+x}" ]]; then
+  NAvailRank=$(getconf _NPROCESSORS_CONF)
+fi
 failedTest=()
 testWithOutput=()
 testIgnored=()
