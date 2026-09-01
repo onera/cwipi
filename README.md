@@ -13,7 +13,7 @@ The user documentation is available either on [the GitHub page](https://onera.gi
 ### Dependencies
 
 General dependencies for building **CWIPI** are:
-- a C++ compiler (tested with `gcc 10, 12, 14, 15`, `intel 2022`, `intel-llvm 2022`)
+- a C++ compiler (tested with `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
 - [CMake](https://cmake.org/) (version 3.16 or higher)
 - an MPI distribution (tested with `openmpi` and `intel oneapi`)
 
@@ -23,7 +23,7 @@ To run **CWIPI** tests with `cwp_run`, additional dependencies are:
 - [gnu-time](https://formulae.brew.sh/formula/gnu-time) on macOS
 
 To build **CWIPI** Fortran API, additional dependencies are:
-- a Fortran 90 compiler (tested with `gfortran` based on `gcc 10, 12, 14, 15`, `intel 2022`, `intel-llvm 2022`)
+- a Fortran 90 compiler (tested with `gfortran` based on `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
 
 To build **CWIPI** Python API, additional dependencies are:
 - `numpy (1.x)`
