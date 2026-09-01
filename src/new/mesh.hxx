@@ -859,47 +859,45 @@ namespace cwipi {
     return block-> ConnecGet()[i_part];
   }
 
-  //-->>
   int Mesh::getNCell(int id_part) const {
-      return _nCells[id_part];
+    return _nCells[id_part];
   }
 
   int Mesh::getNFace(int id_part) const {
-      return _nFace[id_part];
+    return _nFace[id_part];
   }
 
   int Mesh::getNEdge(int id_part) const {
-      return _nEdge[id_part];
+    return _nEdge[id_part];
   }
 
   int *Mesh::getCellFaceIndex(int i_part) {
-      return _cellFaceIdx[i_part];
+    return _cellFaceIdx[i_part];
   }
 
   int *Mesh::getCellFace(int i_part) {
-      return _cellFace[i_part];
+    return _cellFace[i_part];
   }
 
   int *Mesh::getFaceEdgeIndex(int i_part) {
-      return _faceEdgeIdx[i_part];
+    return _faceEdgeIdx[i_part];
   }
 
   int *Mesh::getFaceEdge(int i_part) {
-      return _faceEdge[i_part];
+    return _faceEdge[i_part];
   }
 
   int *Mesh::getFaceVtxIndex(int i_part) {
-      return _faceVtxIdx[i_part];
+    return _faceVtxIdx[i_part];
   }
 
   int *Mesh::getFaceVtx(int i_part) {
-      return _faceVtx[i_part];
+    return _faceVtx[i_part];
   }
 
   int *Mesh::getEdgeVtx(int i_part) {
-      return _edgeVtx[i_part];
+    return _edgeVtx[i_part];
   }
-  //<<--
 
 }
 

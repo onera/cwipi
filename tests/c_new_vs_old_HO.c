@@ -37,10 +37,10 @@
 #include "pdm_logging.h"
 #include "pdm_error.h"
 #include "pdm_mpi.h"
-#include "pdm_timer.h"
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_part_mesh_nodal.h"
 #include "pdm_vtk.h"
+#include "pdm_ho_ordering.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ?  (a) : (b))
@@ -262,7 +262,7 @@ _gen_mesh
     int order_deformation = MAX(1, (int) ceil (sqrt(order)));
     const PDM_g_num_t *distrib_vtx = PDM_DMesh_nodal_distrib_vtx_get(dmn);
     int dn_vtx = distrib_vtx[i_rank+1] - distrib_vtx[i_rank];
-    double *dvtx_coord = PDM_DMesh_nodal_vtx_get(dmn);
+    double *dvtx_coord = PDM_DMesh_nodal_vtx_get(dmn, PDM_OWNERSHIP_KEEP);
     // _rotate(dn_vtx,
     //         dvtx_coord);
     for (int i = 0; i < dn_vtx; i++) {
@@ -300,11 +300,11 @@ _gen_mesh
     (*n_node)[ipart] = PDM_part_mesh_nodal_n_vtx_get        (pmn, ipart);
     (*n_elt) [ipart] = PDM_part_mesh_nodal_section_n_elt_get(pmn, 0, ipart);
 
-    double *_node_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart);
+    double *_node_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart, PDM_OWNERSHIP_KEEP);
     (*node_coord)[ipart] = malloc(sizeof(double) * (*n_node)[ipart] * 3);
     memcpy((*node_coord)[ipart], _node_coord, sizeof(double) * (*n_node)[ipart] * 3);
 
-    PDM_g_num_t *_node_ln_to_gn = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart);
+    PDM_g_num_t *_node_ln_to_gn = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart, PDM_OWNERSHIP_KEEP);
     (*node_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_node)[ipart]);
     memcpy((*node_ln_to_gn)[ipart], _node_ln_to_gn, sizeof(PDM_g_num_t) * (*n_node)[ipart]);
 
@@ -334,8 +334,6 @@ _gen_mesh
     (*elt_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_elt)[ipart]);
     memcpy((*elt_ln_to_gn)[ipart], numabs, sizeof(PDM_g_num_t) * (*n_elt)[ipart]);
   }
-
-  PDM_part_mesh_nodal_free(pmn);
 
   PDM_dcube_nodal_gen_free(dcube);
 

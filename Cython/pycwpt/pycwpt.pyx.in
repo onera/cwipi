@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 # This file is part of the CWIPI library.
 #
-# Copyright (C) 2022-2023  ONERA
+# Copyright (C) 2022-2026  ONERA
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -28,8 +28,6 @@ pycwpt - Coupling With Interpolation Parallel Interface library.
 # --> Python
 import numpy     as np
 from mpi4py import MPI
-import ctypes
-import sys
 
 # --> Cython
 cimport cython

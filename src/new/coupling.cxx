@@ -69,7 +69,7 @@
 
 using namespace std;
 
-static void 
+static void
 _check_cpl_consistency
 (
   const CWP_Interface_t      entities_dim,
@@ -200,8 +200,9 @@ namespace cwipi {
    _spatial_interp_properties_int(*new std::map<std::string, int>),
    _is_mesh_finalized(0),
    _is_first_field_created(0),
-   _n_step(0)
-
+   _n_step(0),
+   _is_spatial_interp_init(0),
+   _is_writer_init(0)
    {
      //In case where both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
@@ -1275,17 +1276,17 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Coupling::exportMesh(Coupling &cpl)
   {
 
     if (cpl._writer != NULL) {
 
       /* First, create geometry and variables if necessary */
-      if (cpl._n_step == 0) {
+      if (cpl._is_writer_init == 0) {
 
         // Geometry
-        cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl._writer,
+        cpl._id_geom_writer = PDM_writer_geom_create_from_mesh_nodal(cpl._writer,
                                                                      "geom",
                                                                      cpl._mesh.getPdmNodalIndex());
 
@@ -1339,7 +1340,7 @@ namespace cwipi {
 
         PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
 
-        PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
+        PDM_writer_status_t  st_dep_tps   = PDM_WRITER_ON;
 
         if (cpl._displacement == CWP_DYNAMIC_MESH_STATIC) {
           st_dep_tps = PDM_WRITER_OFF;
@@ -1385,16 +1386,13 @@ namespace cwipi {
 
 
       /* Finally write geometry and variables */
-      if (cpl._n_step == 0) {
-
+      if (cpl._is_writer_init == 0) {
+        cpl._is_writer_init++;
         // Geometry
         PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
 
         if (cpl._userTargetN != nullptr) {
-
-          PDM_writer_geom_write(cpl._writer,
-                              cpl._id_user_tgt_geom_writer);
-
+          PDM_writer_geom_write(cpl._writer, cpl._id_user_tgt_geom_writer);
         } // end if there is a user target
 
         // Variables to show user targets partitionning
@@ -1413,7 +1411,7 @@ namespace cwipi {
 
         MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
 
-        g_n_part += -n_part;        
+        g_n_part += -n_part;
 
         for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
           partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
@@ -1475,9 +1473,9 @@ namespace cwipi {
 
         // Geometry
         if (cpl._displacement == CWP_DYNAMIC_MESH_VARIABLE) {
-        
 
-          PDM_writer_geom_set_from_mesh_nodal (cpl._writer, 
+
+          PDM_writer_geom_set_from_mesh_nodal (cpl._writer,
                                                cpl._id_geom_writer,
                                                cpl._mesh.getPdmNodalIndex());
 
@@ -1621,19 +1619,18 @@ namespace cwipi {
 
     /////////////////////////////////////////////////////////////////////////////
     //                                                                         //
-    // Export mesh and associted fields                                        //
+    // Export mesh and associated fields                                       //
     //                                                                         //
     /////////////////////////////////////////////////////////////////////////////
 
 
 
     if (!_coupledCodeProperties.localCodeIs()) {
-
+      // I only run local code
       exportMesh(*this);
-
     }
-
     else {
+      // I also run coupled code
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
 
@@ -1642,10 +1639,8 @@ namespace cwipi {
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
         if (codeID < cplCodeID) {
-
-          exportMesh(*this);
-          exportMesh(cpl_cpl);   
-
+          exportMesh(*this);   // Export local   code's mesh
+          exportMesh(cpl_cpl); // Export coupled code's mesh
         }
       }
     }
@@ -1659,12 +1654,12 @@ namespace cwipi {
     // - Store Data to send
 
     if (!_coupledCodeProperties.localCodeIs()) {
-
+      // I only run local code
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
 
 
-      if (_n_step == 0) {
+      if (_is_spatial_interp_init == 0) {
 
         std::string localFieldsName="";
         vector<int> localFieldsNameIdx;
@@ -1704,8 +1699,8 @@ namespace cwipi {
                                                                    NULL);
         // - Exchange number of fields
 
-        int nSendData   = 1;
-        int nRecvData   = 1;
+        int nSendData  = 1;
+        int nRecvData  = 1;
         int cplNbField = 0;
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
@@ -1720,9 +1715,9 @@ namespace cwipi {
 
         // - Allocate memory to receive data
 
-        vector<int               > cplFieldNameIdx (cplNbField + 1, 0);
-        vector<CWP_Field_exch_t  > cplFieldExch (cplNbField);
-        vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
+        vector<int               > cplFieldNameIdx  (cplNbField + 1, 0);
+        vector<CWP_Field_exch_t  > cplFieldExch     (cplNbField);
+        vector<CWP_Dof_location_t> cplFieldLocationV(cplNbField);
         string                     cplFieldName;
 
         // - Transfer memory to receive data
@@ -1731,11 +1726,11 @@ namespace cwipi {
         nRecvData   = cplNbField + 1;
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                    nSendData,
-                                                                   (void *) &(localFieldsNameIdx[0]),
+                                                                   (void *) localFieldsNameIdx.data(),
                                                                    -1,
                                                                    NULL,
                                                                    nRecvData,
-                                                                   (void *) &(cplFieldNameIdx[0]),
+                                                                   (void *) cplFieldNameIdx.data(),
                                                                    -1,
                                                                    NULL);
 
@@ -1762,11 +1757,11 @@ namespace cwipi {
         nRecvData   = cplNbField;
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
                                                                    nSendData,
-                                                                   (void *) &(localFieldsExch[0]),
+                                                                   (void *) localFieldsExch.data(),
                                                                    -1,
                                                                    NULL,
                                                                    nRecvData,
-                                                                   (void *) &(cplFieldExch[0]),
+                                                                   (void *) cplFieldExch.data(),
                                                                    -1,
                                                                    NULL);
         localFieldsExch.clear();
@@ -1775,11 +1770,11 @@ namespace cwipi {
         nRecvData   = cplNbField;
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                    nSendData,
-                                                                   (void *) &(localFieldLocationV[0]),
+                                                                   (void *) localFieldLocationV.data(),
                                                                    -1,
                                                                    NULL,
                                                                    nRecvData,
-                                                                   (void *) &(cplFieldLocationV[0]),
+                                                                   (void *) cplFieldLocationV.data(),
                                                                    -1,
                                                                    NULL);
         localFieldLocationV.clear();
@@ -1880,15 +1875,15 @@ namespace cwipi {
 
         assert(sir_r == sis_s);
 
-        _sis_loc_r.resize(2*sir_s);
+        _sis_loc_r.resize(2*sis_r);
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                    2*sis_s,
-                                                                   (void *) &(sis_loc[0]),
+                                                                   (void *) sis_loc.data(),
                                                                    -1,
                                                                    NULL,
                                                                    2*sis_r,
-                                                                   (void *) &(_sis_loc_r[0]),
+                                                                   (void *) _sis_loc_r.data(),
                                                                    -1,
                                                                    NULL);
 
@@ -1897,17 +1892,17 @@ namespace cwipi {
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                    2*sir_s,
-                                                                   (void *) &(sir_loc[0]),
+                                                                   (void *) sir_loc.data(),
                                                                    -1,
                                                                    NULL,
                                                                    2*sir_r,
-                                                                   (void *) &(sir_loc_r[0]),
+                                                                   (void *) sir_loc_r.data(),
                                                                    -1,
                                                                    NULL);
       }
 
 
-      int clear_data = (_n_step > 0);//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+      int clear_data = (_n_step > 0 && _is_spatial_interp_init > 0);//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
       if (codeID < cplCodeID) {
 
@@ -1986,7 +1981,7 @@ namespace cwipi {
         int codeID    = localCodePropertiesGet()->idGet();
         int cplCodeID = coupledCodePropertiesGet()->idGet();
 
-        if (_n_step == 0) {
+        if ( _is_spatial_interp_init == 0) {
 
           std::string localFieldsName="";
           vector<int> localFieldsNameIdx;
@@ -2095,13 +2090,13 @@ namespace cwipi {
 
           _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                      nSendData,
-                                                                     (void *) &(localFieldsNameIdx[0]),
+                                                                     (void *) localFieldsNameIdx.data(),
                                                                      cpl_nSendData,
-                                                                     (void *) &(cpl_localFieldsNameIdx[0]),
+                                                                     (void *) cpl_localFieldsNameIdx.data(),
                                                                      nRecvData,
-                                                                     (void *) &(cplFieldsNameIdx[0]),
+                                                                     (void *) cplFieldsNameIdx.data(),
                                                                      cpl_nRecvData,
-                                                                     (void *) &(cpl_cplFieldsNameIdx[0]));
+                                                                     (void *) cpl_cplFieldsNameIdx.data());
 
           cplFieldsName.resize(cplFieldsNameIdx[cplNbField]);
           nSendData   = localFieldsNameIdx[localNbField];
@@ -2136,13 +2131,13 @@ namespace cwipi {
 
           _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
                                                                      nSendData,
-                                                                     (void *) &(localFieldsExch[0]),
+                                                                     (void *) localFieldsExch.data(),
                                                                      cpl_nSendData,
-                                                                     (void *) &(cpl_localFieldsExch[0]),
+                                                                     (void *) cpl_localFieldsExch.data(),
                                                                      nRecvData,
-                                                                     (void *) &(cplFieldsExch[0]),
+                                                                     (void *) cplFieldsExch.data(),
                                                                      cpl_nRecvData,
-                                                                     (void *) &(cpl_cplFieldsExch[0]));
+                                                                     (void *) cpl_cplFieldsExch.data());
 
           localFieldsExch.clear();
           cpl_localFieldsExch.clear();
@@ -2155,13 +2150,13 @@ namespace cwipi {
 
           _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                      nSendData,
-                                                                     (void *) &(localFieldLocationV[0]),
+                                                                     (void *) localFieldLocationV.data(),
                                                                      cpl_nSendData,
-                                                                     (void *) &(cpl_localFieldLocationV[0]),
+                                                                     (void *) cpl_localFieldLocationV.data(),
                                                                      nRecvData,
-                                                                     (void *) &(cplFieldsLocationV[0]),
+                                                                     (void *) cplFieldsLocationV.data(),
                                                                      cpl_nRecvData,
-                                                                     (void *) &(cpl_cplFieldsLocationV[0]));
+                                                                     (void *) cpl_cplFieldsLocationV.data());
 
           localFieldLocationV.clear();
           cpl_localFieldLocationV.clear();
@@ -2200,9 +2195,9 @@ namespace cwipi {
 
                       _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                       cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
-              
+
                       _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_SEND);
-                      cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);        
+                      cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);
 
                     }
                   }
@@ -2266,29 +2261,29 @@ namespace cwipi {
                                                                      (void *) &cpl_sis_r);
 
           int sir_s = (int) _spatial_interp_recv.size();
-    
+
           vector<CWP_Dof_location_t> sir_loc;
           sir_loc.reserve(2*sis_r);
-    
+
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
           while(sir_it != _spatial_interp_recv.end()) {
             sir_loc.push_back((sir_it->first).first);
             sir_loc.push_back((sir_it->first).second);
             sir_it++;
           }
-    
+
           int cpl_sir_s = (int) cpl_cpl._spatial_interp_recv.size();
-    
+
           vector<CWP_Dof_location_t> cpl_sir_loc;
           cpl_sir_loc.reserve(2*cpl_sir_s);
-    
+
           sir_it = cpl_cpl._spatial_interp_recv.begin();
           while(sir_it != cpl_cpl._spatial_interp_recv.end()) {
             cpl_sir_loc.push_back((sir_it->first).first);
             cpl_sir_loc.push_back((sir_it->first).second);
             sir_it++;
           }
-    
+
           int sir_r;
           int cpl_sir_r;
 
@@ -2309,7 +2304,7 @@ namespace cwipi {
           _sis_loc_r.resize(2*sir_s);
 
           _cpl_sis_loc_r.resize(2*cpl_sir_s);
-    
+
           assert(sir_r     == sis_s);
           assert(sis_r     == sir_s);
           assert(cpl_sir_r == cpl_sis_s);
@@ -2317,35 +2312,35 @@ namespace cwipi {
 
           _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                      2*sis_s,
-                                                                     (void *) &(sis_loc[0]),
+                                                                     (void *) sis_loc.data(),
                                                                      2*cpl_sis_s,
-                                                                     (void *) &(cpl_sis_loc[0]),
+                                                                     (void *) cpl_sis_loc.data(),
                                                                      2*sis_r,
-                                                                     (void *) &(_sis_loc_r[0]),
+                                                                     (void *) _sis_loc_r.data(),
                                                                      2*cpl_sis_r,
-                                                                     (void *) &(_cpl_sis_loc_r[0]));
-    
+                                                                     (void *) _cpl_sis_loc_r.data());
+
           vector<CWP_Dof_location_t> sir_loc_r;
           sir_loc_r.resize(2*sis_s);
 
           vector<CWP_Dof_location_t> cpl_sir_loc_r;
           cpl_sir_loc_r.resize(2*cpl_sis_s);
-    
+
           _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                      2*sir_s,
-                                                                     (void *) &(sir_loc[0]),
+                                                                     (void *) sir_loc.data(),
                                                                      2*cpl_sir_s,
-                                                                     (void *) &(cpl_sir_loc[0]),
+                                                                     (void *) cpl_sir_loc.data(),
                                                                      2*sir_r,
-                                                                     (void *) &(sir_loc_r[0]),
+                                                                     (void *) sir_loc_r.data(),
                                                                      2*cpl_sir_r,
-                                                                     (void *) &(cpl_sir_loc_r[0]));
+                                                                     (void *) cpl_sir_loc_r.data());
         }
 
-        int clear_data = (_n_step > 0);//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
         if (codeID < cplCodeID) {
-  
+
           int i = 0;
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
           while(sis_it != _spatial_interp_send.end()) {
@@ -2367,7 +2362,7 @@ namespace cwipi {
             sis_it++;
             i++;
           }
-  
+
           i = 0;
           sis_it = cpl_cpl._spatial_interp_send.begin();
           while(sis_it != cpl_cpl._spatial_interp_send.end()) {
@@ -2392,7 +2387,7 @@ namespace cwipi {
         }
 
         else {
-  
+
           int i = 0;
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = cpl_cpl._spatial_interp_send.begin();
           while(sis_it != cpl_cpl._spatial_interp_send.end()) {
@@ -2414,7 +2409,7 @@ namespace cwipi {
             sis_it++;
             i++;
           }
-  
+
           i = 0;
           sis_it = _spatial_interp_send.begin();
           while(sis_it != _spatial_interp_send.end()) {
@@ -2439,6 +2434,8 @@ namespace cwipi {
         }
       }
     }
+
+    _is_spatial_interp_init++;
 
   }
 
@@ -2524,12 +2521,12 @@ namespace cwipi {
       if     ( _displacement == CWP_DYNAMIC_MESH_STATIC     ) {
         pdm_topology  = PDM_WRITER_TOPO_CST;
       }
-      
+
       else if( _displacement == CWP_DYNAMIC_MESH_DEFORMABLE ) {
         pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
       }
 
-      else { 
+      else {
         pdm_topology  = PDM_WRITER_TOPO_VARIABLE;
       }
 
@@ -2539,7 +2536,7 @@ namespace cwipi {
       const char *options_comp          = "";
       //Proportion of working node for file acess
       int working_node = 1;
-  
+
       PDM_io_kind_t acess_type =   PDM_IO_KIND_MPI_SIMPLE;
 
       std::string str_options = format_option;
@@ -2566,7 +2563,7 @@ namespace cwipi {
         else if (option != "") {
           PDM_error(__FILE__, __LINE__, 0,
                     "Not a valid visualization option.\n");
-        } 
+        }
 
       }
       while (pos != std::string::npos);
@@ -2594,9 +2591,9 @@ namespace cwipi {
   Coupling::visuEnd ()
   {
     if (_writer != NULL) {
-      PDM_writer_free (_writer);
-      _writer = nullptr;
+      PDM_writer_free(_writer);
     }
+    _writer = nullptr;
   }
 
 
@@ -2678,7 +2675,7 @@ namespace cwipi {
                                               storage,
                                               n_component,
                                               exch_type,
-                                              visu_status);  
+                                              visu_status);
 
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
@@ -2896,7 +2893,8 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+                    sendingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
           it2->second->issend(sendingField);
@@ -3101,7 +3099,8 @@ namespace cwipi {
         it2 = _spatial_interp_recv.find(newKey);
 
         if (it2 == _spatial_interp_recv.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+                    receivingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
           it2->second->irecv(receivingField);

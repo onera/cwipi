@@ -197,6 +197,17 @@ module cwp
         CWPT_MESH_NODAL_N_ELEMENT_TYPES
     end enum
 
+    ! CWP_Log_t
+    enum, bind(c)
+        enumerator :: &
+                CWP_LOG_TRACE, &
+                CWP_LOG_DEBUG, &
+                CWP_LOG_INFO, &
+                CWP_LOG_WARN, &
+                CWP_LOG_ERROR, &
+                CWP_LOG_FATAL
+    end enum
+
     interface CWP_Param_set; module procedure &
       CWP_Param_set_int_, &
       CWP_Param_set_double_, &
@@ -775,7 +786,7 @@ module cwp
         use iso_c_binding
         implicit none
         integer(c_int), value :: f_comm
-        integer(c_int)        :: c_comm
+        type(c_ptr)           :: c_comm
       end function CWPT_MPI_Comm_f2c
 
       subroutine CWPT_fortran_free_c (ptrC) &
@@ -784,6 +795,27 @@ module cwp
         implicit none
         type (c_ptr), value :: ptrC
       end subroutine CWPT_fortran_free_c
+
+      subroutine CWP_Log_level_set (level) &
+          bind (c, name = 'CWP_Log_level_set')
+        use iso_c_binding
+        implicit none
+        integer(c_int), value :: level
+      end subroutine CWP_Log_level_set
+
+      subroutine CWP_Log_console_enable (enable) &
+          bind (c, name = 'CWP_Log_console_enable')
+        use iso_c_binding
+        implicit none
+        integer(c_int), value :: enable
+      end subroutine CWP_Log_console_enable
+
+      subroutine CWP_Log_logfile_enable (enable) &
+          bind (c, name = 'CWP_Log_logfile_enable')
+        use iso_c_binding
+        implicit none
+        integer(c_int), value :: enable
+      end subroutine CWP_Log_logfile_enable
 
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
@@ -2146,7 +2178,7 @@ module cwp
         use iso_c_binding
         implicit none
 
-        integer(c_int),  value :: comm
+        type(c_ptr),     value :: comm
         integer(c_long), value :: n_vtx_seg
         integer(c_int)         :: n_vtx
         integer(c_int)         :: n_elt
@@ -2168,12 +2200,12 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value  :: comm
-      integer(c_int)         :: n_vtx
-      integer(c_int)         :: n_elt
-      type(c_ptr)            :: coords
-      type(c_ptr)            :: elt_vtx_idx
-      type(c_ptr)            :: elt_vtx
+      type(c_ptr), value :: comm
+      integer(c_int)     :: n_vtx
+      integer(c_int)     :: n_elt
+      type(c_ptr)        :: coords
+      type(c_ptr)        :: elt_vtx_idx
+      type(c_ptr)        :: elt_vtx
     end subroutine CWPT_generate_mesh_sphere_simplified_cf
 
     subroutine CWPT_generate_mesh_ball_simplified_cf(comm,        &
@@ -2188,12 +2220,12 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value :: comm
-      integer(c_int)        :: n_vtx
-      integer(c_int)        :: n_elt
-      type(c_ptr)           :: coords
-      type(c_ptr)           :: elt_vtx_idx
-      type(c_ptr)           :: elt_vtx
+      type(c_ptr), value :: comm
+      integer(c_int)     :: n_vtx
+      integer(c_int)     :: n_elt
+      type(c_ptr)        :: coords
+      type(c_ptr)        :: elt_vtx_idx
+      type(c_ptr)        :: elt_vtx
     end subroutine CWPT_generate_mesh_ball_simplified_cf
 
     subroutine CWPT_generate_mesh_parallelepiped_simplified_cf(comm,        &
@@ -2209,7 +2241,7 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value :: comm
+      type(c_ptr),     value :: comm
       integer(c_long), value :: n_vtx_seg
       integer(c_int)         :: n_vtx
       integer(c_int)         :: n_elt
@@ -2246,9 +2278,9 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value :: comm
-      integer(c_int), value :: elt_type
-      real(c_double), value :: xmin, ymin, zmin, lengthx, lengthy
+      type(c_ptr),     value :: comm
+      integer(c_int),  value :: elt_type
+      real(c_double),  value :: xmin, ymin, zmin, lengthx, lengthy
       integer(c_long), value :: n_x, n_y
       integer(c_int),  value :: n_part, part_method
       real(c_double),  value :: random_factor
@@ -2294,18 +2326,18 @@ module cwp
       use iso_c_binding
       implicit none
   !
-      integer(c_int), value :: comm
-      integer(c_int), value :: elt_type
-      integer(c_int), value :: order
-      type(c_ptr), value    :: ho_ordering
-      real(c_double), value :: radius
-      real(c_double), value :: center_x
-      real(c_double), value :: center_y
-      real(c_double), value :: center_z
+      type(c_ptr),     value :: comm
+      integer(c_int),  value :: elt_type
+      integer(c_int),  value :: order
+      type(c_ptr),     value :: ho_ordering
+      real(c_double),  value :: radius
+      real(c_double),  value :: center_x
+      real(c_double),  value :: center_y
+      real(c_double),  value :: center_z
       integer(c_long), value :: n_u
       integer(c_long), value :: n_v
-      integer(c_int), value :: n_part
-      integer(c_int), value :: part_method
+      integer(c_int),  value :: n_part
+      integer(c_int),  value :: part_method
 
       type(c_ptr) :: pn_vtx
       type(c_ptr) :: pn_edge
@@ -2362,22 +2394,22 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value :: comm
-      integer(c_int), value :: elt_type
-      integer(c_int), value :: order
-      type(c_ptr), value    :: ho_ordering
-      real(c_double), value :: radius
-      real(c_double), value :: hole_radius
-      real(c_double), value :: center_x
-      real(c_double), value :: center_y
-      real(c_double), value :: center_z
+      type(c_ptr),     value :: comm
+      integer(c_int),  value :: elt_type
+      integer(c_int),  value :: order
+      type(c_ptr),     value :: ho_ordering
+      real(c_double),  value :: radius
+      real(c_double),  value :: hole_radius
+      real(c_double),  value :: center_x
+      real(c_double),  value :: center_y
+      real(c_double),  value :: center_z
       integer(c_long), value :: n_x
       integer(c_long), value :: n_y
       integer(c_long), value :: n_z
       integer(c_long), value :: n_layer
-      real(c_double), value :: geometric_ratio
-      integer(c_int), value :: n_part
-      integer(c_int), value :: part_method
+      real(c_double),  value :: geometric_ratio
+      integer(c_int),  value :: n_part
+      integer(c_int),  value :: part_method
 
       type(c_ptr) :: pn_vtx
       type(c_ptr) :: pn_edge
@@ -2444,21 +2476,21 @@ module cwp
       use iso_c_binding
       implicit none
 
-      integer(c_int), value :: comm
-      integer(c_int), value :: elt_type
-      integer(c_int), value :: order
-      type(c_ptr), value    :: ho_ordering
-      real(c_double), value :: xmin
-      real(c_double), value :: ymin
-      real(c_double), value :: zmin
-      real(c_double), value :: lengthx
-      real(c_double), value :: lengthy
-      real(c_double), value :: lengthz
+      type(c_ptr),     value :: comm
+      integer(c_int),  value :: elt_type
+      integer(c_int),  value :: order
+      type(c_ptr),     value :: ho_ordering
+      real(c_double),  value :: xmin
+      real(c_double),  value :: ymin
+      real(c_double),  value :: zmin
+      real(c_double),  value :: lengthx
+      real(c_double),  value :: lengthy
+      real(c_double),  value :: lengthz
       integer(c_long), value :: n_x
       integer(c_long), value :: n_y
       integer(c_long), value :: n_z
-      integer(c_int), value :: n_part
-      integer(c_int), value :: part_method
+      integer(c_int),  value :: n_part
+      integer(c_int),  value :: part_method
 
       type(c_ptr) :: pn_vtx
       type(c_ptr) :: pn_edge
@@ -4325,8 +4357,8 @@ contains
           character(kind=c_char,len=1) :: c_cpl_id(*)
           character(kind=c_char,len=1) :: c_field_id(*)
           integer(kind=c_int), value   :: i_part
-          type(c_ptr), value           :: c_buffer_in
-          type(c_ptr), value           :: c_buffer_out
+          type(c_ptr),         value   :: c_buffer_in
+          type(c_ptr),         value   :: c_buffer_out
         end subroutine user_interpolation_fct
     end interface
 
@@ -6764,7 +6796,7 @@ contains
       integer(kind=cwp_l_num_s),      pointer :: elt_vtx_idx(:) ! Index array of the element vertex connectivity
       integer(kind=cwp_l_num_s),      pointer :: elt_vtx(:)     ! Array of the element vertex connectivity
 
-      integer(c_int)                          :: c_comm
+      type(c_ptr)                             :: c_comm
       integer(c_int)                          :: c_n_vtx
       integer(c_int)                          :: c_n_elt
       type(c_ptr)                             :: c_coords
@@ -6816,7 +6848,7 @@ contains
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx_idx(:) ! Index array of the element vertex connectivity
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx(:)     ! Array of the element vertex connectivity
 
-    integer(c_int)         :: c_comm
+    type(c_ptr)            :: c_comm
     integer(c_int)         :: c_n_vtx       = 0
     integer(c_int)         :: c_n_elt       = 0
     type(c_ptr)            :: c_coords      = C_NULL_PTR
@@ -6868,7 +6900,7 @@ contains
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx_idx(:) ! Index array of the element vertex connectivity
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx(:)     ! Array of the element vertex connectivity
 
-    integer(c_int)         :: c_comm
+    type(c_ptr)            :: c_comm
     integer(c_int)         :: c_n_vtx       = 0
     integer(c_int)         :: c_n_elt       = 0
     type(c_ptr)            :: c_coords      = C_NULL_PTR
@@ -6922,7 +6954,7 @@ contains
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx_idx(:) ! Index array of the element vertex connectivity
     integer(kind=cwp_l_num_s),      pointer :: elt_vtx(:)     ! Array of the element vertex connectivity
 
-    integer(c_int)                          :: c_comm
+    type(c_ptr)                             :: c_comm
     integer(c_int)                          :: c_n_vtx
     integer(c_int)                          :: c_n_elt
     type(c_ptr)                             :: c_coords
@@ -7013,7 +7045,7 @@ contains
     type(CWPT_pointer_array_t), pointer         :: pface_ln_to_gn    ! Face global ids
     real(c_double),       intent(in), optional  :: random_factor_opt ! Randomization factor (between 0 and 1)
 
-    integer(c_int)          :: c_comm
+    type(c_ptr)             :: c_comm
     type(c_ptr)             :: c_pn_vtx
     type(c_ptr)             :: c_pn_edge
     type(c_ptr)             :: c_pn_face
@@ -7207,7 +7239,7 @@ contains
     type(CWPT_pointer_array_t), pointer   :: pedge_ln_to_gn ! Edge global number
     type(CWPT_pointer_array_t), pointer   :: pface_ln_to_gn ! Face global number
 
-    integer(c_int)        :: c_comm
+    type(c_ptr)           :: c_comm
     integer(c_int)        :: c_elt_type
     integer(c_int)        :: c_order
     type(c_ptr)           :: c_ho_ordering
@@ -7468,7 +7500,7 @@ contains
     type(c_ptr) :: c_psurface_face
     type(c_ptr) :: c_psurface_face_ln_to_gn
 
-    integer(c_int) :: c_comm
+    type(c_ptr)    :: c_comm
     integer(c_int) :: c_elt_type
     integer(c_int) :: c_order
     type(c_ptr)    :: c_ho_ordering
@@ -7793,7 +7825,7 @@ contains
     type(CWPT_pointer_array_t), pointer    :: pridge_edge            ! Ridge->edge connectivity
     type(CWPT_pointer_array_t), pointer    :: pridge_edge_ln_to_gn   ! Ridge->edge connectivity with global IDs
 
-    integer(c_int)   :: c_comm
+    type(c_ptr)      :: c_comm
     integer(c_int)   :: c_elt_type
     integer(c_int)   :: c_order
     type(c_ptr)      :: c_ho_ordering

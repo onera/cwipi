@@ -347,7 +347,9 @@ def runTest():
           sys.exit(1)
 
     # FINALIZE
+    del field1, field2
     cpl.mesh_interf_del()
+    del cpl
     pycwp.finalize()
 
     # END

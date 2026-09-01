@@ -97,7 +97,7 @@ namespace cwipi {
 
       if (_points_uvw[i] != NULL) {
         free (_points_uvw[i]);
-      }      
+      }
     }
 
     free ( _cell_vtx);
@@ -125,118 +125,95 @@ namespace cwipi {
     *
     */
 
-  void 
-  SpatialInterpLocation::init 
+  void
+  SpatialInterpLocation::init
   (
-    Coupling           *coupling, 
-    CWP_Dof_location_t localCodeDofLOcation,
-    CWP_Dof_location_t cplCodeDofLOcation,
-    SpatialInterpExchDirection exchDirection 
+    Coupling                   *coupling,
+    CWP_Dof_location_t          localCodeDofLOcation,
+    CWP_Dof_location_t          cplCodeDofLOcation,
+    SpatialInterpExchDirection  exchDirection
   )
   {
-    SpatialInterp::init (coupling, 
-                         localCodeDofLOcation, 
-                         cplCodeDofLOcation, 
-                         exchDirection);
-
+    SpatialInterp::init(coupling,
+                        localCodeDofLOcation,
+                        cplCodeDofLOcation,
+                        exchDirection);
 
     _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
 
     //
     // Map nodal mesh
 
-    _pdm_CplNodal = NULL;
-
-    // if (!_coupledCodeProperties->localCodeIs()) {
-
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      // Local code is the source so it provides its interface mesh
       _pdm_CplNodal = _mesh->getPdmNodalIndex();
     }
-    else {
-      _pdm_CplNodal = NULL; 
+    else { // _exchDirection == SPATIAL_INTERP_EXCH_RECV
+      // Local code is the target so it provides an empty mesh
+      _pdm_CplNodal = NULL;
     }
-
-    // }
-
-    // else {
-    //   if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-    //     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-    //       _pdm_CplNodal = _mesh->getPdmNodalIndex();
-    //     }
-    //     else {
-    //       cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-    //       cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
-    //       _pdm_CplNodal = cpl_mesh->getPdmNodalIndex();
-
-    //       _pdm_CplNodal = NULL; 
-    //     }
-    //   }
-    // }
-
-    // if (_pdm_CplNodal != NULL) {
-    //   printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_part_mesh_nodal_n_section_in_geom_kind_get(_pdm_CplNodal, _mesh->geomKindGet()));
-    //   fflush(stdout);
-    // }
 
     //
     // Data for PDM_part_to_part_t
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
-       _src_gnum[i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-       _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+      // Local code is the source
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+       _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
+       _src_n_gnum[i_part] = _mesh->getPartNElts(i_part);
       }
     }
 
-    else {
-      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+    else { // _exchDirection == SPATIAL_INTERP_EXCH_RECV
+      // Local code is the target
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _tgt_gnum[i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
-
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->getPartNElts(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _tgt_gnum[i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);            
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
+          _tgt_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-          _tgt_gnum[i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
-          _tgt_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
+          _tgt_n_gnum[i_part] = _cpl->userTargetNGet(i_part);
         }
       }
     }
 
     //
     // Target properties
-    
-    _tgt_distance =  (double**) malloc (sizeof(double*) * _nPart);                 // Distance to the closest source element surface by partition
-    _tgt_projected = (double**) malloc (sizeof(double*) * _nPart);                // Projected point coordinates (on the closest source element surface)
-    _tgt_closest_elt_gnum = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*) * _nPart);    // Closest source element global numbering
+
+    _tgt_distance         = (double     **) malloc(sizeof(double      *) * _nPart); // Distance to the closest source element surface by partition
+    _tgt_projected        = (double     **) malloc(sizeof(double      *) * _nPart); // Projected point coordinates (on the closest source element surface)
+    _tgt_closest_elt_gnum = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t *) * _nPart); // Closest source element global ID
 
     //
     // Source properties
 
-    _elt_pts_inside_idx =  (int **) malloc (sizeof(int *) * (_nPart));
-    _points_gnum = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*) * _nPart);
-    _points_coords =  (double **) malloc (sizeof(double *) * (_nPart));
-    _points_uvw =  (double **) malloc (sizeof(double *) * (_nPart));
-    _points_dist2 =  (double **) malloc (sizeof(double *) * (_nPart));
-    _points_projected_coords =  (double **) malloc (sizeof(double *) * (_nPart));
-    _cell_vtx_idx =  (int **) malloc (sizeof(int *) * (_nPart));
-    _cell_vtx =  (int **) malloc (sizeof(int *) * (_nPart));
+    _elt_pts_inside_idx      = (int         **) malloc(sizeof(int         *) * _nPart);
+    _points_gnum             = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * _nPart);
+    _points_coords           = (double      **) malloc(sizeof(double      *) * _nPart);
+    _points_uvw              = (double      **) malloc(sizeof(double      *) * _nPart);
+    _points_dist2            = (double      **) malloc(sizeof(double      *) * _nPart);
+    _points_projected_coords = (double      **) malloc(sizeof(double      *) * _nPart);
+    _cell_vtx_idx            = (int         **) malloc(sizeof(int         *) * _nPart);
+    _cell_vtx                = (int         **) malloc(sizeof(int         *) * _nPart);
 
     for (int i_part = 0; i_part < _nPart; i_part++) {
-      _tgt_distance[i_part] = NULL;
-      _tgt_projected[i_part] = NULL;
-      _tgt_closest_elt_gnum[i_part] = NULL;
-      _elt_pts_inside_idx[i_part] = NULL;
-      _points_gnum[i_part] = NULL;
-      _points_coords[i_part] = NULL;
-      _points_uvw[i_part] = NULL;
-      _points_dist2[i_part] = NULL;
+      _tgt_distance           [i_part] = NULL;
+      _tgt_projected          [i_part] = NULL;
+      _tgt_closest_elt_gnum   [i_part] = NULL;
+
+      _elt_pts_inside_idx     [i_part] = NULL;
+      _points_gnum            [i_part] = NULL;
+      _points_coords          [i_part] = NULL;
+      _points_uvw             [i_part] = NULL;
+      _points_dist2           [i_part] = NULL;
       _points_projected_coords[i_part] = NULL;
-      _cell_vtx_idx[i_part] = NULL;
-      _cell_vtx[i_part] = NULL;
+      _cell_vtx_idx           [i_part] = NULL;
+      _cell_vtx               [i_part] = NULL;
     }
 
   }
@@ -247,13 +224,14 @@ namespace cwipi {
   {
     SpatialInterp::clear();
 
-    int cond1 = !_coupledCodeProperties->localCodeIs();
-    int cond2 = !cond1 && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet());
+    bool cond1 = (!_coupledCodeProperties->localCodeIs()); // I run only the local code
+    bool cond2 = (!cond1) && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()); // I run both codes and local code's ID is lower than coupled code's ID
 
     if (!cond1 && !cond2) {
       return;
     }
 
+    // Free target location results
     if (_tgt_distance != NULL) {
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_tgt_distance[i_part] != NULL) {
@@ -262,15 +240,15 @@ namespace cwipi {
           free(_tgt_closest_elt_gnum[i_part]);
         }
       }
-
       free(_tgt_distance        );
       free(_tgt_projected       );
       free(_tgt_closest_elt_gnum);
-      _tgt_distance         = NULL;
-      _tgt_projected        = NULL;
-      _tgt_closest_elt_gnum = NULL;
     }
+    _tgt_distance         = NULL;
+    _tgt_projected        = NULL;
+    _tgt_closest_elt_gnum = NULL;
 
+    // Free source location results
     if (_elt_pts_inside_idx != NULL) {
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_elt_pts_inside_idx[i_part] != NULL) {
@@ -284,7 +262,6 @@ namespace cwipi {
           free(_cell_vtx               [i_part]);
         }
       }
-
       free(_elt_pts_inside_idx     );
       free(_points_gnum            );
       free(_points_coords          );
@@ -293,19 +270,19 @@ namespace cwipi {
       free(_points_projected_coords);
       free(_cell_vtx_idx           );
       free(_cell_vtx               );
-
-      _elt_pts_inside_idx      = NULL;
-      _points_gnum             = NULL;
-      _points_coords           = NULL;
-      _points_uvw              = NULL;
-      _points_dist2            = NULL;
-      _points_projected_coords = NULL;
-      _cell_vtx_idx            = NULL;
-      _cell_vtx                = NULL;
     }
+    _elt_pts_inside_idx      = NULL;
+    _points_gnum             = NULL;
+    _points_coords           = NULL;
+    _points_uvw              = NULL;
+    _points_dist2            = NULL;
+    _points_projected_coords = NULL;
+    _cell_vtx_idx            = NULL;
+    _cell_vtx                = NULL;
 
 
     if (cond2) {
+      // I also run coupled code
       SpatialInterpLocation *cpl_spatial_interp;
 
       cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
@@ -329,14 +306,13 @@ namespace cwipi {
             free(cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]);
           }
         }
-
         free(cpl_spatial_interp->_tgt_distance        );
         free(cpl_spatial_interp->_tgt_projected       );
         free(cpl_spatial_interp->_tgt_closest_elt_gnum);
-        cpl_spatial_interp->_tgt_distance         = NULL;
-        cpl_spatial_interp->_tgt_projected        = NULL;
-        cpl_spatial_interp->_tgt_closest_elt_gnum = NULL;
       }
+      cpl_spatial_interp->_tgt_distance         = NULL;
+      cpl_spatial_interp->_tgt_projected        = NULL;
+      cpl_spatial_interp->_tgt_closest_elt_gnum = NULL;
 
       if (cpl_spatial_interp->_elt_pts_inside_idx != NULL) {
         for (int i_part = 0; i_part < _nPart; i_part++) {
@@ -351,7 +327,6 @@ namespace cwipi {
             free(cpl_spatial_interp->_cell_vtx               [i_part]);
           }
         }
-
         free(cpl_spatial_interp->_elt_pts_inside_idx     );
         free(cpl_spatial_interp->_points_gnum            );
         free(cpl_spatial_interp->_points_coords          );
@@ -360,29 +335,24 @@ namespace cwipi {
         free(cpl_spatial_interp->_points_projected_coords);
         free(cpl_spatial_interp->_cell_vtx_idx           );
         free(cpl_spatial_interp->_cell_vtx               );
-
-        cpl_spatial_interp->_elt_pts_inside_idx      = NULL;
-        cpl_spatial_interp->_points_gnum             = NULL;
-        cpl_spatial_interp->_points_coords           = NULL;
-        cpl_spatial_interp->_points_uvw              = NULL;
-        cpl_spatial_interp->_points_dist2            = NULL;
-        cpl_spatial_interp->_points_projected_coords = NULL;
-        cpl_spatial_interp->_cell_vtx_idx            = NULL;
-        cpl_spatial_interp->_cell_vtx                = NULL;
       }
-
+      cpl_spatial_interp->_elt_pts_inside_idx      = NULL;
+      cpl_spatial_interp->_points_gnum             = NULL;
+      cpl_spatial_interp->_points_coords           = NULL;
+      cpl_spatial_interp->_points_uvw              = NULL;
+      cpl_spatial_interp->_points_dist2            = NULL;
+      cpl_spatial_interp->_points_projected_coords = NULL;
+      cpl_spatial_interp->_cell_vtx_idx            = NULL;
+      cpl_spatial_interp->_cell_vtx                = NULL;
     }
-
-
-
-
-
-
   }
 
 
   void SpatialInterpLocation::weightsCompute()
   {
+    bool cond1 = (!_coupledCodeProperties->localCodeIs()); // I run only the local code
+    bool cond2 = (!cond1) && (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()); // I run both codes and local code's ID is lower than coupled code's ID
+
     localization_init();
 
     localization_points_cloud_setting();
@@ -395,73 +365,71 @@ namespace cwipi {
 
     localization_free();
 
-    if (!_coupledCodeProperties->localCodeIs()) {
+    if (cond1) {
+      // I only run the local code
       if (_ptsp == NULL) {
-        _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
-                                         (const int *)_src_n_gnum,
-                                         _nPart,
-                                         (const PDM_g_num_t **)_tgt_gnum,
-                                         (const int *)_tgt_n_gnum,
-                                         _nPart,
-                                         (const int **)_elt_pts_inside_idx,
-                                         (const PDM_g_num_t **)_points_gnum,
-                                         _pdmCplComm);
+        _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _src_gnum,
+                                        (const int          *) _src_n_gnum,
+                                                               _nPart,
+                                        (const PDM_g_num_t **) _tgt_gnum,
+                                        (const int          *) _tgt_n_gnum,
+                                                               _nPart,
+                                        (const int         **) _elt_pts_inside_idx,
+                                        (const PDM_g_num_t **) _points_gnum,
+                                                               _pdmCplComm);
       }
     }
-    else {
 
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+    else if (cond2) {
+      // I run both codes (and local code's ID is lower than coupled code's ID)
+      SpatialInterpLocation *cpl_spatial_interp = nullptr;
 
-        SpatialInterpLocation *cpl_spatial_interp;
+      cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+      if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+        cpl_spatial_interp =
+          dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+      }
+      else { // _exchDirection == SPATIAL_INTERP_EXCH_SEND
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+        cpl_spatial_interp =
+          dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+      }
 
-        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
-          cpl_spatial_interp = 
-            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+      if (_ptsp == NULL) {
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          // Local code is the source, coupled code is the target
+          _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _src_gnum,
+                                          (const int          *) _src_n_gnum,
+                                                                 _nPart,
+                                          (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
+                                          (const int          *) cpl_spatial_interp->_tgt_n_gnum,
+                                                                 _cplNPart,
+                                          (const int         **) _elt_pts_inside_idx,
+                                          (const PDM_g_num_t **) _points_gnum,
+                                                                 _pdmCplComm);
         }
-
-        else {
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-          cpl_spatial_interp = 
-            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        else { // _exchDirection == SPATIAL_INTERP_EXCH_RECV
+          // Local code is the target, coupled code is the source
+          _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
+                                          (const int          *) cpl_spatial_interp->_src_n_gnum,
+                                                                 _cplNPart,
+                                          (const PDM_g_num_t **) _tgt_gnum,
+                                          (const int          *) _tgt_n_gnum,
+                                                                 _nPart,
+                                          (const int         **) cpl_spatial_interp->_elt_pts_inside_idx,
+                                          (const PDM_g_num_t **) cpl_spatial_interp->_points_gnum,
+                                                                 _pdmCplComm);
         }
+      }
 
-        if (_ptsp == NULL) {
-          if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-            _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
-                                             (const int *)_src_n_gnum,
-                                             _nPart,
-                                             (const PDM_g_num_t **)cpl_spatial_interp->_tgt_gnum,
-                                             (const int *)cpl_spatial_interp->_tgt_n_gnum,
-                                             _cplNPart,
-                                             (const int **)_elt_pts_inside_idx,
-                                             (const PDM_g_num_t **)_points_gnum,
-                                             _pdmCplComm);
-          }
-          else {
-            _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)cpl_spatial_interp->_src_gnum,
-                                             (const int *)cpl_spatial_interp->_src_n_gnum,
-                                             _cplNPart,
-                                             (const PDM_g_num_t **) _tgt_gnum,
-                                             (const int *) _tgt_n_gnum,
-                                             _nPart,
-                                             (const int **)cpl_spatial_interp->_elt_pts_inside_idx,
-                                             (const PDM_g_num_t **)cpl_spatial_interp->_points_gnum,
-                                             _pdmCplComm);
-
-          }
-        }
-
-        cpl_spatial_interp->_ptsp = _ptsp;
-      } 
+      cpl_spatial_interp->_ptsp = _ptsp;
     }
-
-
   }
 
-  void SpatialInterpLocation::interpolate (Field *referenceField, double **buffer) 
+
+  void SpatialInterpLocation::interpolate (Field *referenceField, double **buffer)
   {
     int nComponent = referenceField->nComponentGet();
     CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
@@ -471,9 +439,9 @@ namespace cwipi {
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
 
-      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet();
-      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();
-      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();
+      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet(); // C/C++   user-defined interpolation function
+      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();       // Fortran user-defined interpolation function
+      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();       // Python  user-defined interpolation function
 
       CWP_Interp_function_t _interpolationFunction = NULL;
       if (interpolationFunction != NULL) {
@@ -508,14 +476,14 @@ namespace cwipi {
 
     }
 
-    else { 
+    else {
       if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
           int    *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
           double *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int    part_n_elt               = _mesh->getPartNElts(i_part);
+          int     part_n_elt              = _mesh->getPartNElts(i_part);
 
           double *local_buffer = (double *) buffer[i_part];
 
@@ -542,25 +510,22 @@ namespace cwipi {
 
         }
       }
-      
+
       else if (referenceFieldType == CWP_DOF_LOCATION_NODE || referenceFieldType == CWP_DOF_LOCATION_USER) {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
-          int         *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
-          double      *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
+          int    *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
+          double *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int         *part_weights_idx        = _weights_idx[i_part];
-          double      *part_weights            = _weights[i_part];
+          int    *part_weights_idx        = _weights_idx[i_part];
+          double *part_weights            = _weights[i_part];
 
-          int          part_n_elt              = _mesh->getPartNElts(i_part);
-          int          part_n_vtx              = _mesh->getPartNVertex(i_part);
+          int     part_n_elt              = _mesh->getPartNElts(i_part);
+          int     part_n_vtx              = _mesh->getPartNVertex(i_part);
 
-          int         *connec_idx2             = _cell_vtx_idx[i_part];
-          int         *connec2                 = _cell_vtx[i_part];
+          int     *connec_idx             = _cell_vtx_idx[i_part];
+          int     *connec                 = _cell_vtx    [i_part];
 
-          int         *connec_idx = connec_idx2; 
-          int         *connec = connec2;
-          
           double *local_buffer = (double *) buffer[i_part];
 
           int ival = 0;

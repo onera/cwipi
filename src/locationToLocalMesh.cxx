@@ -2388,13 +2388,11 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
 
       for (int j = 0; j < n_face_vertex; j++) {
         int vertex = faceToVertex[faceToVertexIdx[face_location_idx]+j] - 1;
-
         distBarCoords[vertex] = distBarCoordsFace[j];
-
-        distBarCoordsFaceIdx.clear();
-        distBarCoordsFace.clear();
-
       }
+
+      distBarCoordsFaceIdx.clear();
+      distBarCoordsFace.clear();
 
     }
 
@@ -2903,6 +2901,9 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
     break;
 
   default:
+    n_elt_vertices = -1;
+    bftc_error(__FILE__, __LINE__, 0,
+               "compute_uvw : unknown element type\n");
     break;
 
   }

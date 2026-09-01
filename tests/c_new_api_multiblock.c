@@ -34,7 +34,6 @@
 #include "pdm_part.h"
 #include "pdm_mpi_node_first_rank.h"
 #include "pdm_error.h"
-#include "pdm_timer.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
 
@@ -435,20 +434,6 @@ _gen_mesh
   (* p_face_vtx)      = malloc(sizeof(int         **) * n_block);
   (* elt_g_num)       = malloc(sizeof(CWP_g_num_t **) * n_block);
 
-  for (int i_block = 0; i_block < n_block; i_block++) {
-    (* n_elt)           [i_block] = malloc(sizeof(int          ) * n_part);
-    (* n_face)          [i_block] = malloc(sizeof(int          ) * n_part);
-    (* p_cell_face_idx) [i_block] = malloc(sizeof(int *        ) * n_part);
-    (* p_cell_face)     [i_block] = malloc(sizeof(int *        ) * n_part);
-    (* p_face_vtx_idx)  [i_block] = malloc(sizeof(int *        ) * n_part);
-    (* p_face_vtx)      [i_block] = malloc(sizeof(int *        ) * n_part);
-    (* elt_g_num)       [i_block] = malloc(sizeof(CWP_g_num_t *) * n_part);
-  }
-
-  (* n_vtx    ) = malloc(sizeof(int          ) * n_part);
-  (* vtx_coord) = malloc(sizeof(int *        ) * n_part);
-  (* vtx_g_num) = malloc(sizeof(CWP_g_num_t *) * n_part);
-
   if (active_rank) {
 
     // Unused variables
@@ -465,6 +450,9 @@ _gen_mesh
     int         **unused_ridge_edge_idx        = NULL;
     int         **unused_ridge_edge            = NULL;
     CWP_g_num_t **unused_ridge_edge_ln_to_gn   = NULL;
+    int          *unused_n_vtx                 = NULL;
+    double      **unused_vtx_coord             = NULL;
+    CWP_g_num_t **unused_vtx_g_num             = NULL;
 
     for (int i_block = 0; i_block < n_block; i_block++) {
       CWPT_generate_mesh_parallelepiped_ngon(comm,
@@ -482,18 +470,18 @@ _gen_mesh
                                              n,
                                              n_part,
                                              part_method,
-                                             &(* n_vtx),
+                                             &unused_n_vtx,
                                              &unused_n_edge,
                                              &(* n_face)[i_block],
                                              &(* n_elt)[i_block],
-                                             &(* vtx_coord),
+                                             &unused_vtx_coord,
                                              &unused_edge_vtx,
                                              &(* p_face_vtx_idx)[i_block],
                                              &unused_face_edge,
                                              &(* p_face_vtx)[i_block],
                                              &(* p_cell_face_idx)[i_block],
                                              &(* p_cell_face)[i_block],
-                                             &(* vtx_g_num),
+                                             &unused_vtx_g_num,
                                              &unused_edge_ln_to_gn,
                                              &unused_face_ln_to_gn,
                                              &(* elt_g_num)[i_block],
@@ -505,6 +493,12 @@ _gen_mesh
                                              &unused_ridge_edge_idx,
                                              &unused_ridge_edge,
                                              &unused_ridge_edge_ln_to_gn);
+
+      if (i_block == 0) {
+        (* n_vtx)     = unused_n_vtx;
+        (* vtx_coord) = unused_vtx_coord;
+        (* vtx_g_num) = unused_vtx_g_num;
+      }
 
       // Free unused variables
       for (int i_part = 0; i_part < n_part; i_part++) {
@@ -518,6 +512,10 @@ _gen_mesh
         free(unused_ridge_edge_idx       [i_part]);
         free(unused_ridge_edge           [i_part]);
         free(unused_ridge_edge_ln_to_gn  [i_part]);
+        if (i_block > 0) {
+          free(unused_vtx_coord[i_part]);
+          free(unused_vtx_g_num[i_part]);
+        }
       }
       free(unused_n_edge               );
       free(unused_edge_vtx             );
@@ -532,14 +530,32 @@ _gen_mesh
       free(unused_ridge_edge_idx       );
       free(unused_ridge_edge           );
       free(unused_ridge_edge_ln_to_gn  );
+      if (i_block > 0) {
+        free(unused_n_vtx    );
+        free(unused_vtx_coord);
+        free(unused_vtx_g_num);
+      }
     }
   }
   else {
+
+    (* n_vtx    ) = malloc(sizeof(int          ) * n_part);
+    (* vtx_coord) = malloc(sizeof(int *        ) * n_part);
+    (* vtx_g_num) = malloc(sizeof(CWP_g_num_t *) * n_part);
+    for (int i_block = 0; i_block < n_block; i_block++) {
+      (* n_elt)           [i_block] = malloc(sizeof(int          ) * n_part);
+      (* n_face)          [i_block] = malloc(sizeof(int          ) * n_part);
+      (* p_cell_face_idx) [i_block] = malloc(sizeof(int *        ) * n_part);
+      (* p_cell_face)     [i_block] = malloc(sizeof(int *        ) * n_part);
+      (* p_face_vtx_idx)  [i_block] = malloc(sizeof(int *        ) * n_part);
+      (* p_face_vtx)      [i_block] = malloc(sizeof(int *        ) * n_part);
+      (* elt_g_num)       [i_block] = malloc(sizeof(CWP_g_num_t *) * n_part);
+    }
+
     for (int i_part = 0; i_part < n_part; i_part++) {
       (* n_vtx    )[i_part] = 0;
       (* vtx_coord)[i_part] = NULL;
       (* vtx_g_num)[i_part] = NULL;
-
       for (int i_block = 0; i_block < n_block; i_block++) {
         (* n_elt)           [i_block][i_part] = 0;
         (* n_face)          [i_block][i_part] = 0;
@@ -1079,34 +1095,25 @@ int main(int argc, char *argv[])
   free(coupled_code_name);
   free(intra_comm);
 
-  if (current_rank_has_mesh) {
-    for (int iblock = 0; iblock < n_block; iblock++) {
-      for (int ipart = 0; ipart < n_part; ipart++) {
-        free(face_vtx_idx  [iblock][ipart]);
-        free(face_vtx      [iblock][ipart]);
-        free(cell_face_idx [iblock][ipart]);
-        free(cell_face     [iblock][ipart]);
-        free(elt_g_num     [iblock][ipart]);
-      }
-      free(face_vtx_idx  [iblock]);
-      free(face_vtx      [iblock]);
-      free(cell_face_idx [iblock]);
-      free(cell_face     [iblock]);
-      free(elt_g_num     [iblock]);
-    }
+  for (int iblock = 0; iblock < n_block; iblock++) {
     for (int ipart = 0; ipart < n_part; ipart++) {
-      free(vtx_g_num[ipart]);
-      free(vtx_coord[ipart]);
+      free(face_vtx_idx  [iblock][ipart]);
+      free(face_vtx      [iblock][ipart]);
+      free(cell_face_idx [iblock][ipart]);
+      free(cell_face     [iblock][ipart]);
+      free(elt_g_num     [iblock][ipart]);
     }
+    free(n_elt         [iblock]);
+    free(n_face        [iblock]);
+    free(face_vtx_idx  [iblock]);
+    free(face_vtx      [iblock]);
+    free(cell_face_idx [iblock]);
+    free(cell_face     [iblock]);
+    free(elt_g_num     [iblock]);
   }
-  else {
-    for (int iblock = 0; iblock < n_block; iblock++) {
-      free(face_vtx_idx  [iblock]);
-      free(face_vtx      [iblock]);
-      free(cell_face_idx [iblock]);
-      free(cell_face     [iblock]);
-      free(elt_g_num     [iblock]);
-    }
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    free(vtx_g_num[ipart]);
+    free(vtx_coord[ipart]);
   }
   free(n_elt        );
   free(n_face       );

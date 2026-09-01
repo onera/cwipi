@@ -3,7 +3,7 @@
 New CWIPI
 #########
 
-Released in 2023, this version relies on the parallel computational geometry library **ParaDiGM** which is developed by the same team as CWIPI.
+Released in 2023, this version relies on the parallel computational geometry library `ParaDiGM <https://github.com/onera/paradigm>`__ which is developed by the same team as CWIPI.
 
 General concepts
 ================
@@ -69,8 +69,6 @@ C API documentation
 
 Fortran API documentation
 =========================
-
-:download:`Fortran documentation (pdf) <doc_cwp_fortran.pdf>`
 
 .. .. f:automodule:: cwp
 
@@ -206,7 +204,7 @@ User-defined spatial interpolation
 .. f:autosubroutine:: CWP_Cpl_spatial_interp_algo_get_
 
 Location methods
-""""""""""""""""
+~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_location_weights_get_
 
@@ -215,14 +213,14 @@ Location methods
 .. f:autosubroutine:: CWP_Field_location_point_data_get_
 
 Intersection method
-"""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_intersection_volumes_get_
 
 .. f:autosubroutine:: CWP_Field_intersection_tgt_elt_volumes_get_
 
 Nearest neighbors methods
-"""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. f:autosubroutine:: CWP_Field_nearest_neighbors_distances_get_
 

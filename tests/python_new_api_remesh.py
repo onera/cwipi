@@ -267,6 +267,9 @@ def run_test():
     time += 1.0
 
   # Finalize CWIPI
+  del field1, field2
+  cpl.mesh_interf_del()
+  del cpl
   pycwp.finalize()
 
 

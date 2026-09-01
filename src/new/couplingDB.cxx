@@ -48,11 +48,10 @@ namespace cwipi {
   {
     typedef map < const CodeProperties *, map <string, Coupling * > >::iterator Iterator;
     typedef map < string, Coupling * > ::iterator Iterator2;
-
     for (Iterator p1 = _couplingDB.begin();
-           p1 != _couplingDB.end(); p1++) {
+          p1 != _couplingDB.end(); p1++) {
       for (Iterator2 p = p1->second.begin();
-           p != p1->second.end(); p++) {
+          p != p1->second.end(); p++) {
         if (p->second != NULL)
           delete p->second;
       }
@@ -84,12 +83,12 @@ namespace cwipi {
          CodeProperties        &localCodeProperties,
    const string                &cplId,
          CodeProperties        &coupledCodeProperties,
-   const CWP_Interface_t       entities_dim,
-   const CWP_Comm_t            commType,
-   const CWP_Spatial_interp_t  spatialInterpAlgo,
-   const int                   nPart,
-   const CWP_Dynamic_mesh_t    movingStatus,
-   const CWP_Time_exch_t       recvFreqType
+   const CWP_Interface_t        entities_dim,
+   const CWP_Comm_t             commType,
+   const CWP_Spatial_interp_t   spatialInterpAlgo,
+   const int                    nPart,
+   const CWP_Dynamic_mesh_t     movingStatus,
+   const CWP_Time_exch_t        recvFreqType
   )
   {
 
@@ -98,9 +97,7 @@ namespace cwipi {
                 "'%s' existing coupling\n", cplId.c_str());
     }
 
-    //
     // Create the new coupling
-
     Coupling *newCoupling = new Coupling(cplId,
                                          commType,
                                          localCodeProperties,
@@ -121,9 +118,10 @@ namespace cwipi {
   }
 
   /**
-   * \brief Deletion a coupling object int the database.
+   * \brief Delete a coupling object in the database
    *
-   * \param [in]  cplId              Coupling identifier
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  cplId                Coupling identifier
    *
    */
 
@@ -159,12 +157,20 @@ namespace cwipi {
     }
   }
 
+  /**
+   * \brief Update time
+   *
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  current_time         Current time
+   *
+   */
+
   void
   CouplingDB::timeUpdate
   (
    const CodeProperties &localCodeProperties,
    double                current_time
-   )
+  )
   {
     typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
     Iterator p = _couplingDB.find(&localCodeProperties);
@@ -175,6 +181,14 @@ namespace cwipi {
       itc++;
     }
   }
+
+  /**
+   * \brief Begin time step
+   *
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  current_time         Current time
+   *
+   */
 
   void
   CouplingDB::time_step_beg
@@ -192,6 +206,13 @@ namespace cwipi {
       itc++;
     }
   }
+
+  /**
+   * \brief End time step
+   *
+   * \param [in]  localCodeProperties  Source code
+   *
+   */
 
   void
   CouplingDB::time_step_end

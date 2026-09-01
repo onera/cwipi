@@ -14,11 +14,9 @@ set(SOURCESPDM "")
 if (CWP_ENABLE_EXTERNAL_PDM)
   if (CWP_ENABLE_SHARED)
     list(APPEND LINK_LIBRARIES
-          pdm::pdm_mpi_shared
           pdm::pdm_shared)
   else ()
     list(APPEND LINK_LIBRARIES
-          pdm::pdm_mpi_static
           pdm::pdm_static)
   endif ()
 else ()

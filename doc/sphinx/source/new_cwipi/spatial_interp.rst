@@ -1,8 +1,8 @@
 Since version 1.0, CWIPI offers multiple spatial interpolation methods.
-A specific spatial interpolation method can be affected to each Coupling object.
+A specific spatial interpolation method can be assigned to each Coupling object.
 
 Each method has a set of properties that can be adjusted (with ``CWP_Spatial_interp_property_set`` in C).
-Note that some method do not support all types of dof location.
+Note that some methods do not support all types of dof location.
 Finally, each method relies on some geometric mapping data to perform spatial interpolation.
 This data is computed by CWIPI and can be accessed to design :ref:`customized interpolation functions <Advanced functionalities>`.
 
@@ -28,7 +28,7 @@ This family includes two methods:
 .. TODO: schéma?
 
 **Default interpolation**
-  Both methods perform a Least Square interpolation weighted by inverse squared distance (see `[Nealen 2004] <http://www.nealen.de/projects/mls/asapmls.pdf>`_ for more detail).
+  Both methods perform a Least Square interpolation weighted by inverse squared distance (see `[Nealen 2004] <http://www.nealen.de/projects/mls/asapmls.pdf>`_ for more details).
 
 **Properties**
 

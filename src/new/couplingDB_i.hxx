@@ -1,7 +1,7 @@
 #ifndef __COUPLING_DB_I_H__
 #define __COUPLING_DB_I_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -32,41 +32,63 @@ namespace cwipi {
   /**
    * \brief Return a coupling object from it identifier
    *
-   * \param [in]  cplId              Coupling identifier
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  cplId                Coupling identifier
    *
    */
 
-  Coupling& 
+  Coupling&
   CouplingDB::couplingGet
   (
    const CodeProperties &localCodeProperties,
    const string         &cplId
-  ) 
+  )
   {
     typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
     typedef map <string, Coupling * > ::iterator Iterator2;
     Iterator p = _couplingDB.find(&localCodeProperties);
     Iterator2 p1;
     if (p == _couplingDB.end()) {
-      PDM_error(__FILE__, __LINE__, 0, 
-                "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
-                localCodeProperties.nameGet().c_str());
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' code not found in couplingDB\n", localCodeProperties.nameGet().c_str());
     }
     else {
       p1 = p->second.find(cplId);
       if (p1 == p->second.end()) {
-        PDM_error(__FILE__, __LINE__, 0, 
-                    "'%s' coupling not found '%s' code\n", cplId.c_str(),
-                   localCodeProperties.nameGet().c_str());
+        PDM_error(__FILE__, __LINE__, 0,
+                  "'%s' coupling not found '%s' code\n", cplId.c_str(),
+                  localCodeProperties.nameGet().c_str());
       }
 
     }
     assert( p1->second != NULL);
     return *p1->second;
   }
-    
+
   /**
-   * \brief Return if a coupling identifier exists  
+   * \brief Return the list of coupling objects for a code
+   *
+   * \param [in]  localCodeProperties  Source code
+   *
+   */
+
+  map <string, Coupling * >&
+  CouplingDB::couplingListGet
+  (
+   const CodeProperties &localCodeProperties
+  )
+  {
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+    if (p == _couplingDB.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' code not found in couplingDB\n", localCodeProperties.nameGet().c_str());
+    }
+    return p->second;
+  }
+
+  /**
+   * \brief Return if a coupling identifier exists
    *
    * \param [in]  localCodeProperties  Source code
    * \param [in]  cplId                Coupling identifier
@@ -74,7 +96,7 @@ namespace cwipi {
    * \return status
    */
 
-  bool 
+  bool
   CouplingDB::couplingIs
   (
    const CodeProperties &localCodeProperties,
@@ -98,9 +120,7 @@ namespace cwipi {
     }
     return status;
   }
-  
-  
-  
+
 }
 
 #endif

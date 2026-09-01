@@ -14,40 +14,40 @@ program fortran_new_api_polygon_sol
 #endif
 
   !--------------------------------------------------------------------
-  integer, parameter                      :: n_vtx = 11, n_elts = 5
+  integer, parameter          :: n_vtx = 11, n_elts = 5
 
-  integer                                 :: ierr
-  integer                                 :: i_rank, n_rank
+  integer                     :: ierr
+  integer                     :: i_rank, n_rank
 
-  integer                                 :: n_code
-  character(len = 5),            pointer  :: code_names(:)         => null()
-  integer                                 :: is_active_rank = CWP_STATUS_ON
-  integer,                       pointer  :: intra_comms(:)        => null()
+  integer                     :: n_code
+  character(len = 5), pointer :: code_names(:) => null()
+  integer                     :: is_active_rank = CWP_STATUS_ON
+  integer, pointer            :: intra_comms(:) => null()
 
-  integer                                 :: n_part
-  character(len = 5),            pointer  :: coupled_code_names(:) => null()
-  character(len = 99)                     :: coupling_name
+  integer                     :: n_part
+  character(len = 5), pointer :: coupled_code_names(:) => null()
+  character(len = 99)         :: coupling_name
 
-  double precision, pointer, dimension(:,:) :: coords => null()
-  integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
+  real(8), pointer            :: coords(:,:)  => null()
+  integer(c_long), pointer    :: vtx_g_num(:) => null()
 
-  integer, pointer, dimension(:)          :: connec_idx => null()
-  integer, pointer, dimension(:)          :: connec => null()
-  integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
-  integer(c_int)                          :: id_block
+  integer, pointer            :: connec_idx(:) => null()
+  integer, pointer            :: connec(:)     => null()
+  integer(c_long), pointer    :: elt_g_num(:)  => null()
+  integer(c_int)              :: id_block
 
-  character(len = 99)                     :: field_name
-  integer(c_int)                          :: n_components
+  character(len = 99)         :: field_name
+  integer(c_int)              :: n_components
 
-  integer                                 :: i
+  integer                     :: i
 
-  double precision,              pointer  :: send_field_data(:) => null()
-  double precision,              pointer  :: recv_field_data(:) => null()
+  real(8), pointer            :: send_field_data(:) => null()
+  real(8), pointer            :: recv_field_data(:) => null()
 
-  integer(c_int)                          :: n_uncomputed_tgts
-  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
+  integer(c_int)              :: n_uncomputed_tgts
+  integer(c_int), pointer     :: uncomputed_tgts(:) => null()
 
-  logical                                 :: I_am_code1
+  logical                     :: I_am_code1
   !--------------------------------------------------------------------
 
   ! MPI Initialization
@@ -103,7 +103,7 @@ program fortran_new_api_polygon_sol
   ! over the processors of its code. Here the mesh does not change
   ! over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.
   ! CWP_TIME_EXCH_USER_CONTROLLED is not used yet.
-  coupling_name = "code1_code2";
+  coupling_name = "code1_code2"
 
   allocate(coupled_code_names(n_code))
 
@@ -342,13 +342,13 @@ program fortran_new_api_polygon_sol
                    coupling_name)
 
   ! free
-  deallocate(coords);
-  deallocate(connec);
-  deallocate(connec_idx);
+  deallocate(coords)
+  deallocate(connec)
+  deallocate(connec_idx)
   if (I_am_code1) then
-    deallocate(send_field_data);
+    deallocate(send_field_data)
   else
-    deallocate(recv_field_data);
+    deallocate(recv_field_data)
   endif
 
   ! Finalize CWIPI :

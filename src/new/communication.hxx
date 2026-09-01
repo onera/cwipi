@@ -19,6 +19,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
+#include <cstdint>
 #include "codeProperties.hxx"
 #include "couplingDB.hxx"
 

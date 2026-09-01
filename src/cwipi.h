@@ -5,7 +5,7 @@
 #ifndef __CWIPI_H__
 #define __CWIPI_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -139,7 +139,7 @@ typedef enum {
   CWIPI_FACE_TRIA3,
   CWIPI_FACE_TRIAHO,
   CWIPI_FACE_QUAD4,
-  CWIPI_FACE_QUADHO,  
+  CWIPI_FACE_QUADHO,
   CWIPI_FACE_POLY,
   CWIPI_CELL_TETRA4,
   CWIPI_CELL_TETRAHO,
@@ -231,7 +231,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               the local mesh (1, 2 or 3)
  * order                                     <-- Mesh order
  * n_local_vertex                            <-- local mesh vertices number
- * n_local_element                           <-- local mesh elements number 
+ * n_local_element                           <-- local mesh elements number
  *                                               (without polyhedra)
  * n_local_polyhedra                         <-- local mesh elements number
  * n_distant_point                           <-- located distant point number
@@ -292,18 +292,18 @@ typedef void (*cwipi_user_interp_ho_fct_t)
    );
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Callback to define location in a high order element
- * 
+ *
  * parameters:
  *   order             <-- element order
  *   n_nodes           <-- number of nodes of the element
  *   nodes_coords      <-- nodes coordinates
  *   point_coords      <-- point to locate coordinates
- *   projected_coords  --> projected point coordinates (if point is outside) 
+ *   projected_coords  --> projected point coordinates (if point is outside)
  *   projected_uvw     --> parametric coordinates of the projected point
- * 
- * return: 
+ *
+ * return:
  *   distance to the cell (distance <= 0 if point is inside)
  *
  *----------------------------------------------------------------------------*/
@@ -319,17 +319,17 @@ typedef double (*cwipi_ho_location_fct_t)
 
 
 /*----------------------------------------------------------------------------
- * 
- * Callback to define the basis functions of an high order 
+ *
+ * Callback to define the basis functions of an high order
  * element
- * 
+ *
  * parameters:
  *   order             <-- element order
  *   n_nodes           <-- number of nodes of the element
  *   n_pts             <-- number of points
  *   uvv               <-- Parametric coordinates of points
  *   weights           --> Interpolation weights (size = n_nodes * n_pts)
- * 
+ *
  *----------------------------------------------------------------------------*/
 
 typedef void (*cwipi_ho_basis_fct_t)
@@ -342,15 +342,15 @@ typedef void (*cwipi_ho_basis_fct_t)
 
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Callback to define parametric coordinates of the element nodes
- * 
+ *
  * parameters:
  *   order             <-- element order
  *   n_nodes           <-- number of nodes of the element
  *   xsi_uvv           --> Parametric coordinates of a the element nodes
  *                         (size = dim of element * n_nodes)
- * 
+ *
  *----------------------------------------------------------------------------*/
 
 typedef void (*cwipi_ho_xsi_fct_t)
@@ -787,7 +787,7 @@ void cwipi_dump_application_properties(void);
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
- *                               CWIPI_CYCLIC_MESH 
+ *                               CWIPI_CYCLIC_MESH
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -852,7 +852,7 @@ void cwipi_create_coupling
  *
  * parameters:
  *   coupling_name           <-- Coupling identifier
- *   data                    <-- data user        
+ *   data                    <-- data user
  *----------------------------------------------------------------------------*/
 
 void
@@ -871,7 +871,7 @@ cwipi_set_data_user
  *   coupling_name           <-- Coupling identifier
  *
  * return :
- *   data 
+ *   data
  *----------------------------------------------------------------------------*/
 
 void *
@@ -895,7 +895,7 @@ void cwipi_set_location_index
 
 /*----------------------------------------------------------------------------
  *
- * save/load  location 
+ * save/load  location
  *
  * parameters:
  *   coupling_name           <-- Coupling identifier
@@ -911,7 +911,7 @@ void cwipi_save_location(const char *coupling_name);
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
- *   filename             <-- file name 
+ *   filename             <-- file name
  *   mode                 <-- "r" : read
  *                            "w" : write
  *----------------------------------------------------------------------------*/
@@ -1058,7 +1058,7 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Define a high order mesh interface for the current coupling. 
+ * Define a high order mesh interface for the current coupling.
  *
  *    1D : edges (not implemented yet)
  *    2D : triangles, quadrangles
@@ -1090,17 +1090,17 @@ void cwipi_ho_define_mesh(const char *coupling_id,
 
 /*----------------------------------------------------------------------------
  *
- * Define specific options for ho elements 
+ * Define specific options for ho elements
  *
  * parameters:
  *   coupling_id     <-- coupling name
  *   option          <-- option name, Choice between :
- *                          - "opt_bbox_step" 
- *                              * Description : step of discretization used 
- *                                              to compute the optimized element 
+ *                          - "opt_bbox_step"
+ *                              * Description : step of discretization used
+ *                                              to compute the optimized element
  *                                              bounding boxes
  *                                              -1 to deactivate this computation
- *                              * Default     : 10 
+ *                              * Default     : 10
  *   value           <-- option value
  *
  *----------------------------------------------------------------------------*/
@@ -1144,9 +1144,9 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
                                          const double *coords);
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Set a user element
- * 
+ *
  * parameters:
  *   elt_type            <-- Element type
  *   element_basis       <-- Element basis function
@@ -1305,7 +1305,7 @@ cwipi_exchange_status_t cwipi_exchange
 
 /*----------------------------------------------------------------------------
  *
- * Send interpolated data to the coupled application. 
+ * Send interpolated data to the coupled application.
  * Non blocking comunication.
  *
  * parameters
@@ -1315,7 +1315,7 @@ cwipi_exchange_status_t cwipi_exchange
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   sending_field_name   <-- Sending field name
- *   sending_field        <-- Sending field 
+ *   sending_field        <-- Sending field
  *   request              --> Request
  *
  *----------------------------------------------------------------------------*/
@@ -1333,8 +1333,8 @@ void cwipi_issend
 
 /*----------------------------------------------------------------------------
  *
- * Receive interpolated data from the coupled application. 
- * Non blocking comunication. receiving_field is fully updated after 
+ * Receive interpolated data from the coupled application.
+ * Non blocking comunication. receiving_field is fully updated after
  * cwipi_wait_irecv calling
  *
  * parameters
@@ -1344,7 +1344,7 @@ void cwipi_issend
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   receiving_field_name <-- Receiving field name
- *   receiving_field      <-- Receiving field 
+ *   receiving_field      <-- Receiving field
  *   request              --> Request
  *
  *----------------------------------------------------------------------------*/
@@ -1362,7 +1362,7 @@ void cwipi_irecv
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_issend. 
+ * Wait for cwipi_issend.
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1375,7 +1375,7 @@ void cwipi_wait_issend(const char  *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_irecv. 
+ * Wait for cwipi_irecv.
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1388,7 +1388,7 @@ void cwipi_wait_irecv(const char  *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Get located point distance to exchange area 
+ * Get located point distance to exchange area
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1531,7 +1531,7 @@ int cwipi_get_n_distant_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
- * Get number of distant ranks 
+ * Get number of distant ranks
  *
  * parameters
  *   coupling_id          <-- Coupling identifier

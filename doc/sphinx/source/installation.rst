@@ -8,9 +8,22 @@ Dependencies
 
 General dependencies for building **CWIPI** are:
 
-  * a C++ compiler
+  * a C++ compiler (tested with :code:`gcc 10, 12, 14, 15`, :code:`intel 2022`, :code:`intel-llvm 2022`)
   * `CMake <https://cmake.org/>`_ (version 3.16 or higher)
-  * an MPI distribution
+  * an MPI distribution (tested with :code:`openmpi`, :code:`intel oneapi`)
+
+To run **CWIPI** tests with `cwp_run`, additional dependencies are:
+  * `bc`
+  * `awk`
+  * `gnu-time <https://formulae.brew.sh/formula/gnu-time>`_ on macOS
+
+To build **CWIPI** Fortran API, additional dependencies are:
+  * a Fortran 90 compiler (tested with :code:`gfortran` based on :code:`gcc 10, 12, 14, 15`, :code:`intel 2022`, :code:`intel-llvm 2022`)
+
+To build **CWIPI** Python API, additional dependencies are:
+  * `numpy (1.x)`
+  * `mpi4py`
+  * `Cython (0.29.x, 3.x)`
 
 Basic Installation
 ==================
@@ -26,8 +39,6 @@ Follow these steps to build **CWIPI** from the sources:
   make install
 
 If installation fails, use the following CMake options.
-
-
 
 CMake general options
 =====================
@@ -47,6 +58,7 @@ CMake general options
 .. code-block:: sh
 
   CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)
+  CWP_ENABLE_Fortran_MPI_MODULE=<ON | OFF> (default : OFF)
 
 **Enable Python interface**
 
@@ -63,7 +75,6 @@ If a simple autodetection fails, you can use these options to find Python :
 
 Refer to `FindPython <https://cmake.org/cmake/help/latest/module/FindPython.html>`_ in the CMake documentation for more information.
 
-
 **Build shared library**
 
 .. code-block:: sh
@@ -76,6 +87,27 @@ Refer to `FindPython <https://cmake.org/cmake/help/latest/module/FindPython.html
 
   CWP_ENABLE_STATIC=<ON | OFF> (default : ON)
 
+**Hide symbols of internal ParaDiGM library**
+
+.. code-block:: sh
+
+  CWP_ENABLE_HIDE_PDM_SYMBOLS=<ON | OFF> (default : ON)
+
+If :code:`CWP_ENABLE_STATIC=ON` then :code:`CWP_ENABLE_HIDE_PDM_SYMBOLS=OFF` is forced
+
+**Enable the use of external ParaDiGM library**
+
+.. code-block:: sh
+
+  CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)
+
+If :code:`CWP_ENABLE_EXTERNAL_PDM=ON`, you must define this variable to find ParaDiGM:
+
+.. code-block:: sh
+
+  PDM_SOURCE_DIR=<path> Where to find the base directory of ParaDiGM
+
+If :code:`CWP_ENABLE_HIDE_PDM_SYMBOLS=ON` then :code:`CWP_ENABLE_EXTERNAL_PDM=OFF` is forced
 
 .. _blas: https://www.netlib.org/blas/
 .. |blas| replace:: **BLAS**
@@ -100,6 +132,18 @@ To force the use of a list of libraries
 
   DBLAS_LIBRARIES="<lib_1> ... <lib_n>"
 
+**Enable tests**
+
+.. code-block:: sh
+
+  CWP_ENABLE_TESTS=<ON | OFF> (default : ON)
+
+**Enable unit tests**
+
+.. code-block:: sh
+
+  CWP_ENABLE_UNIT_TESTS=<ON | OFF> (default : OFF)
+
 Compiler choice
 ===============
 
@@ -114,7 +158,6 @@ or use the following CMake options
     CMAKE_C_COMPILER=<C compiler>
     CMAKE_CXX_COMPILER=<CXX compiler>
     CMAKE_Fortran_COMPILER=<Fortran compiler>
-
 
 CMake MPI options
 =================

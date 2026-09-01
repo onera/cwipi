@@ -26,8 +26,6 @@
 
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_timer.h"
-#include "pdm.h"
 
 #include "cwipi.h"
 
@@ -69,7 +67,7 @@ _display_usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(int argc, char **argv, PDM_g_num_t *nx, double *part, double *s, int *new, int *old,
+_read_args(int argc, char **argv, CWP_g_num_t *nx, double *part, double *s, int *new, int *old,
            int *n_compute) {
   int i = 1;
   int isNew = 0;
@@ -168,7 +166,7 @@ main(int argc, char *argv[]) {
   srand(rank + time(0));
 
   // Read args from command line
-  PDM_g_num_t nx = 10;
+  CWP_g_num_t nx = 10;
   double part = 1.;
   double s = 10.;
   int new = 0;

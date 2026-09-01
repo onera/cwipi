@@ -152,8 +152,8 @@ namespace cwipi {
 
 
     for (size_t i = 0; i < _cpl->fieldsGet()->size(); i++) {
-      _send_buffer[i]  = NULL;
-      _recv_buffer[i]  = NULL;
+      _send_buffer [i] = NULL;
+      _recv_buffer [i] = NULL;
       _send_request[i] = -1;
       _recv_request[i] = -1;
     }
@@ -164,65 +164,67 @@ namespace cwipi {
     _ptsp = NULL;
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      _src_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
-      _src_gnum =  (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
+      // Local code is the source, coupled code is the target
+      _src_n_gnum = (      int          *) malloc(sizeof(int        ) * _nPart);
+      _src_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _nPart);
 
-      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
-      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
+      _tgt_n_gnum = (      int          *) malloc(sizeof(int        ) * _cplNPart);
+      _tgt_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _cplNPart);
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
-        _src_gnum[i_part] = nullptr;
+        _src_gnum  [i_part] = NULL;
       }
 
       for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
-        _tgt_gnum[i_part] = nullptr;
+        _tgt_gnum  [i_part] = NULL;
       }
     }
     else {
-      _src_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
-      _src_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
+      // Local code is the target, coupled code is the source
+      _src_n_gnum = (      int          *) malloc(sizeof(int        ) * _cplNPart);
+      _src_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _cplNPart);
 
-      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
-      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
+      _tgt_n_gnum = (      int          *) malloc(sizeof(int        ) * _nPart);
+      _tgt_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _nPart);
 
       for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
-        _src_gnum[i_part] = nullptr;
+        _src_gnum  [i_part] = NULL;
       }
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
-        _tgt_gnum[i_part] = nullptr;
+        _tgt_gnum  [i_part] = NULL;
       }
     }
 
 
-    _n_elt_weights =  (int *) malloc (sizeof(int) * (_nPart));
-    _weights_idx =  (int **) malloc (sizeof(int *) * (_nPart));
-    _weights =  (double **) malloc (sizeof(double *) * (_nPart));
+    _n_elt_weights          = (int     *) malloc(sizeof(int     ) * _nPart);
+    _weights_idx            = (int    **) malloc(sizeof(int    *) * _nPart);
+    _weights                = (double **) malloc(sizeof(double *) * _nPart);
 
-    _n_computed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _computed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_computed_tgt         = (int     *) malloc(sizeof(int     ) * _nPart);
+    _computed_tgt           = (int    **) malloc(sizeof(int    *) * _nPart);
 
-    _n_involved_sources_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _involved_sources_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_uncomputed_tgt       = (int     *) malloc(sizeof(int     ) * _nPart);
+    _uncomputed_tgt         = (int    **) malloc(sizeof(int    *) * _nPart);
 
-    _n_uncomputed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _uncomputed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_involved_sources_tgt = (int     *) malloc(sizeof(int     ) * _nPart);
+    _involved_sources_tgt   = (int    **) malloc(sizeof(int    *) * _nPart);
 
     for (int i = 0; i < _nPart; i++) {
-      _weights_idx[i] = NULL;
-      _weights[i] = NULL;
-      _computed_tgt[i] = NULL;
-      _uncomputed_tgt[i] = NULL;
+      _weights_idx         [i] = NULL;
+      _weights             [i] = NULL;
+      _computed_tgt        [i] = NULL;
+      _uncomputed_tgt      [i] = NULL;
       _involved_sources_tgt[i] = NULL;
 
-      _n_uncomputed_tgt[i] = 0;
-      _n_computed_tgt[i] = 0;
+      _n_uncomputed_tgt      [i] = 0;
+      _n_computed_tgt        [i] = 0;
       _n_involved_sources_tgt[i] = 0;
-      _n_elt_weights[i] = 0;
+      _n_elt_weights         [i] = 0;
     }
 
   }

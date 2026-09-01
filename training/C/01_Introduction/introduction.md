@@ -17,7 +17,7 @@ kernelspec:
 
 Welcome to the **CWIPI** library introductory day !
 
-The aim of the day is to give you : 
+The aim of the day is to give you :
   - An overview of **CWIPI** 1.0 functionalities
   - An understanding on how **CWIPI** can be called to couple solvers written in C/C++, Fortran or Python.
 
@@ -62,7 +62,7 @@ This is achieved by not having any specific data structure but by working with s
 ## History
 
 **CWIPI** has been created in 2009 upon the initiative of Eric Quémerais.
-It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...). 
+It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...).
 CERFACS is a main contributer and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controled by the OpenPALM process.
 This helped increasing the use of **CWIPI**.
 The main attraction is the performance, which is mentioned in articles of similar coupling tools and which prompted the invitation to the ExCALIBUR workshop.
@@ -181,7 +181,7 @@ Follow these steps to build **CWIPI** from the sources:
 1. `cmake ..`
 1. `make`
 1. `make install`
-1. `./cwp_run` (if you want to run the test cases)
+1. `./cwp_run` (if you want to run the test cases, at least 10 CPU cores are required)
 
 ## CMake options
 
@@ -678,14 +678,14 @@ Feel free to suggest changes to improve it!
 <img src="old_to_new.png" width="600">
 
 
-# Clone repository  
+# Clone repository
 
 Go to **exercise_clone_repo** in your working directory and clone https://gitlab.onera.net/numerics/coupling/cwipi.git
 
-In the **tests** directory**, you'll find a large number of validation tests. These tests are good examples of how to use the software to discover functionalities that will not be covered during this day.  
+In the **tests** directory**, you'll find a large number of validation tests. These tests are good examples of how to use the software to discover functionalities that will not be covered during this day.
 
 - **c_new_api_user_interp_fct** : Implementation of an user interpolation
-- **c_client_server\*** : Using client/server mode 
+- **c_client_server\*** : Using client/server mode
 - ...
 
 

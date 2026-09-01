@@ -213,12 +213,12 @@ _gen_mesh
 int main(int argc, char *argv[])
 {
   // Read args from command line
-  int    n_vtx_seg1            = 4;
-  int    n_vtx_seg2            = 4;
-  int    n_part1               = 1;
-  int    n_part2               = 1;
-  int    randomize             = 1;
-  double tolerance             = 1e-2;
+  int    n_vtx_seg1 = 4;
+  int    n_vtx_seg2 = 4;
+  int    n_part1    = 1;
+  int    n_part2    = 1;
+  int    randomize  = 1;
+  double tolerance  = 1e-2;
 
   _read_args(argc,
              argv,

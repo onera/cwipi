@@ -162,7 +162,7 @@ namespace cwipi {
       // Source properties
       _tgt_in_src_idx  =  (int **) malloc (sizeof(int *) * (_nPart));
       _tgt_in_src_gnum = (PDM_g_num_t**) malloc (sizeof(PDM_g_num_t*) * _nPart);
-      
+
       _tgt_in_src_dist =  (double **) malloc (sizeof(double *) * (_nPart));
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
@@ -203,6 +203,10 @@ namespace cwipi {
       /* Get PDM part_to_part object */
       if (_id_pdm != NULL) {
         if (!_reverse) {
+          if (_ptsp != NULL) {
+            PDM_part_to_part_free(_ptsp);
+            _ptsp = NULL;
+          }
           PDM_closest_points_part_to_part_get(_id_pdm,
                                               &_ptsp,
                                               PDM_OWNERSHIP_USER);
@@ -925,9 +929,9 @@ namespace cwipi {
         }
 
 
-        double *A = (double *) malloc(sizeof(double) * siz * siz);
-        double *rhs = (double *) malloc(sizeof(double) * siz *stride);
-        double *b = (double *) malloc(sizeof(double) * siz );
+        double *A   = (double *) malloc(sizeof(double) * siz * siz   );
+        double *rhs = (double *) malloc(sizeof(double) * siz * stride);
+        double *b   = (double *) malloc(sizeof(double) * siz         );
 
         for (int i = 0; i < siz * siz; i++) {
           A[i] = 0;

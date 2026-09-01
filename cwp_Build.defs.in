@@ -4,6 +4,7 @@
 
 #-----------------------------------------------------------------------
 CMAKE_INSTALL_PREFIX = @CMAKE_INSTALL_PREFIX@
+CMAKE_BUILD_TYPE     = @CMAKE_BUILD_TYPE@
 
 CWP_ENABLE_Fortran            = @CWP_ENABLE_Fortran@
 CWP_ENABLE_Fortran_MPI_MODULE = @CWP_ENABLE_Fortran_MPI_MODULE@

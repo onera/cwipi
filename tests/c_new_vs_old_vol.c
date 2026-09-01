@@ -31,7 +31,6 @@
 #include "pdm_part.h"
 #include "pdm_mpi_node_first_rank.h"
 #include "pdm_error.h"
-#include "pdm_timer.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
 
@@ -384,7 +383,7 @@ _cube_mesh
     PDM_dmesh_nodal_generate_distribution(dmn);
 
     PDM_g_num_t *vtx_distrib = PDM_dmesh_nodal_vtx_distrib_get(dmn);
-    double      *dvtx_coord  = PDM_DMesh_nodal_vtx_get(dmn);
+    double      *dvtx_coord  = PDM_DMesh_nodal_vtx_get(dmn, PDM_OWNERSHIP_KEEP);
     int dn_vtx = vtx_distrib[i_rank+1] - vtx_distrib[i_rank];
 
 
@@ -885,8 +884,12 @@ _cube_mesh
                                      i_part,
                                      (*pn_vtx)[i_part],
                                      (*pvtx_coord)[i_part],
-                                     (*pvtx_ln_to_gn)[i_part],
                                      PDM_OWNERSHIP_USER);
+
+      PDM_part_mesh_nodal_vtx_gnum_set(nodal,
+                                       i_part,
+                                       (*pvtx_ln_to_gn)[i_part],
+                                       PDM_OWNERSHIP_USER);
 
       PDM_part_mesh_nodal_cell3d_cellface_add (nodal,
                                                i_part,
@@ -1491,9 +1494,9 @@ main(int argc, char *argv[]) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    PDM_timer_hang_on(timer);
-    t_end = PDM_timer_elapsed(timer);
-    PDM_timer_resume(timer);
+    CWP_timer_hang_on(timer);
+    t_end = CWP_timer_elapsed(timer);
+    CWP_timer_resume(timer);
 
     double geom_time = t_end - t_start;
     MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -1509,9 +1512,9 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    PDM_timer_hang_on(timer);
-    t_end = PDM_timer_elapsed(timer);
-    PDM_timer_resume(timer);
+    CWP_timer_hang_on(timer);
+    t_end = CWP_timer_elapsed(timer);
+    CWP_timer_resume(timer);
 
     double geom_time = t_end - t_start;
     MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);

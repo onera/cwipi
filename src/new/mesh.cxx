@@ -585,8 +585,12 @@ namespace cwipi {
                                     i_part                 ,
                                     _nVertex       [i_part],
                                     _coords        [i_part],
-                                    _global_num_vtx[i_part],
                                     PDM_OWNERSHIP_USER);
+
+      PDM_part_mesh_nodal_vtx_gnum_set(_pdmNodal_handle_index ,
+                                       i_part                 ,
+                                       _global_num_vtx[i_part],
+                                       PDM_OWNERSHIP_USER);
 
       // if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
       //   _visu->GeomCoordSet(i_part,
@@ -1500,7 +1504,7 @@ namespace cwipi {
             _faceLNToGN[i] = NULL;
           }
         }
-        else if (_cellFaceMethod == 1) {
+        else if (_cellFaceMethod == 1 || _cellVtxMethod == 1) {
           if (_cellLNToGN[i] != NULL) {
             free(_cellLNToGN[i]);
             _cellLNToGN[i] = NULL;

@@ -301,62 +301,10 @@ namespace cwipi {
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
       }
-      else {
-        // empty mesh
-        // PDM_mesh_intersection_n_part_set2(_id_pdm, 0, n_part_src);
-        // PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_src);
-        // for (int i = 0; i < n_part_src; i++) {
-        //   PDM_mesh_intersection_part_set(_id_pdm,
-        //                                  0,     // i_mesh
-        //                                  i,     // i_part
-        //                                  0,     // n_cell
-        //                                  0,     // n_face
-        //                                  0,     // n_edge
-        //                                  0,     // n_vtx
-        //                                  NULL,  // cell_face_idx
-        //                                  NULL,  // cell_face
-        //                                  NULL,  // face_edge_idx
-        //                                  NULL,  // face_edge
-        //                                  NULL,  // edge_vtx
-        //                                  NULL,  // face_vtx_idx
-        //                                  NULL,  // face_vtx
-        //                                  NULL,  // cell_ln_to_gn
-        //                                  NULL,  // face_ln_to_gn
-        //                                  NULL,  // edge_ln_to_gn
-        //                                  NULL,  // vtx_ln_to_gn
-        //                                  NULL); // vtx_coord
-        // }
-      }
 
       // target mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
         PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
-      }
-      else {
-        // empty mesh
-        // PDM_mesh_intersection_n_part_set2(_id_pdm, 1, n_part_tgt);
-        // PDM_mesh_intersection_n_part_set(_id_pdm, 1, n_part_tgt);
-        // for (int i = 0; i < n_part_tgt; i++) {
-        //   PDM_mesh_intersection_part_set(_id_pdm,
-        //                                  1,     // i_mesh
-        //                                  i,     // i_part
-        //                                  0,     // n_cell
-        //                                  0,     // n_face
-        //                                  0,     // n_edge
-        //                                  0,     // n_vtx
-        //                                  NULL,  // cell_face_idx
-        //                                  NULL,  // cell_face
-        //                                  NULL,  // face_edge_idx
-        //                                  NULL,  // face_edge
-        //                                  NULL,  // edge_vtx
-        //                                  NULL,  // face_vtx_idx
-        //                                  NULL,  // face_vtx
-        //                                  NULL,  // cell_ln_to_gn
-        //                                  NULL,  // face_ln_to_gn
-        //                                  NULL,  // edge_ln_to_gn
-        //                                  NULL,  // vtx_ln_to_gn
-        //                                  NULL); // vtx_coord
-        // }
       }
     }
 
@@ -461,6 +409,10 @@ namespace cwipi {
 
     /* Get PDM part_to_part object */
     if (_id_pdm != NULL) {
+      if (_ptsp != NULL) {
+        PDM_part_to_part_free(_ptsp);
+        _ptsp = NULL;
+      }
       PDM_mesh_intersection_part_to_part_get(_id_pdm,
                                              &_ptsp,
                                              PDM_OWNERSHIP_USER);
@@ -631,13 +583,13 @@ namespace cwipi {
             //                                    &(cpl_spatial_interp->_tgt_volume[i_part]));
 
             cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
-            cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+            cpl_spatial_interp->_computed_tgt  [i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
             memcpy(cpl_spatial_interp->_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
           }
         }
         else {
           for (int i_part = 0; i_part < _nPart; i_part++) {
-            _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            _src_to_tgt_idx[i_part]    = (int *) malloc(sizeof(int));
             _src_to_tgt_idx[i_part][0] = 0;
 
             PDM_mesh_intersection_result_from_b_get(_id_pdm,
@@ -650,7 +602,7 @@ namespace cwipi {
             //                                      &(_tgt_volume[i_part]));
 
             _n_computed_tgt[i_part] = n_ref_tgt[i_part];
-            _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+            _computed_tgt  [i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
             memcpy(_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * _n_computed_tgt[i_part]);
           }
 
@@ -662,7 +614,7 @@ namespace cwipi {
                                                     &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
 
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
-            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
+            cpl_spatial_interp->_involved_sources_tgt  [i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
 
             int count = 0;
             for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
@@ -673,7 +625,7 @@ namespace cwipi {
             }
 
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
-            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
+            cpl_spatial_interp->_involved_sources_tgt  [i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
           }
         }
       }

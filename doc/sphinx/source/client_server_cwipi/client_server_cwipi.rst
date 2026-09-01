@@ -11,13 +11,6 @@ Note that this mode might degrade severely CWIPI's performance.
 For now, this mode has a separate C/C++ and Python API, albeit very similar to the full MPI mode ; in fact these two APIs may be fused in future versions.
 A Fortran interface might be developed upon request.
 
-.. **Maybe ne pas commencer par dire que c'est naze, non? ^^**
-.. Client-Server CWIPI is a degenerate mode of the new version of CWIPI in terms of performance.
-.. It has been developed upon user request to couple closed-source software with specific MPI implementations hindering compatibility to other software. Communications between client and server are based on TCP/IP sockets.
-.. The servers communicate using MPI protocol running the classical implementation of the library.
-.. The API of this mode and the new CWIPI version are broadly similar.
-.. There is a also Python interface for this mode. A Fortran might be developed upon request.
-
 One can enable the verbose mode with ``export CWP_TCP_IP_VERBOSE=1`` to get more information about the client-server exchanges, which proves useful for debugging.
 
 Example
@@ -61,8 +54,6 @@ Once the servers have been properly launched, the following message will be prin
 
 Client
 ======
-
-.. This is the file that is written by the user with the functions in the ``src/new/client_server/client.h`` file. **???**
 
 Users must call the client :ref:`C/C++ <Doxygen documentation>` or :ref:`Python <Python API documentation : pycwpclt>` API which are listed below.
 The connection to the server is performed in the ``CWP_client_Init`` function.

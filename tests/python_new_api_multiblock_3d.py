@@ -201,6 +201,9 @@ def run_test():
   pycwp.time_step_end(code_name)
 
   # Finalize
+  del field
+  cpl.mesh_interf_del()
+  del cpl
   pycwp.finalize()
 
   if i_rank == 0:

@@ -121,6 +121,8 @@ namespace cwipi {
       MPI_Comm_group(_cplComm, &_cplGroup);
 
     }
+    MPI_Group_free(&_cplGroup);
+    MPI_Group_free(&unionGroup);
   }
 
   /**

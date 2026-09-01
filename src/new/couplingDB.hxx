@@ -52,33 +52,33 @@ namespace cwipi {
      *
      * This function creates a coupling object and defines its properties.
      *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  cplId                Coupling identifier
-     * \param [in]  coupledCodeProperties    Coupled code properties
-     * \param [in]  commType             Communication type
-     * \param [in]  spatialInterpAlgo    Spatial interpolation algorithm
-     * \param [in]  nPart                Number of interface partition
-     * \param [in]  movingStatus         Support moving status
-     * \param [in]  recvFreqType         Type of receiving frequency
+     * \param [in]  localCodeProperties    Source code
+     * \param [in]  cplId                  Coupling identifier
+     * \param [in]  coupledCodeProperties  Coupled code properties
+     * \param [in]  commType               Communication type
+     * \param [in]  spatialInterpAlgo      Spatial interpolation algorithm
+     * \param [in]  nPart                  Number of interface partition
+     * \param [in]  movingStatus           Support moving status
+     * \param [in]  recvFreqType           Type of receiving frequency
      *
      */
 
     void
     couplingCreate
     (
-           CodeProperties        &localCodeProperties,
-     const string                &cplId,
-           CodeProperties        &coupledCodeProperties,
+           CodeProperties       &localCodeProperties,
+     const string               &cplId,
+           CodeProperties       &coupledCodeProperties,
      const CWP_Interface_t       entities_dim,
-     const CWP_Comm_t           commType,
-     const CWP_Spatial_interp_t           spatialInterpAlgo,
-     const int                    nPart,
-     const CWP_Dynamic_mesh_t  movingStatus,
-     const CWP_Time_exch_t           recvFreqType
+     const CWP_Comm_t            commType,
+     const CWP_Spatial_interp_t  spatialInterpAlgo,
+     const int                   nPart,
+     const CWP_Dynamic_mesh_t    movingStatus,
+     const CWP_Time_exch_t       recvFreqType
     );
 
     /**
-     * \brief Deletion a coupling object int the database.
+     * \brief Delete a coupling object in the database
      *
      * \param [in]  localCodeProperties  Source code
      * \param [in]  cplId                Coupling identifier
@@ -104,7 +104,20 @@ namespace cwipi {
     couplingGet
     (
      const CodeProperties &localCodeProperties,
-     const string &cplId
+     const string         &cplId
+    );
+
+    /**
+     * \brief Return the list of coupling objects for a code
+     *
+     * \param [in]  localCodeProperties  Source code
+     *
+     */
+
+    inline map <string, Coupling * >&
+    couplingListGet
+    (
+     const CodeProperties &localCodeProperties
     );
 
     /**
@@ -120,8 +133,16 @@ namespace cwipi {
     couplingIs
     (
      const CodeProperties &localCodeProperties,
-     const string &cplId
+     const string         &cplId
     );
+
+    /**
+     * \brief Update time
+     *
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  current_time         Current time
+     *
+     */
 
     void
     timeUpdate
@@ -130,7 +151,13 @@ namespace cwipi {
      double                current_time
     );
 
-    // Begin code time step
+    /**
+     * \brief Begin time step
+     *
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  current_time         Current time
+     *
+     */
 
     void
     time_step_beg
@@ -139,7 +166,12 @@ namespace cwipi {
      double                current_time
     );
 
-    // End code time step
+    /**
+     * \brief End time step
+     *
+     * \param [in]  localCodeProperties  Source code
+     *
+     */
 
     void
     time_step_end

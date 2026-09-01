@@ -1,7 +1,7 @@
 #ifndef __CODE_PROPERTIES_DB_I_H__
 #define __CODE_PROPERTIES_DB_I_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -39,7 +39,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   CodePropertiesDB::printfProxySet
   (
    PDM_printf_proxy_t *const proxyFunction
@@ -53,7 +53,7 @@ namespace cwipi {
    * \brief Return local code MPI intra communicator.
    *
    * \param[in]   localCodeName  Local code name
-   * 
+   *
    * \return  MPI Intra communicator
    *
    */
@@ -63,6 +63,15 @@ namespace cwipi {
   {
     return _locCodePropertiesDB[localCodeName]->intraCommGet();
   }
+
+  /**
+    * \brief Return local code connectable MPI Communicator
+    *
+    * \param[in]   localCodeName  Local code name
+    *
+    * \return  Connectable MPI communicator
+    *
+    */
 
   const MPI_Comm &
   CodePropertiesDB::connectableCommGet(const string & localCodeName) const
@@ -75,31 +84,29 @@ namespace cwipi {
    *
    */
 
-   void
-  CodePropertiesDB::userStructureSet 
+  void
+  CodePropertiesDB::userStructureSet
   (
-    const string & localCodeName,
-    void *userStruct
+    const string &localCodeName,
+          void   *userStruct
   )
   {
     _locCodePropertiesDB[localCodeName]->userStructureSet(userStruct);
   }
-
 
  /**
    * \brief Get the user structure
    *
    */
 
-  void * 
+  void *
   CodePropertiesDB::userStructureGet
   (
-     const string & localCodeName
+    const string &localCodeName
   ) const
   {
     return _locCodePropertiesDB[localCodeName]->userStructureGet();
   }
-
 
   /**
    * \brief Return MPI communicator containing all processes of all codes.
@@ -110,27 +117,26 @@ namespace cwipi {
 
   const MPI_Comm &
   CodePropertiesDB::globalCommGet() const
-  {    
+  {
     return _globalComm;
   }
 
-    
   /**
    * \brief Return the code properties.
    *
    * \param [in]  codeName  Code name
    *
-   * \return      Properties
+   * \return  Properties
    *
    */
 
-  inline  CodeProperties &
+  inline CodeProperties &
   CodePropertiesDB::codePropertiesGet
   (
-   const string &codeName
+    const string &codeName
   ) const
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
@@ -139,12 +145,10 @@ namespace cwipi {
     return *(p->second);
   }
 
-
-    
   /**
    * \brief Return the number of codes known to CWIPI
    *
-   * \return   Number of codes
+   * \return  Number of codes
    *
    */
 
@@ -156,11 +160,10 @@ namespace cwipi {
     return _codePropertiesDB.size();
   }
 
-    
   /**
    * \brief Return the number of localccodes known to CWIPI
    *
-   * \return   Number of local codes
+   * \return  Number of local codes
    *
    */
 
@@ -169,14 +172,13 @@ namespace cwipi {
   (
   ) const
   {
-    return _locCodePropertiesDB.size();    
+    return _locCodePropertiesDB.size();
   }
 
-    
   /**
    * \brief Return the number of codes known to CWIPI
    *
-   * \return   Number of codes
+   * \return  Number of codes
    *
    */
 
@@ -187,7 +189,7 @@ namespace cwipi {
   {
     const int nCodes = _codePropertiesDB.size();
     const char **list = (const char **) malloc(sizeof(char *) * nCodes);
-    
+
     typedef map <string, CodeProperties * >::iterator CI;
     int i = 0;
     for (CI p = _codePropertiesDB.begin();
@@ -197,11 +199,10 @@ namespace cwipi {
     return list;
   }
 
-    
   /**
    * \brief Return the number of localccodes known to CWIPI
    *
-   * \return   Number of local codes
+   * \return  Number of local codes
    *
    */
 
@@ -212,7 +213,7 @@ namespace cwipi {
   {
     const int nCodes = _locCodePropertiesDB.size();
     const char **list = (const char **) malloc(sizeof(char *) * nCodes);
-    
+
     typedef map <string, CodeProperties * >::iterator CI;
     int i = 0;
     for (CI p = _locCodePropertiesDB.begin();
@@ -227,21 +228,20 @@ namespace cwipi {
    *
    * \param [in]  localCodeName   Local code name
    * \param [in]  name            Parameter name
-   * \param [in]  value           Initial value 
+   * \param [in]  value           Initial value
    *
    */
 
-  template < typename T > 
-  void 
+  template < typename T >
+  void
   CodePropertiesDB::ctrlParamAdd
   (
-   const string &localCodeName, 
-   const string &name, 
-   const T       value
+    const string &localCodeName,
+    const string &name,
+    const T       value
   )
   {
-    
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
@@ -249,26 +249,25 @@ namespace cwipi {
     p->second->ctrlParamAdd(name, value);
   }
 
-
   /**
    * \brief set a control paramater.
    *
    * \param [in]  localCodeName   Local code name
    * \param [in]  name            Parameter name
-   * \param [in]  value           Initial value 
+   * \param [in]  value           Initial value
    *
    */
 
-  template < typename T > 
-  void 
+  template < typename T >
+  void
   CodePropertiesDB::ctrlParamSet
   (
-   const string &localCodeName, 
-   const string &name, 
-   const T       value
+    const string &localCodeName,
+    const string &name,
+    const T       value
   )
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
@@ -276,7 +275,6 @@ namespace cwipi {
     p->second->ctrlParamSet(name, value);
   }
 
-    
   /**
    * \brief Cancel a control paramater.
    *
@@ -285,22 +283,21 @@ namespace cwipi {
    *
    */
 
-  template < typename T > 
-  void 
+  template < typename T >
+  void
   CodePropertiesDB::ctrlParamCancel
   (
-   const string &localCodeName, 
-   const string &name
+    const string &localCodeName,
+    const string &name
   )
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", localCodeName.c_str());
     p->second->ctrlParamCancel<T>(name);
   }
-
 
   /**
    * \brief Return the number of parameters
@@ -311,21 +308,20 @@ namespace cwipi {
    *
    */
 
-  template < typename T > 
-  int 
+  template < typename T >
+  int
   CodePropertiesDB::ctrlParamNGet
   (
-   const string &codeName
+    const string &codeName
   ) const
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", codeName.c_str());
-    return p->second->ctrlParamNGet<T>();    
+    return p->second->ctrlParamNGet<T>();
   }
-
 
   /**
    * \brief Get the value of a control paramater.
@@ -333,11 +329,11 @@ namespace cwipi {
    * \param [in]  codeName  Code name
    * \param [in]  name      Parameter name
    *
-   * \return             Value           
+   * \return  Value
    *
    */
 
-  template < typename T > 
+  template < typename T >
   const T
   CodePropertiesDB::ctrlParamGet
   (
@@ -345,8 +341,7 @@ namespace cwipi {
     const string &name
   )
   {
-
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
     if (p == _codePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
@@ -356,7 +351,6 @@ namespace cwipi {
     return value;
   }
 
-  
   /**
      * \brief Reduce a parameter through a list of codes. The available processes
      *        are sum, max and min.
@@ -366,17 +360,17 @@ namespace cwipi {
      * \param [in]  nCode       Number of code
      * \param       code_names  Code names
      *
-     * \return             Operation result
+     * \return  Operation result
      *
      */
 
-  template < typename T > 
+  template < typename T >
   void
   CodePropertiesDB::ctrlParamReduce
   (
-    const CWP_Op_t  op,
+    const CWP_Op_t   op,
     const string    &name,
-    T               *res,
+          T         *res,
     const int        nCode,
     const char     **code_names
   )
@@ -389,7 +383,7 @@ namespace cwipi {
 
       string codeName = string((char*) code_names[k]);
 
-      const map <string, CodeProperties * >::iterator p = 
+      const map <string, CodeProperties * >::iterator p =
         _codePropertiesDB.find(codeName);
 
       if (p == _codePropertiesDB.end())
@@ -402,7 +396,7 @@ namespace cwipi {
       case CWP_OP_MAX:
         *res = max(distParam, *res);
         break;
-      
+
       case CWP_OP_MIN:
         *res = min(distParam, *res);
         break;
@@ -415,19 +409,19 @@ namespace cwipi {
   }
 
   /**
-   * \brief Lock access to local parameters from a distant code  
+   * \brief Lock access to local parameters from a distant code
    *
    * \param [in]  codeName  Local code name to lock
    *
    */
-  
-  void 
+
+  void
   CodePropertiesDB::lock
   (
-   const string &codeName
+    const string &codeName
   )
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
@@ -436,47 +430,47 @@ namespace cwipi {
   }
 
   /**
-   * \brief Is locked param  
+   * \brief Is locked param
    *
    * \param [in]  codeName  Local code name to lock
    *
    */
-  
-  int 
+
+  int
   CodePropertiesDB::isLocked
   (
-   const string &codeName
+    const string &codeName
   )
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", codeName.c_str());
     return p->second->paramIsLocked();
   }
-  
+
   /**
-   * \brief unlock access to local parameters from a distant code  
+   * \brief unlock access to local parameters from a distant code
    *
    * \param [in]  codeName  Local code name to unlock
    *
    */
 
-  void 
+  void
   CodePropertiesDB::unLock
   (
-   const string &codeName
+    const string &codeName
   )
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _locCodePropertiesDB.find(codeName);
     if (p == _locCodePropertiesDB.end())
       PDM_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", codeName.c_str());
     p->second->paramUnLock();
   }
-  
+
   /**
    * \brief Return of local parameters
    *
@@ -486,16 +480,16 @@ namespace cwipi {
    *
    */
 
-  template < typename T > 
+  template < typename T >
   void
   CodePropertiesDB::ctrlParamListGet
   (
-   const string &codeName,
-   int  *nParam,
-   char ***paramNames
+    const string   &codeName,
+          int      *nParam,
+          char   ***paramNames
   ) const
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
 
     if (p == _codePropertiesDB.end())
@@ -506,24 +500,24 @@ namespace cwipi {
   }
 
   /**
-   * \brief Chek name parameter
+   * \brief Chek name parameter existence
    *
-   * \param [in]  codeName  Code name
-   * \param [in]  name  Parameter name to check
+   * \param [in]  codeName   Code name
+   * \param [in]  name       Parameter to check
    *
    * \return  1 : true / 0 : false
    *
    */
 
-  template < typename T > 
+  template < typename T >
   int
   CodePropertiesDB::ctrlParamIs
   (
-   const string &codeName,
-   const string &name
-   ) const
+    const string &codeName,
+    const string &name
+  ) const
   {
-    const map <string, CodeProperties * >::iterator p = 
+    const map <string, CodeProperties * >::iterator p =
       _codePropertiesDB.find(codeName);
 
     if (p == _codePropertiesDB.end())
@@ -532,7 +526,6 @@ namespace cwipi {
 
     return p->second->ctrlParamIs<T>(name);
   }
-  
 
 } // namespace cwipi
 

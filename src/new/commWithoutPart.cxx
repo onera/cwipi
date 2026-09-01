@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -29,9 +29,9 @@ namespace cwipi {
    * \brief Constructor.
    *
    */
-  
+
   CommWithoutPart::CommWithoutPart()
-    : Communication::Communication(), 
+    : Communication::Communication(),
       _commType(CWP_COMM_PAR_WITHOUT_PART)
   {
   }
@@ -51,7 +51,7 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   CommWithoutPart::_cplCommCreate
   (
    CWP_Comm_t cplCodeCommType
@@ -59,7 +59,7 @@ namespace cwipi {
   {
     const int localRootRank = _localCodeProperties->rootRankGet();
     const int cplRootRank   = _cplCodeProperties->rootRankGet();
-    
+
     const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
 
     int currentRank;
@@ -78,9 +78,9 @@ namespace cwipi {
 
     MPI_Group globalGroup;
     MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
-      
+
     MPI_Group unionGroup;
-    MPI_Comm_group(_unionComm, &unionGroup);      
+    MPI_Comm_group(_unionComm, &unionGroup);
 
     MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
                               unionGroup, &((*_unionCommCplRanks)[0]));
@@ -90,30 +90,30 @@ namespace cwipi {
 
     _cplCommCplRanks = new std::vector<int>(*_unionCommCplRanks);
     _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
-      
+
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
 
       int cplRanks2[2];
       int gap1 = 0;
       int gap2 = 1;
-      
+
       if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
         gap1 = 1;
         gap2 = 0;
       }
-      
-      MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
+
+      MPI_Group_translate_ranks (globalGroup, 1, &localRootRank,
                                  unionGroup, cplRanks2 + gap1);
 
-      MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
+      MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank,
                                  unionGroup, cplRanks2 + gap2);
-      
+
       MPI_Group_incl(unionGroup, 2, cplRanks2, &_cplGroup);
-      
+
       MPI_Comm_create (_unionComm, _cplGroup, &_cplComm);
-      
+
     }
-  
+
     else {
 
       const int locRootRankInGlobalComm = _localCodeProperties->rootRankGet();
@@ -132,8 +132,10 @@ namespace cwipi {
       free(excludeRanks);
 
       MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
-      
+
     }
+    MPI_Group_free(&_cplGroup);
+    MPI_Group_free(&unionGroup);
   }
 
   /**
@@ -145,8 +147,8 @@ namespace cwipi {
   void
   CommWithoutPart::sync
   (
-   void *tab, 
-   MPI_Datatype mpiType, 
+   void *tab,
+   MPI_Datatype mpiType,
    int tabSize
   )
   {

@@ -3440,8 +3440,6 @@ CWP_timer_free
 //  double                     data[]
 // );
 
-#include "fortran/new/cwp_cf.h"
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -394,6 +394,11 @@ def run_coupling():
   if args.old:
     cwipi.finalize()
   else:
+    if is_active_rank:
+      for icode in range(n_code-1, -1, -1):
+        del field[icode]
+        cpl[icode].mesh_interf_del()
+        del cpl[icode]
     pycwp.finalize()
 
   comm.Barrier()

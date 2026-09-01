@@ -535,25 +535,75 @@ CWP_Finalize
  void
 )
 {
-  int flag = 0;
-
-  MPI_Initialized(&flag);
+  // Two choices: couplingDB is kept alive and the signleton remains as a potential leak
+  // or couplingDB is freed and all structures are to be freed explicitely by the user
+  // (Cpl, Interf, Field,...)
+  //cwipi::CouplingDB & couplingDB =
+  //  cwipi::CouplingDB::getInstance();
+  //
+  //couplingDB.kill();
 
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  const MPI_Comm globalComm = properties.globalCommGet();
+  int flag = 0;
 
- // PDM_printf("CWP_Finalize\n");
+  MPI_Initialized(&flag);
+
   fflush(stdout);
   if (flag != 0) {
     PDM_printf_flush();
+    const MPI_Comm globalComm = properties.globalCommGet();
     MPI_Barrier(globalComm);
-//    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
 
-
   properties.kill();
+
+  cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
+
+  factoryComm.Unregister(CWP_COMM_PAR_WITH_PART);
+  factoryComm.Unregister(CWP_COMM_PAR_WITHOUT_PART);
+
+  factoryComm.kill();
+
+  cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
+
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_IDENTITY);
+
+  factorySpatialInterp.kill();
+
+  cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
+
+  factoryBlock.Unregister(CWP_BLOCK_NODE);
+  factoryBlock.Unregister(CWP_BLOCK_EDGE2);
+  factoryBlock.Unregister(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.Unregister(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.Unregister(CWP_BLOCK_FACE_POLY);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_POLY);
+  factoryBlock.Unregister(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.Unregister(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.Unregister(CWP_BLOCK_CELL_PYRAMHO);
+
+  factoryBlock.kill();
+
+  // Free PDM
+  PDM_Finalize();
 
 }
 
@@ -3139,7 +3189,7 @@ CWP_Param_del
     properties.ctrlParamCancel<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    properties.ctrlParamCancel<string>(codeNameStr, nameStr);
+    properties.ctrlParamCancel<char *>(codeNameStr, nameStr);
     break;
   default :
     PDM_error(__FILE__, __LINE__, 0,
@@ -3183,7 +3233,7 @@ CWP_Param_n_get
     nParam = properties.ctrlParamNGet<double>(codeNameStr);
     break;
   case CWP_CHAR :
-    nParam = properties.ctrlParamNGet<string>(codeNameStr);
+    nParam = properties.ctrlParamNGet<char *>(codeNameStr);
     break;
   default :
     PDM_error(__FILE__, __LINE__, 0,
@@ -3228,7 +3278,7 @@ CWP_Param_list_get
     properties.ctrlParamListGet<double>(codeNameStr, nParam, paramNames);
     break;
   case CWP_CHAR :
-    properties.ctrlParamListGet<string>(codeNameStr, nParam, paramNames);
+    properties.ctrlParamListGet<char *>(codeNameStr, nParam, paramNames);
     break;
   default :
     PDM_error(__FILE__, __LINE__, 0,
@@ -3271,7 +3321,7 @@ CWP_Param_is
     isParam = properties.ctrlParamIs<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    isParam = properties.ctrlParamIs<string>(codeNameStr, nameStr);
+    isParam = properties.ctrlParamIs<char *>(codeNameStr, nameStr);
     break;
   default :
     PDM_error(__FILE__, __LINE__, 0,
