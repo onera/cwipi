@@ -68,6 +68,11 @@ job:build:
           - "intel-oneapi"
         BUILD_TYPE:
           - "Debug"
+      - COMPILER: "intel-llvm@2025"
+        MPI_LIB:
+          - "intel-oneapi"
+        BUILD_TYPE:
+          - "Debug"
   variables:
     MATRIX_KEY: _${COMPILER}_${MPI_LIB}_BUILD_${BUILD_TYPE}
     SCHEDULER_PARAMETERS: "--partition=intel --cpus-per-task=1 --ntasks=12 --nodes=1-1 --time=${BUILD_MAX_DURATION}"
@@ -78,6 +83,8 @@ job:build:
     -   source /tmp_user/juno/sonics/dist/socle_cfd7/source_gcc15_cython3.sh || true
     - elif [ "${COMPILER}" == "gcc@14" ]; then
     -   source /tmp_user/juno/sonics/dist/socle_cfd7/source_gcc14_cython3.sh || true
+    - elif [ "${COMPILER}" == "intel-llvm@2025" ]; then
+    -   source /tmp_user/juno/sonics/dist/socle_cfd7_intel/source.sh || true
     - else
     -   source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=$COMPILER --mpi=$MPI_LIB || true
     - fi
@@ -94,6 +101,8 @@ job:build:
     -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON  -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_HIDE_PDM_SYMBOLS=ON  -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON  -DCWP_ENABLE_Fortran_MPI_MODULE=ON  -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_CLIENT_SERVER=ON  -DCWP_ENABLE_UNIT_TESTS=ON ../
     - elif [ "${COMPILER}" == "intel-llvm@2022" ]; then
     -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=OFF -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_HIDE_PDM_SYMBOLS=ON  -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=OFF -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_CLIENT_SERVER=OFF -DCWP_ENABLE_UNIT_TESTS=ON ../
+    - elif [ "${COMPILER}" == "intel-llvm@2025" ]; then
+    -   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCWP_ENABLE_EXTERNAL_PDM=OFF -DCWP_ENABLE_PYTHON_BINDINGS=ON  -DCWP_ENABLE_STATIC=OFF -DCWP_ENABLE_HIDE_PDM_SYMBOLS=ON  -DCWP_ENABLE_SHARED=ON -DCWP_ENABLE_Fortran=ON  -DCWP_ENABLE_Fortran_MPI_MODULE=OFF -DCWP_ENABLE_DOCUMENTATION=OFF -DCWP_ENABLE_BLASLAPACK=OFF -DCWP_ENABLE_CLIENT_SERVER=OFF -DCWP_ENABLE_UNIT_TESTS=ON ../
     - fi
     - make -j
 
@@ -157,7 +166,12 @@ unit_test:cwipi:
           - "intel-oneapi"
         BUILD_TYPE:
           - "Debug"
-      - COMPILER: "intel@2022"
+      - COMPILER: "intel-llvm@2025"
+        MPI_LIB:
+          - "intel-oneapi"
+        BUILD_TYPE:
+          - "Debug"
+      - COMPILER: "intel@2022" # from job:build_doc
         MPI_LIB:
           - "intel-oneapi"
         BUILD_TYPE:
@@ -172,6 +186,8 @@ unit_test:cwipi:
     -   source /tmp_user/juno/sonics/dist/socle_cfd7/source_gcc15_cython3.sh || true
     - elif [ "${COMPILER}" == "gcc@14" ]; then
     -   source /tmp_user/juno/sonics/dist/socle_cfd7/source_gcc14_cython3.sh || true
+    - elif [ "${COMPILER}" == "intel-llvm@2025" ]; then
+    -   source /tmp_user/juno/sonics/dist/socle_cfd7_intel/source.sh || true
     - else
     -   source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=$COMPILER --mpi=$MPI_LIB || true
     - fi
