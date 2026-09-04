@@ -19,6 +19,8 @@ Code
 .. literalinclude:: ../../../tests/tutorial/c_new_api_polygon_sol.c
    :language: c
 
+You can find this file in ``<cwipi_source>/tests/tutorial/c_new_api_polygon_sol.c``.
+
 Compilation
 ~~~~~~~~~~~
 
@@ -44,6 +46,8 @@ Code
 
 .. literalinclude:: ../../../tests/tutorial/fortran_new_api_polygon_sol.F90
    :language: fortran
+
+You can find this file in ``<cwipi_source>/tests/tutorial/fortran_new_api_polygon_sol.F90``.
 
 Compilation
 ~~~~~~~~~~~
@@ -71,6 +75,7 @@ Code
 .. literalinclude:: ../../../tests/tutorial/python_new_api_polygon_sol.py
    :language: python
 
+You can find this file in ``<cwipi_source>/tests/tutorial/python_new_api_polygon_sol.py``.
 
 Execution
 ~~~~~~~~~
