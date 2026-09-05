@@ -48,6 +48,7 @@ Code
    :language: fortran
 
 You can find this file in ``<cwipi_source>/tests/tutorial/fortran_new_api_polygon_sol.F90``.
+The ``cwipi_configf.h`` header is generated at build time when ``CWP_ENABLE_Fortran`` is set to ``ON``.
 
 Compilation
 ~~~~~~~~~~~
