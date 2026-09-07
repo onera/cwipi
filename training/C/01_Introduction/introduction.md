@@ -63,7 +63,7 @@ This is achieved by not having any specific data structure but by working with s
 
 **CWIPI** has been created in 2009 upon the initiative of Eric Quémerais.
 It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...).
-CERFACS is a main contributer and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controled by the OpenPALM process.
+CERFACS is a main contributor and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controlled by the OpenPALM process.
 This helped increasing the use of **CWIPI**.
 The main attraction is the performance, which is mentioned in articles of similar coupling tools and which prompted the invitation to the ExCALIBUR workshop.
 A part of this work is derived from "Finite Volume Mesh" library (FVM) and its
@@ -237,17 +237,17 @@ Refer to [FindMPI](https://cmake.org/cmake/help/latest/module/FindMPI.html) in t
 <!--
 * Concepts fondamentaux
   * notion de maillage (comme PDM)
-  * principe du couplage : les codes s'échangent des informations au niveau de l'interface entre leurs maillages respectifs
+  * principe du couplage : les codes s'échangent des information au niveau de l'interface entre leurs maillages respectifs
   -> CWIPI only deals with this interface, which can be of dimension 0, 1, 2 or 3.
 
-  * exercice/jeu participatif
+  * exercise/jeu participatif
     But: introduire - les notions fondamentales (Coupling, Mesh, Field)
                     - les "features" (spatial interpolation, ctrl params, communicateurs MPI, TCP)
                     - les améliorations/nouveautés ont motivé la réécriture complète de CWIPI, d'où New API
 
-    1. on pose le pb: on a veut coupler 2 codes => on crée un "environnement" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)
+    1. on pose le pb: on a veut coupler 2 codes => on crée un "environment" de couplage (Coupling) (un Coupling fait toujours intervenir 2 codes (potentiellement des instances du même solveur), mais on peut avoir un nombre arbitraire de Couplings)
     2. on a dit que les codes devaient s'échanger des infos à travers une interface de couplage géométrique, discrétisée dans chaque code par une portion de son maillage => chaque code doit donc définir SA discrétisation (Interface Mesh) (pas de copie du maillage et si un code intervient dans plusieurs Couplings il peut avoir plusieurs Interface meshes)
-    3. quelles sont les informations que les codes doivent s'échanger? Principalement des variables physiques (faire écho aux exemples d'utilisation?) (Field) (les dofs de ces Fields sont associés au Interface mesh et puisque on l'échange, la définition des Fields par les 2 codes couplés doit être cohérente)
+    3. quelles sont les informations que les codes doivent s'échanger? Principalement des variables physiques (faire écho aux examples d'utilisation?) (Field) (les dofs de ces Fields sont associés au Interface mesh et puisque on l'échange, la définition des Fields par les 2 codes couplés doit être cohérente)
     4. On a maintenant toutes les notions nécessaires pour commencer à esquisser le pseudo-code d'un cas de couplage basique : code1 envoie un champ F1 à code2(, code2 envoie un champ F2 à code1)
       -> les participants doivent obtenir un truc du genre:
           0 - (Init CWIPI)
@@ -623,7 +623,7 @@ Solution:
 We haven't yet explained how to launch the coupled codes. Indeed, in a code coupling application multiple codes will be executed with a common world communicator.
 This is done using the following command : `mpirun -n <n1> code1 : -n <n2>  code2`. It is this common world communicator that is provided to **CWIPI** upon initialization.
 **CWIPI** then determines through a split operation on the common world communicator the communicators a each specific code.
-Those are provided as an output of the initialization function of **CWIPI** and refered to as intra-communicators.
+Those are provided as an output of the initialization function of **CWIPI** and referred to as intra-communicators.
 
 Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
 This time we launch multiples codes within the one unique program. The command to used then is : `mpirun -n <n3> common_script_code1_code2`. This means that both codes run on the same processes.
