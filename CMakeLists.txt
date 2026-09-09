@@ -134,7 +134,7 @@ if (CWP_ENABLE_UNIT_TESTS)
 endif()
 
 # Hide ParaDiGM Library symbols into the CWIPI library.
-# This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
+# This option is not available if a static library is generated (CWP_ENABLE_STATIC)
 # -----------------------------------------------------------------------------------
 
 option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Hide PDM symbols" ON)
@@ -309,7 +309,7 @@ CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Check dependecies
+# Check dependencies
 #------------------------------------------------------------------------------
 
 # Check MPI

@@ -63,7 +63,7 @@ This is achieved by not having any specific data structure but by working with s
 
 **CWIPI** has been created in 2009 upon the initiative of Eric Quémerais.
 It has quickly gained traction in the aerospace-defense industry (Safran, ArianGroup...) as well as in the academic world (CERFACS, CORIA...).
-CERFACS is a main contributer and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controled by the OpenPALM process.
+CERFACS is a main contributor and user of the **CWIPI** library. They enabled coupling definition through a Human Machine Interface (HMI) controlled by the OpenPALM process.
 This helped increasing the use of **CWIPI**.
 The main attraction is the performance, which is mentioned in articles of similar coupling tools and which prompted the invitation to the ExCALIBUR workshop.
 A part of this work is derived from "Finite Volume Mesh" library (FVM) and its
@@ -623,7 +623,7 @@ Solution:
 We haven't yet explained how to launch the coupled codes. Indeed, in a code coupling application multiple codes will be executed with a common world communicator.
 This is done using the following command : `mpirun -n <n1> code1 : -n <n2>  code2`. It is this common world communicator that is provided to **CWIPI** upon initialization.
 **CWIPI** then determines through a split operation on the common world communicator the communicators a each specific code.
-Those are provided as an output of the initialization function of **CWIPI** and refered to as intra-communicators.
+Those are provided as an output of the initialization function of **CWIPI** and referred to as intra-communicators.
 
 Suppose now that each code has been encapsulated in a module, and that we want to be able to supervise the coupling in a single script run in parallel on all or part of processes.
 This time we launch multiples codes within the one unique program. The command to used then is : `mpirun -n <n3> common_script_code1_code2`. This means that both codes run on the same processes.

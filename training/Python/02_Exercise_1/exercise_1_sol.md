@@ -147,7 +147,7 @@ First it provides the dimension of the coupling interface.
 For instance, if the solver mesh is a 3D cube but the coupling happens only on a side of the cube, the dimension of the coupling interface is 2D.
 The coupling interface is thus a surface mesh (i.e. `INTERFACE_SURFACE` in CWIPI).
 In this exercise, the coupling interface is the whole input mesh. What is thus the dimension of the coupling interface?
-This input mesh is partitionned. This has to be mentionned to CWIPI using `COMM_PAR_WITH_PART`.
+This input mesh is partitioned. This has to be mentioned to CWIPI using `COMM_PAR_WITH_PART`.
 Note that since we operate but one coupling step in this exercise, the mesh does not change (i.e. `DYNAMIC_MESH_STATIC`).
 As mentionned in the introduction of this training, from version 1.0 on CWIPI offers several spatial interpolation algorithms.
 In this exercise we use the location algorithm (`SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE`) similar to the one offered in version 0.x of CWIPI.
