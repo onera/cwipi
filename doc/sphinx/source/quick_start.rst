@@ -19,7 +19,7 @@ Code
 .. literalinclude:: ../../../tests/tutorial/c_new_api_polygon_sol.c
    :language: c
 
-You can find this file in ``<cwipi_source>/tests/tutorial/c_new_api_polygon_sol.c``.
+The file path in the repository is ``<cwipi_source>/tests/tutorial/c_new_api_polygon_sol.c``.
 
 Compilation
 ~~~~~~~~~~~
@@ -47,8 +47,8 @@ Code
 .. literalinclude:: ../../../tests/tutorial/fortran_new_api_polygon_sol.F90
    :language: fortran
 
-You can find this file in ``<cwipi_source>/tests/tutorial/fortran_new_api_polygon_sol.F90``.
-The ``cwipi_configf.h`` header is generated at build time when ``CWP_ENABLE_Fortran`` is set to ``ON``.
+The file path in the repository is ``<cwipi_source>/tests/tutorial/fortran_new_api_polygon_sol.F90``.
+The ``cwipi_configf.h`` header necessary for compilation is automatically generated at build time when ``CWP_ENABLE_Fortran`` is set to ``ON``.
 
 Compilation
 ~~~~~~~~~~~
@@ -76,7 +76,7 @@ Code
 .. literalinclude:: ../../../tests/tutorial/python_new_api_polygon_sol.py
    :language: python
 
-You can find this file in ``<cwipi_source>/tests/tutorial/python_new_api_polygon_sol.py``.
+The file path in the repository is ``<cwipi_source>/tests/tutorial/python_new_api_polygon_sol.py``.
 
 Execution
 ~~~~~~~~~
@@ -88,15 +88,15 @@ Execution
   mpirun -np 2 python <file>.py
 
 Visualization
-~~~~~~~~~~~~~
+-------------
 
-The code will produce a ``cwipi_writer`` directory, with the output of the two codes:
+CWIPI will produce a ``cwipi_writer`` directory containing the output of the two codes:
 
-- ``code1_code2_code1_code2`` (coupling ``code1_code2``, interface mesh for ``code1``, output by ``code2``)
-- ``code1_code2_code2_code1`` (coupling ``code1_code2``, interface mesh for ``code2``, output by ``code1``)
+- ``code1_code2_code1_code2`` (coupling ``code1_code2``, interface mesh for ``code1``, partitioning information for ``code1``, data sent to/received from ``code2``)
+- ``code1_code2_code2_code1`` (coupling ``code1_code2``, interface mesh for ``code2``, partitioning information for ``code2``, data sent to/received from ``code1``)
 
-Open the ``.case`` files with, e.g., Ensight or ParaView.
-The two fields ``s_a~super~fancy~field1`` (sent) and ``r_a~super~fancy~field1`` (received) show the same values on the two interface meshes.
+The output files are in the Ensight Gold format. The ``.case`` files should be opened with, e.g., Ensight or ParaView to visualize the exchanged fields on the respective interface meshes.
+For the examples above, the two fields ``s_a~super~fancy~field1`` (sent) and ``r_a~super~fancy~field1`` (received) can be visualized and will show the same values on the two interface meshes.
 
 .. image:: ./images/quickstart-visualization.png
    :scale: 50%
