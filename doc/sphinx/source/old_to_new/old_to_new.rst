@@ -19,7 +19,7 @@ Besides, one can select which MPI ranks will be available for CWIPI.
 In summary, since version 1.0 the following additional arguments are required at CWIPI initialization:
    - ``n_code``: the number of codes executed on current MPI rank ;
    - ``code_names``: the list of local code names ;
-   - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users's code placement stragegy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.
+   - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users's code placement strategy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.
 
 Create a coupling
 =================
