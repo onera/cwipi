@@ -3,4 +3,4 @@
 Exchange of Global Data
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-*à remplir*
+*Not documented yet*

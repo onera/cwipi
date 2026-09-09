@@ -3,7 +3,7 @@
 Exchange of Partitioned Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*à remplir + schéma*
+*Not documented yet*
 
 
 A given PartData object can be used for multiple, simultaneous, non-blocking exchanges.
