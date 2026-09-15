@@ -127,23 +127,10 @@ namespace cwipi {
         inline virtual std::vector<int*>  ConnecIDXGet();
         inline virtual int* ConnecIDXGet(int i_part);
 
-        inline int*  ConnecGet(int i_part);
+         inline int*  ConnecGet(int i_part);
 
-        bool  gnumRequired(){
-           for(int i_part = 0; i_part<_n_part; i_part++){
-             if(_global_num [i_part] == NULL )
-               return true;
-           }
+         void geomFinalize();
 
-           return false;
-        }
-
-
-        void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
-           _global_num [i_part] = global_num;
-        }
-
-        void geomFinalize();
 
 
 

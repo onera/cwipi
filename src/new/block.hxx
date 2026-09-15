@@ -98,7 +98,6 @@ namespace cwipi {
      *
      */
 
-    inline int blockIDGet();
     inline int blockIDCWIPIGet();
 
     inline void blockIDCWIPISet(int block_id);
@@ -134,44 +133,6 @@ namespace cwipi {
 
 
     const double* eltCentersGet(int i_part);
-
-    /**
-     *
-     * \brief return the number of partition
-     *
-     *
-     */
-
-     inline int NPartGet();
-
-
-    /**
-     *
-     * \brief return true is the global numbering (inside the mesh) is defined
-     *
-     *
-     */
-
-    inline bool globNumDefined();
-
-
-    /**
-     *
-     * \brief Return true if the Block is already in Paradigm block database and false otherwise.
-     *
-     */
-
-    inline bool inPDMDB();
-
-
-    /**
-     *
-     * \brief Set the _inPDMDB variable to true, and so indicate that the block is already in the PDM database.
-     *
-     */
-
-    inline void SetinPDMDB();
-
 
 
 
@@ -215,7 +176,7 @@ namespace cwipi {
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     std::vector <int        *> _parent_num;
     Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
-    PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */                
+    PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */
     PDM_ownership_t            _owner_parent_num;       /*!< Owner of parent numbers */
 
   };
@@ -231,21 +192,11 @@ namespace cwipi {
     return _n_elt[i_part];
   }
 
-  int
-  Block::NPartGet() {
-    return _n_part;
-  }
-
   CWP_Block_t
   Block::blockTypeGet(){
     return _blockType;
   }
 
-
-  int
-  Block::blockIDGet(){
-    return _block_id_pdm;
-  }
 
   int
   Block::blockIDCWIPIGet(){
@@ -262,7 +213,7 @@ namespace cwipi {
     _block_id_pdm = block_id;
   }
 
-  int 
+  int
   Block::blockIDPDMGet(){
     return _block_id_pdm;
   }

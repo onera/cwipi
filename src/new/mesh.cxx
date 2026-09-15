@@ -183,19 +183,14 @@ namespace cwipi {
     _npart = npart;
     _nVertex   .resize(npart,0);
     _nElts     .resize(npart,0);
-    _connec_idx.resize(npart,NULL);
-    _connec    .resize(npart,NULL);
-    _gnum_elt  .resize(npart,NULL);
     _elt_centers .resize(npart,NULL);
     _elt_id_block.resize(npart,NULL);
     _elt_in_block.resize(npart,NULL);
 
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);
-    _global_num_elt .resize(npart,NULL);
-    _global_num_face.resize(npart,NULL);
 
-    _nCells      .resize(npart, 0)  ;
+    _nCell      .resize(npart, 0)  ;
     _cellFaceIdx .resize(npart, NULL);
     _cellFace    .resize(npart, NULL);
     _cellVtxIdx  .resize(npart, NULL);
@@ -233,9 +228,6 @@ namespace cwipi {
   Mesh::~Mesh()
   {
     for (int i = 0; i < _npart; i++) {
-      free (_connec_idx[i]);
-      free (_connec[i]);
-      free (_gnum_elt[i]);
       if (_elt_centers[i] != NULL) {
         free (_elt_centers[i]);
         _elt_centers[i] = NULL;
@@ -249,18 +241,32 @@ namespace cwipi {
         _elt_in_block[i] = NULL;
       }
 
-      if (_isFaceGnumComputed) {
-        free (_faceLNToGN[i]);
-        // free (_global_num_face[i]);
+      if (_isVtxGnumComputed) {
+        if (_global_num_vtx[i] != NULL) {
+          free(_global_num_vtx[i]);
+          _global_num_vtx[i] = NULL;
+        }
       }
 
       if (_isEltGnumComputed) {
-        free (_global_num_elt[i]);
+        if (_faceEdgeMethod == 1 || _faceVtxMethod == 1) {
+          if (_faceLNToGN[i] != NULL) {
+            free(_faceLNToGN[i]);
+            _faceLNToGN[i] = NULL;
+          }
+        }
+        else if (_cellFaceMethod == 1 || _cellVtxMethod == 1) {
+          if (_cellLNToGN[i] != NULL) {
+            free(_cellLNToGN[i]);
+            _cellLNToGN[i] = NULL;
+          }
+        }
       }
 
-      if (_isVtxGnumComputed) {
-        free (_global_num_vtx[i]);
+      if (_isFaceGnumComputed) {
+        free (_faceLNToGN[i]);
       }
+
     }
 
     for (int i = 0; i < (int) _blockDB.size(); i++) {
@@ -732,7 +738,7 @@ namespace cwipi {
 
       compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_cellLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
+        if (_cellLNToGN[i_part] == NULL && _nCell[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
@@ -752,12 +758,12 @@ namespace cwipi {
         double ** cell_center =  (double **) malloc (sizeof(double *) * (_npart));
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          cell_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nCells[i_part]));
-          for (int j = 0; j < 3*_nCells[i_part]; j++) {
+          cell_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nCell[i_part]));
+          for (int j = 0; j < 3*_nCell[i_part]; j++) {
             cell_center[i_part][j] = 0.;
           }
 
-          for (int j = 0; j < _nCells[i_part]; j++) {
+          for (int j = 0; j < _nCell[i_part]; j++) {
 
             int weights = 0;
             int idx_face = _cellFaceIdx[i_part][j];
@@ -788,7 +794,7 @@ namespace cwipi {
         }
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nCells[i_part], cell_center[i_part], NULL);
+          PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nCell[i_part], cell_center[i_part], NULL);
         }
 
         PDM_gnum_compute (pdmGNum_handle_index);
@@ -810,7 +816,7 @@ namespace cwipi {
       for(int i_part=0;i_part<_npart;i_part++){
         PDM_part_mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
                                                 i_part,
-                                                _nCells[i_part],
+                                                _nCell[i_part],
                                                 _nFace[i_part],
                                                 _faceVtxIdx[i_part],
                                                 _faceVtx[i_part],
@@ -833,7 +839,7 @@ namespace cwipi {
 
       compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_cellLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
+        if (_cellLNToGN[i_part] == NULL && _nCell[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
@@ -849,7 +855,7 @@ namespace cwipi {
         _gen_face_gnum(false,
                        _pdm_localComm,
                        _npart,
-                       _nCells,
+                       _nCell,
                        _cellVtxIdx,
                        _cellVtx,
                        _cellFace, // not used
@@ -861,7 +867,7 @@ namespace cwipi {
       for (int i_part = 0; i_part < _npart; i_part++) {
         PDM_part_mesh_nodal_cells_cellvtx_add(_pdmNodal_handle_index,
                                               i_part,
-                                              _nCells    [i_part],
+                                              _nCell    [i_part],
                                               _cellVtxIdx[i_part],
                                               _cellVtx   [i_part],
                                               _cellLNToGN[i_part],
@@ -1566,7 +1572,7 @@ namespace cwipi {
     _cellFace[i_part] = cell_face;
 
     _nFace[i_part] = n_faces;
-    _nCells[i_part] = n_cells;
+    _nCell[i_part] = n_cells;
 
   }
 
@@ -1628,7 +1634,7 @@ namespace cwipi {
     _cellLNToGN[i_part] = global_num;
     _cellVtxIdx[i_part] = cell_vtx_idx;
     _cellVtx   [i_part] = cell_vtx;
-    _nCells    [i_part] = n_cells;
+    _nCell    [i_part] = n_cells;
   }
 
 

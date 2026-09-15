@@ -701,42 +701,34 @@ namespace cwipi {
 
     std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
     std::vector<double*>                    _coords;                 /*!< Vertices coordinate for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_vtx;         /*!< Global vertices numbering for each partition  */
 
     std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
-    std::vector<CWP_g_num_t*>               _gnum_elt;
     std::vector<double*>                    _elt_centers;
     std::vector<int*>                       _elt_id_block;            /*!< Number of elements for each partition  */
     std::vector<int*>                       _elt_in_block;           /*!< Number of elements for each partition  */
-
-    std::vector <CWP_g_num_t*>              _global_num_vtx;         /*!< Global vertices numbering for each partition  */
-    std::vector <CWP_g_num_t*>              _global_num_elt;         /*!< Global elements numbering for each partition  */
-    std::vector <CWP_g_num_t*>              _global_num_face;        /*!< Global faces numbering for each partition  */
-
-    std::vector<int*>                       _connec_idx;
-    std::vector<int*>                       _connec;
 
     // Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
     CWP_Dynamic_mesh_t                      _displacement;           /*!< Type of mesh displacement */
     Coupling                               *_cpl;
 
-    std::vector<int>                        _nCells;
+    std::vector<int>                        _nCell;
     std::vector<int*>                       _cellFaceIdx;
     std::vector<int*>                       _cellFace;
     std::vector<int*>                       _cellVtxIdx;
     std::vector<int*>                       _cellVtx;
+    std::vector<CWP_g_num_t*>               _cellLNToGN;
 
     std::vector<int>                        _nFace;
     std::vector<int*>                       _faceEdgeIdx;
     std::vector<int*>                       _faceEdge;
     std::vector<int*>                       _faceVtxIdx;
     std::vector<int*>                       _faceVtx;
+    std::vector<CWP_g_num_t*>               _faceLNToGN;
 
     std::vector<int>                        _nEdge;
     std::vector<int*>                       _edgeVtx;
-
-    std::vector<CWP_g_num_t*>               _faceLNToGN;
-    std::vector<CWP_g_num_t*>               _cellLNToGN;
 
     int                                     _faceEdgeMethod;
     int                                     _faceVtxMethod;
@@ -860,7 +852,7 @@ namespace cwipi {
   }
 
   int Mesh::getNCell(int id_part) const {
-    return _nCells[id_part];
+    return _nCell[id_part];
   }
 
   int Mesh::getNFace(int id_part) const {

@@ -21,7 +21,7 @@ Cython/cwipi.c
 \#*
 nbproject
 CMakeLists.txt.user
-build/
+build*/
 cmake-build-*
 doc/sphinx/source/conf.py
 *.ipynb

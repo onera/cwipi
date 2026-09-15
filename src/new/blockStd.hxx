@@ -109,15 +109,6 @@ namespace cwipi {
 
         inline int*  ConnecGet(int i_part);
 
-        bool  gnumRequired(){
-           for(int i_part = 0; i_part<_n_part; i_part++){
-             if(_global_num [i_part] == NULL )
-               return true;
-           }
-
-           return false;
-        }
-
         void geomFinalize();
 
     private:

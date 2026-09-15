@@ -114,20 +114,11 @@ namespace cwipi {
 
         inline int*  ConnecIJKGet(int i_part);
 
-        inline int  OrderGet();
+         inline int  OrderGet();
 
-        inline char * HOOrderingGet();
+         inline char * HOOrderingGet();
 
-        bool  gnumRequired(){
-           for(int i_part = 0; i_part<_n_part; i_part++){
-             if(_global_num [i_part] == NULL )
-               return true;
-           }
-
-           return false;
-        }
-
-        void geomFinalize();
+         void geomFinalize();
 
         void reorder();
 
