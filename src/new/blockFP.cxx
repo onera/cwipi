@@ -1,5 +1,3 @@
-
-
 /*
   This file is part of the CWIPI library.
 
@@ -20,96 +18,83 @@
 */
 
 #include "blockFP.hxx"
+
 #include "cwp.h"
-#include <pdm_gnum.h>
-#include <map>
+#include "mesh.hxx"
+#include "pdm_gnum.h"
+
 #include <vector>
-#include <mesh.hxx>
 
 /**
  * \cond
  */
 
 namespace cwipi {
-  BlockFP::BlockFP()
-      :Block::Block()
-  {
 
+  BlockFP::BlockFP()
+    : Block::Block()
+  {
   }
 
 
   BlockFP::~BlockFP()
   {
-
   }
 
-  void BlockFP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+
+  void
+  BlockFP::BlockAdd
+  (
+    CWP_Block_t  blockType,
+    Mesh        *mesh
+  )
   {
     Block::BlockAdd(blockType, mesh);
     _connec_idx.resize(_n_part, NULL);
     _connec.resize(_n_part, NULL);
   }
 
-  void BlockFP::blockSet(int i_part,
-                         int n_elt,
-                         int* connec_idx,
-                         int* connec,
-                         CWP_g_num_t* mesh_global_num)
+
+  void
+  BlockFP::blockSet
+  (
+    int          i_part,
+    int          n_elt,
+    int         *connec_idx,
+    int         *connec,
+    CWP_g_num_t *global_num
+  )
   {
-
-    _global_num [i_part] = mesh_global_num;
-
-    _n_elt[i_part] = n_elt;
-    _connec[i_part] = connec;
+    _global_num[i_part] = global_num;
+    _n_elt     [i_part] = n_elt;
+    _connec    [i_part] = connec;
     _connec_idx[i_part] = connec_idx;
-
   }
 
-  /**
-   * \brief Get a CWIPI block in a partition
-   *
-   * \param [in]  i_part     Partition identifier
-   * \param [in]  n_elts     Number of elements of the block in the partition.
-   * \param [in]  connec_idx Elements connectivity index
-   * \param [in]  connec     Elements connectivity
-   * \param [in]  global_num Mesh global numbering of the block
-   *
-   */
 
-  void BlockFP::blockGet(int          i_part,
-                         int         *n_elts,
-                         int         **connec_idx,
-                         int         **connec,
-                         CWP_g_num_t **mesh_global_num)
+  void
+  BlockFP::blockGet
+  (
+    int           i_part,
+    int          *n_elts,
+    int         **connec_idx,
+    int         **connec,
+    CWP_g_num_t **global_num
+  )
   {
-
-    *mesh_global_num = _global_num [i_part];
-    *n_elts          = _n_elt[i_part];
-    *connec          = _connec[i_part];
-    *connec_idx      = _connec_idx[i_part];
-
+    *global_num = _global_num[i_part];
+    *n_elts     = _n_elt     [i_part];
+    *connec     = _connec    [i_part];
+    *connec_idx = _connec_idx[i_part];
   }
 
 
-  void BlockFP::geomFinalize(){
-
-    // for(int i_part = 0; i_part<_n_part; i_part++){
-
-    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
-    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-    //     visu->GeomBlockPoly2D ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
-    //                               i_part,
-    //                               _n_elt[i_part] ,
-    //                               _connec_idx [i_part],
-    //                               _connec     [i_part],
-    //                               _global_num [i_part]);
-
-
-    //  }
-    // } //end i_part
+  void
+  BlockFP::geomFinalize()
+  {
   }
+
 }
-
 
 /**
  * \endcond

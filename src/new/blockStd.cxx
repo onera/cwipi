@@ -1,5 +1,3 @@
-
-
 /*
   This file is part of the CWIPI library.
 
@@ -20,24 +18,21 @@
 */
 
 #include "blockStd.hxx"
-#include "cwp.h"
-#include <pdm_gnum.h>
-#include <pdm_error.h>
-#include <pdm_printf.h>
-#include <map>
-#include <vector>
 
-#include <mesh.hxx>
+#include "cwp.h"
+#include "mesh.hxx"
+
+#include <vector>
 
 /**
  * \cond
  */
 
 namespace cwipi {
-  BlockStd::BlockStd()
-     :Block::Block()
-  {
 
+  BlockStd::BlockStd()
+    : Block::Block()
+  {
   }
 
 
@@ -47,48 +42,54 @@ namespace cwipi {
   }
 
 
-  void BlockStd::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  void
+  BlockStd::BlockAdd
+  (
+    CWP_Block_t  blockType,
+    Mesh        *mesh
+  )
   {
     Block::BlockAdd(blockType, mesh);
     _connec.resize(_n_part, NULL);
   }
 
 
-  void BlockStd::blockSet(int i_part,int n_elt,int* connec,CWP_g_num_t* mesh_global_num){
-
-
-     _global_num [i_part] = mesh_global_num;
-
-     _n_elt[i_part] = n_elt;
-     _connec[i_part] = connec;
+  void
+  BlockStd::blockSet
+  (
+    int          i_part,
+    int          n_elt,
+    int         *connec,
+    CWP_g_num_t *mesh_global_num
+  )
+  {
+    _global_num[i_part] = mesh_global_num;
+    _n_elt     [i_part] = n_elt;
+    _connec    [i_part] = connec;
   }
 
 
-  void BlockStd::blockGet(int i_part,int *n_elts,int** connec,CWP_g_num_t** global_num){
-    *global_num      = _global_num [i_part];
-    *n_elts          = _n_elt[i_part];
-    *connec          = _connec[i_part];
+  void
+  BlockStd::blockGet
+  (
+    int           i_part,
+    int          *n_elts,
+    int         **connec,
+    CWP_g_num_t **global_num
+  )
+  {
+    *global_num = _global_num[i_part];
+    *n_elts     = _n_elt     [i_part];
+    *connec     = _connec    [i_part];
   }
 
 
-  void BlockStd::geomFinalize(){
-
-    // for(int i_part = 0; i_part<_n_part; i_part++){
-
-    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
-    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-    //     visu->GeomBlockStdSet ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
-    //                               i_part,
-    //                               _n_elt[i_part] ,
-    //                               _connec[i_part],
-    //                               _global_num [i_part]);
-    //   }
-    // }
+  void
+  BlockStd::geomFinalize()
+  {
   }
-
 
 }
-
 
 /**
  * \endcond

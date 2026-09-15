@@ -21,10 +21,11 @@
 
 #include "block.hxx"
 #include "blockStd.hxx"
+
 #include "cwp.h"
-#include <map>
-#include <vector>
+
 #include <cstdlib>
+#include <vector>
 
 /**
  * \cond
@@ -33,134 +34,220 @@
 namespace cwipi {
 
   /**
-   * \class BlockStd blockStd.hxx "blockStd.hxx"
-   * \brief Standard Block Mesh definition
+   * \class BlockHO blockHO.hxx "blockHO.hxx"
+   * \brief Higher-Order Block Mesh definition.
    *
-   *  This class defines the standard Block objects.
-   *  It inherits from the Block class through a Factory.
+   *  This class defines the higher-order Block objects.
+   *  It inherits from the BlockStd class.
    *
    */
-
   class BlockHO :
     public BlockStd {
 
-    public:
+  public:
+
+    /**
+     * \brief Default constructor.
+     *
+     */
+    BlockHO();
 
 
-     /**
-      * \brief Constructor.
-      *
-      */
-
-      BlockHO();
-
-     /**
-      * \brief Destructor.
-      *
-      */
-
-      ~BlockHO();
-
-     /**
-       *
-       * \brief Block addition
-       *
-       * Add a block to the mesh.
-       *
-       * \param [in] blockType              Type of the block
-       * \param [in] mesh                   The Mesh object owning the block
-       */
-
-      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
-
-      /**
-       * \brief Set a CWIPI block in a partition
-       *
-       * \param [in]  i_part     Partition identifier
-       * \param [in]  n_elts     Number of elements of the block in the partition.
-       * \param [in]  connec     Elements connectivity.
-       * \param [in]  global_num Mesh global numbering of the block
-       *
-       */
-
-       void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* global_num,const int order, const char *ho_ordering);
+    /**
+     * \brief Destructor.
+     *
+     */
+    ~BlockHO();
 
 
-      /**
-       * \brief Get a CWIPI block
-       *
-       * \param [in]  i_part     Partition identifier
-       * \param [out]  n_elts     Number of elements of the block in the partition.
-       * \param [out]  connec     Elements connectivity.
-       * \param [out]  global_num Mesh global numbering of the block
-       *
-       */
+    /**
+     * \brief Add a block to the mesh.
+     *
+     * \param [in]  blockType Type of the block
+     * \param [in]  mesh      Mesh object owning the block
+     */
+    virtual void
+    BlockAdd
+    (
+      CWP_Block_t  blockType,
+      Mesh        *mesh
+    );
 
-       void blockGet(int i_part,int *n_elts,int** connec,CWP_g_num_t** global_num, int *order, char **ho_ordering);
 
-       /**
-        *
-        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
-        * for each partition.
-        *
-        *
-        */
+    /**
+     * \brief Set a CWIPI block in a partition.
+     *
+     * \param [in]  i_part      Partition identifier
+     * \param [in]  n_elts      Number of elements of the block in the partition
+     * \param [in]  connec      Elements connectivity
+     * \param [in]  global_num  Global element numbering
+     * \param [in]  order       Element order
+     * \param [in]  ho_ordering HO ordering name
+     */
+    void
+    blockSet
+    (
+            int          i_part,
+            int          n_elts,
+            int         *connec,
+            CWP_g_num_t *global_num,
+      const int          order,
+      const char        *ho_ordering
+    );
 
-        inline std::vector <int*>  ConnecGet();
 
-        inline std::vector <int*>  ConnecIJKGet();
+    /**
+     * \brief Get a CWIPI block.
+     *
+     * \param [in]  i_part        Partition identifier
+     * \param [out] n_elts        Number of elements of the block in the partition
+     * \param [out] connec        Elements connectivity
+     * \param [out] global_num    Global element numbering
+     * \param [out] order         Element order
+     * \param [out] ho_ordering   HO ordering name
+     */
+    void
+    blockGet
+    (
+      int           i_part,
+      int          *n_elts,
+      int         **connec,
+      CWP_g_num_t **global_num,
+      int          *order,
+      char        **ho_ordering
+    );
 
-        inline int*  ConnecGet(int i_part);
 
-        inline int*  ConnecIJKGet(int i_part);
+    /**
+     * \brief Return the element connectivity for each partition.
+     *
+     * \return Vector of connectivity arrays for each partition
+     */
+    inline std::vector<int*>
+    ConnecGet();
 
-         inline int  OrderGet();
 
-         inline char * HOOrderingGet();
+    /**
+     * \brief Return the IJK connectivity for each partition.
+     *
+     * \return Vector of IJK connectivity arrays for each partition
+     */
+    inline std::vector<int*>
+    ConnecIJKGet();
 
-         void geomFinalize();
 
-        void reorder();
+    /**
+     * \brief Return the connectivity for a partition.
+     *
+     * \param [in] i_part Partition identifier
+     * \return Connectivity array
+     */
+    inline int*
+    ConnecGet
+    (
+      int i_part
+    );
 
-    private:
 
-      int   _order;
-      char *_ho_ordering;
-      std::vector<int*> _connec;     /*!< Connectivity in user order for each partition */
-      std::vector<int*> _connec_ijk; /*!< Connectivity in Lagrange (IJK) order for each partition */
+    /**
+     * \brief Return the IJK connectivity for a partition.
+     *
+     * \param [in] i_part Partition identifier
+     * \return IJK connectivity array
+     */
+    inline int*
+    ConnecIJKGet
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Return the element order.
+     *
+     * \return Element order
+     */
+    inline int
+    OrderGet();
+
+
+    /**
+     * \brief Return the higher-order ordering scheme.
+     *
+     * \return Higher-order ordering string
+     */
+    inline char*
+    HOOrderingGet();
+
+
+    /**
+     * \brief Finalize geometry processing.
+     *
+     */
+    void
+    geomFinalize();
+
+
+    /**
+     * \brief Reorder the connectivity.
+     *
+     */
+    void
+    reorder();
+
+  private:
+
+    int                _order;            /*!< Element order */
+    char              *_ho_ordering;      /*!< HO ordering name */
+    std::vector<int*>  _connec;           /*!< Connectivity in user order for each partition */
+    std::vector<int*>  _connec_ijk;       /*!< Connectivity in Lagrange (IJK) order for each partition */
 
   };
 
-
-
-  int*  BlockHO::ConnecGet(int i_part) {
-
+  inline int*
+  BlockHO::ConnecGet
+  (
+    int i_part
+  )
+  {
     return _connec[i_part];
   }
 
 
-  std::vector<int*>  BlockHO::ConnecGet() {
-
+  inline std::vector<int*>
+  BlockHO::ConnecGet()
+  {
     return _connec;
   }
 
-  int*  BlockHO::ConnecIJKGet(int i_part) {
 
+  inline int*
+  BlockHO::ConnecIJKGet
+  (
+    int i_part
+  )
+  {
     return _connec_ijk[i_part];
   }
 
-  std::vector<int*>  BlockHO::ConnecIJKGet() {
 
+  inline std::vector<int*>
+  BlockHO::ConnecIJKGet()
+  {
     return _connec_ijk;
   }
 
-  int  BlockHO::OrderGet() {
 
+  inline int
+  BlockHO::OrderGet()
+  {
     return _order;
   }
 
-  char * BlockHO::HOOrderingGet() {
 
+  inline char*
+  BlockHO::HOOrderingGet()
+  {
     return _ho_ordering;
   }
 
@@ -170,5 +257,4 @@ namespace cwipi {
  * \endcond
  */
 
-
-#endif //BlockHO
+#endif // __BlockHO_H__

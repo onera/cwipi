@@ -824,7 +824,7 @@ namespace cwipi {
 
   int Mesh::getBlockNElts(int id_block,int i_part)
   {
-    return _blockDB[id_block] -> NEltsGet()[i_part];
+    return _blockDB[id_block] -> NEltsGet(i_part);
   }
 
   /*int Mesh::getPartNPolyhedra(int i_part) const

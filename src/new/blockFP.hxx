@@ -20,10 +20,10 @@
 */
 
 #include "block.hxx"
-#include "cwp.h"
-#include <map>
-#include <vector>
 
+#include "cwp.h"
+
+#include <vector>
 
 /**
  * \cond
@@ -33,139 +33,182 @@ namespace cwipi {
 
   /**
    * \class BlockFP blockFP.hxx "blockFP.hxx"
-   * \brief Polygon 2D Block Mesh definition
+   * \brief Polygon 2D Block Mesh definition.
    *
    *  This class defines the polygon 2D Block objects.
    *  It inherits from the Block class through a Factory.
    *
    */
-
   class BlockFP :
     public Block {
 
-    public:
+  public:
+
+    /**
+     * \brief Default constructor.
+     *
+     */
+    BlockFP();
 
 
-     /**
-      * \brief Destructor.
-      *
-      */
-
-      BlockFP();
-
-
-     /**
-      * \brief Destructor.
-      *
-      */
-
-      virtual ~BlockFP();
-
-     /**
-       *
-       * \brief Block addition
-       *
-       * Add a block to the mesh.
-       *
-       * \param [in] blockType              Type of the block
-       * \param [in] mesh                   The Mesh object owning the block
-       */
-
-      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
-
-      /**
-       * \brief Set a CWIPI block in a partition
-       *
-       * \param [in]  i_part     Partition identifier
-       * \param [in]  n_elts     Number of elements of the block in the partition.
-       * \param [in]  connec_idx Elements connectivity index
-       * \param [in]  connec     Elements connectivity
-       * \param [in]  global_num Mesh global numbering of the block
-       *
-       */
-
-      virtual void blockSet(int i_part,int n_elts,
-                            int* connec_idx,
-                            int* connec,
-                            CWP_g_num_t* mesh_global_num);
-
-      /**
-       * \brief Get a CWIPI block in a partition
-       *
-       * \param [in]  i_part     Partition identifier
-       * \param [in]  n_elts     Number of elements of the block in the partition.
-       * \param [in]  connec_idx Elements connectivity index
-       * \param [in]  connec     Elements connectivity
-       * \param [in]  global_num Mesh global numbering of the block
-       *
-       */
-
-      virtual void blockGet(int          i_part,
-                            int         *n_elts,
-                            int         **connec_idx,
-                            int         **connec,
-                            CWP_g_num_t **mesh_global_num);
-
-       /**
-        *
-        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
-        * for each partition.
-        *
-        *
-        */
-
-        inline virtual std::vector<int*>  ConnecGet();
-
-       /**
-        *
-        * \brief return the element connectivity index (Face_Poly_2D CWP_Block_t) or cells-faces connectivity index (Cells_POLY_3D)
-        * for each partition.
-        *
-        *
-        */
-
-        inline virtual std::vector<int*>  ConnecIDXGet();
-        inline virtual int* ConnecIDXGet(int i_part);
-
-         inline int*  ConnecGet(int i_part);
-
-         void geomFinalize();
+    /**
+     * \brief Destructor.
+     *
+     */
+    virtual ~BlockFP();
 
 
+    /**
+     * \brief Add a block to the mesh.
+     *
+     * \param [in]  blockType Type of the block
+     * \param [in]  mesh      Mesh object owning the block
+     */
+    virtual void
+    BlockAdd
+    (
+      CWP_Block_t  blockType,
+      Mesh        *mesh
+    );
 
 
-    private:
-      std::vector<int*>          _connec_idx;          /*!< Connectivity Index for each partition */
-      std::vector<int*>          _connec;              /*!< Connectivity for each partition */
+    /**
+     * \brief Set a CWIPI block in a partition.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  n_elts     Number of elements of the block in the partition
+     * \param [in]  connec_idx Elements connectivity index
+     * \param [in]  connec     Elements connectivity
+     * \param [in]  global_num Global element numbering
+     */
+    void
+    blockSet
+    (
+      int          i_part,
+      int          n_elts,
+      int         *connec_idx,
+      int         *connec,
+      CWP_g_num_t *global_num
+    );
+
+
+    /**
+     * \brief Get a CWIPI block in a partition.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [out] n_elts     Number of elements of the block in the partition
+     * \param [out] connec_idx Elements connectivity index
+     * \param [out] connec     Elements connectivity
+     * \param [out] global_num Global element numbering
+     */
+    void
+    blockGet
+    (
+      int           i_part,
+      int          *n_elts,
+      int         **connec_idx,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
+
+
+    /**
+     * \brief Return the element connectivity (Standard or Face_Poly_2D)
+     *        or cells-faces connectivity (Cells_POLY_3D) for each partition.
+     *
+     * \return Vector of connectivity arrays for each partition
+     */
+    inline std::vector<int*>
+    ConnecGet();
+
+
+    /**
+     * \brief Return the element connectivity index (Face_Poly_2D)
+     *        or cells-faces connectivity index (Cells_POLY_3D) for each partition.
+     *
+     * \return Vector of connectivity index arrays for each partition
+     */
+    inline std::vector<int*>
+    ConnecIDXGet();
+
+
+    /**
+     * \brief Return the connectivity index for a partition.
+     *
+     * \param [in] i_part Partition identifier
+     * \return Connectivity index array
+     */
+    inline int*
+    ConnecIDXGet
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Return the connectivity for a partition.
+     *
+     * \param [in] i_part Partition identifier
+     * \return Connectivity array
+     */
+    inline int*
+    ConnecGet
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Finalize geometry processing.
+     *
+     */
+    void
+    geomFinalize();
+
+  private:
+
+    std::vector<int*> _connec_idx; /*!< Connectivity index for each partition */
+    std::vector<int*> _connec;     /*!< Connectivity for each partition */
 
   };
 
-
-  std::vector<int*>  BlockFP::ConnecGet() {
-
+  inline std::vector<int*>
+  BlockFP::ConnecGet()
+  {
     return _connec;
   }
 
-  std::vector<int*>  BlockFP::ConnecIDXGet() {
+
+  inline std::vector<int*>
+  BlockFP::ConnecIDXGet()
+  {
     return _connec_idx;
   }
 
-  int*  BlockFP::ConnecIDXGet(int i_part) {
-     return _connec_idx[i_part];
+
+  inline int*
+  BlockFP::ConnecIDXGet
+  (
+    int i_part
+  )
+  {
+    return _connec_idx[i_part];
   }
 
 
-
-  int*  BlockFP::ConnecGet(int i_part) {
-
+  inline int*
+  BlockFP::ConnecGet
+  (
+    int i_part
+  )
+  {
     return _connec[i_part];
   }
 
 }
 
-
 /**
  * \endcond
  */
 
-#endif //BlockFP
+#endif // __BlockFP_H__

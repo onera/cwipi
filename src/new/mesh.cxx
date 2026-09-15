@@ -336,7 +336,7 @@ namespace cwipi {
 
     int ind_idx=0;
     for(int i=0;i<_nBlocks;i++){
-      int n_elt = _blockDB[i]->NEltsGet()[i_part];
+      int n_elt = _blockDB[i]->NEltsGet(i_part);
 
       PDM_part_mesh_nodal_section_elt_center_reset(_pdmNodal_handle_index,
                                                    _blockDB[i]->blockIDPDMGet(),
