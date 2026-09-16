@@ -44,13 +44,13 @@ namespace cwipi {
 
 
   void
-  BlockFP::BlockAdd
+  BlockFP::blockAdd
   (
-    CWP_Block_t  blockType,
+    CWP_Block_t  block_type,
     Mesh        *mesh
   )
   {
-    Block::BlockAdd(blockType, mesh);
+    Block::blockAdd(block_type, mesh);
     _connec_idx.resize(_n_part, nullptr);
     _connec    .resize(_n_part, nullptr);
   }
@@ -60,16 +60,16 @@ namespace cwipi {
   BlockFP::blockSet
   (
     int          i_part,
-    int          n_elt,
+    int          n_elts,
     int         *connec_idx,
     int         *connec,
     CWP_g_num_t *global_num
   )
   {
-    _global_num[i_part] = global_num;
-    _n_elt     [i_part] = n_elt;
+    _n_elts    [i_part] = n_elts;
     _connec    [i_part] = connec;
     _connec_idx[i_part] = connec_idx;
+    _global_num[i_part] = global_num;
   }
 
 
@@ -83,10 +83,10 @@ namespace cwipi {
     CWP_g_num_t **global_num
   )
   {
-    *global_num = _global_num[i_part];
-    *n_elts     = _n_elt     [i_part];
+    *n_elts     = _n_elts    [i_part];
     *connec     = _connec    [i_part];
     *connec_idx = _connec_idx[i_part];
+    *global_num = _global_num[i_part];
   }
 
 

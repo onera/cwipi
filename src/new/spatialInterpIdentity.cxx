@@ -87,12 +87,12 @@ namespace cwipi {
       _src_to_tgt_idx = (int **) malloc (sizeof(int *) * _nPart);
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          _src_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          _src_n_gnum[i_part] = _mesh->nEltsGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          _src_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
+          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          _src_n_gnum[i_part] = _mesh->nVtxGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
@@ -106,12 +106,12 @@ namespace cwipi {
     else {
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nEltsGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nVtxGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);

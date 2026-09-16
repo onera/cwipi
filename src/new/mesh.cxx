@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -50,15 +50,11 @@ namespace cwipi {
   /**
    * \typedef FB
    *
-   * \brief Block Factory
+   * \brief Block Factory.
    *
-   *  A block \ref Factory wich makes \ref Block
-   *  class objects.
-   *  The type of block objects build depends on the
-   *  block type \ref CWP_Block_t.
-   *
+   * A block \ref Factory which makes \ref Block class objects.
+   * The type of block objects built depends on the block type \ref CWP_Block_t.
    */
-
   typedef Factory<Block, CWP_Block_t> FB;
 
 
@@ -151,12 +147,12 @@ namespace cwipi {
 
   Mesh::Mesh
   (
-    const MPI_Comm           &localComm,
-          int                 npart,
+    const MPI_Comm           &local_comm,
+          int                 n_part,
           CWP_Dynamic_mesh_t  displacement,
           Coupling           *cpl
   )
-  : _localComm(localComm),
+  : _localComm(local_comm),
     _nBlocks(0),
     _blocksType(nullptr),
     _displacement(displacement),
@@ -171,40 +167,40 @@ namespace cwipi {
     _isFaceGnumComputed(false)
   {
 
-    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm *>(&localComm));
+    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm *>(&local_comm));
 
-    _npart = npart;
+    _npart = n_part;
 
     /* Vertex data */
-    _nVertex       .resize(npart, 0);
-    _coords        .resize(npart, nullptr);
-    _global_num_vtx.resize(npart, nullptr);
+    _nVertex       .resize(_npart, 0);
+    _coords        .resize(_npart, nullptr);
+    _global_num_vtx.resize(_npart, nullptr);
 
     /* Element data */
-    _nElts       .resize(npart, 0);
-    _elt_centers .resize(npart, nullptr);
-    _elt_id_block.resize(npart, nullptr);
-    _elt_in_block.resize(npart, nullptr);
+    _nElts       .resize(_npart, 0);
+    _elt_centers .resize(_npart, nullptr);
+    _elt_id_block.resize(_npart, nullptr);
+    _elt_in_block.resize(_npart, nullptr);
 
     /* Cell data */
-    _nCell      .resize(npart, 0);
-    _cellFaceIdx.resize(npart, nullptr);
-    _cellFace   .resize(npart, nullptr);
-    _cellVtxIdx .resize(npart, nullptr);
-    _cellVtx    .resize(npart, nullptr);
-    _cellLNToGN .resize(npart, nullptr);
+    _nCell      .resize(_npart, 0);
+    _cellFaceIdx.resize(_npart, nullptr);
+    _cellFace   .resize(_npart, nullptr);
+    _cellVtxIdx .resize(_npart, nullptr);
+    _cellVtx    .resize(_npart, nullptr);
+    _cellLNToGN .resize(_npart, nullptr);
 
     /* Face data */
-    _nFace      .resize(npart, 0);
-    _faceEdgeIdx.resize(npart, nullptr);
-    _faceEdge   .resize(npart, nullptr);
-    _faceVtxIdx .resize(npart, nullptr);
-    _faceVtx    .resize(npart, nullptr);
-    _faceLNToGN .resize(npart, nullptr);
+    _nFace      .resize(_npart, 0);
+    _faceEdgeIdx.resize(_npart, nullptr);
+    _faceEdge   .resize(_npart, nullptr);
+    _faceVtxIdx .resize(_npart, nullptr);
+    _faceVtx    .resize(_npart, nullptr);
+    _faceLNToGN .resize(_npart, nullptr);
 
     /* Edge data */
-    _nEdge  .resize(npart, 0);
-    _edgeVtx.resize(npart, nullptr);
+    _nEdge  .resize(_npart, 0);
+    _edgeVtx.resize(_npart, nullptr);
 
     switch (_cpl->entitiesDimGet()) {
       case CWP_INTERFACE_POINT:
@@ -282,7 +278,7 @@ namespace cwipi {
 
 
   int
-  Mesh::_Mesh_nodal_block_std_type_size_get
+  Mesh::blockStdTypeSizeGet
   (
     CWP_Block_t type
   )
@@ -321,12 +317,12 @@ namespace cwipi {
 
 
   void
-  Mesh::eltCentersCompute
+  Mesh::elementCentersCompute
   (
     int i_part
   )
   {
-    int n_elt_part = getPartNElts(i_part);
+    int n_elt_part = nEltsGet(i_part);
 
     if (_elt_centers[i_part] == nullptr) {
       _elt_centers[i_part] = (double*)malloc(sizeof(double)*3* n_elt_part);
@@ -334,12 +330,8 @@ namespace cwipi {
 
     int ind_idx = 0;
     for (int i = 0; i < _nBlocks; i++) {
-      int n_elt = _blockDB[i]->NEltsGet(i_part);
-
-      PDM_part_mesh_nodal_section_elt_center_reset(_pdmNodal_handle_index,
-                                                   _blockDB[i]->blockIDPDMGet(),
-                                                   i_part);
-      const double *elt_centers_block = _blockDB[i]->eltCentersGet(i_part);
+      int n_elt = _blockDB[i]->nEltsGet(i_part);
+      const double *elt_centers_block = _blockDB[i]->elementCentersGet(i_part);
 
       for (int j = 0; j < n_elt; j++) {
         for (int k = 0; k < 3; k++) {
@@ -352,7 +344,7 @@ namespace cwipi {
 
 
   CWP_g_num_t *
-  Mesh::GNumEltsGet
+  Mesh::elementGlobalNumGet
   (
     int i_part
   )
@@ -365,13 +357,13 @@ namespace cwipi {
 
 
   double *
-  Mesh::eltCentersGet
+  Mesh::elementCentersGet
   (
     int i_part
   )
   {
     if (_elt_centers[i_part] == nullptr || _displacement != CWP_DYNAMIC_MESH_STATIC) {
-      eltCentersCompute(i_part);
+      elementCentersCompute(i_part);
     }
 
     return _elt_centers[i_part];
@@ -387,14 +379,14 @@ namespace cwipi {
           CWP_g_num_t global_num[]
   )
   {
-    _coords        [i_part] = coords;
     _nVertex       [i_part] = n_vtx;
+    _coords        [i_part] = coords;
     _global_num_vtx[i_part] = global_num;
   }
 
 
   void
-  Mesh::updateBlockDB()
+  Mesh::blockDBUpdate()
   {
     PDM_part_mesh_nodal_elmts_t *pmne = PDM_part_mesh_nodal_part_mesh_nodal_elmts_get(_pdmNodal_handle_index,
                                                                                       _geom_kind);
@@ -497,15 +489,15 @@ namespace cwipi {
                                                                    i_part,
                                                                    PDM_OWNERSHIP_KEEP);
 
-        _blockDB[block_id]->blockSetParentNum(i_part,
-                                              parent_num,
-                                              PDM_OWNERSHIP_USER); // hack : owner is pmne
+        _blockDB[block_id]->parentNumSet(i_part,
+                                         parent_num,
+                                         PDM_OWNERSHIP_USER);
       }
 
       int i_section = PDM_part_mesh_nodal_section_id_from_geom_kind_get(_pdmNodal_handle_index,
                                                                         _geom_kind,
                                                                         section_ids[i_block]);
-      _blockDB[block_id]->blockIDPDMSet(i_section);
+      _blockDB[block_id]->blockIdPdmSet(i_section);
     }
   }
 
@@ -639,7 +631,7 @@ namespace cwipi {
                                                 PDM_OWNERSHIP_KEEP);
       }
 
-      updateBlockDB();
+      blockDBUpdate();
     }
 
     else if (_faceVtxMethod == 1) {
@@ -683,7 +675,7 @@ namespace cwipi {
                                               PDM_OWNERSHIP_KEEP);
       }
 
-      updateBlockDB();
+      blockDBUpdate();
     }
 
     else if (_cellFaceMethod == 1) {
@@ -816,7 +808,7 @@ namespace cwipi {
                                                 _cellLNToGN [i_part],
                                                 PDM_OWNERSHIP_KEEP);
       }
-      updateBlockDB();
+      blockDBUpdate();
 
     }
 
@@ -860,7 +852,7 @@ namespace cwipi {
                                               PDM_OWNERSHIP_KEEP);
       }
 
-      updateBlockDB();
+      blockDBUpdate();
 
     }
 
@@ -869,7 +861,7 @@ namespace cwipi {
         CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
         PDM_Mesh_nodal_elt_t pdm_block_type = (PDM_Mesh_nodal_elt_t)block_type;
 
-        _blockDB[i_block]->blockIDPDMSet(PDM_part_mesh_nodal_section_add(_pdmNodal_handle_index, pdm_block_type));
+        _blockDB[i_block]->blockIdPdmSet(PDM_part_mesh_nodal_section_add(_pdmNodal_handle_index, pdm_block_type));
 
       }
 
@@ -880,9 +872,9 @@ namespace cwipi {
         if (block_type == CWP_BLOCK_CELL_POLY) {
           BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
 
-          std::vector<int>           n_face       = block->NFacesGet();
-          std::vector<int *>         face_vtx_idx = block->ConnecFacesIDXGet();
-          std::vector<int *>         face_vtx     = block->ConnecFacesGet();
+          std::vector<int>           n_face       = block->nFacesGet();
+          std::vector<int *>         face_vtx_idx = block->faceConnecIdxGet();
+          std::vector<int *>         face_vtx     = block->faceConnecGet();
           std::vector<CWP_g_num_t *> face_ln_to_gn(_npart, nullptr);
 
           _gen_face_gnum(false,
@@ -896,7 +888,7 @@ namespace cwipi {
                          _coords,
                          face_ln_to_gn);
 
-          block->FacesGNumSet(face_ln_to_gn);
+          block->faceGlobalNumSet(face_ln_to_gn);
         }
       }
 
@@ -906,7 +898,7 @@ namespace cwipi {
 
         for (int i_block = 0; i_block < _nBlocks; i_block++) {
 
-          if (_blockDB[i_block]->GNumMeshGet(i_part) == nullptr && _blockDB[i_block]->NEltsGet(i_part) > 0) {
+          if (_blockDB[i_block]->globalNumGet(i_part) == nullptr && _blockDB[i_block]->nEltsGet(i_part) > 0) {
             compute_gnum = 1;
             break;
           }
@@ -941,7 +933,7 @@ namespace cwipi {
           int ielt = 0;
           for (int i_block = 0; i_block < _nBlocks; i_block++) {
 
-            int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+            int n_elt = _blockDB[i_block]->nEltsGet(i_part);
 
             CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
 
@@ -949,11 +941,11 @@ namespace cwipi {
               BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[i_block]);
 
               for (int j = 0; j < n_elt; j++) {
-                int idx = block->ConnecIDXGet()[i_part][j];
-                int nb = block->ConnecIDXGet()[i_part][j + 1] - idx;
+                int idx = block->connecIdxGet(i_part)[j];
+                int nb = block->connecIdxGet(i_part)[j + 1] - idx;
 
                 for (int k = idx; k < idx + nb; k++) {
-                  int ivtx = block->ConnecGet()[i_part][k] - 1;
+                  int ivtx = block->connecGet(i_part)[k] - 1;
                   for (int k2 = 0; k2 < 3; k2++) {
                     cell_center[i_part][3 * ielt + k2] += _coords[i_part][3 * ivtx + k2];
                   }
@@ -974,19 +966,19 @@ namespace cwipi {
               for (int j = 0; j < n_elt; j++) {
 
                 int weights = 0;
-                int idx_face = block->ConnecIDXGet()[i_part][j];
-                int nb_face = block->ConnecIDXGet()[i_part][j + 1] - idx_face;
+                int idx_face = block->cellConnecIdxGet(i_part)[j];
+                int nb_face = block->cellConnecIdxGet(i_part)[j + 1] - idx_face;
 
                 for (int j1 = idx_face; j1 < idx_face + nb_face; j1++) {
 
-                  int i_face = std::abs(block->ConnecGet()[i_part][j1]) - 1;
+                  int i_face = std::abs(block->cellConnecGet(i_part)[j1]) - 1;
 
-                  int idx = block->ConnecFacesIDXGet()[i_part][i_face];
-                  int nb = block->ConnecFacesIDXGet()[i_part][i_face + 1] - idx;
+                  int idx = block->faceConnecIdxGet(i_part)[i_face];
+                  int nb = block->faceConnecIdxGet(i_part)[i_face + 1] - idx;
 
                   for (int k = idx; k < idx + nb; k++) {
 
-                    int i_vtx = block->ConnecFacesGet()[i_part][k] - 1;
+                    int i_vtx = block->faceConnecGet(i_part)[k] - 1;
 
                     for (int k2 = 0; k2 < 3; k2++) {
                       cell_center[i_part][3 * ielt + k2] += _coords[i_part][3 * i_vtx + k2];
@@ -1021,7 +1013,7 @@ namespace cwipi {
 
                 for (int k = 0; k < n_vtx_elt; k++) {
 
-                  int i_vtx = block->ConnecGet()[i_part][j * n_vtx_elt + k] - 1;
+                  int i_vtx = block->connecGet(i_part)[j * n_vtx_elt + k] - 1;
 
                   for (int k2 = 0; k2 < 3; k2++) {
                     cell_center[i_part][3 * ielt + k2] += _coords[i_part][3 * i_vtx + k2];
@@ -1040,13 +1032,13 @@ namespace cwipi {
 
               PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t)block_type;
 
-              int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, block->OrderGet());
+              int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, block->orderGet());
 
               for (int j = 0; j < n_elt; j++) {
 
                 for (int k = 0; k < n_vtx_elt; k++) {
 
-                  int i_vtx = block->ConnecGet()[i_part][j * n_vtx_elt + k] - 1;
+                  int i_vtx = block->connecGet(i_part)[j * n_vtx_elt + k] - 1;
 
                   for (int k2 = 0; k2 < 3; k2++) {
                     cell_center[i_part][3 * ielt + k2] += _coords[i_part][3 * i_vtx + k2];
@@ -1078,12 +1070,14 @@ namespace cwipi {
 
           for (int i_block = 0; i_block < _nBlocks; i_block++) {
 
-            int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+            int n_elt = _blockDB[i_block]->nEltsGet(i_part);
             CWP_g_num_t *block_gnum = (CWP_g_num_t *)malloc(sizeof(CWP_g_num_t) * n_elt);
 
             memcpy(block_gnum, gnum, n_elt * sizeof(CWP_g_num_t));
 
-            _blockDB[i_block]->GNumMeshSet(i_part, block_gnum, PDM_OWNERSHIP_KEEP);
+            _blockDB[i_block]->globalNumSet(i_part,
+                                            block_gnum,
+                                            PDM_OWNERSHIP_KEEP);
 
           }
 
@@ -1104,20 +1098,20 @@ namespace cwipi {
         int parent_id = 0;
 
         for (int i_block = 0; i_block < _nBlocks; i_block++) {
-          int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+          int n_elt = _blockDB[i_block]->nEltsGet(i_part);
 
           int *parent_num = (int *)malloc(sizeof(int) * n_elt);
           for (int i = 0; i < n_elt; i++) {
             parent_num[i] = parent_id++;
           }
 
-          _blockDB[i_block]->blockSetParentNum(i_part,
-                                               parent_num,
-                                               PDM_OWNERSHIP_KEEP);
+          _blockDB[i_block]->parentNumSet(i_part,
+                                          parent_num,
+                                          PDM_OWNERSHIP_KEEP);
 
           CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
 
-          int pdm_id_block = _blockDB[i_block]->blockIDPDMGet();
+          int pdm_id_block = _blockDB[i_block]->blockIdPdmGet();
 
           if (block_type == CWP_BLOCK_FACE_POLY) {
             BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[i_block]);
@@ -1126,10 +1120,10 @@ namespace cwipi {
                                                    pdm_id_block,
                                                    i_part,
                                                    n_elt,
-                                                   block->ConnecIDXGet()[i_part],
-                                                   block->ConnecGet()   [i_part],
-                                                   _blockDB[i_block]->GNumMeshGet (i_part),
-                                                   _blockDB[i_block]->ParentNumGet(i_part),
+                                                   block->connecIdxGet            (i_part),
+                                                   block->connecGet               (i_part),
+                                                   _blockDB[i_block]->globalNumGet(i_part),
+                                                   _blockDB[i_block]->parentNumGet(i_part),
                                                    PDM_OWNERSHIP_USER);
 
           }
@@ -1141,14 +1135,14 @@ namespace cwipi {
                                                    pdm_id_block,
                                                    i_part,
                                                    n_elt,
-                                                   block->NFacesGet()        [i_part],
-                                                   block->ConnecFacesIDXGet()[i_part],
-                                                   block->ConnecFacesGet()   [i_part],
-                                                   block->FacesGNumGet()     [i_part],
-                                                   block->ConnecIDXGet()     [i_part],
-                                                   block->ConnecGet()        [i_part],
-                                                   block->GNumMeshGet             (i_part),
-                                                   _blockDB[i_block]->ParentNumGet(i_part),
+                                                   block->nFacesGet               (i_part),
+                                                   block->faceConnecIdxGet        (i_part),
+                                                   block->faceConnecGet           (i_part),
+                                                   block->faceGlobalNumGet        (i_part),
+                                                   block->cellConnecIdxGet        (i_part),
+                                                   block->cellConnecGet           (i_part),
+                                                   block->globalNumGet            (i_part),
+                                                   _blockDB[i_block]->parentNumGet(i_part),
                                                    nullptr,
                                                    PDM_OWNERSHIP_USER);
 
@@ -1168,9 +1162,9 @@ namespace cwipi {
                                                 pdm_id_block,
                                                 i_part,
                                                 n_elt,
-                                                block->ConnecGet()[i_part],
-                                                block->GNumMeshGet             (i_part),
-                                                _blockDB[i_block]->ParentNumGet(i_part),
+                                                block->connecGet               (i_part),
+                                                block->globalNumGet            (i_part),
+                                                _blockDB[i_block]->parentNumGet(i_part),
                                                 nullptr,
                                                 PDM_OWNERSHIP_USER);
           }
@@ -1182,11 +1176,11 @@ namespace cwipi {
                                                    pdm_id_block,
                                                    i_part,
                                                    n_elt,
-                                                   block->ConnecIJKGet()[i_part],
-                                                   block->GNumMeshGet             (i_part),
-                                                   _blockDB[i_block]->ParentNumGet(i_part),
+                                                   block->connecIJKGet            (i_part),
+                                                   block->globalNumGet            (i_part),
+                                                   _blockDB[i_block]->parentNumGet(i_part),
                                                    nullptr,
-                                                   block->OrderGet(),
+                                                   block->orderGet(),
                                                    nullptr,
                                                    PDM_OWNERSHIP_USER);
           }
@@ -1207,9 +1201,9 @@ namespace cwipi {
       _elt_in_block[i_part] = (int *) malloc (sizeof(int) * _nElts[i_part]);
 
       for(int i_block = 0; i_block < _nBlocks; i_block++){
-        int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+        int n_elt = _blockDB[i_block]->nEltsGet(i_part);
 
-        int pdm_id_block = _blockDB[i_block]->blockIDPDMGet();
+        int pdm_id_block = _blockDB[i_block]->blockIdPdmGet();
 
         int *parent_num = PDM_part_mesh_nodal_section_parent_num_get(_pdmNodal_handle_index,
                                                                      pdm_id_block,
@@ -1237,7 +1231,6 @@ namespace cwipi {
                                                               _geom_kind);
     _blocks_id = PDM_part_mesh_nodal_sections_id_in_geom_kind_get(_pdmNodal_handle_index,
                                                                   _geom_kind);
-
   }
 
 
@@ -1256,14 +1249,30 @@ namespace cwipi {
                     n_elts,
                     connec,
                     global_num);
-
     _nElts[i_part] += n_elts;
-
   }
 
 
   void
-  Mesh::HOBlockSet
+  Mesh::stdBlockGet
+  (
+    const int           i_part,
+    const int           block_id,
+          int          *n_elts,
+          int         **connec,
+          CWP_g_num_t **global_num
+  )
+  {
+    BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[block_id]);
+    block->blockGet(i_part,
+                    n_elts,
+                    connec,
+                    global_num);
+  }
+
+
+  void
+  Mesh::hoBlockSet
   (
     const int          i_part,
     const int          block_id,
@@ -1281,47 +1290,12 @@ namespace cwipi {
                     global_num,
                     order,
                     ho_ordering);
-
     _nElts[i_part] += n_elts;
-
-  }
-
-
-  CWP_Block_t
-  Mesh::stdBlockTypeGet
-  (
-    const int block_id
-  )
-  {
-    BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[block_id]);
-    CWP_Block_t block_type = block->blockTypeGet();
-
-    return block_type;
   }
 
 
   void
-  Mesh::stdBlockGet
-  (
-    const int           i_part,
-    const int           block_id,
-          int          *n_elts,
-          int         **connec,
-          CWP_g_num_t **global_num
-  )
-  {
-    BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[block_id]);
-
-    block->blockGet(i_part,
-                    n_elts,
-                    connec,
-                    global_num);
-
-  }
-
-
-  void
-  Mesh::HOBlockGet
+  Mesh::hoBlockGet
   (
     const int           i_part,
     const int           block_id,
@@ -1332,16 +1306,13 @@ namespace cwipi {
   )
   {
     BlockHO *block = dynamic_cast<BlockHO *>(_blockDB[block_id]);
-
     char *ho_ordering;
-
     block->blockGet(i_part,
                     n_elts,
                     connec,
                     global_num,
                     order,
                     &ho_ordering);
-
   }
 
 
@@ -1357,14 +1328,12 @@ namespace cwipi {
   )
   {
     BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[block_id]);
-
     block->blockSet(i_part,
                     n_elts,
                     connec_idx,
                     connec,
                     global_num);
     _nElts[i_part] += n_elts;
-
   }
 
 
@@ -1380,13 +1349,11 @@ namespace cwipi {
   )
   {
     BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[block_id]);
-
     block->blockGet(i_part,
                     n_elts,
                     connec_idx,
                     connec,
                     global_num);
-
   }
 
 
@@ -1413,9 +1380,7 @@ namespace cwipi {
                     connec_cells_idx,
                     connec_cells,
                     global_num);
-
     _nElts[i_part] += n_elts;
-
   }
 
 
@@ -1471,13 +1436,13 @@ namespace cwipi {
       }
 
       for (int i_block = 0; i_block < _nBlocks; i_block++) {
-        _blockDB[i_block]->ParentNumFree(i);
-        _blockDB[i_block]->GNumMeshFree(i);
+        _blockDB[i_block]->parentNumFree(i);
+        _blockDB[i_block]->globalNumFree(i);
 
         CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
         if (block_type == CWP_BLOCK_CELL_POLY) {
           BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
-          block->FacesGNumFree(i);
+          block->faceGlobalNumFree(i);
         }
       }
 
@@ -1521,14 +1486,14 @@ namespace cwipi {
   )
   {
     Block *myBlock = FB::getInstance().CreateObject(block_type);
-    myBlock->BlockAdd(block_type, this);
+    myBlock->blockAdd(block_type, this);
     int block_id_cwipi = _nBlocks;
     _blockDB.push_back(myBlock);
-    myBlock->blockIDCWIPISet(block_id_cwipi);
+    myBlock->blockIdCwipiSet(block_id_cwipi);
 
     _nBlocks = _blockDB.size();
 
-    return myBlock->blockIDCWIPIGet();
+    return myBlock->blockIdCwipiGet();
   }
 
 
@@ -1557,7 +1522,7 @@ namespace cwipi {
 
 
   void
-  Mesh::fromFacesEdgeSet
+  Mesh::fromFaceEdgeSet
   (
     const int         i_part,
     const int         n_faces,
@@ -1579,7 +1544,7 @@ namespace cwipi {
 
 
   void
-  Mesh::fromFacesVtxSet
+  Mesh::fromFaceVtxSet
   (
     const int         i_part,
     const int         n_faces,
@@ -1597,13 +1562,13 @@ namespace cwipi {
 
 
   void
-  Mesh::fromCellsVtxSet
+  Mesh::fromCellVtxSet
   (
     const int         i_part,
     const int         n_cells,
-    int              *cell_vtx_idx,
-    int              *cell_vtx,
-    CWP_g_num_t      *global_num
+          int         cell_vtx_idx[],
+          int         cell_vtx[],
+          CWP_g_num_t global_num[]
   )
   {
     _cellVtxMethod = 1;
@@ -1615,7 +1580,7 @@ namespace cwipi {
 
 
   int
-  Mesh::getPartNElts
+  Mesh::nEltsGet
   (
     int id_part
   ) const

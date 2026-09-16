@@ -63,13 +63,13 @@ namespace cwipi {
     /**
      * \brief Add a block to the mesh.
      *
-     * \param [in]  blockType Type of the block
-     * \param [in]  mesh      Mesh object owning the block
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
      */
     virtual void
-    BlockAdd
+    blockAdd
     (
-      CWP_Block_t  blockType,
+      CWP_Block_t  block_type,
       Mesh        *mesh
     );
 
@@ -119,34 +119,16 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the element connectivity for each partition.
-     *
-     * \return Vector of connectivity arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecGet();
-
-
-    /**
-     * \brief Return the IJK connectivity for each partition.
-     *
-     * \return Vector of IJK connectivity arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecIJKGet();
-
-
-    /**
      * \brief Return the connectivity for a partition.
      *
      * \param [in] i_part Partition identifier
      * \return Connectivity array
      */
     inline int*
-    ConnecGet
+    connecGet
     (
       int i_part
-    );
+    ) const;
 
 
     /**
@@ -156,10 +138,10 @@ namespace cwipi {
      * \return IJK connectivity array
      */
     inline int*
-    ConnecIJKGet
+    connecIJKGet
     (
       int i_part
-    );
+    ) const;
 
 
     /**
@@ -168,16 +150,16 @@ namespace cwipi {
      * \return Element order
      */
     inline int
-    OrderGet();
+    orderGet() const;
 
 
     /**
      * \brief Return the higher-order ordering scheme.
      *
-     * \return Higher-order ordering string
+     * \return High-order ordering name
      */
     inline char*
-    HOOrderingGet();
+    hoOrderingGet() const;
 
 
     /**
@@ -205,48 +187,34 @@ namespace cwipi {
   };
 
   inline int*
-  BlockHO::ConnecGet
+  BlockHO::connecGet
   (
     int i_part
-  )
+  ) const
   {
     return _connec[i_part];
   }
 
 
-  inline std::vector<int*>
-  BlockHO::ConnecGet()
-  {
-    return _connec;
-  }
-
-
   inline int*
-  BlockHO::ConnecIJKGet
+  BlockHO::connecIJKGet
   (
     int i_part
-  )
+  ) const
   {
     return _connec_ijk[i_part];
   }
 
 
-  inline std::vector<int*>
-  BlockHO::ConnecIJKGet()
-  {
-    return _connec_ijk;
-  }
-
-
   inline int
-  BlockHO::OrderGet()
+  BlockHO::orderGet() const
   {
     return _order;
   }
 
 
   inline char*
-  BlockHO::HOOrderingGet()
+  BlockHO::hoOrderingGet() const
   {
     return _ho_ordering;
   }

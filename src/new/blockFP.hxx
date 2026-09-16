@@ -61,13 +61,13 @@ namespace cwipi {
     /**
      * \brief Add a block to the mesh.
      *
-     * \param [in]  blockType Type of the block
-     * \param [in]  mesh      Mesh object owning the block
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
      */
     virtual void
-    BlockAdd
+    blockAdd
     (
-      CWP_Block_t  blockType,
+      CWP_Block_t  block_type,
       Mesh        *mesh
     );
 
@@ -113,23 +113,16 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the element connectivity (Standard or Face_Poly_2D)
-     *        or cells-faces connectivity (Cells_POLY_3D) for each partition.
+     * \brief Return the connectivity for a partition.
      *
-     * \return Vector of connectivity arrays for each partition
+     * \param [in] i_part Partition identifier
+     * \return Connectivity array
      */
-    inline std::vector<int*>
-    ConnecGet();
-
-
-    /**
-     * \brief Return the element connectivity index (Face_Poly_2D)
-     *        or cells-faces connectivity index (Cells_POLY_3D) for each partition.
-     *
-     * \return Vector of connectivity index arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecIDXGet();
+    inline int*
+    connecGet
+    (
+      int i_part
+    ) const;
 
 
     /**
@@ -139,23 +132,10 @@ namespace cwipi {
      * \return Connectivity index array
      */
     inline int*
-    ConnecIDXGet
+    connecIdxGet
     (
       int i_part
-    );
-
-
-    /**
-     * \brief Return the connectivity for a partition.
-     *
-     * \param [in] i_part Partition identifier
-     * \return Connectivity array
-     */
-    inline int*
-    ConnecGet
-    (
-      int i_part
-    );
+    ) const;
 
 
     /**
@@ -172,37 +152,23 @@ namespace cwipi {
 
   };
 
-  inline std::vector<int*>
-  BlockFP::ConnecGet()
-  {
-    return _connec;
-  }
-
-
-  inline std::vector<int*>
-  BlockFP::ConnecIDXGet()
-  {
-    return _connec_idx;
-  }
-
-
   inline int*
-  BlockFP::ConnecIDXGet
+  BlockFP::connecGet
   (
     int i_part
-  )
-  {
-    return _connec_idx[i_part];
-  }
-
-
-  inline int*
-  BlockFP::ConnecGet
-  (
-    int i_part
-  )
+  ) const
   {
     return _connec[i_part];
+  }
+
+
+  inline int*
+  BlockFP::connecIdxGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_idx[i_part];
   }
 
 }

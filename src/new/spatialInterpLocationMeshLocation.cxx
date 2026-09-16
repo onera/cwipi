@@ -154,14 +154,14 @@ namespace cwipi {
         int n_elt_size = 0;
 
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          part_gnum  = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          part_coord = _mesh->eltCentersGet(i_part);
-          n_elt_size = _mesh->getPartNElts (i_part);
+          part_gnum  = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          part_coord = _mesh->elementCentersGet(i_part);
+          n_elt_size = _mesh->nEltsGet     (i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          part_gnum  = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          part_coord = _mesh->getVertexCoords(i_part);
-          n_elt_size = _mesh->getPartNVertex (i_part);
+          part_gnum  = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          part_coord = _mesh->coordGet(i_part);
+          n_elt_size = _mesh->nVtxGet (i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           part_gnum  = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
@@ -195,14 +195,14 @@ namespace cwipi {
           int n_elt_size = 0;
 
           if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            part_gnum  = (const PDM_g_num_t *) cpl_mesh->GNumEltsGet (i_part);
-            part_coord = cpl_mesh->eltCentersGet(i_part);
-            n_elt_size = cpl_mesh->getPartNElts (i_part);
+            part_gnum  = (const PDM_g_num_t *) cpl_mesh->elementGlobalNumGet (i_part);
+            part_coord = cpl_mesh->elementCentersGet(i_part);
+            n_elt_size = cpl_mesh->nEltsGet (i_part);
           }
           else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            part_gnum  = (const PDM_g_num_t *) cpl_mesh->getVertexGNum(i_part);
-            part_coord = cpl_mesh->getVertexCoords(i_part);
-            n_elt_size = cpl_mesh->getPartNVertex (i_part);
+            part_gnum  = (const PDM_g_num_t *) cpl_mesh->vertexGlobalNumGet(i_part);
+            part_coord = cpl_mesh->coordGet(i_part);
+            n_elt_size = cpl_mesh->nVtxGet (i_part);
           }
           else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
             part_gnum  = (const PDM_g_num_t *) cpl_cpl.userTargetGNumGet(i_part);
@@ -242,7 +242,7 @@ namespace cwipi {
         cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
         cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
-        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
+        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->pdmNodalIndexGet());
       }
     }
   }
@@ -349,7 +349,7 @@ namespace cwipi {
         _n_involved_sources_tgt[i_part] = count;
         _involved_sources_tgt  [i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
 
-        int n_elt = _mesh->getPartNElts(i_part);
+        int n_elt = _mesh->nEltsGet(i_part);
 
         _n_elt_weights[i_part] = _elt_pts_inside_idx[i_part][n_elt];
       }
@@ -439,7 +439,7 @@ namespace cwipi {
           cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
           cpl_spatial_interp->_involved_sources_tgt  [i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
 
-          int n_elt = cpl_spatial_interp->_mesh->getPartNElts(i_part);
+          int n_elt = cpl_spatial_interp->_mesh->nEltsGet(i_part);
 
           cpl_spatial_interp->_n_elt_weights[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][n_elt];
         }

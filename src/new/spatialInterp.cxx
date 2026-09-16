@@ -128,7 +128,7 @@ namespace cwipi {
     _unionComm              = _cpl->communicationGet()->unionCommGet();
     _pdmUnionComm           = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
 
-    _nPart                  = _mesh->getNPart();
+    _nPart                  = _mesh->nPartGet();
 
     _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
     _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();

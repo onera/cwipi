@@ -36,7 +36,7 @@
 namespace cwipi {
 
   Block::Block()
-    : _owner_gnum(PDM_OWNERSHIP_USER)
+    : _global_num_owner(PDM_OWNERSHIP_USER)
   {
   }
 
@@ -44,7 +44,7 @@ namespace cwipi {
   Block::~Block()
   {
     for (int i = 0; i < _n_part; i++) {
-      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != nullptr) {
+      if (_global_num_owner == PDM_OWNERSHIP_KEEP && _global_num[i] != nullptr) {
         free(_global_num[i]);
       }
     }
@@ -52,65 +52,68 @@ namespace cwipi {
 
 
   void
-  Block::BlockAdd
+  Block::blockAdd
   (
-    CWP_Block_t  blockType,
+    CWP_Block_t  block_type,
     Mesh        *mesh
   )
   {
-    _mesh      = mesh;
-    _localComm = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
+    _mesh = mesh;
 
-    _blockType = blockType;
-    _n_part    = static_cast<Mesh*>(mesh)->getNPart();
+    _block_type = block_type;
+    _n_part     = static_cast<Mesh*>(mesh)->nPartGet();
 
-    _global_num  .resize(_n_part, nullptr);
-    _n_elt       .resize(_n_part);
-    _cells_center.resize(_n_part, nullptr);
-    _parent_num  .resize(_n_part, nullptr);
+    _n_elts         .resize(_n_part);
+    _element_centers.resize(_n_part, nullptr);
+    _global_num     .resize(_n_part, nullptr);
+    _parent_num     .resize(_n_part, nullptr);
   }
 
 
-  const double*
-  Block::eltCentersGet
+  double*
+  Block::elementCentersGet
   (
     int i_part
   )
   {
-    if (_cells_center[i_part] == nullptr) {
-      PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(),
-                                                     _block_id_pdm,
-                                                     i_part,
-                                                     PDM_OWNERSHIP_KEEP);
-    }
-    _cells_center[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(),
+    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmNodalIndexGet(),
+                                                 _block_id_pdm,
+                                                 i_part);
+
+    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmNodalIndexGet(),
+                                                   _block_id_pdm,
+                                                   i_part,
+                                                   PDM_OWNERSHIP_KEEP);
+
+    _element_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmNodalIndexGet(),
                                                                                            _block_id_pdm,
                                                                                            i_part,
                                                                                            PDM_OWNERSHIP_KEEP));
-    return _cells_center[i_part];
+
+    return _element_centers[i_part];
   }
 
 
   void
-  Block::GNumMeshSet
+  Block::globalNumSet
   (
     int              i_part,
-    CWP_g_num_t     *gnum,
+    CWP_g_num_t     *global_num,
     PDM_ownership_t  owner
   )
   {
-    _global_num[i_part] = gnum;
-    _owner_gnum         = owner;
+    _global_num[i_part] = global_num;
+    _global_num_owner   = owner;
   }
 
 
   void
-  Block::GNumMeshFree
+  Block::globalNumFree
   (
     int i_part
   )
   {
-    if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
+    if (_global_num_owner == PDM_OWNERSHIP_KEEP) {
       if (_global_num[i_part] != nullptr) {
         free(_global_num[i_part]);
         _global_num[i_part] = nullptr;
@@ -120,7 +123,7 @@ namespace cwipi {
 
 
   void
-  Block::blockSetParentNum
+  Block::parentNumSet
   (
     int              i_part,
     int             *parent_num,
@@ -128,17 +131,17 @@ namespace cwipi {
   )
   {
     _parent_num[i_part] = parent_num;
-    _owner_parent_num   = owner;
+    _parent_num_owner   = owner;
   }
 
 
   void
-  Block::ParentNumFree
+  Block::parentNumFree
   (
     int i_part
   )
   {
-    if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
+    if (_parent_num_owner == PDM_OWNERSHIP_KEEP) {
       if (_parent_num[i_part] != nullptr) {
         free(_parent_num[i_part]);
         _parent_num[i_part] = nullptr;

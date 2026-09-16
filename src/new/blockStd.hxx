@@ -62,13 +62,13 @@ namespace cwipi {
     /**
      * \brief Add a block to the mesh.
      *
-     * \param [in]  blockType Type of the block
-     * \param [in]  mesh      Mesh object owning the block
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
      */
     virtual void
-    BlockAdd
+    blockAdd
     (
-      CWP_Block_t  blockType,
+      CWP_Block_t  block_type,
       Mesh        *mesh
     );
 
@@ -79,7 +79,7 @@ namespace cwipi {
      * \param [in]  i_part     Partition identifier
      * \param [in]  n_elts     Number of elements of the block in the partition
      * \param [in]  connec     Elements connectivity
-     * \param [in]  global_num Mesh global numbering of the block
+     * \param [in]  global_num Global numbering of the block
      */
     void
     blockSet
@@ -97,7 +97,7 @@ namespace cwipi {
      * \param [in]  i_part     Partition identifier
      * \param [out] n_elts     Number of elements of the block in the partition
      * \param [out] connec     Elements connectivity
-     * \param [out] global_num Mesh global numbering of the block
+     * \param [out] global_num Global numbering of the block
      */
     void
     blockGet
@@ -110,32 +110,21 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the element connectivity (Standard or Face_Poly_2D)
-     *        or cells-faces connectivity (Cells_POLY_3D) for each partition.
-     *
-     * \return Vector of connectivity arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecGet();
-
-
-    /**
      * \brief Return the element connectivity for a specific partition.
      *
      * \param [in] i_part Partition identifier
      * \return Connectivity array for the specified partition
      */
     inline int*
-    ConnecGet
+    connecGet
     (
       int i_part
-    );
+    ) const;
 
 
     /**
      * \brief Finalize geometry processing.
      *
-     *  This method should be called after all geometric data has been set.
      */
     void
     geomFinalize();
@@ -146,18 +135,11 @@ namespace cwipi {
 
   };
 
-  inline std::vector<int*>
-  BlockStd::ConnecGet()
-  {
-    return _connec;
-  }
-
-
   inline int*
-  BlockStd::ConnecGet
+  BlockStd::connecGet
   (
     int i_part
-  )
+  ) const
   {
     return _connec[i_part];
   }

@@ -60,16 +60,16 @@ namespace cwipi {
      *
      * Construct the CWIPI mesh by using paradigm nodal methods
      *
-     * \param [in]  localComm    Coupling communicator
-     * \param [in]  npart        Number of mesh partitions
+     * \param [in]  local_comm   Coupling communicator
+     * \param [in]  n_part       Number of mesh partitions
      * \param [in]  displacement Type of mesh displacement
      * \param [in]  cpl          Pointer to the Coupling object
      *
      */
     Mesh
     (
-      const MPI_Comm     &localComm,
-      int                 npart,
+      const MPI_Comm     &local_comm,
+      int                 n_part,
       CWP_Dynamic_mesh_t  displacement,
       Coupling           *cpl
     );
@@ -85,10 +85,10 @@ namespace cwipi {
 
 
     /**
-     * \brief Set the mesh coordinates.
+     * \brief Set the vertex coordinates.
      *
      * \param [in]  i_part     Index of the mesh partition
-     * \param [in]  n_pts      Number of partition vertices
+     * \param [in]  n_vtx      Number of partition vertices
      * \param [in]  coords     Array containing the vertices coordinates
      * \param [in]  global_num Global numbering of the vertices or NULL
      *
@@ -97,251 +97,15 @@ namespace cwipi {
     coordSet
     (
       const int         i_part,
-      const int         n_pts,
+      const int         n_vtx,
             double      coords[],
             CWP_g_num_t global_num[]
     );
 
 
     /**
-     * \brief Mesh deletion and free memory.
-     *
-     */
-    void
-    meshDel();
-
-
-    /**
-     * \brief Addition of a block (set of cells) to the mesh partition.
-     *
-     * This function adds a block to the geometric mesh
-     *
-     * \param [in]  block_type Type of block
-     *
-     * \return Block identifier
-     */
-    int
-    blockAdd
-    (
-      const CWP_Block_t block_type
-    );
-
-
-    /**
-     * \brief Set a standard block to the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [in]  n_elts     Number of block elements
-     * \param [in]  connec     Vertices to elements connectivity
-     * \param [in]  global_num Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    stdBlockSet
-    (
-      const int         i_part,
-      const int         block_id,
-      const int         n_elts,
-            int         connec[],
-            CWP_g_num_t global_num[]
-    );
-
-
-    /**
-     * \brief Set a high-order block to the interface mesh.
-     *
-     * \param [in]  i_part      Partition identifier
-     * \param [in]  block_id    Block identifier
-     * \param [in]  n_elts      Number of block elements
-     * \param [in]  connec      Vertices to elements connectivity
-     * \param [in]  global_num  Global numbering of the vertices in the block (or NULL)
-     * \param [in]  order       Element order
-     * \param [in]  ho_ordering HO ordering name
-     *
-     */
-    void
-    HOBlockSet
-    (
-      const int          i_part,
-      const int          block_id,
-      const int          n_elts,
-            int          connec[],
-            CWP_g_num_t  global_num[],
-      const int          order,
-      const char        *ho_ordering
-    );
-
-
-    /**
-     * \brief Get a standard block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of block elements
-     * \param [out] connec     Vertices to elements connectivity
-     * \param [out] global_num Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    stdBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int         **connec,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
-     * \brief Get a high-order block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of block elements
-     * \param [out] order      Element order
-     * \param [out] connec     Vertices to elements connectivity
-     * \param [out] global_num Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    HOBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int          *order,
-            int         **connec,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
-     * \brief Get the standard block type.
-     *
-     * \param [in]  block_id Block identifier
-     *
-     * \return Block type
-     *
-     */
-    CWP_Block_t
-    stdBlockTypeGet
-    (
-      const int block_id
-    );
-
-
-    /**
-     * \brief Set a face polygon block to the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [in]  n_elts     Number of block elements
-     * \param [in]  connec_idx Vertices to elements connectivity index
-     * \param [in]  connec     Vertices to elements connectivity
-     * \param [in]  global_num Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    poly2DBlockSet
-    (
-      const int         i_part,
-      const int         block_id,
-      const int         n_elts,
-            int         connec_idx[],
-            int         connec[],
-            CWP_g_num_t global_num[]
-    );
-
-
-    /**
-     * \brief Get a face polygon block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of block elements
-     * \param [out] connec_idx Vertices to elements connectivity index
-     * \param [out] connec     Vertices to elements connectivity
-     * \param [out] global_num Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    poly2DBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int         **connec_idx,
-            int         **connec,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
-     * \brief Set a face polyhedron block to the interface mesh.
-     *
-     * \param [in]  i_part           Partition identifier
-     * \param [in]  block_id         Block identifier
-     * \param [in]  n_elts           Number of block elements
-     * \param [in]  n_faces          Number of faces elements (or NULL)
-     * \param [in]  connec_faces_idx Vertices to faces connectivity index
-     * \param [in]  connec_faces     Vertices to faces connectivity
-     * \param [in]  connec_cells_idx Faces to cells connectivity index
-     * \param [in]  connec_cells     Faces to cells connectivity
-     * \param [in]  global_num       Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    poly3DBlockSet
-    (
-      const int         i_part,
-      const int         block_id,
-      const int         n_elts,
-      const int         n_faces,
-            int         connec_faces_idx[],
-            int         connec_faces[],
-            int         connec_cells_idx[],
-            int         connec_cells[],
-            CWP_g_num_t global_num[]
-    );
-
-
-    /**
-     * \brief Get a face polyhedron block.
-     *
-     * \param [in]  i_part           Partition identifier
-     * \param [in]  block_id         Block identifier
-     * \param [out] n_elts           Number of block elements
-     * \param [out] n_faces          Number of faces elements (or NULL)
-     * \param [out] connec_faces_idx Vertices to faces connectivity index
-     * \param [out] connec_faces     Vertices to faces connectivity
-     * \param [out] connec_cells_idx Faces to cells connectivity index
-     * \param [out] connec_cells     Faces to cells connectivity
-     * \param [out] global_num       Global numbering of the vertices in the block (or NULL)
-     *
-     */
-    void
-    poly3DBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int          *n_faces,
-            int         **connec_faces_idx,
-            int         **connec_faces,
-            int         **connec_cells_idx,
-            int         **connec_cells,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
      * \brief Add a polyhedron block to the geometric mesh from
      *        a face-to-cell connectivity and a vertices-to-faces connectivity.
-     *
-     * This function adds a polyhedron 3D block to the geometric mesh from
-     * a face-to-cell connectivity and a vertices-to-faces connectivity
      *
      * \param [in]  i_part        Current partition
      * \param [in]  n_cells       Number of elements
@@ -377,9 +141,6 @@ namespace cwipi {
      * \brief Add a polygon 2D block to the geometric mesh from
      *        a face-to-edge connectivity and an edge-to-vertex connectivity.
      *
-     * This function adds a polygon 2D block to the geometric mesh from
-     * a face-to-edge connectivity and an edge-to-vertex connectivity
-     *
      * \param [in]  i_part        Current partition
      * \param [in]  n_faces       Number of faces
      * \param [in]  face_edge_idx Face to edge index
@@ -394,7 +155,7 @@ namespace cwipi {
      *
      */
     void
-    fromFacesEdgeSet
+    fromFaceEdgeSet
     (
       const int         i_part,
       const int         n_faces,
@@ -410,18 +171,15 @@ namespace cwipi {
      * \brief Add a polygon 2D block to the geometric mesh from
      *        a face-to-vertex connectivity.
      *
-     * This function adds a polygon 2D block to the geometric mesh from
-     * a face-to-vertex connectivity
-     *
      * \param [in]  i_part       Current partition
      * \param [in]  n_faces      Number of faces
      * \param [in]  face_vtx_idx Face to vertex index
      * \param [in]  face_vtx     Face to vertex connectivity
-     * \param [in]  global_num   Global numbering of the vertices (or NULL)
+     * \param [in]  global_num   Face global numbering (or NULL)
      *
      */
     void
-    fromFacesVtxSet
+    fromFaceVtxSet
     (
       const int         i_part,
       const int         n_faces,
@@ -435,18 +193,15 @@ namespace cwipi {
      * \brief Add a polyhedron 3D block to the geometric mesh from
      *        a cell-to-vertex connectivity.
      *
-     * This function adds a polyhedron 3D block to the geometric mesh from
-     * a cell-to-vertex connectivity
-     *
      * \param [in]  i_part       Current partition
      * \param [in]  n_cells      Number of cells
      * \param [in]  cell_vtx_idx Cell to vertex index
      * \param [in]  cell_vtx     Cell to vertex connectivity
-     * \param [in]  global_num   Global numbering of the vertices (or NULL)
+     * \param [in]  global_num   Cell global numbering (or NULL)
      *
      */
     void
-    fromCellsVtxSet
+    fromCellVtxSet
     (
       const int         i_part,
       const int         n_cells,
@@ -457,173 +212,210 @@ namespace cwipi {
 
 
     /**
-     * \brief Update the block database.
+     * \brief Addition of a block (set of cells) to the mesh partition.
      *
-     * This function updates the block database
+     * \param [in]  block_type Type of block
      *
-     */
-    void
-    updateBlockDB();
-
-
-    /**
-     * \brief Get the number of vertices of the partition.
-     *
-     * This function gets the number of vertices of the partition
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Number of vertices of the partition
-     *
-     */
-    inline int
-    getPartNVertex
-    (
-      int i_part
-    ) const;
-
-
-    /**
-     * \brief Get the vertices coordinates of the partition.
-     *
-     * This function gets the vertices coordinates of the partition
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Vertices coordinates of the partition
-     *
-     */
-    inline double*
-    getVertexCoords
-    (
-      int i_part
-    );
-
-
-    /**
-     * \brief Get the vertices global numbering of the partition.
-     *
-     * This function gets the vertices global numbering of the partition
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Vertices global numbering of the partition
-     *
-     */
-    inline CWP_g_num_t*
-    getVertexGNum
-    (
-      int i_part
-    );
-
-
-    /**
-     * \brief Get the number of elements of the partition.
-     *
-     * This function gets the number of elements of the partition
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Number of elements of the partition
-     *
+     * \return Block identifier
      */
     int
-    getPartNElts
+    blockAdd
     (
-      int i_part
-    ) const;
+      const CWP_Block_t block_type
+    );
 
 
     /**
-     * \brief Return pdmNodal handler identifier.
+     * \brief Set a standard block to the interface mesh.
      *
-     * \return Pdm nodal handler identifier
-     *
-     */
-    inline PDM_part_mesh_nodal_t*
-    getPdmNodalIndex();
-
-
-    /**
-     * \brief Return MPI communicator pointer.
-     *
-     * \return MPI communicator pointer
-     *
-     */
-    inline const MPI_Comm*
-    getMPICommP();
-
-
-    /**
-     * \brief Return number of partitions.
-     *
-     * \return Number of partitions
-     *
-     */
-    inline int
-    getNPart();
-
-
-    /**
-     * \brief Finalize the geometry computation.
-     *
-     * This function finalizes the geometry computation
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [in]  n_elts     Number of elements
+     * \param [in]  connec     Elements to vertices connectivity
+     * \param [in]  global_num Element global numbering (or NULL)
      *
      */
     void
-    geomFinalize();
-
-
-    /**
-     * \brief Get the global numbering of a block.
-     *
-     * \param [in]  id_block Block identifier
-     * \param [in]  i_part   Partition identifier
-     * \return Global numbering of the block
-     *
-     */
-    inline CWP_g_num_t*
-    globalNumGet
+    stdBlockSet
     (
-      int id_block,
-      int i_part
+      const int         i_part,
+      const int         block_id,
+      const int         n_elts,
+            int         connec[],
+            CWP_g_num_t global_num[]
     );
 
 
     /**
-     * \brief Get the global numbering of elements for a partition.
+     * \brief Set a high-order block to the interface mesh.
      *
-     * \param [in]  i_part Partition identifier
-     * \return Global numbering of elements
-     *
-     */
-    CWP_g_num_t*
-    GNumEltsGet
-    (
-      int i_part
-    );
-
-
-    /**
-     * \brief Get the element centers for a partition.
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Element centers
-     *
-     */
-    double*
-    eltCentersGet
-    (
-      int i_part
-    );
-
-
-    /**
-     * \brief Compute the element centers for a partition.
-     *
-     * \param [in]  i_part Partition identifier
+     * \param [in]  i_part      Partition identifier
+     * \param [in]  block_id    Block identifier
+     * \param [in]  n_elts      Number of elements
+     * \param [in]  connec      Elements to vertices connectivity
+     * \param [in]  global_num  Element global numbering (or NULL)
+     * \param [in]  order       Element order
+     * \param [in]  ho_ordering HO ordering name
      *
      */
     void
-    eltCentersCompute
+    hoBlockSet
     (
-      int i_part
+      const int          i_part,
+      const int          block_id,
+      const int          n_elts,
+            int          connec[],
+            CWP_g_num_t  global_num[],
+      const int          order,
+      const char        *ho_ordering
+    );
+
+
+    /**
+     * \brief Set a face polygon block to the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [in]  n_elts     Number of elements
+     * \param [in]  connec_idx Elements to vertices connectivity index
+     * \param [in]  connec     Elements to vertices connectivity
+     * \param [in]  global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    poly2DBlockSet
+    (
+      const int         i_part,
+      const int         block_id,
+      const int         n_elts,
+            int         connec_idx[],
+            int         connec[],
+            CWP_g_num_t global_num[]
+    );
+
+
+    /**
+     * \brief Set a face polyhedron block to the interface mesh.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [in]  block_id         Block identifier
+     * \param [in]  n_elts           Number of elements
+     * \param [in]  n_faces          Number of faces
+     * \param [in]  connec_faces_idx Faces to vertices connectivity index
+     * \param [in]  connec_faces     Faces to vertices connectivity
+     * \param [in]  connec_cells_idx Cells to faces connectivity index
+     * \param [in]  connec_cells     Cells to faces connectivity
+     * \param [in]  global_num       Element global numbering (or NULL)
+     *
+     */
+    void
+    poly3DBlockSet
+    (
+      const int         i_part,
+      const int         block_id,
+      const int         n_elts,
+      const int         n_faces,
+            int         connec_faces_idx[],
+            int         connec_faces[],
+            int         connec_cells_idx[],
+            int         connec_cells[],
+            CWP_g_num_t global_num[]
+    );
+
+
+    /**
+     * \brief Get a standard block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] connec     Elements to vertices connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    stdBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int         **connec,
+            CWP_g_num_t **global_num
+    );
+
+
+    /**
+     * \brief Get a high-order block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] order      Element order
+     * \param [out] connec     Elements to vertices connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    hoBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int          *order,
+            int         **connec,
+            CWP_g_num_t **global_num
+    );
+
+
+    /**
+     * \brief Get a face polygon block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] connec_idx Elements to vertices connectivity index
+     * \param [out] connec     Elements to vertices connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    poly2DBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int         **connec_idx,
+            int         **connec,
+            CWP_g_num_t **global_num
+    );
+
+
+    /**
+     * \brief Get a face polyhedron block.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [in]  block_id         Block identifier
+     * \param [out] n_elts           Number of elements
+     * \param [out] n_faces          Number of faces
+     * \param [out] connec_faces_idx Faces to vertices connectivity index
+     * \param [out] connec_faces     Faces to vertices connectivity
+     * \param [out] connec_cells_idx Cells to faces connectivity index
+     * \param [out] connec_cells     Cells to faces connectivity
+     * \param [out] global_num       Element global numbering (or NULL)
+     *
+     */
+    void
+    poly3DBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int          *n_faces,
+            int         **connec_faces_idx,
+            int         **connec_faces,
+            int         **connec_cells_idx,
+            int         **connec_cells,
+            CWP_g_num_t **global_num
     );
 
 
@@ -638,20 +430,185 @@ namespace cwipi {
     blockTypeGet
     (
       int id_block
+    ) const;
+
+
+    /**
+     * \brief Get the number of partitions.
+     *
+     * \return Number of partitions
+     *
+     */
+    inline int
+    nPartGet() const;
+
+
+    /**
+     * \brief Get the number of vertices of the partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of vertices of the partition
+     *
+     */
+    inline int
+    nVtxGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the number of elements of the partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of elements of the partition
+     *
+     */
+    int
+    nEltsGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the vertices coordinates of the partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Vertices coordinates of the partition
+     *
+     */
+    inline double*
+    coordGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the vertices global numbering of the partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Vertices global numbering of the partition
+     *
+     */
+    inline CWP_g_num_t*
+    vertexGlobalNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the global numbering of a block.
+     *
+     * \param [in]  id_block Block identifier
+     * \param [in]  i_part   Partition identifier
+     * \return Global numbering of the block
+     *
+     */
+    inline CWP_g_num_t*
+    blockGlobalNumGet
+    (
+      int id_block,
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the global numbering of elements for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Global numbering of elements
+     *
+     */
+    CWP_g_num_t*
+    elementGlobalNumGet
+    (
+      int i_part
     );
 
 
     /**
-     * \brief Get the nodal standard type block size.
+     * \brief Get the element centers for a partition.
      *
-     * This function returns the size of the nodal standard type block
+     * \param [in]  i_part Partition identifier
+     * \return Element centers
+     *
+     */
+    double*
+    elementCentersGet
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Compute the element centers for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     *
+     */
+    void
+    elementCentersCompute
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Return pdmNodal handler identifier.
+     *
+     * \return Pdm nodal handler identifier
+     *
+     */
+    inline PDM_part_mesh_nodal_t*
+    pdmNodalIndexGet() const;
+
+
+    /**
+     * \brief Return MPI communicator pointer.
+     *
+     * \return MPI communicator pointer
+     *
+     */
+    inline const MPI_Comm*
+    mpiCommGet();
+
+
+    /**
+     * \brief Finalize the geometry computation.
+     *
+     */
+    void
+    geomFinalize();
+
+
+    /**
+     * \brief Update the block database.
+     *
+     */
+    void
+    blockDBUpdate();
+
+
+    /**
+     * \brief Mesh deletion and free memory.
+     *
+     */
+    void
+    meshDel();
+
+
+    /**
+     * \brief Get the nodal standard type block size.
      *
      * \param [in]  type Block type
      * \return Size of the nodal standard type block
      *
      */
     int
-    _Mesh_nodal_block_std_type_size_get
+    blockStdTypeSizeGet
     (
       CWP_Block_t type
     );
@@ -692,7 +649,6 @@ namespace cwipi {
     std::vector<CWP_g_num_t*>     _faceLNToGN;            /*!< Face local to global numbering for each partition */
 
     std::vector<int>              _nEdge;                 /*!< Number of edges for each partition */
-    std::vector<int*>             _edgeVtxIdx;            /*!< Edge to vertex index for each partition */
     std::vector<int*>             _edgeVtx;               /*!< Edge to vertex connectivity for each partition */
 
     PDM_MPI_Comm                  _pdm_localComm;         /*!< Paradigm local MPI communicator */
@@ -712,28 +668,28 @@ namespace cwipi {
   };
 
   inline int
-  Mesh::getNPart()
+  Mesh::nPartGet() const
   {
     return _npart;
   }
 
 
   inline PDM_part_mesh_nodal_t*
-  Mesh::getPdmNodalIndex()
+  Mesh::pdmNodalIndexGet() const
   {
     return _pdmNodal_handle_index;
   }
 
 
   inline const MPI_Comm*
-  Mesh::getMPICommP()
+  Mesh::mpiCommGet()
   {
     return &_localComm;
   }
 
 
   inline int
-  Mesh::getPartNVertex
+  Mesh::nVtxGet
   (
     int i_part
   ) const
@@ -743,20 +699,20 @@ namespace cwipi {
 
 
   inline double*
-  Mesh::getVertexCoords
+  Mesh::coordGet
   (
     int i_part
-  )
+  ) const
   {
     return _coords[i_part];
   }
 
 
   inline CWP_g_num_t*
-  Mesh::getVertexGNum
+  Mesh::vertexGlobalNumGet
   (
     int i_part
-  )
+  ) const
   {
     return _global_num_vtx[i_part];
   }
@@ -766,21 +722,20 @@ namespace cwipi {
   Mesh::blockTypeGet
   (
     int id_block
-  )
+  ) const
   {
     return _blockDB[id_block]->blockTypeGet();
   }
 
 
   inline CWP_g_num_t*
-  Mesh::globalNumGet
+  Mesh::blockGlobalNumGet
   (
     int id_block,
     int i_part
-  )
+  ) const
   {
-    CWP_g_num_t* gnum = _blockDB[id_block]->GNumMeshGet(i_part);
-    return gnum;
+    return _blockDB[id_block]->globalNumGet(i_part);
   }
 
 }

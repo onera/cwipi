@@ -44,19 +44,19 @@ namespace cwipi {
 
 
   void
-  BlockCP::BlockAdd
+  BlockCP::blockAdd
   (
-    CWP_Block_t  blockType,
+    CWP_Block_t  block_type,
     Mesh        *mesh
   )
   {
-    Block::BlockAdd(blockType, mesh);
+    Block::blockAdd(block_type, mesh);
     _n_faces         .resize(_n_part);
-    _connec_cells_idx.resize(_n_part, nullptr);
-    _connec_cells    .resize(_n_part, nullptr);
     _connec_faces_idx.resize(_n_part, nullptr);
     _connec_faces    .resize(_n_part, nullptr);
-    _face_ln_to_gn   .resize(_n_part, nullptr);
+    _connec_cells_idx.resize(_n_part, nullptr);
+    _connec_cells    .resize(_n_part, nullptr);
+    _global_num_faces.resize(_n_part, nullptr);
   }
 
 
@@ -64,7 +64,7 @@ namespace cwipi {
   BlockCP::blockSet
   (
     int          i_part,
-    int          n_elt,
+    int          n_elts,
     int          n_faces,
     int         *connec_faces_idx,
     int         *connec_faces,
@@ -73,13 +73,13 @@ namespace cwipi {
     CWP_g_num_t *global_num
   )
   {
-    _global_num      [i_part] = global_num;
-    _n_elt           [i_part] = n_elt;
+    _n_elts          [i_part] = n_elts;
     _n_faces         [i_part] = n_faces;
-    _connec_cells_idx[i_part] = connec_cells_idx;
-    _connec_cells    [i_part] = connec_cells;
     _connec_faces_idx[i_part] = connec_faces_idx;
     _connec_faces    [i_part] = connec_faces;
+    _connec_cells_idx[i_part] = connec_cells_idx;
+    _connec_cells    [i_part] = connec_cells;
+    _global_num      [i_part] = global_num;
   }
 
 
@@ -96,25 +96,26 @@ namespace cwipi {
     CWP_g_num_t **global_num
   )
   {
-    *global_num       = _global_num      [i_part];
-    *n_elts           = _n_elt           [i_part];
+    *n_elts           = _n_elts          [i_part];
     *n_faces          = _n_faces         [i_part];
-    *connec_cells_idx = _connec_cells_idx[i_part];
-    *connec_cells     = _connec_cells    [i_part];
     *connec_faces_idx = _connec_faces_idx[i_part];
     *connec_faces     = _connec_faces    [i_part];
+    *connec_cells_idx = _connec_cells_idx[i_part];
+    *connec_cells     = _connec_cells    [i_part];
+    *global_num       = _global_num      [i_part];
+
   }
 
 
   void
-  BlockCP::FacesGNumFree
+  BlockCP::faceGlobalNumFree
   (
     int i_part
   )
   {
-    if (_face_ln_to_gn[i_part] != nullptr) {
-      free(_face_ln_to_gn[i_part]);
-      _face_ln_to_gn[i_part] = nullptr;
+    if (_global_num_faces[i_part] != nullptr) {
+      free(_global_num_faces[i_part]);
+      _global_num_faces[i_part] = nullptr;
     }
   }
 

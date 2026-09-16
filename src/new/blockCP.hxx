@@ -61,13 +61,13 @@ namespace cwipi {
     /**
      * \brief Add a block to the mesh.
      *
-     * \param [in]  blockType Type of the block
-     * \param [in]  mesh      Mesh object owning the block
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
      */
     virtual void
-    BlockAdd
+    blockAdd
     (
-      CWP_Block_t  blockType,
+      CWP_Block_t  block_type,
       Mesh        *mesh
     );
 
@@ -78,10 +78,10 @@ namespace cwipi {
      * \param [in]  i_part           Partition identifier
      * \param [in]  n_elts           Number of elements of the block in the partition
      * \param [in]  n_faces          Number of faces of the block in the partition
-     * \param [in]  connec_faces_idx Vertices to faces connectivity index
-     * \param [in]  connec_faces     Vertices to faces connectivity
-     * \param [in]  connec_cells_idx Faces to cells connectivity index
-     * \param [in]  connec_cells     Faces to cells connectivity
+     * \param [in]  connec_faces_idx Faces to vertices connectivity index
+     * \param [in]  connec_faces     Faces to vertices connectivity
+     * \param [in]  connec_cells_idx Cells to faces connectivity index
+     * \param [in]  connec_cells     Cells to faces connectivity
      * \param [in]  global_num       Global element numbering
      */
     void
@@ -104,10 +104,10 @@ namespace cwipi {
      * \param [in]  i_part           Partition identifier
      * \param [out] n_elts           Number of elements of the block in the partition
      * \param [out] n_faces          Number of faces of the block in the partition
-     * \param [out] connec_faces_idx Vertices to faces connectivity index
-     * \param [out] connec_faces     Vertices to faces connectivity
-     * \param [out] connec_cells_idx Faces to cells connectivity index
-     * \param [out] connec_cells     Faces to cells connectivity
+     * \param [out] connec_faces_idx Faces to vertices connectivity index
+     * \param [out] connec_faces     Faces to vertices connectivity
+     * \param [out] connec_cells_idx Cells to faces connectivity index
+     * \param [out] connec_cells     Cells to faces connectivity
      * \param [out] global_num       Global element numbering
      */
     void
@@ -125,72 +125,145 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the element connectivity (Standard or Face_Poly_2D)
-     *        or cells-faces connectivity (Cells_POLY_3D) for each partition.
+     * \brief Return the number of faces for a partition (Cells_POLY_3D).
      *
-     * \return Vector of connectivity arrays for each partition
+     * \param [in]  i_part Partition identifier
+     * \return Number of faces for the partition
      */
-    inline std::vector<int*>
-    ConnecGet();
+    inline int
+    nFacesGet
+    (
+      int i_part
+    ) const;
 
 
     /**
-     * \brief Return the element connectivity index (Face_Poly_2D)
-     *        or cells-faces connectivity index (Cells_POLY_3D) for each partition.
-     *
-     * \return Vector of connectivity index arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecIDXGet();
-
-
-    /**
-     * \brief Return the element faces connectivity (Cells_POLY_3D)
-     *        for each partition.
-     *
-     * \return Vector of faces connectivity arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecFacesGet();
-
-
-    /**
-     * \brief Return the element faces connectivity index (Cells_POLY_3D)
-     *        for each partition.
-     *
-     * \return Vector of faces connectivity index arrays for each partition
-     */
-    inline std::vector<int*>
-    ConnecFacesIDXGet();
-
-
-    /**
-     * \brief Return the number of faces for each partition (Cells_POLY_3D).
+     * \brief Return the number of faces for all partitions.
      *
      * \return Vector of face counts for each partition
      */
-    inline std::vector<int>
-    NFacesGet();
+    inline const std::vector<int>
+    nFacesGet();
 
 
     /**
-     * \brief Return the faces global numbering for each partition.
+     * \brief Return the cells-faces connectivity for a partition.
      *
-     * \return Vector of faces global numbering arrays
+     * \param [in]  i_part Partition identifier
+     * \return Connectivity array for the partition
      */
-    inline std::vector<CWP_g_num_t*>
-    FacesGNumGet();
+    inline int*
+    cellConnecGet
+    (
+      int i_part
+    ) const;
 
 
     /**
-     * \brief Set the faces global numbering.
+     * \brief Return the cells-faces connectivity index for a partition.
      *
-     * \param [in] face_ln_to_gn Faces global numbering vector
+     * \param [in]  i_part Partition identifier
+     * \return Connectivity index array for the partition
+     */
+    inline int*
+    cellConnecIdxGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the faces-vertex connectivity for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces connectivity array for the partition
+     */
+    inline int*
+    faceConnecGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the faces-vertex connectivity for all partitions.
+     *
+     * \return Vector of connectivity arrays for each partition
+     */
+    inline const std::vector<int*>
+    faceConnecGet();
+
+
+    /**
+     * \brief Return the faces-vertex connectivity index for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces connectivity index array for the partition
+     */
+    inline int*
+    faceConnecIdxGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the faces-vertex connectivity index for all partitions.
+     *
+     * \return Vector of connectivity index arrays for each partition
+     */
+    inline const std::vector<int*>
+    faceConnecIdxGet();
+
+
+    /**
+     * \brief Return the faces global numbering for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces global numbering array for the partition
+     */
+    inline CWP_g_num_t*
+    faceGlobalNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Set the faces global numbering for a partition.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [in]  global_num_faces Faces global numbering array
      */
     inline void
-    FacesGNumSet
+    faceGlobalNumSet
     (
-      std::vector<CWP_g_num_t*> face_ln_to_gn
+      int          i_part,
+      CWP_g_num_t *global_num_faces
+    );
+
+
+    /**
+     * \brief Set the faces global numbering for all partitions.
+     *
+     * \param [in]  global_num_faces Vector of global numbering arrays for each partition
+     */
+    inline void
+    faceGlobalNumSet
+    (
+      const std::vector<CWP_g_num_t*> global_num_faces
+    );
+
+
+    /**
+     * \brief Free the faces global numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     */
+    void
+    faceGlobalNumFree
+    (
+      int i_part
     );
 
 
@@ -201,18 +274,6 @@ namespace cwipi {
     void
     geomFinalize();
 
-
-    /**
-     * \brief Free the faces global numbering.
-     *
-     * \param [in] i_part Partition identifier
-     */
-    void
-    FacesGNumFree
-    (
-      int i_part
-    );
-
   private:
 
     std::vector<int>          _n_faces;          /*!< Number of faces for each partition */
@@ -220,59 +281,109 @@ namespace cwipi {
     std::vector<int*>         _connec_faces;     /*!< Faces connectivity for each partition */
     std::vector<int*>         _connec_cells_idx; /*!< Cells connectivity index for each partition */
     std::vector<int*>         _connec_cells;     /*!< Cells connectivity for each partition */
-    std::vector<CWP_g_num_t*> _face_ln_to_gn;    /*!< Face global numbering */
+    std::vector<CWP_g_num_t*> _global_num_faces; /*!< Faces global numbering */
 
   };
 
-  inline std::vector<int*>
-  BlockCP::ConnecGet()
+  inline int*
+  BlockCP::cellConnecGet
+  (
+    int i_part
+  ) const
   {
-    return _connec_cells;
+    return _connec_cells[i_part];
   }
 
 
-  inline std::vector<int*>
-  BlockCP::ConnecIDXGet()
+  inline int*
+  BlockCP::cellConnecIdxGet
+  (
+    int i_part
+  ) const
   {
-    return _connec_cells_idx;
+    return _connec_cells_idx[i_part];
   }
 
 
-  inline std::vector<int*>
-  BlockCP::ConnecFacesGet()
+  inline int*
+  BlockCP::faceConnecGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_faces[i_part];
+  }
+
+
+  inline const std::vector<int*>
+  BlockCP::faceConnecGet()
   {
     return _connec_faces;
   }
 
 
-  inline std::vector<int*>
-  BlockCP::ConnecFacesIDXGet()
+  inline int*
+  BlockCP::faceConnecIdxGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_faces_idx[i_part];
+  }
+
+
+  inline const std::vector<int*>
+  BlockCP::faceConnecIdxGet()
   {
     return _connec_faces_idx;
   }
 
 
-  inline std::vector<int>
-  BlockCP::NFacesGet()
+  inline int
+  BlockCP::nFacesGet
+  (
+    int i_part
+  ) const
+  {
+    return _n_faces[i_part];
+  }
+
+
+  inline const std::vector<int>
+  BlockCP::nFacesGet()
   {
     return _n_faces;
   }
 
 
-  inline std::vector<CWP_g_num_t*>
-  BlockCP::FacesGNumGet()
+  inline CWP_g_num_t*
+  BlockCP::faceGlobalNumGet
+  (
+    int i_part
+  ) const
   {
-    return _face_ln_to_gn;
+    return _global_num_faces[i_part];
   }
 
 
   inline void
-  BlockCP::FacesGNumSet
+  BlockCP::faceGlobalNumSet
   (
-    std::vector<CWP_g_num_t*> face_ln_to_gn
+    int          i_part,
+    CWP_g_num_t *global_num_faces
   )
   {
-    _face_ln_to_gn = face_ln_to_gn;
+    _global_num_faces[i_part] = global_num_faces;
+  }
+
+
+  inline void
+  BlockCP::faceGlobalNumSet
+  (
+    const std::vector<CWP_g_num_t*> global_num_faces
+  )
+  {
+    _global_num_faces = global_num_faces;
   }
 
 }

@@ -328,7 +328,7 @@ namespace cwipi {
     const char         *ho_ordering
   )
   {
-    _mesh.HOBlockSet(i_part,
+    _mesh.hoBlockSet(i_part,
                      block_id,
                      n_elts,
                      connec,
@@ -389,7 +389,7 @@ namespace cwipi {
     CWP_g_num_t **global_num
   )
   {
-    _mesh.HOBlockGet(i_part,
+    _mesh.hoBlockGet(i_part,
                      block_id,
                      n_elts,
                      order,
@@ -411,7 +411,7 @@ namespace cwipi {
     const int           block_id
   )
   {
-    CWP_Block_t block_type = _mesh.stdBlockTypeGet(block_id);
+    CWP_Block_t block_type = _mesh.blockTypeGet(block_id);
 
     return block_type;
   }
@@ -731,22 +731,22 @@ namespace cwipi {
   )
   {
     if (has_mesh()) {
-      _mesh.fromFacesEdgeSet (i_part,
-                              n_faces,
-                              face_edge_idx,
-                              face_edge,
-                              n_edges,
-                              edge_vtx,
-                              parent_num);
+      _mesh.fromFaceEdgeSet (i_part,
+                             n_faces,
+                             face_edge_idx,
+                             face_edge,
+                             n_edges,
+                             edge_vtx,
+                             parent_num);
     }
     else {
-      _mesh.fromFacesEdgeSet (i_part,
-                              0,
-                              NULL,
-                              NULL,
-                              0,
-                              NULL,
-                              NULL);
+      _mesh.fromFaceEdgeSet (i_part,
+                             0,
+                             NULL,
+                             NULL,
+                             0,
+                             NULL,
+                             NULL);
     }
   }
 
@@ -761,18 +761,18 @@ namespace cwipi {
   )
   {
     if (has_mesh()) {
-      _mesh.fromFacesVtxSet (i_part,
-                             n_faces,
-                             face_vtx_idx,
-                             face_vtx,
-                             global_num);
+      _mesh.fromFaceVtxSet (i_part,
+                            n_faces,
+                            face_vtx_idx,
+                            face_vtx,
+                            global_num);
     }
     else {
-      _mesh.fromFacesVtxSet (i_part,
-                             0,
-                             NULL,
-                             NULL,
-                             NULL);
+      _mesh.fromFaceVtxSet (i_part,
+                            0,
+                            NULL,
+                            NULL,
+                            NULL);
     }
   }
 
@@ -787,18 +787,18 @@ namespace cwipi {
   )
   {
     if (has_mesh()) {
-      _mesh.fromCellsVtxSet(i_part,
-                            n_cells,
-                            cell_vtx_idx,
-                            cell_vtx,
-                            global_num);
+      _mesh.fromCellVtxSet(i_part,
+                           n_cells,
+                           cell_vtx_idx,
+                           cell_vtx,
+                           global_num);
     }
     else {
-      _mesh.fromCellsVtxSet(i_part,
-                            0,
-                            NULL,
-                            NULL,
-                            NULL);
+      _mesh.fromCellVtxSet(i_part,
+                           0,
+                           NULL,
+                           NULL,
+                           NULL);
     }
   }
 

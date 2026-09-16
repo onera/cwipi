@@ -146,7 +146,7 @@ namespace cwipi {
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       // Local code is the source so it provides its interface mesh
-      _pdm_CplNodal = _mesh->getPdmNodalIndex();
+      _pdm_CplNodal = _mesh->pdmNodalIndexGet();
     }
     else { // _exchDirection == SPATIAL_INTERP_EXCH_RECV
       // Local code is the target so it provides an empty mesh
@@ -159,8 +159,8 @@ namespace cwipi {
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       // Local code is the source
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-       _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-       _src_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+      _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+      _src_n_gnum[i_part] = _mesh->nEltsGet(i_part);
       }
     }
 
@@ -168,12 +168,12 @@ namespace cwipi {
       // Local code is the target
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nEltsGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nVtxGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
@@ -483,7 +483,7 @@ namespace cwipi {
           int    *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
           double *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int     part_n_elt              = _mesh->getPartNElts(i_part);
+          int     part_n_elt              = _mesh->nEltsGet(i_part);
 
           double *local_buffer = (double *) buffer[i_part];
 
@@ -520,8 +520,8 @@ namespace cwipi {
           int    *part_weights_idx        = _weights_idx[i_part];
           double *part_weights            = _weights[i_part];
 
-          int     part_n_elt              = _mesh->getPartNElts(i_part);
-          int     part_n_vtx              = _mesh->getPartNVertex(i_part);
+          int     part_n_elt              = _mesh->nEltsGet(i_part);
+          int     part_n_vtx              = _mesh->nVtxGet (i_part);
 
           int     *connec_idx             = _cell_vtx_idx[i_part];
           int     *connec                 = _cell_vtx    [i_part];
@@ -580,27 +580,27 @@ namespace cwipi {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }
 
-  void SpatialInterpLocation::localization_points_cloud_setting() 
+  void SpatialInterpLocation::localization_points_cloud_setting()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }
 
-  void SpatialInterpLocation::localization_surface_setting() 
+  void SpatialInterpLocation::localization_surface_setting()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }
 
-  void SpatialInterpLocation::localization_compute() 
+  void SpatialInterpLocation::localization_compute()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }
 
-  void SpatialInterpLocation::localization_get() 
+  void SpatialInterpLocation::localization_get()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }
 
-  void SpatialInterpLocation::localization_free() 
+  void SpatialInterpLocation::localization_free()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }

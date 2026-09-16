@@ -61,13 +61,13 @@ namespace cwipi {
 
 
   void
-  BlockHO::BlockAdd
+  BlockHO::blockAdd
   (
-    CWP_Block_t  blockType,
+    CWP_Block_t  block_type,
     Mesh        *mesh
   )
   {
-    BlockStd::BlockAdd(blockType, mesh);
+    BlockStd::blockAdd(block_type, mesh);
     _connec    .resize(_n_part, nullptr);
     _connec_ijk.resize(_n_part, nullptr);
   }
@@ -79,16 +79,16 @@ namespace cwipi {
           int          i_part,
           int          n_elt,
           int         *connec,
-          CWP_g_num_t *mesh_global_num,
+          CWP_g_num_t *global_num,
     const int          order,
     const char        *ho_ordering
   )
   {
-    _global_num[i_part] = mesh_global_num;
-    _n_elt     [i_part] = n_elt;
+    _n_elts    [i_part] = n_elt;
     _connec    [i_part] = connec;
+    _global_num[i_part] = global_num;
 
-    PDM_Mesh_nodal_elt_t elt_type   = (PDM_Mesh_nodal_elt_t) _blockType;
+    PDM_Mesh_nodal_elt_t elt_type   = (PDM_Mesh_nodal_elt_t) _block_type;
     int                  elt_node_n = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, order);
     _connec_ijk[i_part] = (int *) malloc(sizeof(int) * n_elt * elt_node_n);
     memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elt * elt_node_n);
@@ -116,9 +116,9 @@ namespace cwipi {
     char        **ho_ordering
   )
   {
-    *global_num  = _global_num[i_part];
-    *n_elts      = _n_elt     [i_part];
+    *n_elts      = _n_elts    [i_part];
     *connec      = _connec    [i_part];
+    *global_num  = _global_num[i_part];
     *order       = _order;
     *ho_ordering = _ho_ordering;
   }
@@ -139,14 +139,14 @@ namespace cwipi {
                 "CWP_Mesh_interf_ho_ordering_from_IJK_set must be called to provide CWIPI with the user's high-order numbering\n");
     }
 
-    PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) _blockType;
+    PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) _block_type;
 
     for (int ipart = 0; ipart < _n_part; ipart++) {
       PDM_Mesh_nodal_reorder_elt_vtx(elt_type,
                                      _order,
                                      _ho_ordering,
                                      nullptr,
-                                     _n_elt     [ipart],
+                                     _n_elts    [ipart],
                                      _connec    [ipart],
                                      _connec_ijk[ipart]);
     }
