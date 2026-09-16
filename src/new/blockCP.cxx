@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
 
 #include "cwp.h"
 #include "mesh.hxx"
+
 #include "pdm_gnum.h"
-#include "pdm_priv.h"
 
 #include <vector>
 
@@ -51,12 +51,12 @@ namespace cwipi {
   )
   {
     Block::BlockAdd(blockType, mesh);
-    _n_faces.resize(_n_part);
-    _connec_cells_idx.resize(_n_part, NULL);
-    _connec_cells.resize(_n_part, NULL);
-    _connec_faces_idx.resize(_n_part, NULL);
-    _connec_faces.resize(_n_part, NULL);
-    _face_ln_to_gn.resize(_n_part, NULL);
+    _n_faces         .resize(_n_part);
+    _connec_cells_idx.resize(_n_part, nullptr);
+    _connec_cells    .resize(_n_part, nullptr);
+    _connec_faces_idx.resize(_n_part, nullptr);
+    _connec_faces    .resize(_n_part, nullptr);
+    _face_ln_to_gn   .resize(_n_part, nullptr);
   }
 
 
@@ -112,9 +112,9 @@ namespace cwipi {
     int i_part
   )
   {
-    if (_face_ln_to_gn[i_part] != NULL) {
+    if (_face_ln_to_gn[i_part] != nullptr) {
       free(_face_ln_to_gn[i_part]);
-      _face_ln_to_gn[i_part] = NULL;
+      _face_ln_to_gn[i_part] = nullptr;
     }
   }
 

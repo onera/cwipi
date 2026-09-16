@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 
 #include "cwp.h"
 #include "mesh.hxx"
+
 #include "pdm_gnum.h"
 
 #include <vector>
@@ -50,8 +51,8 @@ namespace cwipi {
   )
   {
     Block::BlockAdd(blockType, mesh);
-    _connec_idx.resize(_n_part, NULL);
-    _connec.resize(_n_part, NULL);
+    _connec_idx.resize(_n_part, nullptr);
+    _connec    .resize(_n_part, nullptr);
   }
 
 

@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,9 +21,11 @@
 
 #include "cwp.h"
 #include "mesh.hxx"
-#include "pdm.h"
-#include "pdm_part_mesh_nodal.h"
+
 #include "pdm_gnum.h"
+#include "pdm_part_mesh_nodal.h"
+
+#include <mpi.h>
 
 #include <vector>
 
@@ -42,7 +44,7 @@ namespace cwipi {
   Block::~Block()
   {
     for (int i = 0; i < _n_part; i++) {
-      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != NULL) {
+      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != nullptr) {
         free(_global_num[i]);
       }
     }
@@ -62,10 +64,10 @@ namespace cwipi {
     _blockType = blockType;
     _n_part    = static_cast<Mesh*>(mesh)->getNPart();
 
-    _global_num  .resize(_n_part, NULL);
+    _global_num  .resize(_n_part, nullptr);
     _n_elt       .resize(_n_part);
-    _cells_center.resize(_n_part, NULL);
-    _parent_num  .resize(_n_part, NULL);
+    _cells_center.resize(_n_part, nullptr);
+    _parent_num  .resize(_n_part, nullptr);
   }
 
 
@@ -75,16 +77,16 @@ namespace cwipi {
     int i_part
   )
   {
-    if (_cells_center[i_part] == NULL) {
+    if (_cells_center[i_part] == nullptr) {
       PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(),
                                                      _block_id_pdm,
                                                      i_part,
                                                      PDM_OWNERSHIP_KEEP);
     }
-    _cells_center[i_part] = (double *) PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(),
-                                                                                  _block_id_pdm,
-                                                                                  i_part,
-                                                                                  PDM_OWNERSHIP_KEEP);
+    _cells_center[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(),
+                                                                                           _block_id_pdm,
+                                                                                           i_part,
+                                                                                           PDM_OWNERSHIP_KEEP));
     return _cells_center[i_part];
   }
 
@@ -109,9 +111,9 @@ namespace cwipi {
   )
   {
     if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
-      if (_global_num[i_part] != NULL) {
+      if (_global_num[i_part] != nullptr) {
         free(_global_num[i_part]);
-        _global_num[i_part] = NULL;
+        _global_num[i_part] = nullptr;
       }
     }
   }
@@ -120,9 +122,9 @@ namespace cwipi {
   void
   Block::blockSetParentNum
   (
-    int             i_part,
-    int            *parent_num,
-    PDM_ownership_t owner
+    int              i_part,
+    int             *parent_num,
+    PDM_ownership_t  owner
   )
   {
     _parent_num[i_part] = parent_num;
@@ -137,9 +139,9 @@ namespace cwipi {
   )
   {
     if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
-      if (_parent_num[i_part] != NULL) {
+      if (_parent_num[i_part] != nullptr) {
         free(_parent_num[i_part]);
-        _parent_num[i_part] = NULL;
+        _parent_num[i_part] = nullptr;
       }
     }
   }

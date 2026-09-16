@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ namespace cwipi {
      * \brief Destructor.
      *
      */
-    ~BlockHO();
+    virtual ~BlockHO();
 
 
     /**
@@ -99,12 +99,12 @@ namespace cwipi {
     /**
      * \brief Get a CWIPI block.
      *
-     * \param [in]  i_part        Partition identifier
-     * \param [out] n_elts        Number of elements of the block in the partition
-     * \param [out] connec        Elements connectivity
-     * \param [out] global_num    Global element numbering
-     * \param [out] order         Element order
-     * \param [out] ho_ordering   HO ordering name
+     * \param [in]  i_part      Partition identifier
+     * \param [out] n_elts      Number of elements of the block in the partition
+     * \param [out] connec      Elements connectivity
+     * \param [out] global_num  Global element numbering
+     * \param [out] order       Element order
+     * \param [out] ho_ordering HO ordering name
      */
     void
     blockGet
@@ -197,10 +197,10 @@ namespace cwipi {
 
   private:
 
-    int                _order;            /*!< Element order */
-    char              *_ho_ordering;      /*!< HO ordering name */
-    std::vector<int*>  _connec;           /*!< Connectivity in user order for each partition */
-    std::vector<int*>  _connec_ijk;       /*!< Connectivity in Lagrange (IJK) order for each partition */
+    int                _order;       /*!< Element order */
+    char              *_ho_ordering; /*!< HO ordering name */
+    std::vector<int*>  _connec;      /*!< Connectivity in user order for each partition */
+    std::vector<int*>  _connec_ijk;  /*!< Connectivity in Lagrange (IJK) order for each partition */
 
   };
 

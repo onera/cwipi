@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,14 +20,15 @@
 */
 
 #include "cwp_priv.h"
+
 CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
 #include "cwp.h"
 CWP_GCC_SUPPRESS_WARNING_POP
-#include "pdm_error.h"
-#include "pdm_geom_elem.h"
+
 #include "pdm_gnum.h"
 
-#include <map>
+#include <mpi.h>
+
 #include <vector>
 
 /**
@@ -160,9 +161,9 @@ namespace cwipi {
     /**
      * \brief Set the element global numbering.
      *
-     * \param [in] i_part  Partition identifier
-     * \param [in] gnum    Global numbering array
-     * \param [in] owner   Ownership flag
+     * \param [in] i_part Partition identifier
+     * \param [in] gnum   Global numbering array
+     * \param [in] owner  Ownership flag
      */
     void
     GNumMeshSet
@@ -208,9 +209,9 @@ namespace cwipi {
     void
     blockSetParentNum
     (
-      int             i_part,
-      int            *parent_num,
-      PDM_ownership_t owner
+      int              i_part,
+      int             *parent_num,
+      PDM_ownership_t  owner
     );
 
 
@@ -271,18 +272,18 @@ namespace cwipi {
 
   protected:
 
-    CWP_Block_t                 _blockType;          /*!< Block type */
-    MPI_Comm                   *_localComm;          /*!< Communicator */
-    int                         _n_part;             /*!< Number of partitions */
-    std::vector<int>            _n_elt;              /*!< Number of elements for each partition */
-    std::vector<double*>        _cells_center;       /*!< Cell centers */
-    int                         _block_id_pdm;       /*!< Block identifier in PDM */
-    int                         _block_id_cwipi;     /*!< Block identifier in CWIPI */
-    std::vector<CWP_g_num_t*>   _global_num;         /*!< Global numbering in the mesh */
-    std::vector<int*>           _parent_num;         /*!< Parent numbering */
-    Mesh                       *_mesh;               /*!< Pointer to the mesh object owning the block */
-    PDM_ownership_t             _owner_gnum;         /*!< Owner of global numbers */
-    PDM_ownership_t             _owner_parent_num;   /*!< Owner of parent numbers */
+    CWP_Block_t                _blockType;        /*!< Block type */
+    MPI_Comm                  *_localComm;        /*!< Communicator */
+    int                        _n_part;           /*!< Number of partitions */
+    std::vector<int>           _n_elt;            /*!< Number of elements for each partition */
+    std::vector<double*>       _cells_center;     /*!< Cell centers */
+    int                        _block_id_pdm;     /*!< Block identifier in PDM */
+    int                        _block_id_cwipi;   /*!< Block identifier in CWIPI */
+    std::vector<CWP_g_num_t*>  _global_num;       /*!< Global numbering in the mesh */
+    std::vector<int*>          _parent_num;       /*!< Parent numbering */
+    Mesh                      *_mesh;             /*!< Pointer to the mesh object owning the block */
+    PDM_ownership_t            _owner_gnum;       /*!< Owner of global numbers */
+    PDM_ownership_t            _owner_parent_num; /*!< Owner of parent numbers */
 
   };
 

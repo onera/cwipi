@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,12 +21,13 @@
 
 #include "cwp.h"
 #include "mesh.hxx"
+
 #include "pdm_error.h"
+#include "pdm_gnum.h"
 #include "pdm_ho_ordering.h"
 #include "pdm_logging.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_printf.h"
-#include "pdm_gnum.h"
 
 #include <cstring>
 #include <vector>
@@ -40,7 +41,7 @@ namespace cwipi {
   BlockHO::BlockHO()
     : BlockStd::BlockStd()
   {
-    _ho_ordering = NULL;
+    _ho_ordering = nullptr;
   }
 
 
@@ -48,12 +49,12 @@ namespace cwipi {
   {
     _connec.clear();
     for (size_t i = 0; i < _connec_ijk.size(); i++) {
-      if (_connec_ijk[i] != NULL) {
+      if (_connec_ijk[i] != nullptr) {
         free(_connec_ijk[i]);
       }
     }
     _connec_ijk.clear();
-    if (_ho_ordering != NULL) {
+    if (_ho_ordering != nullptr) {
       free(_ho_ordering);
     }
   }
@@ -67,8 +68,8 @@ namespace cwipi {
   )
   {
     BlockStd::BlockAdd(blockType, mesh);
-    _connec.resize(_n_part, NULL);
-    _connec_ijk.resize(_n_part, NULL);
+    _connec    .resize(_n_part, nullptr);
+    _connec_ijk.resize(_n_part, nullptr);
   }
 
 
@@ -93,12 +94,12 @@ namespace cwipi {
     memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elt * elt_node_n);
 
     _order = order;
-    if (_ho_ordering != NULL) {
+    if (_ho_ordering != nullptr) {
       free(_ho_ordering);
-      _ho_ordering = NULL;
+      _ho_ordering = nullptr;
     }
-    if (ho_ordering != NULL) {
-      _ho_ordering = (char *) malloc(sizeof(char) * (strlen(ho_ordering) + 1));
+    if (ho_ordering != nullptr) {
+      _ho_ordering = static_cast<char*>(malloc(sizeof(char) * (strlen(ho_ordering) + 1)));
       strcpy(_ho_ordering, ho_ordering);
     }
   }
@@ -144,7 +145,7 @@ namespace cwipi {
       PDM_Mesh_nodal_reorder_elt_vtx(elt_type,
                                      _order,
                                      _ho_ordering,
-                                     NULL,
+                                     nullptr,
                                      _n_elt     [ipart],
                                      _connec    [ipart],
                                      _connec_ijk[ipart]);
