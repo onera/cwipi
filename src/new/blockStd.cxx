@@ -58,12 +58,12 @@ namespace cwipi {
   BlockStd::blockSet
   (
     int          i_part,
-    int          n_elt,
+    int          n_elts,
     int         *connec,
     CWP_g_num_t *global_num
   )
   {
-    _n_elts    [i_part] = n_elt;
+    _n_elts    [i_part] = n_elts;
     _connec    [i_part] = connec;
     _global_num[i_part] = global_num;
   }

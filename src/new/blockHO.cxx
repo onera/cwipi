@@ -77,21 +77,21 @@ namespace cwipi {
   BlockHO::blockSet
   (
           int          i_part,
-          int          n_elt,
+          int          n_elts,
           int         *connec,
           CWP_g_num_t *global_num,
     const int          order,
     const char        *ho_ordering
   )
   {
-    _n_elts    [i_part] = n_elt;
+    _n_elts    [i_part] = n_elts;
     _connec    [i_part] = connec;
     _global_num[i_part] = global_num;
 
-    PDM_Mesh_nodal_elt_t elt_type   = (PDM_Mesh_nodal_elt_t) _block_type;
-    int                  elt_node_n = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, order);
-    _connec_ijk[i_part] = (int *) malloc(sizeof(int) * n_elt * elt_node_n);
-    memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elt * elt_node_n);
+    PDM_Mesh_nodal_elt_t elt_type  = (PDM_Mesh_nodal_elt_t) _block_type;
+    int                  elt_n_vtx = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, order);
+    _connec_ijk[i_part] = (int *) malloc(sizeof(int) * n_elts * elt_n_vtx);
+    memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elts * elt_n_vtx);
 
     _order = order;
     if (_ho_ordering != nullptr) {

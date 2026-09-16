@@ -599,27 +599,11 @@ namespace cwipi {
     void
     meshDel();
 
-
-    /**
-     * \brief Get the nodal standard type block size.
-     *
-     * \param [in]  type Block type
-     * \return Size of the nodal standard type block
-     *
-     */
-    int
-    blockStdTypeSizeGet
-    (
-      CWP_Block_t type
-    );
-
   private:
 
     const MPI_Comm                &_localComm;            /*!< Communicator */
     int                           _npart;                 /*!< Number of partitions */
     int                           _nBlocks;               /*!< Number of blocks of the mesh */
-    int*                          _blocks_id;             /*!< List of block identifiers */
-    CWP_Block_t*                  _blocksType;            /*!< Blocks type */
     std::vector<cwipi::Block*>    _blockDB;               /*!< Blocks database */
 
     std::vector<int>              _nVertex;               /*!< Number of vertices for each partition */
@@ -628,8 +612,6 @@ namespace cwipi {
 
     std::vector<int>              _nElts;                 /*!< Number of elements for each partition */
     std::vector<double*>          _elt_centers;           /*!< Element centers for each partition */
-    std::vector<int*>             _elt_id_block;          /*!< Element to block mapping for each partition */
-    std::vector<int*>             _elt_in_block;          /*!< Element index in block for each partition */
 
     CWP_Dynamic_mesh_t            _displacement;          /*!< Type of mesh displacement */
     Coupling                      *_cpl;                  /*!< Pointer to the Coupling object */

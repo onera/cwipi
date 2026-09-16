@@ -86,9 +86,9 @@ namespace cwipi {
                                                    PDM_OWNERSHIP_KEEP);
 
     _element_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmNodalIndexGet(),
-                                                                                           _block_id_pdm,
-                                                                                           i_part,
-                                                                                           PDM_OWNERSHIP_KEEP));
+                                                                                              _block_id_pdm,
+                                                                                              i_part,
+                                                                                              PDM_OWNERSHIP_KEEP));
 
     return _element_centers[i_part];
   }
