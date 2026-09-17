@@ -76,13 +76,13 @@ namespace cwipi {
      * \brief Set a CWIPI block in a partition.
      *
      * \param [in]  i_part           Partition identifier
-     * \param [in]  n_elts           Number of elements of the block in the partition
-     * \param [in]  n_faces          Number of faces of the block in the partition
-     * \param [in]  connec_faces_idx Faces to vertices connectivity index
-     * \param [in]  connec_faces     Faces to vertices connectivity
-     * \param [in]  connec_cells_idx Cells to faces connectivity index
-     * \param [in]  connec_cells     Cells to faces connectivity
-     * \param [in]  global_num       Global element numbering
+     * \param [in]  n_elts           Number of elements of the block
+     * \param [in]  n_faces          Number of faces of the block
+     * \param [in]  connec_faces_idx Face to vertex connectivity index
+     * \param [in]  connec_faces     Face to vertex connectivity
+     * \param [in]  connec_cells_idx Cell to face connectivity index
+     * \param [in]  connec_cells     Cell to face connectivity
+     * \param [in]  global_num       Global numbering of the block
      */
     void
     blockSet
@@ -102,13 +102,13 @@ namespace cwipi {
      * \brief Get a CWIPI block in a partition.
      *
      * \param [in]  i_part           Partition identifier
-     * \param [out] n_elts           Number of elements of the block in the partition
-     * \param [out] n_faces          Number of faces of the block in the partition
-     * \param [out] connec_faces_idx Faces to vertices connectivity index
-     * \param [out] connec_faces     Faces to vertices connectivity
-     * \param [out] connec_cells_idx Cells to faces connectivity index
-     * \param [out] connec_cells     Cells to faces connectivity
-     * \param [out] global_num       Global element numbering
+     * \param [out] n_elts           Number of elements of the block
+     * \param [out] n_faces          Number of faces of the block
+     * \param [out] connec_faces_idx Face to vertex connectivity index
+     * \param [out] connec_faces     Face to vertex connectivity
+     * \param [out] connec_cells_idx Cell to face connectivity index
+     * \param [out] connec_cells     Cell to face connectivity
+     * \param [out] global_num       Global numbering of the block
      */
     void
     blockGet
@@ -147,7 +147,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the cells-faces connectivity for a partition.
+     * \brief Return the cell to face connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
      * \return Connectivity array for the partition
@@ -160,7 +160,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the cells-faces connectivity index for a partition.
+     * \brief Return the cell to face connectivity index for a partition.
      *
      * \param [in]  i_part Partition identifier
      * \return Connectivity index array for the partition
@@ -173,7 +173,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the faces-vertex connectivity for a partition.
+     * \brief Return the face to vertex connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
      * \return Faces connectivity array for the partition
@@ -186,7 +186,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the faces-vertex connectivity for all partitions.
+     * \brief Return the face to vertex connectivity for all partitions.
      *
      * \return Vector of connectivity arrays for each partition
      */
@@ -195,7 +195,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the faces-vertex connectivity index for a partition.
+     * \brief Return the face to vertex connectivity index for a partition.
      *
      * \param [in]  i_part Partition identifier
      * \return Faces connectivity index array for the partition
@@ -208,7 +208,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the faces-vertex connectivity index for all partitions.
+     * \brief Return the face to vertex connectivity index for all partitions.
      *
      * \return Vector of connectivity index arrays for each partition
      */

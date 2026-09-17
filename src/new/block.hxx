@@ -91,6 +91,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Return true if the block is standard.
+     *
+     * \return True if the block is standard
+     */
+    inline bool
+    blockTypeStdIs() const;
+
+
+    /**
      * \brief Return the CWIPI block identifier.
      *
      * \return Block identifier
@@ -280,7 +289,7 @@ namespace cwipi {
     CWP_Block_t                _block_type;       /*!< Block type */
     int                        _n_part;           /*!< Number of partitions */
     std::vector<int>           _n_elts;           /*!< Number of elements for each partition */
-    std::vector<double*>       _element_centers;  /*!< Element centers */
+    std::vector<double*>       _elt_centers;      /*!< Element centers */
     int                        _block_id_pdm;     /*!< Block identifier in PDM */
     int                        _block_id_cwipi;   /*!< Block identifier in CWIPI */
     std::vector<CWP_g_num_t*>  _global_num;       /*!< Global numbering in the mesh */
@@ -295,6 +304,20 @@ namespace cwipi {
   Block::blockTypeGet() const
   {
     return _block_type;
+  }
+
+
+  inline bool
+  Block::blockTypeStdIs() const
+  {
+    return (_block_type == CWP_BLOCK_NODE  ||
+            _block_type == CWP_BLOCK_EDGE2       ||
+            _block_type == CWP_BLOCK_FACE_TRIA3  ||
+            _block_type == CWP_BLOCK_FACE_QUAD4  ||
+            _block_type == CWP_BLOCK_CELL_TETRA4 ||
+            _block_type == CWP_BLOCK_CELL_HEXA8  ||
+            _block_type == CWP_BLOCK_CELL_PRISM6 ||
+            _block_type == CWP_BLOCK_CELL_PYRAM5);
   }
 
 

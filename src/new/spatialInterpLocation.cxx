@@ -146,7 +146,7 @@ namespace cwipi {
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       // Local code is the source so it provides its interface mesh
-      _pdm_CplNodal = _mesh->pdmNodalIndexGet();
+      _pdm_CplNodal = _mesh->pdmPartMeshNodalGet();
     }
     else { // _exchDirection == SPATIAL_INTERP_EXCH_RECV
       // Local code is the target so it provides an empty mesh

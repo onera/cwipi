@@ -1288,7 +1288,7 @@ namespace cwipi {
         // Geometry
         cpl._id_geom_writer = PDM_writer_geom_create_from_mesh_nodal(cpl._writer,
                                                                      "geom",
-                                                                     cpl._mesh.pdmNodalIndexGet());
+                                                                     cpl._mesh.pdmPartMeshNodalGet());
 
         if (cpl._userTargetN != nullptr) {
 
@@ -1477,7 +1477,7 @@ namespace cwipi {
 
           PDM_writer_geom_set_from_mesh_nodal (cpl._writer,
                                                cpl._id_geom_writer,
-                                               cpl._mesh.pdmNodalIndexGet());
+                                               cpl._mesh.pdmPartMeshNodalGet());
 
           if (cpl._userTargetN != nullptr) {
 

@@ -63,10 +63,10 @@ namespace cwipi {
     _block_type = block_type;
     _n_part     = static_cast<Mesh*>(mesh)->nPartGet();
 
-    _n_elts         .resize(_n_part);
-    _element_centers.resize(_n_part, nullptr);
-    _global_num     .resize(_n_part, nullptr);
-    _parent_num     .resize(_n_part, nullptr);
+    _n_elts     .resize(_n_part);
+    _elt_centers.resize(_n_part, nullptr);
+    _global_num .resize(_n_part, nullptr);
+    _parent_num .resize(_n_part, nullptr);
   }
 
 
@@ -76,21 +76,21 @@ namespace cwipi {
     int i_part
   )
   {
-    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmNodalIndexGet(),
+    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmPartMeshNodalGet(),
                                                  _block_id_pdm,
                                                  i_part);
 
-    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmNodalIndexGet(),
+    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmPartMeshNodalGet(),
                                                    _block_id_pdm,
                                                    i_part,
                                                    PDM_OWNERSHIP_KEEP);
 
-    _element_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmNodalIndexGet(),
-                                                                                              _block_id_pdm,
-                                                                                              i_part,
-                                                                                              PDM_OWNERSHIP_KEEP));
+    _elt_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmPartMeshNodalGet(),
+                                                                                          _block_id_pdm,
+                                                                                          i_part,
+                                                                                          PDM_OWNERSHIP_KEEP));
 
-    return _element_centers[i_part];
+    return _elt_centers[i_part];
   }
 
 

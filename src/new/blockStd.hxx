@@ -77,8 +77,8 @@ namespace cwipi {
      * \brief Set a CWIPI block in a partition.
      *
      * \param [in]  i_part     Partition identifier
-     * \param [in]  n_elts     Number of elements of the block in the partition
-     * \param [in]  connec     Elements connectivity
+     * \param [in]  n_elts     Number of elements of the block
+     * \param [in]  connec     Element to vertex connectivity
      * \param [in]  global_num Global numbering of the block
      */
     void
@@ -95,8 +95,8 @@ namespace cwipi {
      * \brief Get a CWIPI block.
      *
      * \param [in]  i_part     Partition identifier
-     * \param [out] n_elts     Number of elements of the block in the partition
-     * \param [out] connec     Elements connectivity
+     * \param [out] n_elts     Number of elements of the block
+     * \param [out] connec     Element to vertex connectivity
      * \param [out] global_num Global numbering of the block
      */
     void

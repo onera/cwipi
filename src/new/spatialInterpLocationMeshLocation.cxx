@@ -242,7 +242,7 @@ namespace cwipi {
         cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
         cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
-        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->pdmNodalIndexGet());
+        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->pdmPartMeshNodalGet());
       }
     }
   }

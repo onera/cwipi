@@ -78,7 +78,7 @@ namespace cwipi {
 
       //
       // Map nodal mesh
-      _pdm_CplNodal = _mesh->pdmNodalIndexGet();
+      _pdm_CplNodal = _mesh->pdmPartMeshNodalGet();
 
       //
       // Data for PDM_part_to_part_t
@@ -344,7 +344,7 @@ namespace cwipi {
           PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
         }
         else {
-          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->pdmNodalIndexGet());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->pdmPartMeshNodalGet());
         }
 
         // target mesh
@@ -352,7 +352,7 @@ namespace cwipi {
           PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
         }
         else {
-          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->pdmNodalIndexGet());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->pdmPartMeshNodalGet());
         }
       }
     }
