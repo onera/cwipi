@@ -27,10 +27,7 @@
 
 #include "cwp.h"
 
-#include "pdm_error.h"
-#include "pdm_gnum.h"
 #include "pdm_part_mesh_nodal.h"
-#include "pdm_printf.h"
 
 #include <mpi.h>
 

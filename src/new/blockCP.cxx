@@ -20,9 +20,8 @@
 #include "blockCP.hxx"
 
 #include "cwp.h"
-#include "mesh.hxx"
 
-#include "pdm_gnum.h"
+#include "mesh.hxx"
 
 #include <vector>
 

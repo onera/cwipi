@@ -27,8 +27,6 @@ CWP_GCC_SUPPRESS_WARNING_POP
 
 #include "pdm_gnum.h"
 
-#include <mpi.h>
-
 #include <vector>
 
 /**

@@ -20,14 +20,12 @@
 #include "blockHO.hxx"
 
 #include "cwp.h"
+
 #include "mesh.hxx"
 
 #include "pdm_error.h"
-#include "pdm_gnum.h"
 #include "pdm_ho_ordering.h"
-#include "pdm_logging.h"
 #include "pdm_mesh_nodal.h"
-#include "pdm_printf.h"
 
 #include <cstring>
 #include <vector>

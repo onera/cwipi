@@ -20,12 +20,10 @@
 #include "block.hxx"
 
 #include "cwp.h"
+
 #include "mesh.hxx"
 
-#include "pdm_gnum.h"
 #include "pdm_part_mesh_nodal.h"
-
-#include <mpi.h>
 
 #include <vector>
 
