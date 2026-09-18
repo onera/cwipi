@@ -1,5 +1,5 @@
-#ifndef __BlockHO_H__
-#define __BlockHO_H__
+#ifndef __BLOCKHO_H__
+#define __BLOCKHO_H__
 /*
   This file is part of the CWIPI library.
 
@@ -224,4 +224,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __BlockHO_H__
+#endif // __BLOCKHO_H__

@@ -1,5 +1,5 @@
-#ifndef __BlockFP_H__
-#define __BlockFP_H__
+#ifndef __BLOCKFP_H__
+#define __BLOCKFP_H__
 /*
   This file is part of the CWIPI library.
 
@@ -177,4 +177,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __BlockFP_H__
+#endif // __BLOCKFP_H__

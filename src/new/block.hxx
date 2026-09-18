@@ -1,5 +1,5 @@
-#ifndef __Block_H__
-#define __Block_H__
+#ifndef __BLOCK_H__
+#define __BLOCK_H__
 /*
   This file is part of the CWIPI library.
 
@@ -388,4 +388,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __Block_H__
+#endif // __BLOCK_H__

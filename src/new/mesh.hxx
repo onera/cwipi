@@ -1,5 +1,5 @@
-#ifndef __Mesh_H__
-#define __Mesh_H__
+#ifndef __MESH_H__
+#define __MESH_H__
 /*
   This file is part of the CWIPI library.
 
@@ -705,4 +705,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __Mesh_H__
+#endif // __MESH_H__

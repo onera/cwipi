@@ -1,5 +1,5 @@
-#ifndef __BlockCP_H__
-#define __BlockCP_H__
+#ifndef __BLOCKCP_H__
+#define __BLOCKCP_H__
 /*
   This file is part of the CWIPI library.
 
@@ -392,4 +392,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __BlockCP_H__
+#endif // __BLOCKCP_H__

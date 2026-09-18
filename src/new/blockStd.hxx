@@ -1,5 +1,5 @@
-#ifndef __BlockStd_H__
-#define __BlockStd_H__
+#ifndef __BLOCKSTD_H__
+#define __BLOCKSTD_H__
 /*
   This file is part of the CWIPI library.
 
@@ -150,4 +150,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif // __BlockStd_H__
+#endif // __BLOCKSTD_H__
