@@ -1,4 +1,4 @@
-# this file contains the options and libraries used for
+# This file contains the options and libraries used for
 # building and linking CWIPI code, and is intended to be
 # included in a user's Makefile from the installation
 
