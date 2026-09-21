@@ -29,18 +29,19 @@
 #include "cwp_priv.h"
 
 #include "grid_mesh.h"
-#include "pdm_poly_surf_gen.h"
+#include "pdm_array.h"
+#include "pdm_dcube_nodal_gen.h"
+#include "pdm_dmesh.h"
+#include "pdm_error.h"
+#include "pdm_ho_ordering.h"
+#include "pdm_logging.h"
+#include "pdm_mpi.h"
 #include "pdm_multipart.h"
 #include "pdm_part_connectivity_transform.h"
-#include "pdm_dmesh.h"
-#include "pdm_array.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-#include "pdm_mpi.h"
-#include "pdm_dcube_nodal_gen.h"
 #include "pdm_part_mesh_nodal.h"
+#include "pdm_poly_surf_gen.h"
+#include "pdm_timer.h"
 #include "pdm_vtk.h"
-#include "pdm_ho_ordering.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ?  (a) : (b))
@@ -833,14 +834,9 @@ main
   }
 
 
-  CWP_timer_t *timer = CWP_timer_create();
-  double t_start, t_end;
-  MPI_Barrier(comm);
+  PDM_timer_t *timer = PDM_timer_create(MPI_COMM_WORLD);
 
-  CWP_timer_init(timer);
-
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "locate", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(cpl_name);
@@ -857,28 +853,12 @@ main
     }
   }
 
-  MPI_Barrier(comm);
+  PDM_timer_end(timer, "locate", 1 /* Force synchro */);
 
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
+  PDM_timer_gather_dump(timer, NULL);
 
-  CWP_timer_free(timer);
+  PDM_timer_free(timer);
 
-  double dt = t_end - t_start;
-  double dt_min;
-  double dt_max;
-  MPI_Reduce(&dt, &dt_min, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
-  MPI_Reduce(&dt, &dt_max, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
-
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Interpolation weights computation OK\n");
-    printf("dt_min = %12.5es\n", dt_min);
-    printf("dt_max = %12.5es\n", dt_max);
-  }
-
-  MPI_Barrier(comm);
 
   if (version == CWP_VERSION_OLD) {
     int request;
