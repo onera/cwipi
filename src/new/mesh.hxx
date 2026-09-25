@@ -388,7 +388,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Get a face polyhedron block.
+     * \brief Get a face polyhedron block from the interface mesh.
      *
      * \param [in]  i_part           Partition identifier
      * \param [in]  block_id         Block identifier
@@ -541,19 +541,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Compute the element centers for a partition.
-     *
-     * \param [in]  i_part Partition identifier
-     *
-     */
-    void
-    elementCentersCompute
-    (
-      int i_part
-    );
-
-
-    /**
      * \brief Return part mesh nodal identifier.
      *
      * \return Part mesh nodal identifier
@@ -572,14 +559,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Update the block database.
-     *
-     */
-    void
-    blockDBUpdate();
-
-
-    /**
      * \brief Mesh deletion and free memory.
      *
      */
@@ -587,6 +566,14 @@ namespace cwipi {
     meshDel();
 
   private:
+
+    /**
+     * \brief Update the block database.
+     *
+     */
+    void
+    blockDBUpdate();
+
 
     int                           _n_part;                /*!< Number of partitions */
     int                           _n_blocks;              /*!< Number of blocks of the mesh */

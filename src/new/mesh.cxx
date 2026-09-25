@@ -288,28 +288,6 @@ namespace cwipi {
   }
 
 
-  void
-  Mesh::elementCentersCompute
-  (
-    int i_part
-  )
-  {
-    if (_elt_centers[i_part] == nullptr) {
-      _elt_centers[i_part] = (double*) malloc(sizeof(double) * 3 * nEltsGet(i_part));
-    }
-
-    for (int i_block = 0; i_block < _n_blocks; i_block++) {
-      double *elt_centers_block = _block_DB[i_block]->elementCentersGet(i_part);
-      int    *parent_num_block  = _block_DB[i_block]->parentNumGet     (i_part);
-      for (int i = 0; i < _block_DB[i_block]->nEltsGet(i_part); i++) {
-        for (int j = 0; j < 3; j++) {
-          _elt_centers[i_part][3*parent_num_block[i]+j] = elt_centers_block[3*i+j];
-        }
-      }
-    }
-  }
-
-
   double *
   Mesh::elementCentersGet
   (
@@ -317,7 +295,19 @@ namespace cwipi {
   )
   {
     if (_elt_centers[i_part] == nullptr || _displacement != CWP_DYNAMIC_MESH_STATIC) {
-      elementCentersCompute(i_part);
+      if (_elt_centers[i_part] == nullptr) {
+        _elt_centers[i_part] = (double*) malloc(sizeof(double) * 3 * nEltsGet(i_part));
+      }
+
+      for (int i_block = 0; i_block < _n_blocks; i_block++) {
+        double *elt_centers_block = _block_DB[i_block]->elementCentersGet(i_part);
+        int    *parent_num_block  = _block_DB[i_block]->parentNumGet     (i_part);
+        for (int i = 0; i < _block_DB[i_block]->nEltsGet(i_part); i++) {
+          for (int j = 0; j < 3; j++) {
+            _elt_centers[i_part][3*parent_num_block[i]+j] = elt_centers_block[3*i+j];
+          }
+        }
+      }
     }
     return _elt_centers[i_part];
   }
