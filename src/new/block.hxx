@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,18 +20,14 @@
 */
 
 #include "cwp_priv.h"
+
 CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wcast-function-type")
 #include "cwp.h"
 CWP_GCC_SUPPRESS_WARNING_POP
 
-
-#include "pdm_geom_elem.h"
 #include "pdm_gnum.h"
 
-#include <map>
 #include <vector>
-#include "pdm_error.h"
-
 
 /**
  * \cond
@@ -41,240 +37,355 @@ namespace cwipi {
 
   class Mesh;
 
+
   /**
    * \class Block block.hxx "block.hxx"
-   * \brief Mesh mother Block definition
+   * \brief Mesh mother Block definition.
    *
    *  This class defines the Block objects.
    *  Blocks contain elements, are a part of
    *  a Mesh and are defined on Mesh partitions.
    *
    */
-
   class Block {
 
-  public :
+  public:
 
     /**
-     *
-     * \brief Constructor
+     * \brief Default constructor.
      *
      */
-
     Block();
+
 
     /**
      * \brief Destructor.
      *
      */
-
     virtual ~Block();
 
+
     /**
+     * \brief Add a block to the mesh.
      *
-     * \brief Block addition
-     *
-     * Add a block to the mesh.
-     *
-     * \param [in] blockType              Type of the block
-     * \param [in] mesh                   The Mesh object owning the block
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
      */
+    virtual void
+    blockAdd
+    (
+      CWP_Block_t  block_type,
+      Mesh        *mesh
+    );
 
-    virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
 
     /**
-     *
      * \brief Return the CWIPI block type.
      *
-     * \return The CWIPI block type.
+     * \return Block type
      */
-
-    inline CWP_Block_t blockTypeGet();
+    inline CWP_Block_t
+    blockTypeGet() const;
 
 
     /**
+     * \brief Return true if the block is standard.
      *
-     * \brief Return the block identifier.
-     *
+     * \return True if the block is standard
      */
-
-    inline int blockIDGet();
-    inline int blockIDCWIPIGet();
-
-    inline void blockIDCWIPISet(int block_id);
-
-    inline void blockIDPDMSet(int block_id);
-
-
-    inline int blockIDPDMGet();
-    /**
-     *
-     * \brief return the number of element for each partition
-     *
-     *
-     */
-
-     inline std::vector <int>  NEltsGet();
-
-     inline int  NEltsGet(int i_part);
-
-    /**
-     *
-     * \brief return the element global numbering for each partition
-     *
-     *
-     */
-
-    CWP_g_num_t* GNumMeshGet(int i_part);
-
-
-    void GNumMeshSet(int i_part, CWP_g_num_t* gnum, PDM_ownership_t owner);
-
-    void GNumMeshFree(int i_part);
-
-
-    const double* eltCentersGet(int i_part);
-
-    /**
-     *
-     * \brief return the number of partition
-     *
-     *
-     */
-
-     inline int NPartGet();
+    inline bool
+    blockTypeStdIs() const;
 
 
     /**
+     * \brief Return the CWIPI block identifier.
      *
-     * \brief return true is the global numbering (inside the mesh) is defined
-     *
-     *
+     * \return Block identifier
      */
-
-    inline bool globNumDefined();
+    inline int
+    blockIdCwipiGet() const;
 
 
     /**
+     * \brief Set the CWIPI block identifier.
      *
-     * \brief Return true if the Block is already in Paradigm block database and false otherwise.
-     *
+     * \param [in]  block_id Block identifier
      */
-
-    inline bool inPDMDB();
+    inline void
+    blockIdCwipiSet
+    (
+      int block_id
+    );
 
 
     /**
+     * \brief Return the PDM block identifier.
      *
-     * \brief Set the _inPDMDB variable to true, and so indicate that the block is already in the PDM database.
-     *
+     * \return Block identifier
      */
+    inline int
+    blockIdPdmGet() const;
 
-    inline void SetinPDMDB();
-
-
-
-
-    void blockSetParentNum(int i_part, int *parent_num, PDM_ownership_t owner);
-    inline int *ParentNumGet(int i_part);
-    void ParentNumFree(int i_part);
-
-
-
-    virtual void geomFinalize() = 0;
-
-  private :
 
     /**
+     * \brief Set the PDM block identifier.
      *
-     * \brief Assigment operator
+     * \param [in]  block_id Block identifier
+     */
+    inline void
+    blockIdPdmSet
+    (
+      int block_id
+    );
+
+
+    /**
+     * \brief Return the number of elements for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of elements
+     */
+    inline int
+    nEltsGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the element global numbering for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Global numbering array
+     */
+    inline CWP_g_num_t*
+    globalNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Set the element global numbering.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  global_num Global numbering array
+     * \param [in]  owner      Ownership flag
+     *
+     * \note If owner is PDM_OWNERSHIP_KEEP, the Block takes ownership
+     *       and will free the memory when the block is destroyed.
+     */
+    void
+    globalNumSet
+    (
+      int              i_part,
+      CWP_g_num_t     *global_num,
+      PDM_ownership_t  owner
+    );
+
+
+    /**
+     * \brief Free the element global numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     */
+    void
+    globalNumFree
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Return the parent numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Parent numbering array
+     */
+    inline int*
+    parentNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Set the parent numbering.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  parent_num Parent numbering array
+     * \param [in]  owner      Ownership flag
+     *
+     * \note If owner is PDM_OWNERSHIP_KEEP, the Block takes ownership
+     *       and will free the memory when the block is destroyed.
+     */
+    void
+    parentNumSet
+    (
+      int              i_part,
+      int             *parent_num,
+      PDM_ownership_t  owner
+    );
+
+
+    /**
+     * \brief Free the parent numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     */
+    void
+    parentNumFree
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Return the element centers.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Element centers array
+     */
+    double*
+    elementCentersGet
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Finalize geometry processing.
+     *
+     *  Pure virtual method to be implemented by derived classes.
+     */
+    virtual void
+    geomFinalize() = 0;
+
+  private:
+
+    /**
+     * \brief Assignment operator.
      *
      */
+    Block& operator=
+    (
+      const Block &other
+    );
 
+
+    /**
+     * \brief Copy constructor.
+     *
+     */
     Block
-    &operator=
-    (const Block &other);
-
-    /**
-     *
-     * \brief Copy constructor
-     *
-     */
-
-    Block (const Block& other);
+    (
+      const Block& other
+    );
 
   protected:
 
-    CWP_Block_t                _blockType;              /*!< Block Type */
-    MPI_Comm                  *_localComm;              /*!< Communicator */
-    int                        _n_part;                 /*!< Number of partitions */
-    std::vector <int>          _n_elt;                  /*!< Number of elements for each partition */
-    std::vector <double*>      _cells_center;           /*!< Cell centers */
-    int                        _block_id_pdm;           /*!< Block identifier */
-    int                        _block_id_cwipi;         /*!< Block identifier */
-    std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
-    std::vector <int        *> _parent_num;
-    Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
-    PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */                
-    PDM_ownership_t            _owner_parent_num;       /*!< Owner of parent numbers */
+    CWP_Block_t                _block_type;       /*!< Block type */
+    int                        _n_part;           /*!< Number of partitions */
+    std::vector<int>           _n_elts;           /*!< Number of elements for each partition */
+    std::vector<double*>       _elt_centers;      /*!< Element centers */
+    int                        _block_id_pdm;     /*!< Block identifier in PDM */
+    int                        _block_id_cwipi;   /*!< Block identifier in CWIPI */
+    std::vector<CWP_g_num_t*>  _global_num;       /*!< Global numbering in the mesh */
+    std::vector<int*>          _parent_num;       /*!< Parent numbering */
+    Mesh                      *_mesh;             /*!< Pointer to the mesh object owning the block */
+    PDM_ownership_t            _global_num_owner; /*!< Owner of global numbers */
+    PDM_ownership_t            _parent_num_owner; /*!< Owner of parent numbers */
 
   };
 
-  std::vector <int>
-  Block::NEltsGet() {
-    return _n_elt;
+  inline CWP_Block_t
+  Block::blockTypeGet() const
+  {
+    return _block_type;
   }
 
 
-  int
-  Block::NEltsGet(int i_part) {
-    return _n_elt[i_part];
+  inline bool
+  Block::blockTypeStdIs() const
+  {
+    return (_block_type == CWP_BLOCK_NODE  ||
+            _block_type == CWP_BLOCK_EDGE2       ||
+            _block_type == CWP_BLOCK_FACE_TRIA3  ||
+            _block_type == CWP_BLOCK_FACE_QUAD4  ||
+            _block_type == CWP_BLOCK_CELL_TETRA4 ||
+            _block_type == CWP_BLOCK_CELL_HEXA8  ||
+            _block_type == CWP_BLOCK_CELL_PRISM6 ||
+            _block_type == CWP_BLOCK_CELL_PYRAM5);
   }
 
-  int
-  Block::NPartGet() {
-    return _n_part;
-  }
 
-  CWP_Block_t
-  Block::blockTypeGet(){
-    return _blockType;
-  }
-
-
-  int
-  Block::blockIDGet(){
-    return _block_id_pdm;
-  }
-
-  int
-  Block::blockIDCWIPIGet(){
+  inline int
+  Block::blockIdCwipiGet() const
+  {
     return _block_id_cwipi;
   }
 
-  void
-  Block::blockIDCWIPISet(int block_id){
+
+  inline void
+  Block::blockIdCwipiSet
+  (
+    int block_id
+  )
+  {
     _block_id_cwipi = block_id;
   }
 
-  void
-  Block::blockIDPDMSet(int block_id){
+
+  inline void
+  Block::blockIdPdmSet
+  (
+    int block_id
+  )
+  {
     _block_id_pdm = block_id;
   }
 
-  int 
-  Block::blockIDPDMGet(){
+
+  inline int
+  Block::blockIdPdmGet() const
+  {
     return _block_id_pdm;
   }
 
-  int *
-  Block::ParentNumGet(int i_part){
+
+  inline int
+  Block::nEltsGet
+  (
+    int i_part
+  ) const
+  {
+    return _n_elts[i_part];
+  }
+
+
+  inline CWP_g_num_t*
+  Block::globalNumGet
+  (
+    int i_part
+  ) const
+  {
+    return _global_num[i_part];
+  }
+
+
+  inline int*
+  Block::parentNumGet
+  (
+    int i_part
+  ) const
+  {
     return _parent_num[i_part];
   }
 
 }
-#endif //__BLOCK_H__
 
 /**
  * \endcond
  */
+
+#endif // __BLOCK_H__

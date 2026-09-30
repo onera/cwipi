@@ -1,9 +1,9 @@
-#ifndef __blockCP_H__
-#define __blockCP_H__
+#ifndef __BLOCKCP_H__
+#define __BLOCKCP_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,201 +20,376 @@
 */
 
 #include "block.hxx"
+
 #include "cwp.h"
-#include <map>
+
 #include <vector>
+
+/**
+ * \cond
+ */
 
 namespace cwipi {
 
-  /** 
+  /**
    * \class BlockCP blockCP.hxx "blockCP.hxx"
-   * \brief Polyhedron 3D Block Mesh definition
+   * \brief Polyhedron 3D Block Mesh definition.
    *
    *  This class defines the polyhedron 3D Block objects.
    *  It inherits from the Block class through a Factory.
-   * 
+   *
    */
-
   class BlockCP :
     public Block {
-    
-    public:
-        
-     /**
-      * \brief Destructor.
-      *
-      */
-    
-      BlockCP();
+
+  public:
+
+    /**
+     * \brief Default constructor.
+     *
+     */
+    BlockCP();
 
 
-     /**
-      * \brief Destructor.
-      *
-      */
-    
-      virtual ~BlockCP();
-    
-     /**
-       *
-       * \brief Block addition
-       *
-       * Add a block to the mesh.
-       *
-       * \param [in] blockType              Type of the block
-       * \param [in] mesh                   The Mesh object owning the block
-       */
-
-      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
-
-       /**
-       * \brief Set a CWIPI block in a partition
-       * 
-       * \param [in]  i_part     Partition identifier
-       * \param [in]  n_elts     Number of elements of the block in the partition
-       * \param [in]  n_faces    Number of faces of the block in the partition
-       * \param [in]  connec_faces_idx Vertices to faces connectivity index
-       * \param [in]  connec_faces     Vertices to faces connectivity
-       * \param [in]  connec_cells_idx Faces to cells connectivity index
-       * \param [in]  connec_cells     Faces to cells connectivity
-       * \param [in]  global_num Mesh  Global numbering of the block
-       *
-       */ 
-             
-       virtual void blockSet(int i_part,int n_elts,int n_faces,
-                             int* connec_faces_idx, 
-                             int* connec_faces,
-                             int* connec_cells_idx,
-                             int* connec_cells,
-                             CWP_g_num_t* global_num);
+    /**
+     * \brief Destructor.
+     *
+     */
+    virtual ~BlockCP();
 
 
-       /**
-       * \brief Get a CWIPI block in a partition
-       * 
-       * \param [in]  i_part     Partition identifier
-       * \param [out]  n_elts     Number of elements of the block in the partition
-       * \param [out]  n_faces    Number of faces of the block in the partition
-       * \param [out]  connec_faces_idx Vertices to faces connectivity index
-       * \param [out]  connec_faces     Vertices to faces connectivity
-       * \param [out]  connec_cells_idx Faces to cells connectivity index
-       * \param [out]  connec_cells     Faces to cells connectivity
-       * \param [out]  global_num Mesh  Global numbering of the block
-       *
-       */ 
-             
-       virtual void blockGet(int         i_part,
-                             int         *n_elts,
-                             int         *n_faces,
-                             int         **connec_faces_idx, 
-                             int         **connec_faces,
-                             int         **connec_cells_idx,
-                             int         **connec_cells,
-                             CWP_g_num_t **global_num);
+    /**
+     * \brief Add a block to the mesh.
+     *
+     * \param [in]  block_type Type of the block
+     * \param [in]  mesh       Mesh object owning the block
+     */
+    virtual void
+    blockAdd
+    (
+      CWP_Block_t  block_type,
+      Mesh        *mesh
+    );
 
 
-       /**
-        *
-        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
-        * for each partition.
-        * 
-        *
-        */
-     
-        inline virtual std::vector<int*>  ConnecGet();
-
-       /**
-        *
-        * \brief return the element connectivity index (Face_Poly_2D CWP_Block_t) or cells-faces connectivity index (Cells_POLY_3D)
-        * for each partition.
-        * 
-        *
-        */
-     
-        inline virtual std::vector<int*>  ConnecIDXGet();
-
-
-       /**
-        *
-        * \brief return the element faces connectivity (Cells_POLY_3D)
-        * for each partition.
-        * 
-        *
-        */
-     
-        inline virtual std::vector<int*>  ConnecFacesGet();
+    /**
+     * \brief Set a CWIPI block in a partition.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [in]  n_elts           Number of elements of the block
+     * \param [in]  n_faces          Number of faces of the block
+     * \param [in]  connec_faces_idx Face to vertex connectivity index
+     * \param [in]  connec_faces     Face to vertex connectivity
+     * \param [in]  connec_cells_idx Cell to face connectivity index
+     * \param [in]  connec_cells     Cell to face connectivity
+     * \param [in]  global_num       Global numbering of the block
+     */
+    void
+    blockSet
+    (
+      int          i_part,
+      int          n_elts,
+      int          n_faces,
+      int         *connec_faces_idx,
+      int         *connec_faces,
+      int         *connec_cells_idx,
+      int         *connec_cells,
+      CWP_g_num_t *global_num
+    );
 
 
-       /**
-        *
-        * \brief return the element faces connectivity index (Cells_POLY_3D)
-        * for each partition.
-        * 
-        *
-        */
-     
-        inline virtual std::vector<int*>  ConnecFacesIDXGet();
-
-       /**
-        *
-        * \brief return the number of faces for each partition (Cells_POLY_3D)
-        * 
-        *
-        */
-     
-        inline virtual std::vector<int >  NFacesGet();
-
-        inline virtual std::vector<CWP_g_num_t *>  FacesGNumGet();
-
-        inline virtual void FacesGNumSet(std::vector<CWP_g_num_t *> face_ln_to_gn);
-
-
-        void geomFinalize();
-
-        void FacesGNumFree(int i_part);
-
-    private:
-      std::vector<int >          _n_faces;             /*!< Number of faces for each partition */
-      std::vector<int*>          _connec_faces_idx;    /*!< Faces connectivity Index for each partition */
-      std::vector<int*>          _connec_faces;        /*!< Faces connectivity for each partition */
-      std::vector<int*>          _connec_cells_idx;    /*!< Cells onnectivity Index for each partition */
-      std::vector<int*>          _connec_cells;        /*!< Cells connectivity for each partition */    
-      std::vector<CWP_g_num_t*>  _face_ln_to_gn;       /*!< Face global ids */
-
-  }; //BlockCP Class
+    /**
+     * \brief Get a CWIPI block in a partition.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [out] n_elts           Number of elements of the block
+     * \param [out] n_faces          Number of faces of the block
+     * \param [out] connec_faces_idx Face to vertex connectivity index
+     * \param [out] connec_faces     Face to vertex connectivity
+     * \param [out] connec_cells_idx Cell to face connectivity index
+     * \param [out] connec_cells     Cell to face connectivity
+     * \param [out] global_num       Global numbering of the block
+     */
+    void
+    blockGet
+    (
+      int           i_part,
+      int          *n_elts,
+      int          *n_faces,
+      int         **connec_faces_idx,
+      int         **connec_faces,
+      int         **connec_cells_idx,
+      int         **connec_cells,
+      CWP_g_num_t **global_num
+    );
 
 
-  std::vector<int*>  BlockCP::ConnecGet() {
-    return _connec_cells;
+    /**
+     * \brief Return the number of faces for a partition (Cells_POLY_3D).
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of faces for the partition
+     */
+    inline int
+    nFacesGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the number of faces for all partitions.
+     *
+     * \return Vector of face counts for each partition
+     */
+    inline const std::vector<int>
+    nFacesGet();
+
+
+    /**
+     * \brief Return the cell to face connectivity for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Connectivity array for the partition
+     */
+    inline int*
+    cellConnecGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the cell to face connectivity index for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Connectivity index array for the partition
+     */
+    inline int*
+    cellConnecIdxGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the face to vertex connectivity for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces connectivity array for the partition
+     */
+    inline int*
+    faceConnecGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the face to vertex connectivity for all partitions.
+     *
+     * \return Vector of connectivity arrays for each partition
+     */
+    inline const std::vector<int*>
+    faceConnecGet();
+
+
+    /**
+     * \brief Return the face to vertex connectivity index for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces connectivity index array for the partition
+     */
+    inline int*
+    faceConnecIdxGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the face to vertex connectivity index for all partitions.
+     *
+     * \return Vector of connectivity index arrays for each partition
+     */
+    inline const std::vector<int*>
+    faceConnecIdxGet();
+
+
+    /**
+     * \brief Return the faces global numbering for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces global numbering array for the partition
+     */
+    inline CWP_g_num_t*
+    faceGlobalNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Set the faces global numbering for a partition.
+     *
+     * \param [in]  i_part           Partition identifier
+     * \param [in]  global_num_faces Faces global numbering array
+     */
+    inline void
+    faceGlobalNumSet
+    (
+      int          i_part,
+      CWP_g_num_t *global_num_faces
+    );
+
+
+    /**
+     * \brief Set the faces global numbering for all partitions.
+     *
+     * \param [in]  global_num_faces Vector of global numbering arrays for each partition
+     */
+    inline void
+    faceGlobalNumSet
+    (
+      const std::vector<CWP_g_num_t*> global_num_faces
+    );
+
+
+    /**
+     * \brief Free the faces global numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     */
+    void
+    faceGlobalNumFree
+    (
+      int i_part
+    );
+
+
+    /**
+     * \brief Finalize geometry processing.
+     *
+     */
+    void
+    geomFinalize();
+
+  private:
+
+    std::vector<int>          _n_faces;          /*!< Number of faces for each partition */
+    std::vector<int*>         _connec_faces_idx; /*!< Faces connectivity index for each partition */
+    std::vector<int*>         _connec_faces;     /*!< Faces connectivity for each partition */
+    std::vector<int*>         _connec_cells_idx; /*!< Cells connectivity index for each partition */
+    std::vector<int*>         _connec_cells;     /*!< Cells connectivity for each partition */
+    std::vector<CWP_g_num_t*> _global_num_faces; /*!< Faces global numbering */
+
+  };
+
+  inline int*
+  BlockCP::cellConnecGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_cells[i_part];
   }
 
-  std::vector<int*>  BlockCP::ConnecIDXGet() {
-  
-    return _connec_cells_idx;
+
+  inline int*
+  BlockCP::cellConnecIdxGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_cells_idx[i_part];
   }
 
-  std::vector<int*>  BlockCP::ConnecFacesGet() {
+
+  inline int*
+  BlockCP::faceConnecGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_faces[i_part];
+  }
+
+
+  inline const std::vector<int*>
+  BlockCP::faceConnecGet()
+  {
     return _connec_faces;
   }
 
-  std::vector<int*>  BlockCP::ConnecFacesIDXGet() {
+
+  inline int*
+  BlockCP::faceConnecIdxGet
+  (
+    int i_part
+  ) const
+  {
+    return _connec_faces_idx[i_part];
+  }
+
+
+  inline const std::vector<int*>
+  BlockCP::faceConnecIdxGet()
+  {
     return _connec_faces_idx;
   }
 
-  std::vector<int >  BlockCP::NFacesGet() {
+
+  inline int
+  BlockCP::nFacesGet
+  (
+    int i_part
+  ) const
+  {
+    return _n_faces[i_part];
+  }
+
+
+  inline const std::vector<int>
+  BlockCP::nFacesGet()
+  {
     return _n_faces;
   }
 
-  std::vector<CWP_g_num_t *>  BlockCP::FacesGNumGet() {
-    return _face_ln_to_gn;
+
+  inline CWP_g_num_t*
+  BlockCP::faceGlobalNumGet
+  (
+    int i_part
+  ) const
+  {
+    return _global_num_faces[i_part];
   }
 
-  void BlockCP::FacesGNumSet(std::vector<CWP_g_num_t *> face_ln_to_gn) {
-    _face_ln_to_gn = face_ln_to_gn;
+
+  inline void
+  BlockCP::faceGlobalNumSet
+  (
+    int          i_part,
+    CWP_g_num_t *global_num_faces
+  )
+  {
+    _global_num_faces[i_part] = global_num_faces;
   }
 
 
-} //namespace cwipi
+  inline void
+  BlockCP::faceGlobalNumSet
+  (
+    const std::vector<CWP_g_num_t*> global_num_faces
+  )
+  {
+    _global_num_faces = global_num_faces;
+  }
 
-#endif //blockCP
+}
 
+/**
+ * \endcond
+ */
+
+#endif // __BLOCKCP_H__

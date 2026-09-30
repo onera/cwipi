@@ -1288,7 +1288,7 @@ namespace cwipi {
         // Geometry
         cpl._id_geom_writer = PDM_writer_geom_create_from_mesh_nodal(cpl._writer,
                                                                      "geom",
-                                                                     cpl._mesh.getPdmNodalIndex());
+                                                                     cpl._mesh.pdmPartMeshNodalGet());
 
         if (cpl._userTargetN != nullptr) {
 
@@ -1396,28 +1396,28 @@ namespace cwipi {
         } // end if there is a user target
 
         // Variables to show user targets partitionning
-        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
-        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+        std::vector <double *> partitioning_field_data(cpl._mesh.nPartGet());
+        std::vector <double *> ranking_field_data(cpl._mesh.nPartGet());
         std::vector <double *> user_tgt_partitioning_field_data(cpl._nPart);
         std::vector <double *> user_tgt_ranking_field_data(cpl._nPart);
 
-        assert(cpl._mesh.getNPart() == cpl._nPart);
+        assert(cpl._mesh.nPartGet() == cpl._nPart);
 
         int i_rank;
         MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
 
-        int n_part = cpl._mesh.getNPart();
+        int n_part = cpl._mesh.nPartGet();
         int g_n_part = 0;
 
         MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
 
         g_n_part += -n_part;
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
-          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
-          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
 
-          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+          for(int i_elt = 0; i_elt < cpl._mesh.nEltsGet(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
             ranking_field_data[i_part][i_elt] = (double) i_rank;
           }
@@ -1454,7 +1454,7 @@ namespace cwipi {
           PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
         } // end if there is a user target
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
           free (partitioning_field_data[i_part]);
           free (ranking_field_data     [i_part]);
           partitioning_field_data[i_part] = nullptr;
@@ -1477,7 +1477,7 @@ namespace cwipi {
 
           PDM_writer_geom_set_from_mesh_nodal (cpl._writer,
                                                cpl._id_geom_writer,
-                                               cpl._mesh.getPdmNodalIndex());
+                                               cpl._mesh.pdmPartMeshNodalGet());
 
           if (cpl._userTargetN != nullptr) {
 
@@ -1530,28 +1530,28 @@ namespace cwipi {
         } // end if there is a user target
 
         // Variables to show user targets partitionning
-        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
-        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+        std::vector <double *> partitioning_field_data(cpl._mesh.nPartGet());
+        std::vector <double *> ranking_field_data(cpl._mesh.nPartGet());
         std::vector <double *> user_tgt_partitioning_field_data(cpl._nPart);
         std::vector <double *> user_tgt_ranking_field_data(cpl._nPart);
 
-        assert(cpl._mesh.getNPart() == cpl._nPart);
+        assert(cpl._mesh.nPartGet() == cpl._nPart);
 
         int i_rank;
         MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
 
-        int n_part = cpl._mesh.getNPart();
+        int n_part = cpl._mesh.nPartGet();
         int g_n_part = 0;
 
         MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
 
         g_n_part += -n_part;
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
-          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
-          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
 
-          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+          for(int i_elt = 0; i_elt < cpl._mesh.nEltsGet(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
             ranking_field_data     [i_part][i_elt] = (double) i_rank;
           }
@@ -1588,7 +1588,7 @@ namespace cwipi {
           PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
         } // end if there is a user target
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
           free (partitioning_field_data[i_part]);
           free (ranking_field_data     [i_part]);
           partitioning_field_data[i_part] = nullptr;
@@ -3425,7 +3425,7 @@ namespace cwipi {
   CWP_g_num_t*
   Coupling::globalNumGet(int id_block,int i_part)
   {
-    return _mesh.globalNumGet(id_block,i_part);
+    return _mesh.blockGlobalNumGet(id_block,i_part);
   }
 
   // int

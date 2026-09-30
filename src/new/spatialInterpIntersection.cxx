@@ -78,20 +78,20 @@ namespace cwipi {
 
       //
       // Map nodal mesh
-      _pdm_CplNodal = _mesh->getPdmNodalIndex();
+      _pdm_CplNodal = _mesh->pdmPartMeshNodalGet();
 
       //
       // Data for PDM_part_to_part_t
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-            _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet (i_part);
+            _src_n_gnum[i_part] = _mesh->nEltsGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
             PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
-            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
-            _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
+            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet (i_part);
+            _src_n_gnum[i_part] = _mesh->nVtxGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
             PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
@@ -103,13 +103,13 @@ namespace cwipi {
       else {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-            _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+            _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet (i_part);
+            _tgt_n_gnum[i_part] = _mesh->nEltsGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
             PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
-            _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
-            _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
+            _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet (i_part);
+            _tgt_n_gnum[i_part] = _mesh->nVtxGet (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
             PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
@@ -344,7 +344,7 @@ namespace cwipi {
           PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
         }
         else {
-          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->getPdmNodalIndex());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->pdmPartMeshNodalGet());
         }
 
         // target mesh
@@ -352,7 +352,7 @@ namespace cwipi {
           PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
         }
         else {
-          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->getPdmNodalIndex());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->pdmPartMeshNodalGet());
         }
       }
     }
@@ -720,10 +720,10 @@ namespace cwipi {
 
         int n_tgt = 0;
         if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
-          n_tgt = _mesh->getPartNElts(i_part);
+          n_tgt = _mesh->nEltsGet(i_part);
         }
         else if (referenceFieldType == CWP_DOF_LOCATION_NODE) {
-          n_tgt = _mesh->getPartNVertex(i_part);
+          n_tgt = _mesh->nVtxGet(i_part);
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "user tgt not supported yet");

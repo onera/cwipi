@@ -52,7 +52,7 @@ Field::Field
    _python_object(nullptr)
 {
   _mesh = cpl->meshGet();
-  _n_part = _mesh->getNPart();
+  _n_part = _mesh->nPartGet();
   // _data_tgt.resize(_n_part,NULL);
   // _data_src.resize(_n_part,NULL);
   _data_tgt = (void **) malloc(sizeof(void *) * _n_part);
@@ -91,7 +91,7 @@ Field::Field
     // Set field location type
     PDM_writer_var_loc_t pdm_field_type = PDM_WRITER_VAR_ELEMENTS;
 
-    if     ( _fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) { 
+    if     ( _fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
       pdm_field_type = PDM_WRITER_VAR_ELEMENTS ;
     }
     else if ( _fieldLocation == CWP_DOF_LOCATION_NODE        ) {
@@ -218,8 +218,8 @@ void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
  *
  */
 
-void 
-Field::write 
+void
+Field::write
 (
  CWP_Field_exch_t exch_type
 )
@@ -265,10 +265,10 @@ Field::write
     int n_dof = 0;
 
     if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-      n_dof = _mesh->getPartNElts(i_part);
+      n_dof = _mesh->nEltsGet(i_part);
     }
     else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
-      n_dof = _mesh->getPartNVertex(i_part);
+      n_dof = _mesh->nVtxGet(i_part);
     }
     else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
       n_dof = _cpl->userTargetNGet(i_part);
@@ -287,10 +287,10 @@ Field::write
     int n_dof = 0;
 
     if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-      n_dof = _mesh->getPartNElts(i_part);
+      n_dof = _mesh->nEltsGet(i_part);
     }
     else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
-      n_dof = _mesh->getPartNVertex(i_part);
+      n_dof = _mesh->nVtxGet(i_part);
     }
     else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
       n_dof = _cpl->userTargetNGet(i_part);
@@ -425,10 +425,10 @@ Field::nDOFGet
   int n_dof = 0;
 
   if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-    n_dof = _mesh->getPartNElts(i_part);
+    n_dof = _mesh->nEltsGet(i_part);
   }
   else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
-    n_dof = _mesh->getPartNVertex(i_part);
+    n_dof = _mesh->nVtxGet(i_part);
   }
   else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
     n_dof = _cpl->userTargetNGet(i_part);
