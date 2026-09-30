@@ -44,4 +44,3 @@
 #define FVMC_HAVE_MPI_ONE_SIDED @MPI_C_FOUND@
 
 #endif /* __FVMC_CONFIG_H__ */
-
