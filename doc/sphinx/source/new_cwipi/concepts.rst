@@ -92,4 +92,7 @@ There are two ways to store field components:
 Control Parameters
 ------------------
 
-*Not documented yet*
+As in version 0.x, basic control parameters (``CWP_INTEGER``, ``CWP_DOUBLE``, ``CWP_CHAR``) can be exchanged between codes;
+reduction operations among ``CWP_OP_MIN``, ``CWP_OP_MAX`` and ``CWP_OP_SUM`` are also possible over multiple codes. Control
+parameters are handled through **One-Sided MPI communications**: access should be locked/unlocked by the user before/after
+modification.
