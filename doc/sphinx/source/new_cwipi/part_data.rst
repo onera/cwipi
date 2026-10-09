@@ -3,7 +3,7 @@
 Exchange of Partitioned Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A *PartitionedData* object is to be used to send/recv (non-blocking) interlaced strided arrays of any
+A *PartData* object is to be used to send/recv (non-blocking) interlaced strided arrays of any
 type through a Coupling object. Contrary to the GlobalData object, this object accounts for the
 global numbering of entities to exchange data between entities having the same global number. Note that
 when an entity is defined on multiple ranks (eg vertices) only the value on the lowest MPI rank is kept.
