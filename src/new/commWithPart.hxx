@@ -33,12 +33,13 @@ namespace cwipi {
    * \class CommWithPart commWithPart.hxx "commWithPart.hxx"
    * \brief Communication with partitioned support.
    *
-   * This class manages communication when the support is partitioned.
+   * This class manages communication when the support is partitioned
    *
    */
 
   class CommWithPart :
-    public Communication {
+    public Communication
+  {
 
   public:
 
@@ -53,7 +54,7 @@ namespace cwipi {
      * \brief Destructor.
      *
      */
-    virtual ~CommWithPart();
+    virtual ~CommWithPart() override;
 
 
     /**
@@ -62,7 +63,7 @@ namespace cwipi {
      * \return Communication type
      */
     inline CWP_Comm_t
-    commTypeGet();
+    commTypeGet() override;
 
   private:
 
@@ -72,10 +73,10 @@ namespace cwipi {
      * \param [in]  cplCodeCommType Coupling communicator type
      */
     void
-    _cplCommCreate
+    cplCommCreate
     (
       CWP_Comm_t cplCodeCommType
-    );
+    ) override;
 
     CWP_Comm_t _commType; /*!< Communication type */
 

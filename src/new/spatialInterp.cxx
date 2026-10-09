@@ -133,9 +133,6 @@ namespace cwipi {
     _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
     _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();
 
-    _rootRankCplComm        = _cpl->communicationGet()->cplCommLocCodeRootRanksGet();
-    _cplRootRankCplComm     = _cpl->communicationGet()->cplCommCplCodeRootRanksGet();
-
     _exchDirection          = exchDirection;
 
     //_connectableRanks_cpl = _cpl->communicationGet()->cplCommCplRanksGet();

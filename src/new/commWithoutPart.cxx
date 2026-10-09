@@ -36,8 +36,8 @@ using namespace std;
 namespace cwipi {
 
   CommWithoutPart::CommWithoutPart()
-    : Communication::Communication(),
-      _commType(CWP_COMM_PAR_WITHOUT_PART)
+  : Communication::Communication(),
+    _commType(CWP_COMM_PAR_WITHOUT_PART)
   {
   }
 
@@ -48,87 +48,76 @@ namespace cwipi {
 
 
   void
-  CommWithoutPart::_cplCommCreate
+  CommWithoutPart::cplCommCreate
   (
     CWP_Comm_t cplCodeCommType
   )
   {
     MPI_Group globalGroup;
-    MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+    MPI_Comm_group(_local_code_properties->globalCommGet(), &globalGroup);
 
     MPI_Group unionGroup;
-    MPI_Comm_group(_unionComm, &unionGroup);
-
-    vector<int> cplRanks = *(_cplCodeProperties->connectableRanksGet());
-    vector<int> locRanks = *(_localCodeProperties->connectableRanksGet());
-
-    _unionCommCplRanks = new vector<int>(cplRanks.size());
-    _unionCommLocRanks = new vector<int>(locRanks.size());
-
-    // Translate cplRanks from globalGroup into _unionCommCplRanks in unionGroup
-    MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
-                              unionGroup, &((*_unionCommCplRanks)[0]));
-
-    // Translate locRanks from globalGroup into _unionCommLocRanks in unionGroup
-    MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
-                              unionGroup, &((*_unionCommLocRanks)[0]));
-
-    _cplCommCplRanks = new vector<int>(*_unionCommCplRanks);
-    _cplCommLocRanks = new vector<int>(*_unionCommLocRanks);
+    MPI_Comm_group(_union_comm, &unionGroup);
 
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
 
-      const int localRootRank = _localCodeProperties->rootRankGet();
-      const int cplRootRank   = _cplCodeProperties->rootRankGet();
+      const int localRootRank = _local_code_properties->rootRankGet();
+      const int cplRootRank   = _cpl_code_properties->rootRankGet();
 
-      int cplRanks2[2];
+      int cplRanks[2];
       int gap1 = 0;
       int gap2 = 1;
-      if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+      if (_local_code_properties->idGet() < _cpl_code_properties->idGet()) {
         gap1 = 1;
         gap2 = 0;
       }
 
-      // Translate localRootRank from globalGroup into cplRanks2[gap1] in unionGroup
+      // Translate localRootRank from globalGroup into cplRanks[gap1] in unionGroup
       MPI_Group_translate_ranks(globalGroup, 1, &localRootRank,
-                                unionGroup, cplRanks2 + gap1);
+                                unionGroup, cplRanks + gap1);
 
-      // Translate cplRootRank from globalGroup into cplRanks2[gap2] in unionGroup
+      // Translate cplRootRank from globalGroup into cplRanks[gap2] in unionGroup
       MPI_Group_translate_ranks(globalGroup, 1, &cplRootRank,
-                                unionGroup, cplRanks2 + gap2);
+                                unionGroup, cplRanks + gap2);
 
       // Include root ranks of the local and coupled code to obtain the cplComm communicator
       MPI_Group cplGroup;
-      if (cplRanks2[0] == cplRanks2[1]) {
-        MPI_Group_incl(unionGroup, 1, &cplRanks2[0], &cplGroup);
+      if (cplRanks[0] == cplRanks[1]) {
+        MPI_Group_incl(unionGroup, 1, &cplRanks[0], &cplGroup);
       }
       else {
-        MPI_Group_incl(unionGroup, 2, cplRanks2, &cplGroup);
+        MPI_Group_incl(unionGroup, 2, cplRanks, &cplGroup);
       }
-      MPI_Comm_create(_unionComm, cplGroup, &_cplComm);
+      MPI_Comm_create(_union_comm, cplGroup, &_cpl_comm);
       MPI_Group_free(&cplGroup);
 
     }
     else {
 
+      vector<int> locRanks = *(_local_code_properties->connectableRanksGet());
+
+      // Translate locRanks from globalGroup into unionCommLocRanks in unionGroup
+      vector<int> unionCommLocRanks(locRanks.size());
+      MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
+                                unionGroup, &(unionCommLocRanks[0]));
+
       // Exclude the connectable ranks (unionComm) of the local code to obtain the cplComm communicator
       // containing only the root rank of the local code
-
-      const int locRootRankInGlobalComm = _localCodeProperties->rootRankGet();
+      const int locRootRankInGlobalComm = _local_code_properties->rootRankGet();
       int locRootRankInUnionComm;
       MPI_Group_translate_ranks(globalGroup, 1, &locRootRankInGlobalComm,
                                 unionGroup, &locRootRankInUnionComm);
       int *excludeRanks = static_cast<int *>(malloc(sizeof(int) * (locRanks.size() - 1)));
       int n_exclude = 0;
       for (size_t i = 0; i < locRanks.size(); i++) {
-        if ((*_unionCommLocRanks)[i] != locRootRankInUnionComm) {
-          excludeRanks[n_exclude++] = (*_unionCommLocRanks)[i];
+        if (unionCommLocRanks[i] != locRootRankInUnionComm) {
+          excludeRanks[n_exclude++] = unionCommLocRanks[i];
         }
       }
 
       MPI_Group cplGroup;
       MPI_Group_excl(unionGroup, n_exclude, excludeRanks, &cplGroup);
-      MPI_Comm_create(_unionComm, cplGroup, &_cplComm);
+      MPI_Comm_create(_union_comm, cplGroup, &_cpl_comm);
       MPI_Group_free(&cplGroup);
       free(excludeRanks);
 

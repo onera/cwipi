@@ -95,9 +95,9 @@ namespace cwipi {
 
     virtual ~SpatialInterp();
 
-    virtual void 
+    virtual void
     init (
-      Coupling           *coupling, 
+      Coupling           *coupling,
       CWP_Dof_location_t localCodeDofLOcation,
       CWP_Dof_location_t cplCodeDofLOcation,
       SpatialInterpExchDirection exchDirection );
@@ -105,7 +105,7 @@ namespace cwipi {
     virtual void clear();
 
     virtual void weightsCompute()  = 0; // A changer de nom
-    
+
     virtual void interpolate (Field* referenceField, double **buffer) = 0;
 
     virtual void issend(Field* referenceField);
@@ -195,20 +195,20 @@ namespace cwipi {
     Mesh                       *_mesh;                  /*!< Interface Mesh */
 
     // Visu                       *_visu;                  /*!< Visualization object */
-    CodeProperties             *_localCodeProperties;   
-    CodeProperties             *_coupledCodeProperties; 
+    CodeProperties             *_localCodeProperties;
+    CodeProperties             *_coupledCodeProperties;
 
     CWP_Dof_location_t        _localCodeDofLocation;     /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
     CWP_Dof_location_t        _coupledCodeDofLocation;   /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
     SpatialInterpExchDirection  _exchDirection;  /*!< Spatial interpolation (for both codes are local case) */
-   
+
     PDM_part_to_part_t *_ptsp;  /*!< Exchange protocol between src and target */
     int* _src_n_gnum;                      /*!< Number of source element by part (used by _ptsp) */
     int* _tgt_n_gnum;                      /*!< Number of target element by part (used by _ptsp) */
     const PDM_g_num_t** _src_gnum;                /*!< Global number of source element (used by _ptsp) */
     const PDM_g_num_t** _tgt_gnum;                /*!< Global number of target element (used by _ptsp) */
-    
+
     CWP_SpatialInterp_time_t     _interpolation_time; /*!< Interpolation time : before or after exchange field */
 
     int  _nPart; /*!< Mesh partition number                                                    */
@@ -216,9 +216,6 @@ namespace cwipi {
 
     int _rootRankUnionComm   ;
     int _cplRootRankUnionComm;
-
-    int _rootRankCplComm   ;
-    int _cplRootRankCplComm;
 
     MPI_Comm _cplComm;
     PDM_MPI_Comm _pdmCplComm;
@@ -246,7 +243,7 @@ namespace cwipi {
     std::vector <int>       _recv_request;  /*!< Recv request (size = n_field) */
 
 
-  // A conserver ou supprimer 
+  // A conserver ou supprimer
   protected:
     /* code Properties */
     int _id;
