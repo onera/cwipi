@@ -4,7 +4,7 @@ A specific spatial interpolation method can be assigned to each Coupling object.
 Each method has a set of properties that can be adjusted (with ``CWP_Spatial_interp_property_set`` in C).
 Note that some methods do not support all types of dof location.
 Finally, each method relies on some geometric mapping data to perform spatial interpolation.
-This data is computed by CWIPI and can be accessed to design :ref:`customized interpolation functions <User-defined spatial interpolation>`.
+This data is computed by CWIPI and can be accessed to design :ref:`customized interpolation functions <User-defined spatial interpolation methods>`.
 
 .. warning::
   Some spatial interpolation methods leave some target dofs unmapped if the interface meshes overlap partially.

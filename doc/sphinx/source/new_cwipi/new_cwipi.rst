@@ -20,8 +20,8 @@ Spatial interpolation methods
 Advanced features
 =================
 
-User-defined spatial interpolation
-----------------------------------
+User-defined spatial interpolation methods
+------------------------------------------
 
 Users can perform customized spatial interpolation based on the geometric mapping computed by CWIPI.
 To do so, one needs to provide CWIPI with a pointer to a user-written interpolation function (via ``CWP_Field_interp_function_set`` in C).
