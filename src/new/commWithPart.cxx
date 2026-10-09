@@ -98,6 +98,7 @@ namespace cwipi {
       MPI_Comm_create(_unionComm, cplGroup, &_cplComm);
       MPI_Group_free(&cplGroup);
       free(excludeRanks);
+
     }
     else {
       _cplComm = _unionComm;
@@ -105,6 +106,7 @@ namespace cwipi {
 
     MPI_Group_free(&unionGroup);
     MPI_Group_free(&globalGroup);
+
   }
 
 }
