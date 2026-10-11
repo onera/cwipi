@@ -1978,9 +1978,6 @@ namespace cwipi {
 
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
-        int codeID    = localCodePropertiesGet()->idGet();
-        int cplCodeID = coupledCodePropertiesGet()->idGet();
-
         if ( _is_spatial_interp_init == 0) {
 
           std::string localFieldsName="";
@@ -2337,100 +2334,50 @@ namespace cwipi {
                                                                      (void *) cpl_sir_loc_r.data());
         }
 
-        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
-        if (codeID < cplCodeID) {
-
-          int i = 0;
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
-            if (clear_data) {
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _cpl_sis_loc_r[2*i+1],
-                                       _cpl_sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-            }
-            sis_it->second->weightsCompute();
-            cpl_spatial_interp->weightsCompute();
-            sis_it++;
-            i++;
+        int i = 0;
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
+          if (clear_data) {
+            sis_it->second->clear();
+            sis_it->second->init(this,
+                                 sis_it->first.first,
+                                 sis_it->first.second,
+                                 SPATIAL_INTERP_EXCH_SEND);
+            cpl_spatial_interp->clear();
+            cpl_spatial_interp->init(&cpl_cpl,
+                                      _cpl_sis_loc_r[2*i+1],
+                                      _cpl_sis_loc_r[2*i  ],
+                                      SPATIAL_INTERP_EXCH_RECV);
           }
-
-          i = 0;
-          sis_it = cpl_cpl._spatial_interp_send.begin();
-          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
-            if (clear_data) {
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _sis_loc_r[2*i+1],
-                                       _sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-            }
-            cpl_spatial_interp->weightsCompute();
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
-          }
+          sis_it->second->weightsCompute();
+          cpl_spatial_interp->weightsCompute();
+          sis_it++;
+          i++;
         }
 
-        else {
-
-          int i = 0;
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = cpl_cpl._spatial_interp_send.begin();
-          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
-            if (clear_data) {
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _sis_loc_r[2*i+1],
-                                       _sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-            }
-            cpl_spatial_interp->weightsCompute();
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
+        i = 0;
+        sis_it = cpl_cpl._spatial_interp_send.begin();
+        while(sis_it != cpl_cpl._spatial_interp_send.end()) {
+          SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
+          if (clear_data) {
+            cpl_spatial_interp->clear();
+            cpl_spatial_interp->init(this,
+                                     _sis_loc_r[2*i+1],
+                                     _sis_loc_r[2*i  ],
+                                     SPATIAL_INTERP_EXCH_RECV);
+            sis_it->second->clear();
+            sis_it->second->init(&cpl_cpl,
+                                 sis_it->first.first,
+                                 sis_it->first.second,
+                                 SPATIAL_INTERP_EXCH_SEND);
           }
-
-          i = 0;
-          sis_it = _spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
-            if (clear_data) {
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _cpl_sis_loc_r[2*i+1],
-                                       _cpl_sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-            }
-            sis_it->second->weightsCompute();
-            cpl_spatial_interp->weightsCompute();
-            sis_it++;
-            i++;
-          }
+          cpl_spatial_interp->weightsCompute();
+          sis_it->second->weightsCompute();
+          sis_it++;
+          i++;
         }
       }
     }

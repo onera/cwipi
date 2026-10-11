@@ -221,7 +221,7 @@ job:coverage_report:
     - cd $CUSTOM_CI_DIR/build_coverage/src/CMakeFiles/cwp.dir/new
     - gcov -b -l -p -c *.gcno
     - cd $CUSTOM_CI_DIR/build_coverage
-    - gcovr --gcov-ignore-parse-errors -g -k --xml-pretty --print-summary --root ${CUSTOM_CI_DIR}/src --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml
+    - gcovr --gcov-ignore-parse-errors -g -k --xml-pretty --print-summary --root ${CUSTOM_CI_DIR}/src --object-directory ${CUSTOM_CI_DIR}/build_coverage --output $CI_PROJECT_DIR/coverage.xml --exclude-lines-by-pattern ".*PDM_error(.*).*" --exclude='.*/cwp_logging.*'
   when: on_success
   coverage: /lines:\s*(\d+\.\d+)%/
   artifacts:

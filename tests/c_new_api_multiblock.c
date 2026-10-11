@@ -684,8 +684,7 @@ int main(int argc, char *argv[])
                  coupled_code_name[0],
                  CWP_INTERFACE_VOLUME,
                  CWP_COMM_PAR_WITH_PART,
-                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                 // CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT,
+                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT,
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
