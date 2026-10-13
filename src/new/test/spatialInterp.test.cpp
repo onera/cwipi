@@ -1568,7 +1568,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Identity #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {2080., 0., 0., 0., 4100., 0., 0., 0., 4100., 2080., 0., 0., 0., 4100., 0., 0., 0., 4100.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1579,7 +1579,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Identity #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {4160., 0., 0., 0., 7380., 0., 0., 0., 7380., 2080., 0., 0., 0., 4100., 0., 0., 0., 4100.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1590,7 +1590,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Identity #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {2080., 0., 0., 0., 4100., 0., 0., 0., 4100., 4160., 0., 0., 0., 7380., 0., 0., 0., 7380.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -1705,7 +1705,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Intersection #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1520.2, 0., 0., 0., 0., 0., 0., 0., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1716,7 +1716,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Intersection #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {1432.4, 0., 0., 0., 0., 0., 0., 0., 0., 1520.2, 0., 0., 0., 0., 0., 0., 0., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1727,7 +1727,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Intersection #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 2908.4, 0., 0., 0., 0., 0., 0., 0., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -1842,7 +1842,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Source #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {1562.547649, -5121.089646, -5121.089646, 1444.805946, 2083.962699, 2083.962699, 1444.805946, 2083.962699, 2083.962699, 9130.97676, 125280.353827, 125280.353827, -307645.144413, -35017.643386, -35017.643386, -307645.144413, -35017.643386, -35017.643386};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1853,7 +1853,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Source #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {3125.095297, -10643.744597, -10643.744597, 2889.611892, 3327.972624, 3327.972624, 2889.611892, 3327.972624, 3327.972624, 9130.97676, 125280.353827, 125280.353827, -307645.144413, -35017.643386, -35017.643386, -307645.144413, -35017.643386, -35017.643386};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1864,7 +1864,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Source #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {1562.547649, -5121.089646, -5121.089646, 1444.805946, 2083.962699, 2083.962699, 1444.805946, 2083.962699, 2083.962699, 18261.953521, 250560.707653, 250560.707653, -616282.761801, -71169.954378, -71169.954378, -616282.761801, -71169.954378, -71169.954378};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -1979,7 +1979,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Target #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {760.196303, 989.828328, 989.828328, 1867.698903, 1598.168421, 1598.168421, 1867.698903, 1598.168421, 1598.168421, 1529.501083, 2300.925165, 2300.925165, 2304.717065, 3378.336462, 3378.336462, 2304.717065, 3378.336462, 3378.336462};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -1990,7 +1990,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Target #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {1521.592605, 1467.819446, 1469.200841, 3727.397805, 2794.336842, 2794.336842, 3727.397805, 2794.336842, 2794.336842, 1529.501083, 2300.925165, 2300.925165, 2304.717065, 3378.336462, 3378.336462, 2304.717065, 3378.336462, 3378.336462};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2001,7 +2001,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Target #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {760.196303, 989.828328, 989.828328, 1867.698903, 1598.168421, 1598.168421, 1867.698903, 1598.168421, 1598.168421, 3136.835653, 4693.712029, 4693.712029, 3499.13373, 6006.763398, 6006.763398, 3499.13373, 6006.763398, 6006.763398};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -2116,7 +2116,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Octree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2127,7 +2127,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Octree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {1836., 2282., 2282., 2088., 3094., 3094., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2138,7 +2138,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Octree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 2844., 3816., 0., 4088., 4942., 0., 4088., 4942., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -2253,7 +2253,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Boxtree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2264,7 +2264,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Boxtree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {1836., 2282., 2282., 2088., 3094., 3094., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2275,7 +2275,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Boxtree #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 2844., 3816., 0., 4088., 4942., 0., 4088., 4942., 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,
@@ -2390,7 +2390,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location All Tgt #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WP - share") {
+  SUBCASE("WP - WP - shared") {
     res_expected = {1260., 1979., 1979., 1538.4, 2285., 2285., 0., 0., 0., 2892., 3864.2, 0., 4518., 5924.6, 0., 4518., 5924.6, 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2401,7 +2401,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location All Tgt #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WP - WoP - share") {
+  SUBCASE("WP - WoP - shared") {
     res_expected = {2520., 3576., 3576., 3076.8, 4147.6, 4147.6, 0., 0., 0., 2892., 3864.2, 0., 4518., 5924.6, 0., 4518., 5924.6, 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITH_PART,
@@ -2412,7 +2412,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location All Tgt #2", 2) {
     CHECK_EPS(res.data(), res_expected.data(), res.size());
   }
 
-  SUBCASE("WoP - WP - share") {
+  SUBCASE("WoP - WP - shared") {
     res_expected = {1260., 1979., 1979., 1538.4, 2285., 2285., 0., 0., 0., 5784., 7728.4, 0., 8118., 10631.6, 0., 8118., 10631.6, 0.};
     res = _get_values(test_comm,
                       CWP_COMM_PAR_WITHOUT_PART,

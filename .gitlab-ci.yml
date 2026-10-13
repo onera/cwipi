@@ -87,6 +87,9 @@ job:build:
     -   source /tmp_user/juno/sonics/dist/socle_cfd7_intel/source.sh || true
     - else
     -   source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=$COMPILER --mpi=$MPI_LIB || true
+    -   if [ "${MPI_LIB}" == "intel-oneapi" ]; then
+    -     module load intel/25.1.0-src/mpi/2021.15 || true
+    -   fi
     - fi
   script:
     - cd $CUSTOM_CI_DIR
@@ -190,6 +193,9 @@ unit_test:cwipi:
     -   source /tmp_user/juno/sonics/dist/socle_cfd7_intel/source.sh || true
     - else
     -   source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=$COMPILER --mpi=$MPI_LIB || true
+    -   if [ "${MPI_LIB}" == "intel-oneapi" ]; then
+    -     module load intel/25.1.0-src/mpi/2021.15 || true
+    -   fi
     - fi
   script:
     - cd $CUSTOM_CI_DIR/build$MATRIX_KEY
@@ -204,6 +210,7 @@ unit_test:clt-intel-oneapi:
   before_script:
     - module purge
     - source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=gcc@12 --mpi=intel-oneapi || true
+    - module load intel/25.1.0-src/mpi/2021.15 || true
   script:
     - cd $CUSTOM_CI_DIR/build_gcc@12_intel-oneapi_BUILD_Sanitize
     - ./cwp_run -incs -scs -timeout 5
@@ -215,6 +222,7 @@ job:coverage_report:
   before_script:
     - module purge
     - source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=gcc@12 --mpi=intel-oneapi || true
+    - module load intel/25.1.0-src/mpi/2021.15 || true
   script:
     - cd $CUSTOM_CI_DIR/build_coverage
     - ./cwp_run -scs -timeout 5
@@ -238,6 +246,7 @@ fake_install:
   before_script:
     - module purge
     - source /tmp_user/juno/sonics/dist/source_juno_all.sh --compiler=gcc@12 --mpi=intel-oneapi || true
+    - module load intel/25.1.0-src/mpi/2021.15 || true
   script:
     - cd $CUSTOM_CI_DIR
     - mkdir -p build_fake_install && cd build_fake_install
