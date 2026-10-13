@@ -24,7 +24,6 @@ For CWIPI to be able to do the internal geometric computations on the mesh, it m
 Convention for standard elements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 .. list-table:: Numbering convention used in CWIPI for standard elements
   :widths: 50 50
 
@@ -38,43 +37,35 @@ Convention for standard elements
 
         ``PDM_MESH_NODAL_BAR2``
 
-
   * - .. figure:: ../../../images/pdm_mesh_nodal_tria3.svg
         :alt: PDM_MESH_NODAL_TRIA3
 
         ``PDM_MESH_NODAL_TRIA3``
-
 
     - .. figure:: ../../../images/pdm_mesh_nodal_quad4.svg
         :alt: PDM_MESH_NODAL_QUAD4
 
         ``PDM_MESH_NODAL_QUAD4``
 
-
   * - .. figure:: ../../../images/pdm_mesh_nodal_tetra4.svg
         :alt: PDM_MESH_NODAL_TETRA4
 
         ``PDM_MESH_NODAL_TETRA4``
-
 
     - .. figure:: ../../../images/pdm_mesh_nodal_pyram5.svg
         :alt: PDM_MESH_NODAL_PYRAM5
 
         ``PDM_MESH_NODAL_PYRAM5``
 
-
   * - .. figure:: ../../../images/pdm_mesh_nodal_prism6.svg
         :alt: PDM_MESH_NODAL_PRISM6
 
         ``PDM_MESH_NODAL_PRISM6``
 
-
     - .. figure:: ../../../images/pdm_mesh_nodal_hexa8.svg
         :alt: PDM_MESH_NODAL_HEXA8
 
         ``PDM_MESH_NODAL_HEXA8``
-
-
 
 Fields
 ------
@@ -95,11 +86,13 @@ For `Solver2` the opposite will be done.
 
 There are two ways to store field components:
 
-* CWP_FIELD_STORAGE_INTERLACED   : The number of components is constant for each element. The field is stored according to this pattern :math:`(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n})` , where :math:`s` is the number of components and :math:`n` the number of field elements;
-* CWP_FIELD_STORAGE_INTERLEAVED  : The number of components is constant for each element. The field is stored according to this pattern :math:`(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n})` , where :math:`s` is the number of components and :math:`n` the number of field elements. In this mode,
-
+* CWP_FIELD_STORAGE_INTERLACED  : The number of components is constant for each element. The field is stored according to this pattern :math:`(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n})` , where :math:`s` is the number of components and :math:`n` the number of field elements;
+* CWP_FIELD_STORAGE_INTERLEAVED : The number of components is constant for each element. The field is stored according to this pattern :math:`(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n})` , where :math:`s` is the number of components and :math:`n` the number of field elements. In this mode,
 
 Control Parameters
 ------------------
 
-*Not documented yet*
+As in version 0.x, basic control parameters (``CWP_INTEGER``, ``CWP_DOUBLE``, ``CWP_CHAR``) can be exchanged between codes;
+reduction operations among ``CWP_OP_MIN``, ``CWP_OP_MAX`` and ``CWP_OP_SUM`` are also possible over multiple codes. Control
+parameters are handled through **One-Sided MPI communications**: access should be locked/unlocked by the user before/after
+modification.
