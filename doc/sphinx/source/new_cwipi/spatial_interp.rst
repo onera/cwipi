@@ -24,7 +24,20 @@ This family includes two methods:
 
   * ``CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES``: each source dof is mapped to its ``n_neighbors`` nearest target dofs (note that some targets may be mapped to zero source).
 
-.. TODO: schéma?
+.. list-table:: Illustration with ``n_neighbors`` = 2
+  :widths: 80 80
+
+  * - .. figure:: images/inter_from_nearest_src.svg
+        :width: 300
+        :alt: FROM_NEAREST_SOURCES
+
+        From nearest sources
+
+    - .. figure:: images/inter_from_nearest_tgt.svg
+        :width: 300
+        :alt: FROM_NEAREST_TARGETS
+
+        From nearest targets
 
 **Default interpolation**
   Both methods perform a Least Square interpolation weighted by inverse squared distance (see `[Nealen 2004] <http://www.nealen.de/projects/mls/asapmls.pdf>`_ for more details).
