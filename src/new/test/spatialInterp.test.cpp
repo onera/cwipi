@@ -1581,7 +1581,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Identity #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - Intersection #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - Intersection #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
 
   std::vector<double> res_expected;
@@ -1696,7 +1696,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Intersection #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - LS Source #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - LS Source #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES;
 
   std::vector<double> res_expected;
@@ -1811,7 +1811,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Source #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - LS Target #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - LS Target #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES;
 
   std::vector<double> res_expected;
@@ -1926,7 +1926,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Target #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - Location Octree #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - Location Octree #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
   std::vector<double> res_expected;
@@ -2041,7 +2041,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Octree #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - Location Boxtree #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - Location Boxtree #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
 
   std::vector<double> res_expected;
@@ -2156,7 +2156,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Boxtree #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - Location All Tgt #1", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - Location All Tgt #1", 1) {
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT;
 
   std::vector<double> res_expected;
@@ -2271,7 +2271,7 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location All Tgt #2", 2) {
 
 }
 
-MPI_TEST_CASE("[spatialInter] - 1p - User", 1) {
+MPI_TEST_CASE("[spatialInterp] - 1p - User", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
