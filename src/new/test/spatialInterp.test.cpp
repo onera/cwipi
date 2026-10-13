@@ -323,7 +323,7 @@ _gen_mesh
   int         **pedge_vtx      = nullptr;
   CWP_g_num_t **pedge_ln_to_gn = nullptr;
   CWPT_generate_mesh_rectangle_ngon(comm,
-                                    static_cast<CWPT_Mesh_nodal_elt_t>(CWP_BLOCK_FACE_POLY),
+                                    static_cast<CWPT_Mesh_nodal_elt_t>(CWP_BLOCK_FACE_QUAD4),
                                     0.,
                                     0.,
                                     0.,
@@ -772,7 +772,7 @@ _get_values
     if (strcmp(code_names[i_code], "code1") == 0) {
       for (int i = 0; i < n_part; i++) {
         for (int i_vtx = 0; i_vtx < pn_vtx[i_code][i]; i_vtx++) {
-          pvtx_coord[i_code][i][3*i_vtx+1] *= 1.5;
+          pvtx_coord[i_code][i][3*i_vtx+1] += 0.3;
         }
       }
     }
@@ -780,7 +780,7 @@ _get_values
     if (strcmp(code_names[i_code], "code2") == 0) {
       for (int i = 0; i < n_part; i++) {
         for (int i_vtx = 0; i_vtx < pn_vtx[i_code][i]; i_vtx++) {
-          pvtx_coord[i_code][i][3*i_vtx] *= 1.5;
+          pvtx_coord[i_code][i][3*i_vtx] += 0.2;
         }
       }
     }
@@ -1472,41 +1472,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - Identity #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1516,68 +1524,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Identity #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 47770., 0., 0., 0., 47770., 10585., 0., 0., 0., 47770., 0., 0., 0., 47770.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {2080., 0., 0., 0., 3690., 0., 0., 0., 3690., 2080., 0., 0., 0., 3690., 0., 0., 0., 3690.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 51194., 0., 0., 0., 51194., 10585., 0., 0., 0., 51194., 0., 0., 0., 51194.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {2080., 0., 0., 0., 4100., 0., 0., 0., 4100., 2080., 0., 0., 0., 4100., 0., 0., 0., 4100.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {21170., 0., 0., 0., 95540., 0., 0., 0., 95540., 10585., 0., 0., 0., 51194., 0., 0., 0., 51194.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {4160., 0., 0., 0., 7380., 0., 0., 0., 7380., 2080., 0., 0., 0., 4100., 0., 0., 0., 4100.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {10585., 0., 0., 0., 51194., 0., 0., 0., 51194., 21170., 0., 0., 0., 95540., 0., 0., 0., 95540.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {2080., 0., 0., 0., 4100., 0., 0., 0., 4100., 4160., 0., 0., 0., 7380., 0., 0., 0., 7380.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1587,41 +1609,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - Intersection #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1631,68 +1661,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Intersection #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7164.30989, 0., 0., 0., 0., 0., 0., 0., 0., 7664.778022, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1520.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12413.761538, 0., 0., 0., 0., 0., 0., 0., 0., 7664.778022, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {1432.4, 0., 0., 0., 0., 0., 0., 0., 0., 1520.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7164.30989, 0., 0., 0., 0., 0., 0., 0., 0., 15537.079121, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 2908.4, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1702,41 +1746,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - LS Source #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 21353.406116, 21353.406116, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 21353.406116, 21353.406116, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 21353.406116, 21353.406116, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 21353.406116, 21353.406116, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1746,68 +1798,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Source #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 22509.631163, 22509.631163, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 22509.631163, 22509.631163, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 22509.631163, 22509.631163, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -32281.27028, -32281.27028, 24777.532217, -631026.13617, -631026.13617, 24777.532217, -631026.13617, -631026.13617, -27985.490068, 22509.631163, 22509.631163, -52265.229202, 210588.336342, 210588.336342, -52265.229202, 210588.336342, 210588.336342};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {1562.547649, -5321.872299, -5321.872299, 1444.805946, 1663.986312, 1663.986312, 1444.805946, 1663.986312, 1663.986312, 9130.97676, 125280.353827, 125280.353827, -308141.3809, -35584.977189, -35584.977189, -308141.3809, -35584.977189, -35584.977189};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -31120.694313, -31120.694313, 24777.532217, -628635.796759, -628635.796759, 24777.532217, -628635.796759, -628635.796759, -27985.490068, 22509.631163, 22509.631163, -57113.597334, 200599.29343, 200599.29343, -57113.597334, 200599.29343, 200599.29343};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {1562.547649, -5121.089646, -5121.089646, 1444.805946, 2083.962699, 2083.962699, 1444.805946, 2083.962699, 2083.962699, 9130.97676, 125280.353827, 125280.353827, -307645.144413, -35017.643386, -35017.643386, -307645.144413, -35017.643386, -35017.643386};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-30582.729312, -64562.54056, -64562.54056, 49555.064434, -1262052.27234, -1262052.27234, 49555.064434, -1262052.27234, -1262052.27234, -27985.490068, 22509.631163, 24051.754111, -57113.597334, 200599.29343, 200599.54343, -57113.597334, 200599.29343, 200599.54343};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {3125.095297, -10643.744597, -10643.744597, 2889.611892, 3327.972624, 3327.972624, 2889.611892, 3327.972624, 3327.972624, 9130.97676, 125280.353827, 125280.353827, -307645.144413, -35017.643386, -35017.643386, -307645.144413, -35017.643386, -35017.643386};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {-15291.364656, -31120.694313, -31120.694313, 24777.532217, -628635.796759, -628635.796759, 25251.836315, -628639.296759, -628639.296759, -55970.980137, 45019.262326, 45019.262326, -104530.458403, 421176.672683, 421176.672683, -104530.458403, 421176.672683, 421176.672683};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {1562.547649, -5121.089646, -5121.089646, 1444.805946, 2083.962699, 2083.962699, 1444.805946, 2083.962699, 2083.962699, 18261.953521, 250560.707653, 250560.707653, -616282.761801, -71169.954378, -71169.954378, -616282.761801, -71169.954378, -71169.954378};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1817,41 +1883,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - LS Target #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.427454, 12571.427454, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {760.796303, 733.219025, 733.219025, 1864.466344, 1397.168421, 1397.168421, 1864.466344, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1751.720811, 3003.381699, 3003.381699, 1751.720811, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.427454, 12571.427454, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {760.796303, 733.219025, 733.219025, 1864.466344, 1397.168421, 1397.168421, 1864.466344, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1751.720811, 3003.381699, 3003.381699, 1751.720811, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.427454, 12571.427454, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {760.796303, 733.219025, 733.219025, 1864.466344, 1397.168421, 1397.168421, 1864.466344, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1751.720811, 3003.381699, 3003.381699, 1751.720811, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.427454, 12571.427454, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {760.796303, 733.219025, 733.219025, 1864.466344, 1397.168421, 1397.168421, 1864.466344, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1751.720811, 3003.381699, 3003.381699, 1751.720811, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1861,68 +1935,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - LS Target #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.47694, 12571.47694, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {760.796303, 733.909723, 733.909723, 1863.698903, 1397.168421, 1397.168421, 1863.698903, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1749.566865, 3003.381699, 3003.381699, 1749.566865, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.47694, 12571.47694, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {760.796303, 733.909723, 733.909723, 1863.698903, 1397.168421, 1397.168421, 1863.698903, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1749.566865, 3003.381699, 3003.381699, 1749.566865, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.47694, 12571.47694, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {760.796303, 733.909723, 733.909723, 1863.698903, 1397.168421, 1397.168421, 1863.698903, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1749.566865, 3003.381699, 3003.381699, 1749.566865, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4790.247942, 10648.084076, 10648.084076, 8455.259911, 15122.233416, 15122.233416, 8455.259911, 15122.233416, 15122.233416, 5929.407298, 12571.47694, 12571.47694, 17743.650767, 36475.093495, 36475.093495, 17743.650767, 36475.093495, 36475.093495};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {760.796303, 733.909723, 733.909723, 1863.698903, 1397.168421, 1397.168421, 1863.698903, 1397.168421, 1397.168421, 1568.417827, 2346.856014, 2346.856014, 1749.566865, 3003.381699, 3003.381699, 1749.566865, 3003.381699, 3003.381699};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {5615.997122, 14725.499347, 14725.499347, 9485.458443, 21618.607358, 21618.607358, 9485.458443, 21618.607358, 21618.607358, 5838.181807, 12705.446687, 12705.446687, 19160.664586, 38876.768729, 38876.768729, 19160.664586, 38876.768729, 38876.768729};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {760.196303, 989.828328, 989.828328, 1867.698903, 1598.168421, 1598.168421, 1867.698903, 1598.168421, 1598.168421, 1529.501083, 2300.925165, 2300.925165, 2304.717065, 3378.336462, 3378.336462, 2304.717065, 3378.336462, 3378.336462};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {9580.495883, 21296.168153, 21296.168153, 16910.519822, 30244.466832, 30244.466832, 16910.519822, 30244.466832, 30244.466832, 5838.181807, 12705.446687, 12705.446687, 19160.664586, 38876.768729, 38876.768729, 19160.664586, 38876.768729, 38876.768729};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {1521.592605, 1467.819446, 1469.200841, 3727.397805, 2794.336842, 2794.336842, 3727.397805, 2794.336842, 2794.336842, 1529.501083, 2300.925165, 2300.925165, 2304.717065, 3378.336462, 3378.336462, 2304.717065, 3378.336462, 3378.336462};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {5615.997122, 14725.499347, 14725.499347, 9485.458443, 21618.607358, 21618.607358, 9485.458443, 21618.607358, 21618.607358, 11858.814595, 25142.953881, 25142.953881, 35487.301533, 72950.186991, 72950.186991, 35494.277768, 72950.186991, 72950.186991};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {760.196303, 989.828328, 989.828328, 1867.698903, 1598.168421, 1598.168421, 1867.698903, 1598.168421, 1598.168421, 3136.835653, 4693.712029, 4693.712029, 3499.13373, 6006.763398, 6006.763398, 3499.13373, 6006.763398, 6006.763398};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1932,41 +2020,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - Location Octree #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {7969., 18517., 18517., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8599., 12723.407406, 0., 20965., 35057.307515, 0., 20965., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18517., 18517., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8599., 12723.407406, 0., 20965., 35057.307515, 0., 20965., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18517., 18517., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8599., 12723.407406, 0., 20965., 35057.307515, 0., 20965., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18517., 18517., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8599., 12723.407406, 0., 20965., 35057.307515, 0., 20965., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -1976,68 +2072,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Octree #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {7969., 18307., 18307., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8608., 12723.407406, 0., 20901., 35057.307515, 0., 20901., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18307., 18307., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8608., 12723.407406, 0., 20901., 35057.307515, 0., 20901., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18307., 18307., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8608., 12723.407406, 0., 20901., 35057.307515, 0., 20901., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18307., 18307., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8608., 12723.407406, 0., 20901., 35057.307515, 0., 20901., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 20012., 20012., 9375.770798, 24973.127738, 24973.127738, 0., 0., 0., 8608., 12723.407406, 0., 22664., 37180.15072, 0., 22664., 37180.15072, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {15938., 36614., 36614., 18751.541595, 45658.577369, 45658.577369, 0., 0., 0., 8608., 12723.407406, 0., 22664., 37180.15072, 0., 22664., 37180.15072, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {1836., 2282., 2282., 2088., 3094., 3094., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 20012., 20012., 9375.770798, 24973.127738, 24973.127738, 0., 0., 0., 17216., 25446.814812, 0., 41802., 70114.61503, 0., 41802., 70114.61503, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 2844., 3816., 0., 4088., 4942., 0., 4088., 4942., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -2047,41 +2157,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - Location Boxtree #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {7969., 18464., 18464., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8651., 12723.407406, 0., 21086., 35057.307515, 0., 21086., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18464., 18464., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8651., 12723.407406, 0., 21086., 35057.307515, 0., 21086., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18464., 18464., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8651., 12723.407406, 0., 21086., 35057.307515, 0., 21086., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18464., 18464., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8651., 12723.407406, 0., 21086., 35057.307515, 0., 21086., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -2091,68 +2209,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location Boxtree #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {7969., 18254., 18254., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8653., 12723.407406, 0., 21089., 35057.307515, 0., 21089., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18254., 18254., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8653., 12723.407406, 0., 21089., 35057.307515, 0., 21089., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18254., 18254., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8653., 12723.407406, 0., 21089., 35057.307515, 0., 21089., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18254., 18254., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8653., 12723.407406, 0., 21089., 35057.307515, 0., 21089., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 19959., 19959., 9375.770798, 24973.127738, 24973.127738, 0., 0., 0., 8653., 12723.407406, 0., 22857., 37180.15072, 0., 22857., 37180.15072, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {15938., 36508., 36508., 18751.541595, 45658.577369, 45658.577369, 0., 0., 0., 8653., 12723.407406, 0., 22857., 37180.15072, 0., 22857., 37180.15072, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {1836., 2282., 2282., 2088., 3094., 3094., 0., 0., 0., 1422., 1908., 0., 2329., 2817., 0., 2329., 2817., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 19959., 19959., 9375.770798, 24973.127738, 24973.127738, 0., 0., 0., 17306., 25446.814812, 0., 42178., 70114.61503, 0., 42178., 70114.61503, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {918., 1311., 1311., 1044., 1775., 1775., 0., 0., 0., 2844., 3816., 0., 4088., 4942., 0., 4088., 4942., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -2162,41 +2294,49 @@ MPI_TEST_CASE("[spatialInterp] - 1p - Location All Tgt #1", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {12967., 28575., 28575., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29420., 62459.43572, 0., 29420., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4058., 5319., 0., 4058., 5319., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12967., 28575., 28575., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29420., 62459.43572, 0., 29420., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4058., 5319., 0., 4058., 5319., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12967., 28575., 28575., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29420., 62459.43572, 0., 29420., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4058., 5319., 0., 4058., 5319., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12967., 28575., 28575., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29420., 62459.43572, 0., 29420., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4058., 5319., 0., 4058., 5319., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -2206,68 +2346,82 @@ MPI_TEST_CASE("[spatialInterp] - 2p - Location All Tgt #2", 2) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {12911., 28418., 28418., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29186., 62459.43572, 0., 29186., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4059., 5315.8, 0., 4059., 5315.8, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12911., 28418., 28418., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29186., 62459.43572, 0., 29186., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4059., 5315.8, 0., 4059., 5315.8, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12911., 28418., 28418., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29186., 62459.43572, 0., 29186., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WoP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4059., 5315.8, 0., 4059., 5315.8, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12911., 28418., 28418., 14512.766524, 33346.878428, 33346.878428, 0., 0., 0., 12430., 27465.343303, 0., 29186., 62459.43572, 0., 29186., 62459.43572, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - no-shared") {
+    res_expected = {1260., 1788., 1788., 1538.4, 2073.8, 2073.8, 0., 0., 0., 2892., 3864.2, 0., 4059., 5315.8, 0., 4059., 5315.8, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {12911., 30486., 30486., 14512.766524, 35756.294405, 35756.294405, 0., 0., 0., 12430., 27465.343303, 0., 31756., 66969.073797, 0., 31756., 66969.073797, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    true,
-                    spatial_interp,
-                    false);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WP - share") {
+    res_expected = {1260., 1979., 1979., 1538.4, 2285., 2285., 0., 0., 0., 2892., 3864.2, 0., 4518., 5924.6, 0., 4518., 5924.6, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  //res_expected = {25822., 56836., 56836., 29025.533048, 66693.756856, 66693.756856, 0., 0., 0., 12430., 27465.343303, 0., 31756., 66969.073797, 0., 31756., 66969.073797, 0.};
-  //res = _get_values(test_comm,
-  //                  CWP_COMM_PAR_WITH_PART,
-  //                  CWP_COMM_PAR_WITHOUT_PART,
-  //                  true,
-  //                  spatial_interp,
-  //                  false);
-  //CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WP - WoP - share") {
+    res_expected = {2520., 3576., 3576., 3076.8, 4147.6, 4147.6, 0., 0., 0., 2892., 3864.2, 0., 4518., 5924.6, 0., 4518., 5924.6, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  //res_expected = {12911., 30486., 30486., 14512.766524, 35756.294405, 35756.294405, 0., 0., 0., 24860., 54930.686607, 0., 58372., 124918.87144, 0., 58372., 124918.87144, 0.};
-  //res = _get_values(test_comm,
-  //                  CWP_COMM_PAR_WITHOUT_PART,
-  //                  CWP_COMM_PAR_WITH_PART,
-  //                  true,
-  //                  spatial_interp,
-  //                  false);
-  //CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("WoP - WP - share") {
+    res_expected = {1260., 1979., 1979., 1538.4, 2285., 2285., 0., 0., 0., 5784., 7728.4, 0., 8118., 10631.6, 0., 8118., 10631.6, 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITHOUT_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      true,
+                      spatial_interp,
+                      false);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
 
@@ -2275,31 +2429,37 @@ MPI_TEST_CASE("[spatialInterp] - 1p - User", 1) {
   std::vector<double> res_expected;
   std::vector<double> res;
 
-  res_expected = {6206.880769, 0., 0., 0., 0., 0., 0., 0., 0., 7768.53956, 0., 0., 0., 0., 0., 0., 0., 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    CWP_SPATIAL_INTERP_FROM_INTERSECTION,
-                    true);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("user-interp INTERSECTION") {
+    res_expected = {716.2, 0., 0., 0., 0., 0., 0., 0., 0., 1454.2, 0., 0., 0., 0., 0., 0., 0., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      CWP_SPATIAL_INTERP_FROM_INTERSECTION,
+                      true);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {4987.122141, 10648.084076, 10648.084076, 8422.621557, 15130.568446, 15130.568446, 8422.621557, 15130.568446, 15130.568446, 6187.854088, 12528.617381, 12528.617381, 17826.422146, 36437.872372, 36437.872372, 17826.422146, 36437.872372, 36437.872372};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES,
-                    true);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("user-interp NEAREST_TARGETS_LEAST_SQUARES") {
+    res_expected = {781.454105, 718.205851, 718.205851, 1324.454442, 1426.332082, 1426.332082, 1324.454442, 1426.332082, 1426.332082, 1543.056302, 2452.406032, 2452.406032, 1773.036565, 2969.581645, 2969.581645, 1773.036565, 2969.581645, 2969.581645};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES,
+                      true);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
-  res_expected = {7969., 18517., 18517., 9375.770798, 22829.288685, 22829.288685, 0., 0., 0., 8599., 12723.407406, 0., 20965., 35057.307515, 0., 20965., 35057.307515, 0.};
-  res = _get_values(test_comm,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_COMM_PAR_WITH_PART,
-                    false,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                    true);
-  CHECK_EPS(res.data(), res_expected.data(), res.size());
+  SUBCASE("user-interp LOCATION_OCTREE") {
+    res_expected = {918., 1141., 1141., 1044., 1547., 1547., 0., 0., 0., 1422., 1908., 0., 2044., 2471., 0., 2044., 2471., 0.};
+    res = _get_values(test_comm,
+                      CWP_COMM_PAR_WITH_PART,
+                      CWP_COMM_PAR_WITH_PART,
+                      false,
+                      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                      true);
+    CHECK_EPS(res.data(), res_expected.data(), res.size());
+  }
 
 }
