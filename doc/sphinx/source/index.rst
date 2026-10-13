@@ -5,7 +5,7 @@ Welcome to CWIPI's documentation!
 **CWIPI** (Coupling With Interpolation Parallel Interface) is a C/C++ parallel coupling library under LGPL3 license.
 It allows fully parallel data exchanges based on distributed mesh definition. Those meshes are differently partitioned
 on several processes. Spatial interpolation is performed between non-coincident meshes on-the-fly. Arbitrarily many
-odes can be coupled using this library. The philosophy of CWIPI is to let the parallelism be fully transparent for the user.
+codes can be coupled using this library. The philosophy of CWIPI is to let the parallelism be fully transparent for the user.
 
 The library does not rely on a central coupling instance. The coupling is minimally invasive because it suffices
 to call primitives of the library in the codes. Still, such a central supervisor can be set up by writing a Python

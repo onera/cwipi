@@ -190,7 +190,7 @@ Finalize Mesh
 
 In any case, it is mandatory to finalize the mesh definition using ``CWP_Mesh_interf_finalize``. The ``global_num`` arguments in the previous
 code blocks allow to provide a global numbering of mesh entities. These arguments are optional and might be replaced by ``NULL``. Since it is
-only used low-level in CWIPI, the finalize function allow to generate global numberings if not provided.
+only used low-level in CWIPI, the finalize function allows to generate global numberings if not provided.
 
 Exchange fields
 ===============
