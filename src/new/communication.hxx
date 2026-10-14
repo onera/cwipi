@@ -303,7 +303,6 @@ namespace cwipi {
     uint32_t _get_tag
     (
      const string    name,
-     MPI_Comm        comm,
      int             offset
      );
 

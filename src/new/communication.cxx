@@ -417,15 +417,14 @@ uint32_t Communication::_adler32
 
 uint32_t Communication::_get_tag
 (
-const string    name,
-MPI_Comm        comm,
-int             offset
+const string name,
+int          offset
 )
 {
   MPI_Aint  *maxTagTmp;
   int flag;
 
-  MPI_Comm_get_attr(comm, MPI_TAG_UB, &maxTagTmp, &flag);
+  MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
   int maxTag = (int) *maxTagTmp;
 
   uint32_t mpi_tag = ((_adler32 (name.c_str(),
@@ -710,7 +709,6 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
           uint32_t data_tag = _get_tag(global_data_id,
-                                       _unionComm,
                                        0);
 
           MPI_Issend(send_data,
@@ -724,7 +722,6 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
         uint32_t data_tag = _get_tag(global_data_id,
-                                     _unionComm,
                                      0);
 
         MPI_Issend(send_data,
@@ -782,7 +779,6 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
           uint32_t data_tag = _get_tag(global_data_id,
-                                       _unionComm,
                                        0);
           MPI_Irecv(recv_data,
                     (int) s_entity * stride * n_entity,
@@ -795,7 +791,6 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
         uint32_t data_tag = _get_tag(global_data_id,
-                                     _unionComm,
                                      0);
         MPI_Irecv(recv_data,
                   (int) s_entity * stride * n_entity,
