@@ -26,6 +26,7 @@
 #include "pdm_logging.h"
 #include "pdm_linear_algebra.h"
 #include "pdm_vtk.h"
+#include <float.h>
 
 CWP_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
 
@@ -971,7 +972,7 @@ namespace cwipi {
         stat = PDM_linear_algebra_linsolve_svd(siz,
                                                siz,
                                                stride,
-                                               0.,
+                                               n_neighbors*DBL_EPSILON,
                                     (double *) A,
                                     (double *) rhs,
                                                c);
@@ -982,7 +983,7 @@ namespace cwipi {
       }
 
       if (stat == 0) {
-        for (int j = 0; j < stride; j++) {
+                for (int j = 0; j < stride; j++) {
           tgt_value[j] = c[j];
         }
       }
