@@ -782,7 +782,7 @@ namespace cwipi {
                                                 &n_part2,
                                                 &n_elt1,
                                                 &n_elt2);
-          for (int i = 0; i < _nPart; i++) {
+          for (int i = 0; i < _cplNPart; i++) {
             if (globalRank == cplRootRank) {
               n_elt = n_elt2[i];
             }

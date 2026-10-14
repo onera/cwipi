@@ -191,7 +191,7 @@ namespace cwipi {
 
 
       if (cpl_spatial_interp->_src_to_tgt_idx != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_src_to_tgt_idx[i_part] != NULL) {
             free(cpl_spatial_interp->_src_to_tgt_idx   [i_part]);
             free(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]);
@@ -208,7 +208,7 @@ namespace cwipi {
       }
 
       if (cpl_spatial_interp->_tgt_volume != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_tgt_volume[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_volume [i_part]);
           }

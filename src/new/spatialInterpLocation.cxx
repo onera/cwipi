@@ -299,7 +299,7 @@ namespace cwipi {
       }
 
       if (cpl_spatial_interp->_tgt_distance != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_tgt_distance[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_distance        [i_part]);
             free(cpl_spatial_interp->_tgt_projected       [i_part]);
@@ -315,7 +315,7 @@ namespace cwipi {
       cpl_spatial_interp->_tgt_closest_elt_gnum = NULL;
 
       if (cpl_spatial_interp->_elt_pts_inside_idx != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_elt_pts_inside_idx[i_part] != NULL) {
             free(cpl_spatial_interp->_elt_pts_inside_idx     [i_part]);
             free(cpl_spatial_interp->_points_gnum            [i_part]);
