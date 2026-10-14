@@ -12,6 +12,165 @@ static std::vector<const char *> _backward = {"code2", "code1"};
 #define CHECK_EPS(array, array_expected, size) \
   for(size_t i = 0; i < size; ++i){ CHECK(std::abs(array[i]-array_expected[i]) < _max_error); }
 
+static std::string
+_concat
+(
+  const char* a,
+  const char* b
+)
+{
+  return std::string(a) + std::string(b);
+}
+
+struct Data {
+
+  int n_cases = 0;
+
+  std::vector<int>                idx;                // Index to store results
+  std::vector<std::string>        fields_interlaced;  // Interlaced  field names
+  std::vector<std::string>        fields_interleaved; // Interleaved field names
+  std::vector<CWP_Dof_location_t> dof_location1;      // DOF location for code 1
+  std::vector<CWP_Dof_location_t> dof_location2;      // DOF location for code 2
+
+  // Fill structure with spatial interpolation method
+  // compatible configurations
+  Data
+  (
+    CWP_Spatial_interp_t  method,
+    bool                  backward,
+    int                   offset,
+    char                 *suffix
+  )
+  {
+    bool cell_cell = false;
+    bool cell_vtx  = false;
+    bool cell_usr  = false;
+    bool vtx_cell  = false;
+    bool vtx_vtx   = false;
+    bool vtx_usr   = false;
+    bool usr_cell  = false;
+    bool usr_vtx   = false;
+    bool usr_usr   = false;
+
+    switch (method) {
+      case CWP_SPATIAL_INTERP_FROM_IDENTITY:
+        cell_cell = true;
+        vtx_vtx   = true;
+        usr_usr   = true;
+        break;
+      case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
+        cell_cell = true;
+        break;
+      case CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
+      case CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES:
+        cell_cell = true;
+        cell_vtx  = true;
+        cell_usr  = true;
+        vtx_cell  = true;
+        vtx_vtx   = true;
+        vtx_usr   = true;
+        usr_cell  = true;
+        usr_vtx   = true;
+        usr_usr   = true;
+        break;
+      case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
+      case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE:
+      case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT:
+        if (!backward) {
+          cell_cell = true;
+          cell_vtx  = true;
+          cell_usr  = true;
+          vtx_cell  = true;
+          vtx_vtx   = true;
+          vtx_usr   = true;
+        }
+        else {
+          cell_cell = true;
+          cell_vtx  = true;
+          vtx_cell  = true;
+          vtx_vtx   = true;
+          usr_cell  = true;
+          usr_vtx   = true;
+        }
+        break;
+      }
+
+      if (cell_cell) {
+        idx               .push_back(offset + 0);
+        fields_interlaced .push_back(_concat("fieldinterlacedcellcell",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedcellcell", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        n_cases++;
+      }
+      if (cell_vtx) {
+        idx               .push_back(offset + 1);
+        fields_interlaced .push_back(_concat("fieldinterlacedcellvtx",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedcellvtx", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
+        n_cases++;
+      }
+      if (cell_usr) {
+        idx               .push_back(offset + 2);
+        fields_interlaced .push_back(_concat("fieldinterlacedcellusr",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedcellusr", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_USER);
+        n_cases++;
+      }
+      if (vtx_cell) {
+        idx               .push_back(offset + 3);
+        fields_interlaced .push_back(_concat("fieldinterlacedvtxcell",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedvtxcell", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
+        dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        n_cases++;
+      }
+      if (vtx_vtx) {
+        idx               .push_back(offset + 4);
+        fields_interlaced .push_back(_concat("fieldinterlacedvtxvtx",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedvtxvtx", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
+        dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
+        n_cases++;
+      }
+      if (vtx_usr) {
+        idx               .push_back(offset + 5);
+        fields_interlaced .push_back(_concat("fieldinterlacedvtxusr",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedvtxusr", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
+        dof_location2     .push_back(CWP_DOF_LOCATION_USER);
+        n_cases++;
+      }
+      if (usr_cell) {
+        idx               .push_back(offset + 6);
+        fields_interlaced .push_back(_concat("fieldinterlacedusrcell",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedusrcell", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_USER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
+        n_cases++;
+      }
+      if (usr_vtx) {
+        idx               .push_back(offset + 7);
+        fields_interlaced .push_back(_concat("fieldinterlacedusrvtx",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedusrvtx", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_USER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
+        n_cases++;
+      }
+      if (usr_usr) {
+        idx               .push_back(offset + 8);
+        fields_interlaced .push_back(_concat("fieldinterlacedusrusr",  suffix));
+        fields_interleaved.push_back(_concat("fieldinterleavedusrusr", suffix));
+        dof_location1     .push_back(CWP_DOF_LOCATION_USER);
+        dof_location2     .push_back(CWP_DOF_LOCATION_USER);
+        n_cases++;
+      }
+  };
+
+};
+
 static void
 _intersection_user_interpolation
 (
@@ -584,9 +743,32 @@ _get_values
   bool                 user_interp     // User interpolation
 )
 {
+  // Generate 9 cases for send -> recv from code1 to code2
+  // and      9 cases for send -> recv from code2 to code1
+  // 9 cases to cover all source/target points location
+  Data forward_cases (spatial_interp, false, 0, "_forward");
+  Data backward_cases(spatial_interp, true,  9, "_backward");
+
   std::vector<double> res_loc = {0., 0., 0., 0., 0., 0., 0., 0., 0.,
                                  0., 0., 0., 0., 0., 0., 0., 0., 0.};
   std::vector<double> res(res_loc.size());
+
+  CWP_Interp_function_t user_interpolation = nullptr;
+  if (user_interp) {
+    switch (spatial_interp) {
+    case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
+      user_interpolation = _intersection_user_interpolation;
+      break;
+    case CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES:
+      user_interpolation = _nearest_user_interpolation;
+      break;
+    case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
+      user_interpolation = _location_user_interpolation;
+      break;
+    default:
+      break;
+    }
+  }
 
   int i_rank;
   MPI_Comm_rank(comm, &i_rank);
@@ -601,7 +783,7 @@ _get_values
   if (n_rank == 1) {
     code_names = {"code1", "code2"};
   }
-  // 2 ranks = dispatch codes to share ranks if share_ranks == true depending on partitioning support
+  // 2 ranks = dispatch codes to share ranks if share_ranks == true
   else {
     if (!share_ranks && i_rank == 1) {
       code_names.push_back("code1");
@@ -624,93 +806,6 @@ _get_values
            code_names.data(),
            is_active_rank,
            intra_comm);
-
-  bool f_cell_cell = false;
-  bool f_cell_vtx  = false;
-  bool f_cell_usr  = false;
-  bool f_vtx_cell  = false;
-  bool f_vtx_vtx   = false;
-  bool f_vtx_usr   = false;
-  bool f_usr_cell  = false;
-  bool f_usr_vtx   = false;
-  bool f_usr_usr   = false;
-  bool b_cell_cell = false;
-  bool b_cell_vtx  = false;
-  bool b_cell_usr  = false;
-  bool b_vtx_cell  = false;
-  bool b_vtx_vtx   = false;
-  bool b_vtx_usr   = false;
-  bool b_usr_cell  = false;
-  bool b_usr_vtx   = false;
-  bool b_usr_usr   = false;
-  switch (spatial_interp) {
-  case CWP_SPATIAL_INTERP_FROM_IDENTITY:
-    f_cell_cell = true;
-    f_vtx_vtx   = true;
-    f_usr_usr   = true;
-    b_cell_cell = true;
-    b_vtx_vtx   = true;
-    b_usr_usr   = true;
-    break;
-  case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
-    f_cell_cell = true;
-    b_cell_cell = true;
-    break;
-  case CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES:
-  case CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES:
-    f_cell_cell = true;
-    f_cell_vtx  = true;
-    f_cell_usr  = true;
-    f_vtx_cell  = true;
-    f_vtx_vtx   = true;
-    f_vtx_usr   = true;
-    f_usr_cell  = true;
-    f_usr_vtx   = true;
-    f_usr_usr   = true;
-    b_cell_cell = true;
-    b_cell_vtx  = true;
-    b_cell_usr  = true;
-    b_vtx_cell  = true;
-    b_vtx_vtx   = true;
-    b_vtx_usr   = true;
-    b_usr_cell  = true;
-    b_usr_vtx   = true;
-    b_usr_usr   = true;
-    break;
-  case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-  case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE:
-  case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT:
-    f_cell_cell = true;
-    f_cell_vtx  = true;
-    f_cell_usr  = true;
-    f_vtx_cell  = true;
-    f_vtx_vtx   = true;
-    f_vtx_usr   = true;
-    b_cell_cell = true;
-    b_cell_vtx  = true;
-    b_vtx_cell  = true;
-    b_vtx_vtx   = true;
-    b_usr_cell  = true;
-    b_usr_vtx   = true;
-    break;
-  }
-
-  CWP_Interp_function_t user_interpolation = nullptr;
-  if (user_interp) {
-    switch (spatial_interp) {
-    case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
-      user_interpolation = _intersection_user_interpolation;
-      break;
-    case CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES:
-      user_interpolation = _nearest_user_interpolation;
-      break;
-    case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
-      user_interpolation = _location_user_interpolation;
-      break;
-    default:
-      break;
-    }
-  }
 
   // Create coupling
   int         n_part   = 2;
@@ -746,6 +841,9 @@ _get_values
   CWP_g_num_t ***pvtx_ln_to_gn  = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
 
   for (int i_code = 0; i_code < n_code; i_code++) {
+
+    // Generate mesh on intra_comm communicator or local rank communicator
+    // if no partitioning is required
     MPI_Comm mesh_comm;
     if ((part1 == CWP_COMM_PAR_WITHOUT_PART && strcmp(code_names[i_code], "code1") == 0) ||
         (part2 == CWP_COMM_PAR_WITHOUT_PART && strcmp(code_names[i_code], "code2") == 0)) {
@@ -769,6 +867,7 @@ _get_values
               &pvtx_ln_to_gn [i_code]);
     MPI_Comm_free(&mesh_comm);
 
+    // Move meshes to have unlocated points
     if (strcmp(code_names[i_code], "code1") == 0) {
       for (int i = 0; i < n_part; i++) {
         for (int i_vtx = 0; i_vtx < pn_vtx[i_code][i]; i_vtx++) {
@@ -785,6 +884,7 @@ _get_values
       }
     }
 
+    // Set mesh
     for (int i = 0; i < n_part; i++) {
       CWP_Mesh_interf_vtx_set(code_names[i_code],
                               cpl_name,
@@ -812,285 +912,153 @@ _get_values
     CWP_Mesh_interf_finalize(code_names[i_code], cpl_name);
   }
 
-  // Define fields
-  std::vector<const char *> f_fields_interlaced;
-  std::vector<const char *> f_fields_interleaved;
-  std::vector<const char *> b_fields_interlaced;
-  std::vector<const char *> b_fields_interleaved;
-  std::vector<CWP_Dof_location_t> f_dof_location1;
-  std::vector<CWP_Dof_location_t> f_dof_location2;
-  std::vector<CWP_Dof_location_t> b_dof_location1;
-  std::vector<CWP_Dof_location_t> b_dof_location2;
-  if (f_cell_cell) {
-    f_fields_interlaced .push_back("f_fieldinterlacedcellcell");
-    f_fields_interleaved.push_back("f_fieldinterleavedcellcell");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (b_cell_cell) {
-    b_fields_interlaced .push_back("b_fieldinterlacedcellcell");
-    b_fields_interleaved.push_back("b_fieldinterleavedcellcell");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (f_cell_vtx) {
-    f_fields_interlaced .push_back("f_fieldinterlacedcellvtx");
-    f_fields_interleaved.push_back("f_fieldinterleavedcellvtx");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (b_cell_vtx) {
-    b_fields_interlaced .push_back("b_fieldinterlacedcellvtx");
-    b_fields_interleaved.push_back("b_fieldinterleavedcellvtx");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (f_cell_usr) {
-    f_fields_interlaced .push_back("f_fieldinterlacedcellusr");
-    f_fields_interleaved.push_back("f_fieldinterleavedcellusr");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-  if (b_cell_usr) {
-    b_fields_interlaced .push_back("b_fieldinterlacedcellusr");
-    b_fields_interleaved.push_back("b_fieldinterleavedcellusr");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-  if (f_vtx_cell) {
-    f_fields_interlaced .push_back("f_fieldinterlacedvtxcell");
-    f_fields_interleaved.push_back("f_fieldinterleavedvtxcell");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (b_vtx_cell) {
-    b_fields_interlaced .push_back("b_fieldinterlacedvtxcell");
-    b_fields_interleaved.push_back("b_fieldinterleavedvtxcell");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (f_vtx_vtx) {
-    f_fields_interlaced .push_back("f_fieldinterlacedvtxvtx");
-    f_fields_interleaved.push_back("f_fieldinterleavedvtxvtx");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (b_vtx_vtx) {
-    b_fields_interlaced .push_back("b_fieldinterlacedvtxvtx");
-    b_fields_interleaved.push_back("b_fieldinterleavedvtxvtx");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (f_vtx_usr) {
-    f_fields_interlaced .push_back("f_fieldinterlacedvtxusr");
-    f_fields_interleaved.push_back("f_fieldinterleavedvtxusr");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-  if (b_vtx_usr) {
-    b_fields_interlaced .push_back("b_fieldinterlacedvtxusr");
-    b_fields_interleaved.push_back("b_fieldinterleavedvtxusr");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_NODE);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-  if (f_usr_cell) {
-    f_fields_interlaced .push_back("f_fieldinterlacedusrcell");
-    f_fields_interleaved.push_back("f_fieldinterleavedusrcell");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (b_usr_cell) {
-    b_fields_interlaced .push_back("b_fieldinterlacedusrcell");
-    b_fields_interleaved.push_back("b_fieldinterleavedusrcell");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_CELL_CENTER);
-  }
-  if (f_usr_vtx) {
-    f_fields_interlaced .push_back("f_fieldinterlacedusrvtx");
-    f_fields_interleaved.push_back("f_fieldinterleavedusrvtx");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (b_usr_vtx) {
-    b_fields_interlaced .push_back("b_fieldinterlacedusrvtx");
-    b_fields_interleaved.push_back("b_fieldinterleavedusrvtx");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_NODE);
-  }
-  if (f_usr_usr) {
-    f_fields_interlaced .push_back("f_fieldinterlacedusrusr");
-    f_fields_interleaved.push_back("f_fieldinterleavedusrusr");
-    f_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    f_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-  if (b_usr_usr) {
-    b_fields_interlaced .push_back("b_fieldinterlacedusrusr");
-    b_fields_interleaved.push_back("b_fieldinterleavedusrusr");
-    b_dof_location1     .push_back(CWP_DOF_LOCATION_USER);
-    b_dof_location2     .push_back(CWP_DOF_LOCATION_USER);
-  }
-
+  // Define fields for each case :
+  //  - interlaced and interleaved exchange and interpolation have
+  //    to return the same values
+  //  - user-defined interpolation functions are set if required
+  //  - broadcast is enabled if no partitioning is required
   for (int i_code = 0; i_code < n_code; i_code++) {
     if (strcmp(code_names[i_code], "code1") == 0) {
-      for (size_t i_field = 0; i_field < f_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < forward_cases.n_cases; i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         f_fields_interlaced[i_field],
+                         forward_cases.fields_interlaced[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLACED,
                          2,
-                         f_dof_location1[i_field],
+                         forward_cases.dof_location1[i_field],
+                         CWP_FIELD_EXCH_SEND,
+                         CWP_STATUS_ON);
+        CWP_Field_create(code_names[i_code],
+                         cpl_name,
+                         forward_cases.fields_interleaved[i_field].c_str(),
+                         CWP_DOUBLE,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
+                         2,
+                         forward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_SEND,
                          CWP_STATUS_ON);
         if (part1 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Involved_srcs_bcast_enable(code_names[i_code],
                                          cpl_name,
-                                         f_fields_interlaced[i_field]);
-        }
-      }
-      for (size_t i_field = 0; i_field < f_fields_interleaved.size(); i_field++) {
-        CWP_Field_create(code_names[i_code],
-                         cpl_name,
-                         f_fields_interleaved[i_field],
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         2,
-                         f_dof_location1[i_field],
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
-        if (part1 == CWP_COMM_PAR_WITHOUT_PART) {
+                                         forward_cases.fields_interlaced[i_field].c_str());
           CWP_Involved_srcs_bcast_enable(code_names[i_code],
                                          cpl_name,
-                                         f_fields_interleaved[i_field]);
+                                         forward_cases.fields_interleaved[i_field].c_str());
         }
       }
-      for (size_t i_field = 0; i_field < b_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < backward_cases.n_cases; i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         b_fields_interlaced[i_field],
+                         backward_cases.fields_interlaced[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLACED,
                          2,
-                         b_dof_location1[i_field],
+                         backward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_RECV,
                          CWP_STATUS_ON);
-        if (user_interp) {
-          CWP_Field_interp_function_set(code_names[i_code],
-                                        cpl_name,
-                                        b_fields_interlaced[i_field],
-                                        user_interpolation);
-        }
-        if (part1 == CWP_COMM_PAR_WITHOUT_PART) {
-          CWP_Computed_tgts_bcast_enable(code_names[i_code],
-                                         cpl_name,
-                                         b_fields_interlaced[i_field]);
-        }
-      }
-      for (size_t i_field = 0; i_field < b_fields_interleaved.size(); i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         b_fields_interleaved[i_field],
+                         backward_cases.fields_interleaved[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLEAVED,
                          2,
-                         b_dof_location1[i_field],
+                         backward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_RECV,
                          CWP_STATUS_ON);
         if (user_interp) {
           CWP_Field_interp_function_set(code_names[i_code],
                                         cpl_name,
-                                        b_fields_interleaved[i_field],
+                                        backward_cases.fields_interlaced[i_field].c_str(),
+                                        user_interpolation);
+          CWP_Field_interp_function_set(code_names[i_code],
+                                        cpl_name,
+                                        backward_cases.fields_interleaved[i_field].c_str(),
                                         user_interpolation);
         }
         if (part1 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Computed_tgts_bcast_enable(code_names[i_code],
                                          cpl_name,
-                                         b_fields_interleaved[i_field]);
+                                         backward_cases.fields_interlaced[i_field].c_str());
+          CWP_Computed_tgts_bcast_enable(code_names[i_code],
+                                         cpl_name,
+                                         backward_cases.fields_interleaved[i_field].c_str());
         }
       }
     }
 
     if (strcmp(code_names[i_code], "code2") == 0) {
-      for (size_t i_field = 0; i_field < f_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < forward_cases.n_cases; i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         f_fields_interlaced[i_field],
+                         forward_cases.fields_interlaced[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLACED,
                          2,
-                         f_dof_location2[i_field],
+                         forward_cases.dof_location2[i_field],
+                         CWP_FIELD_EXCH_RECV,
+                         CWP_STATUS_ON);
+        CWP_Field_create(code_names[i_code],
+                         cpl_name,
+                         forward_cases.fields_interleaved[i_field].c_str(),
+                         CWP_DOUBLE,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
+                         2,
+                         forward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_RECV,
                          CWP_STATUS_ON);
         if (user_interp) {
           CWP_Field_interp_function_set(code_names[i_code],
                                         cpl_name,
-                                        f_fields_interlaced[i_field],
+                                        forward_cases.fields_interlaced[i_field].c_str(),
                                         user_interpolation);
-        }
-        if (part2 == CWP_COMM_PAR_WITHOUT_PART) {
-          CWP_Computed_tgts_bcast_enable(code_names[i_code],
-                                         cpl_name,
-                                         f_fields_interlaced[i_field]);
-        }
-      }
-      for (size_t i_field = 0; i_field < f_fields_interleaved.size(); i_field++) {
-        CWP_Field_create(code_names[i_code],
-                         cpl_name,
-                         f_fields_interleaved[i_field],
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         2,
-                         f_dof_location2[i_field],
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
-        if (user_interp) {
           CWP_Field_interp_function_set(code_names[i_code],
                                         cpl_name,
-                                        f_fields_interleaved[i_field],
+                                        forward_cases.fields_interleaved[i_field].c_str(),
                                         user_interpolation);
         }
         if (part2 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Computed_tgts_bcast_enable(code_names[i_code],
                                          cpl_name,
-                                         f_fields_interleaved[i_field]);
+                                         forward_cases.fields_interlaced[i_field].c_str());
+          CWP_Computed_tgts_bcast_enable(code_names[i_code],
+                                         cpl_name,
+                                         forward_cases.fields_interleaved[i_field].c_str());
         }
       }
-      for (size_t i_field = 0; i_field < b_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < backward_cases.n_cases; i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         b_fields_interlaced[i_field],
+                         backward_cases.fields_interlaced[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLACED,
                          2,
-                         b_dof_location2[i_field],
+                         backward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_SEND,
                          CWP_STATUS_ON);
-        if (part2 == CWP_COMM_PAR_WITHOUT_PART) {
-          CWP_Involved_srcs_bcast_enable(code_names[i_code],
-                                         cpl_name,
-                                         b_fields_interlaced[i_field]);
-        }
-      }
-      for (size_t i_field = 0; i_field < b_fields_interleaved.size(); i_field++) {
         CWP_Field_create(code_names[i_code],
                          cpl_name,
-                         b_fields_interleaved[i_field],
+                         backward_cases.fields_interleaved[i_field].c_str(),
                          CWP_DOUBLE,
                          CWP_FIELD_STORAGE_INTERLEAVED,
                          2,
-                         b_dof_location2[i_field],
+                         backward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_SEND,
                          CWP_STATUS_ON);
         if (part2 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Involved_srcs_bcast_enable(code_names[i_code],
                                          cpl_name,
-                                         b_fields_interleaved[i_field]);
+                                         backward_cases.fields_interlaced[i_field].c_str());
+          CWP_Involved_srcs_bcast_enable(code_names[i_code],
+                                         cpl_name,
+                                         backward_cases.fields_interleaved[i_field].c_str());
         }
       }
     }
 
   }
 
+  // Loop on time to check the update of interpolation weights
   for (int i_step = 0; i_step < 2; i_step++) {
 
     // Begin time step
@@ -1103,276 +1071,41 @@ _get_values
       CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
     }
 
-    if (f_cell_cell) {
-      res_loc[ 0] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedcellcell",
-                                   "f_fieldinterleavedcellcell",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
+    // Get value from forward cases
+    for (int i_case = 0; i_case < forward_cases.n_cases; i_case++) {
+      res_loc[forward_cases.idx[i_case]] = _get_value_cpl(_forward.data(),
+                                                          n_code,
+                                                          code_names.data(),
+                                                          cpl_name,
+                                                          forward_cases.fields_interlaced [i_case].c_str(),
+                                                          forward_cases.fields_interleaved[i_case].c_str(),
+                                                          forward_cases.dof_location1     [i_case],
+                                                          forward_cases.dof_location2     [i_case],
+                                                          n_part,
+                                                          pn_vtx,
+                                                          pn_face,
+                                                          pvtx_ln_to_gn,
+                                                          pface_ln_to_gn);
     }
-    if (f_cell_vtx) {
-      res_loc[ 1] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedcellvtx",
-                                   "f_fieldinterleavedcellvtx",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
+
+    // Get value from backward cases
+    for (int i_case = 0; i_case < backward_cases.n_cases; i_case++) {
+      res_loc[backward_cases.idx[i_case]] = _get_value_cpl(_backward.data(),
+                                                           n_code,
+                                                           code_names.data(),
+                                                           cpl_name,
+                                                           backward_cases.fields_interlaced [i_case].c_str(),
+                                                           backward_cases.fields_interleaved[i_case].c_str(),
+                                                           backward_cases.dof_location2     [i_case],
+                                                           backward_cases.dof_location1     [i_case],
+                                                           n_part,
+                                                           pn_vtx,
+                                                           pn_face,
+                                                           pvtx_ln_to_gn,
+                                                           pface_ln_to_gn);
     }
-    if (f_cell_usr) {
-      res_loc[ 2] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedcellusr",
-                                   "f_fieldinterleavedcellusr",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_vtx_cell) {
-      res_loc[ 3] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedvtxcell",
-                                   "f_fieldinterleavedvtxcell",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_vtx_vtx) {
-      res_loc[ 4] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedvtxvtx",
-                                   "f_fieldinterleavedvtxvtx",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_vtx_usr) {
-      res_loc[ 5] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedvtxusr",
-                                   "f_fieldinterleavedvtxusr",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_usr_cell) {
-      res_loc[ 6] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedusrcell",
-                                   "f_fieldinterleavedusrcell",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_usr_vtx) {
-      res_loc[ 7] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedusrvtx",
-                                   "f_fieldinterleavedusrvtx",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (f_usr_usr) {
-      res_loc[ 8] = _get_value_cpl(_forward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "f_fieldinterlacedusrusr",
-                                   "f_fieldinterleavedusrusr",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_cell_cell) {
-      res_loc[ 9] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedcellcell",
-                                   "b_fieldinterleavedcellcell",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_cell_vtx) {
-      res_loc[10] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedcellvtx",
-                                   "b_fieldinterleavedcellvtx",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_cell_usr) {
-      res_loc[11] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedcellusr",
-                                   "b_fieldinterleavedcellusr",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_vtx_cell) {
-      res_loc[12] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedvtxcell",
-                                   "b_fieldinterleavedvtxcell",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_vtx_vtx) {
-      res_loc[13] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedvtxvtx",
-                                   "b_fieldinterleavedvtxvtx",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_vtx_usr) {
-      res_loc[14] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedvtxusr",
-                                   "b_fieldinterleavedvtxusr",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_NODE,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_usr_cell) {
-      res_loc[15] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedusrcell",
-                                   "b_fieldinterleavedusrcell",
-                                   CWP_DOF_LOCATION_CELL_CENTER,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_usr_vtx) {
-      res_loc[16] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedusrvtx",
-                                   "b_fieldinterleavedusrvtx",
-                                   CWP_DOF_LOCATION_NODE,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
-    if (b_usr_usr) {
-      res_loc[17] = _get_value_cpl(_backward.data(),
-                                   n_code,
-                                   code_names.data(),
-                                   cpl_name,
-                                   "b_fieldinterlacedusrusr",
-                                   "b_fieldinterleavedusrusr",
-                                   CWP_DOF_LOCATION_USER,
-                                   CWP_DOF_LOCATION_USER,
-                                   n_part,
-                                   pn_vtx,
-                                   pn_face,
-                                   pvtx_ln_to_gn,
-                                   pface_ln_to_gn);
-    }
+
+    // Sum values across ranks
     MPI_Allreduce(res_loc.data(), res.data(), res.size(), MPI_DOUBLE, MPI_SUM, comm);
 
     // End time step
@@ -1385,48 +1118,40 @@ _get_values
   // Free all
   for (int i_code = 0; i_code < n_code; i_code++) {
     if (strcmp(code_names[i_code], "code1") == 0) {
-      for (size_t i_field = 0; i_field < f_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < forward_cases.n_cases; i_field++) {
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      f_fields_interlaced[i_field]);
+                      forward_cases.fields_interlaced[i_field].c_str());
+        CWP_Field_del(code_names[i_code],
+                      cpl_name,
+                      forward_cases.fields_interleaved[i_field].c_str());
       }
-      for (size_t i_field = 0; i_field < f_fields_interleaved.size(); i_field++) {
+      for (int i_field = 0; i_field < backward_cases.n_cases; i_field++) {
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      f_fields_interleaved[i_field]);
-      }
-      for (size_t i_field = 0; i_field < b_fields_interlaced.size(); i_field++) {
+                      backward_cases.fields_interlaced[i_field].c_str());
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      b_fields_interlaced[i_field]);
-      }
-      for (size_t i_field = 0; i_field < b_fields_interleaved.size(); i_field++) {
-        CWP_Field_del(code_names[i_code],
-                      cpl_name,
-                      b_fields_interleaved[i_field]);
+                      backward_cases.fields_interleaved[i_field].c_str());
       }
     }
 
     if (strcmp(code_names[i_code], "code2") == 0) {
-      for (size_t i_field = 0; i_field < f_fields_interlaced.size(); i_field++) {
+      for (int i_field = 0; i_field < forward_cases.n_cases; i_field++) {
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      f_fields_interlaced[i_field]);
+                      forward_cases.fields_interlaced[i_field].c_str());
+        CWP_Field_del(code_names[i_code],
+                      cpl_name,
+                      forward_cases.fields_interleaved[i_field].c_str());
       }
-      for (size_t i_field = 0; i_field < f_fields_interleaved.size(); i_field++) {
+      for (int i_field = 0; i_field < backward_cases.n_cases; i_field++) {
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      f_fields_interleaved[i_field]);
-      }
-      for (size_t i_field = 0; i_field < b_fields_interlaced.size(); i_field++) {
+                      backward_cases.fields_interlaced[i_field].c_str());
         CWP_Field_del(code_names[i_code],
                       cpl_name,
-                      b_fields_interlaced[i_field]);
-      }
-      for (size_t i_field = 0; i_field < b_fields_interleaved.size(); i_field++) {
-        CWP_Field_del(code_names[i_code],
-                      cpl_name,
-                      b_fields_interleaved[i_field]);
+                      backward_cases.fields_interleaved[i_field].c_str());
       }
     }
 

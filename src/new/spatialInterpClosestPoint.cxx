@@ -983,7 +983,7 @@ namespace cwipi {
       }
 
       if (stat == 0) {
-                for (int j = 0; j < stride; j++) {
+        for (int j = 0; j < stride; j++) {
           tgt_value[j] = c[j];
         }
       }
