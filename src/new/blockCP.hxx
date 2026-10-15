@@ -69,7 +69,7 @@ namespace cwipi {
     (
       CWP_Block_t  block_type,
       Mesh        *mesh
-    );
+    ) override;
 
 
     /**
@@ -142,8 +142,8 @@ namespace cwipi {
      *
      * \return Vector of face counts for each partition
      */
-    inline const std::vector<int>
-    nFacesGet();
+    inline const std::vector<int>&
+    nFacesGet() const;
 
 
     /**
@@ -190,8 +190,8 @@ namespace cwipi {
      *
      * \return Vector of connectivity arrays for each partition
      */
-    inline const std::vector<int*>
-    faceConnecGet();
+    inline const std::vector<int*>&
+    faceConnecGet() const;
 
 
     /**
@@ -212,8 +212,8 @@ namespace cwipi {
      *
      * \return Vector of connectivity index arrays for each partition
      */
-    inline const std::vector<int*>
-    faceConnecIdxGet();
+    inline const std::vector<int*>&
+    faceConnecIdxGet() const;
 
 
     /**
@@ -251,7 +251,7 @@ namespace cwipi {
     inline void
     faceGlobalNumSet
     (
-      const std::vector<CWP_g_num_t*> global_num_faces
+      const std::vector<CWP_g_num_t*>& global_num_faces
     );
 
 
@@ -272,7 +272,7 @@ namespace cwipi {
      *
      */
     void
-    geomFinalize();
+    geomFinalize() override;
 
   private:
 
@@ -315,8 +315,8 @@ namespace cwipi {
   }
 
 
-  inline const std::vector<int*>
-  BlockCP::faceConnecGet()
+  inline const std::vector<int*>&
+  BlockCP::faceConnecGet() const
   {
     return _connec_faces;
   }
@@ -332,8 +332,8 @@ namespace cwipi {
   }
 
 
-  inline const std::vector<int*>
-  BlockCP::faceConnecIdxGet()
+  inline const std::vector<int*>&
+  BlockCP::faceConnecIdxGet() const
   {
     return _connec_faces_idx;
   }
@@ -349,8 +349,8 @@ namespace cwipi {
   }
 
 
-  inline const std::vector<int>
-  BlockCP::nFacesGet()
+  inline const std::vector<int>&
+  BlockCP::nFacesGet() const
   {
     return _n_faces;
   }
@@ -380,7 +380,7 @@ namespace cwipi {
   inline void
   BlockCP::faceGlobalNumSet
   (
-    const std::vector<CWP_g_num_t*> global_num_faces
+    const std::vector<CWP_g_num_t*>& global_num_faces
   )
   {
     _global_num_faces = global_num_faces;

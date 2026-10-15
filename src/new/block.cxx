@@ -25,6 +25,7 @@
 
 #include "pdm_part_mesh_nodal.h"
 
+#include <cstdlib>
 #include <vector>
 
 /**
@@ -34,7 +35,7 @@
 namespace cwipi {
 
   Block::Block()
-    : _global_num_owner(PDM_OWNERSHIP_USER)
+  : _global_num_owner(PDM_OWNERSHIP_USER)
   {
   }
 
@@ -59,7 +60,7 @@ namespace cwipi {
     _mesh = mesh;
 
     _block_type = block_type;
-    _n_part     = static_cast<Mesh*>(mesh)->nPartGet();
+    _n_part     = mesh->nPartGet();
 
     _n_elts     .resize(_n_part);
     _elt_centers.resize(_n_part, nullptr);

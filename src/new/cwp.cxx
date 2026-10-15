@@ -133,7 +133,7 @@ _is_active_rank
  const char *local_code_name
  )
 {
-   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
+   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::instanceGet();
    const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
    return properties.isActiveRank();
 }
@@ -147,10 +147,10 @@ _cpl_get
  )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
+    cwipi::CouplingDB::instanceGet();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
    const string &cpl_name_str = cpl_id;
    return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
@@ -281,7 +281,7 @@ CWP_Connectable_comm_get
 {
 
   if(_is_active_rank(local_code_name)){
-    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
     const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
     MPI_Comm connecComm = localCodeProperties.connectableCommGet();
 
@@ -419,7 +419,7 @@ CWP_Init
    * Get application properties
    */
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   int my_rank;
   MPI_Comm_rank (global_comm, &my_rank);
@@ -463,49 +463,49 @@ CWP_Init
    */
 
   cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
-    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::instanceGet();
 
-  factoryComm.Register<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
-  factoryComm.Register<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
+  factoryComm.add<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
+  factoryComm.add<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
 
   /*
    * Create spatial interpolation abstract factory
    */
 
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
-    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::instanceGet();
 
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
-  factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
-  factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
+  factorySpatialInterp.add<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.add<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.add<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.add<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   /*
    * Create block abstract factory
    */
 
   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
-    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::instanceGet();
 
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_NODE);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
-  factoryBlock.Register<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
-  factoryBlock.Register<cwipi::BlockCP >(CWP_BLOCK_CELL_POLY);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_TRIAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_QUADHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_TETRAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_NODE);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.add<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.add<cwipi::BlockCP >(CWP_BLOCK_CELL_POLY);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
 
   MPI_Barrier(global_comm);
 
@@ -539,12 +539,12 @@ CWP_Finalize
   // or couplingDB is freed and all structures are to be freed explicitely by the user
   // (Cpl, Interf, Field,...)
   //cwipi::CouplingDB & couplingDB =
-  //  cwipi::CouplingDB::getInstance();
+  //  cwipi::CouplingDB::instanceGet();
   //
   //couplingDB.kill();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   int flag = 0;
 
@@ -560,45 +560,45 @@ CWP_Finalize
   properties.kill();
 
   cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
-    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::instanceGet();
 
-  factoryComm.Unregister(CWP_COMM_PAR_WITH_PART);
-  factoryComm.Unregister(CWP_COMM_PAR_WITHOUT_PART);
+  factoryComm.remove(CWP_COMM_PAR_WITH_PART);
+  factoryComm.remove(CWP_COMM_PAR_WITHOUT_PART);
 
   factoryComm.kill();
 
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
-    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::instanceGet();
 
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
-  factorySpatialInterp.Unregister(CWP_SPATIAL_INTERP_FROM_IDENTITY);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   factorySpatialInterp.kill();
 
   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
-    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::instanceGet();
 
-  factoryBlock.Unregister(CWP_BLOCK_NODE);
-  factoryBlock.Unregister(CWP_BLOCK_EDGE2);
-  factoryBlock.Unregister(CWP_BLOCK_FACE_TRIA3);
-  factoryBlock.Unregister(CWP_BLOCK_FACE_QUAD4);
-  factoryBlock.Unregister(CWP_BLOCK_FACE_POLY);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_TETRA4);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_HEXA8);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_PRISM6);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_PYRAM5);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_POLY);
-  factoryBlock.Unregister(CWP_BLOCK_FACE_TRIAHO);
-  factoryBlock.Unregister(CWP_BLOCK_FACE_QUADHO);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_TETRAHO);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_HEXAHO);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_PRISMHO);
-  factoryBlock.Unregister(CWP_BLOCK_CELL_PYRAMHO);
+  factoryBlock.remove(CWP_BLOCK_NODE);
+  factoryBlock.remove(CWP_BLOCK_EDGE2);
+  factoryBlock.remove(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.remove(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.remove(CWP_BLOCK_FACE_POLY);
+  factoryBlock.remove(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.remove(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.remove(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.remove(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.remove(CWP_BLOCK_CELL_POLY);
+  factoryBlock.remove(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.remove(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_PYRAMHO);
 
   factoryBlock.kill();
 
@@ -627,7 +627,7 @@ CWP_State_update
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   properties.ctrlParamSet<int>(string(local_code_name), "state", state);
 }
@@ -648,7 +648,7 @@ CWP_State_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   return static_cast<CWP_State_t> (
       properties.ctrlParamGet<int>(string(code_name), "state"));
@@ -667,7 +667,7 @@ CWP_Codes_nb_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   return properties.codesNbGet();
 }
@@ -684,7 +684,7 @@ CWP_Codes_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
   return properties.codesListGet();
 }
 
@@ -700,7 +700,7 @@ CWP_Loc_codes_nb_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   return properties.localCodesNbGet();
 }
@@ -718,7 +718,7 @@ CWP_Loc_codes_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
   return properties.localCodesListGet();
 }
 
@@ -738,7 +738,7 @@ CWP_Time_step_beg
  const double current_time
 )
 {
-  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
 
   int is_locked = properties.isLocked(local_code_name);
 
@@ -755,9 +755,9 @@ CWP_Time_step_beg
   MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
   MPI_Barrier(connectable_comm);
 
-  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::instanceGet();
 
-  couplingDB.time_step_beg(properties.codePropertiesGet(local_code_name),
+  couplingDB.timeStepBegin(properties.codePropertiesGet(local_code_name),
                            current_time);
 }
 
@@ -774,14 +774,14 @@ CWP_Time_step_end
  const char* local_code_name
 )
 {
-  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
 
   MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
   MPI_Barrier(connectable_comm);
 
-  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::instanceGet();
 
-  couplingDB.time_step_end(properties.codePropertiesGet(local_code_name));
+  couplingDB.timeStepEnd(properties.codePropertiesGet(local_code_name));
 }
 
 /**
@@ -802,7 +802,7 @@ CWP_User_structure_set
 )
 {
   cwipi::CodePropertiesDB & properties =
-  cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB::instanceGet();
   properties.userStructureSet(string(local_code_name), user_structure);
 }
 
@@ -824,7 +824,7 @@ CWP_User_structure_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-  cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB::instanceGet();
   return properties.userStructureGet(string(local_code_name));
 
 }
@@ -881,7 +881,7 @@ CWP_Properties_dump
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
   properties.dump();
 }
 
@@ -897,7 +897,7 @@ CWP_Properties_str_dump
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
   string str_out = properties.str_dump();
 
   // prepare output
@@ -942,10 +942,10 @@ CWP_Cpl_create
 )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
+    cwipi::CouplingDB::instanceGet();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
@@ -1006,10 +1006,10 @@ const char *cpl_id
 )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
+    cwipi::CouplingDB::instanceGet();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   // end (free) visualization
   if(_is_active_rank(local_code_name)){
@@ -3092,7 +3092,7 @@ CWP_Param_add
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3136,7 +3136,7 @@ CWP_Param_set
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3177,7 +3177,7 @@ CWP_Param_del
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3221,7 +3221,7 @@ CWP_Param_n_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = code_name;
   int nParam = -1;
@@ -3266,7 +3266,7 @@ CWP_Param_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = code_name;
 
@@ -3308,7 +3308,7 @@ CWP_Param_is
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
@@ -3352,7 +3352,7 @@ CWP_Param_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
@@ -3407,7 +3407,7 @@ CWP_Param_reduce
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   const string &nameStr = param_name;
 
@@ -3447,7 +3447,7 @@ const char *code_name
   const string &nameStr = code_name;
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   properties.lock(nameStr);
 }
@@ -3472,7 +3472,7 @@ const char *code_name
   const string &nameStr = code_name;
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+    cwipi::CodePropertiesDB::instanceGet();
 
   properties.unLock(nameStr);
 }

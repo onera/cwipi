@@ -27,6 +27,7 @@
 #include "pdm_ho_ordering.h"
 #include "pdm_mesh_nodal.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 
@@ -39,6 +40,7 @@ namespace cwipi {
   BlockHO::BlockHO()
     : BlockStd::BlockStd()
   {
+    _order       = 0;
     _ho_ordering = nullptr;
   }
 
@@ -86,9 +88,9 @@ namespace cwipi {
     _connec    [i_part] = connec;
     _global_num[i_part] = global_num;
 
-    PDM_Mesh_nodal_elt_t elt_type  = (PDM_Mesh_nodal_elt_t) _block_type;
+    PDM_Mesh_nodal_elt_t elt_type  = static_cast<PDM_Mesh_nodal_elt_t>(_block_type);
     int                  elt_n_vtx = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, order);
-    _connec_ijk[i_part] = (int *) malloc(sizeof(int) * n_elts * elt_n_vtx);
+    _connec_ijk[i_part] = static_cast<int *>(malloc(sizeof(int) * n_elts * elt_n_vtx));
     memcpy(_connec_ijk[i_part], _connec[i_part], sizeof(int) * n_elts * elt_n_vtx);
 
     _order = order;
@@ -137,7 +139,7 @@ namespace cwipi {
                 "CWP_Mesh_interf_ho_ordering_from_IJK_set must be called to provide CWIPI with the user's high-order numbering\n");
     }
 
-    PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) _block_type;
+    PDM_Mesh_nodal_elt_t elt_type = static_cast<PDM_Mesh_nodal_elt_t>(_block_type);
 
     for (int ipart = 0; ipart < _n_part; ipart++) {
       PDM_Mesh_nodal_reorder_elt_vtx(elt_type,

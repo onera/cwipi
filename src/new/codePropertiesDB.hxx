@@ -22,6 +22,7 @@
 #include <mpi.h>
 #include <map>
 #include <vector>
+#include <string>
 
 #include "pdm_printf.h"
 

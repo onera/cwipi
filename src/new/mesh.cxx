@@ -37,12 +37,16 @@
 
 #include <mpi.h>
 
+#include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 
 /**
  * \cond
  */
+
+using namespace std;
 
 namespace cwipi {
 
@@ -60,11 +64,11 @@ namespace cwipi {
   static void
   _gen_gnum
   (
-    const PDM_MPI_Comm                comm,
-    const int                         n_part,
-    const std::vector<int>           &n_entity,
-    const std::vector<double *>      &coords,
-          std::vector<CWP_g_num_t *> &global_num
+    const PDM_MPI_Comm           comm,
+    const int                    n_part,
+    const vector<int>           &n_entity,
+    const vector<double *>      &coords,
+          vector<CWP_g_num_t *> &global_num
   )
   {
     PDM_gen_gnum_t *gen_gnum = PDM_gnum_create(3,
@@ -120,7 +124,7 @@ namespace cwipi {
         idx_write = with_parent ? parent_num[i_cell] : i_cell;
         normalization = 0.;
         for (int i_face = cell_face_idx[i_cell]; i_face < cell_face_idx[i_cell+1]; i_face++) {
-          int id_face = std::abs(cell_face[i_face]) - 1;
+          int id_face = abs(cell_face[i_face]) - 1;
           int vtx_0   = (face_n_vtx < 0) ? face_vtx_idx[id_face] : id_face*face_n_vtx;
           int n_vtx   = (face_n_vtx < 0) ? face_vtx_idx[id_face+1] - face_vtx_idx[id_face] : face_n_vtx;
           for (int i_vtx = vtx_0; i_vtx < vtx_0+n_vtx; i_vtx++) {
@@ -129,7 +133,7 @@ namespace cwipi {
               cell_centers[3*idx_write+j] += coords[3*id_vtx+j];
             }
           }
-          normalization += (double) n_vtx;
+          normalization += static_cast<double>(n_vtx);
         }
         for (int j = 0; j < 3; j++) {
           cell_centers[3*idx_write+j] /= normalization;
@@ -147,7 +151,7 @@ namespace cwipi {
             cell_centers[3*idx_write+j] += coords[3*id_vtx+j];
           }
         }
-        normalization = 1. / (double) n_vtx;
+        normalization = 1. / static_cast<double>(n_vtx);
         for (int j = 0; j < 3; j++) {
           cell_centers[3*idx_write+j] *= normalization;
         }
@@ -159,23 +163,23 @@ namespace cwipi {
   static void
   _gen_gnum_with_connectivity
   (
-    const bool                        with_poly,
-    const PDM_MPI_Comm                comm,
-    const int                         n_part,
-    const std::vector<int>           &n_cell,
-    const int                         cell_n_vtx,
-    const std::vector<int *>         &cell_vtx_idx,
-    const std::vector<int *>         &cell_vtx,
-    const std::vector<int *>         &cell_face_idx,
-    const std::vector<int *>         &cell_face,
-    const int                         face_n_vtx,
-    const std::vector<int *>         &face_vtx_idx,
-    const std::vector<int *>         &face_vtx,
-    const std::vector<double *>      &coords,
-          std::vector<CWP_g_num_t *> &global_num
+    const bool                   with_poly,
+    const PDM_MPI_Comm           comm,
+    const int                    n_part,
+    const vector<int>           &n_cell,
+    const int                    cell_n_vtx,
+    const vector<int *>         &cell_vtx_idx,
+    const vector<int *>         &cell_vtx,
+    const vector<int *>         &cell_face_idx,
+    const vector<int *>         &cell_face,
+    const int                    face_n_vtx,
+    const vector<int *>         &face_vtx_idx,
+    const vector<int *>         &face_vtx,
+    const vector<double *>      &coords,
+          vector<CWP_g_num_t *> &global_num
   )
   {
-    std::vector<double*> cell_centers;
+    vector<double*> cell_centers;
     cell_centers.resize(n_part, nullptr);
 
     for (int i_part = 0; i_part < n_part; i_part++) {
@@ -195,7 +199,52 @@ namespace cwipi {
                                          coords       [i_part],
                                          nullptr,
                                          cell_centers [i_part]);
+    }
 
+    _gen_gnum(comm,
+              n_part,
+              n_cell,
+              cell_centers,
+              global_num);
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      free(cell_centers[i_part]);
+    }
+  }
+
+
+  static void
+  _gen_gnum_with_connectivity_elements
+  (
+    const PDM_MPI_Comm           comm,
+    const int                    n_part,
+    const vector<int>           &n_cell,
+    const vector<int *>         &cell_vtx_idx,
+    const vector<int *>         &cell_vtx,
+    const vector<double *>      &coords,
+          vector<CWP_g_num_t *> &global_num
+  )
+  {
+    vector<double*> cell_centers;
+    cell_centers.resize(n_part, nullptr);
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      cell_centers[i_part] = PDM_array_const_double(n_cell[i_part] * 3, 0.);
+
+      _compute_centers_with_connectivity(false,
+                                         false,
+                                         n_cell      [i_part],
+                                         -1,
+                                         cell_vtx_idx[i_part],
+                                         cell_vtx    [i_part],
+                                         nullptr,
+                                         nullptr,
+                                         -1,
+                                         nullptr,
+                                         nullptr,
+                                         coords      [i_part],
+                                         nullptr,
+                                         cell_centers[i_part]);
     }
 
     _gen_gnum(comm,
@@ -263,21 +312,40 @@ namespace cwipi {
     _n_edges .resize(_n_part, 0);
     _edge_vtx.resize(_n_part, nullptr);
 
-    switch (_cpl->entitiesDimGet()) {
-      case CWP_INTERFACE_POINT:
+    switch (_meshDimensionGet()) {
+      case 0:
         _geom_kind = PDM_GEOMETRY_KIND_CORNER;
         break;
-      case CWP_INTERFACE_LINEAR:
+      case 1:
         _geom_kind = PDM_GEOMETRY_KIND_RIDGE;
         break;
-      case CWP_INTERFACE_SURFACE:
+      case 2:
         _geom_kind = PDM_GEOMETRY_KIND_SURFACIC;
         break;
-      case CWP_INTERFACE_VOLUME:
+      case 3:
         _geom_kind = PDM_GEOMETRY_KIND_VOLUMIC;
         break;
       default:
         PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
+    }
+  }
+
+
+  int
+  Mesh::_meshDimensionGet() const
+  {
+    switch (_cpl->entitiesDimGet()) {
+      case CWP_INTERFACE_POINT:
+        return 0;
+      case CWP_INTERFACE_LINEAR:
+        return 1;
+      case CWP_INTERFACE_SURFACE:
+        return 2;
+      case CWP_INTERFACE_VOLUME:
+        return 3;
+      default:
+        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
+        return -1;
     }
   }
 
@@ -296,7 +364,7 @@ namespace cwipi {
   {
     if (_elt_centers[i_part] == nullptr || _displacement != CWP_DYNAMIC_MESH_STATIC) {
       if (_elt_centers[i_part] == nullptr) {
-        _elt_centers[i_part] = (double*) malloc(sizeof(double) * 3 * nEltsGet(i_part));
+        _elt_centers[i_part] = static_cast<double*>(malloc(sizeof(double) * 3 * nEltsGet(i_part)));
       }
 
       for (int i_block = 0; i_block < _n_blocks; i_block++) {
@@ -317,7 +385,7 @@ namespace cwipi {
   Mesh::elementGlobalNumGet
   (
     int i_part
-  )
+  ) const
   {
     return PDM_part_mesh_nodal_g_num_get_from_part(_pmn,
                                                    _geom_kind,
@@ -342,7 +410,7 @@ namespace cwipi {
 
 
   void
-  Mesh::blockDBUpdate()
+  Mesh::_blockDBUpdate()
   {
     PDM_part_mesh_nodal_elmts_t *pmne = PDM_part_mesh_nodal_part_mesh_nodal_elmts_get(_pmn,
                                                                                       _geom_kind);
@@ -351,8 +419,8 @@ namespace cwipi {
     int *section_ids = PDM_part_mesh_nodal_elmts_sections_id_get(pmne);
 
     for (int i_block = 0; i_block < n_block; i_block++) {
-      CWP_Block_t block_type = (CWP_Block_t) PDM_part_mesh_nodal_elmts_section_type_get(pmne,
-                                                                                        section_ids[i_block]);
+      CWP_Block_t block_type = static_cast<CWP_Block_t>(PDM_part_mesh_nodal_elmts_section_type_get(pmne,
+                                                                                                   section_ids[i_block]));
 
       int block_id = blockAdd(block_type);
 
@@ -460,23 +528,7 @@ namespace cwipi {
   void
   Mesh::geomFinalize()
   {
-    int mesh_dimension = -1;
-    switch (_cpl->entitiesDimGet()) {
-      case CWP_INTERFACE_POINT:
-        mesh_dimension = 0;
-        break;
-      case CWP_INTERFACE_LINEAR:
-        mesh_dimension = 1;
-        break;
-      case CWP_INTERFACE_SURFACE:
-        mesh_dimension = 2;
-        break;
-      case CWP_INTERFACE_VOLUME:
-        mesh_dimension = 3;
-        break;
-      default:
-        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
-    }
+    int mesh_dimension = _meshDimensionGet();
 
     _pmn = PDM_part_mesh_nodal_create(mesh_dimension,
                                       _n_part,
@@ -575,7 +627,7 @@ namespace cwipi {
                                                 PDM_OWNERSHIP_KEEP);
         }
       }
-      blockDBUpdate();
+      _blockDBUpdate();
     }
 
     else if (_is_cell_face_method || _is_cell_vtx_method) {
@@ -596,20 +648,13 @@ namespace cwipi {
 
         if (compute_gnum) {
           _is_face_gnum_computed = true;
-          _gen_gnum_with_connectivity(false,
-                                      _local_comm_pdm,
-                                      _n_part,
-                                      _n_faces,
-                                      -1,
-                                      _face_vtx_idx,
-                                      _face_vtx,
-                                      _face_edge_idx, // useless
-                                      _face_edge,     // useless
-                                      -1,
-                                      _face_edge_idx, // useless
-                                      _edge_vtx,      // useless
-                                      _coords,
-                                      _global_num_faces);
+          _gen_gnum_with_connectivity_elements(_local_comm_pdm,
+                                               _n_part,
+                                               _n_faces,
+                                               _face_vtx_idx,
+                                               _face_vtx,
+                                               _coords,
+                                               _global_num_faces);
         }
       }
 
@@ -627,20 +672,20 @@ namespace cwipi {
 
       if (compute_gnum) {
         _is_elt_gnum_computed = true;
-         _gen_gnum_with_connectivity(_is_cell_face_method,
-                                     _local_comm_pdm,
-                                     _n_part,
-                                     _n_cells,
-                                     -1,
-                                     _cell_vtx_idx,
-                                     _cell_vtx,
-                                     _cell_face_idx,
-                                     _cell_face,
-                                     -1,
-                                     _face_vtx_idx,
-                                     _face_vtx,
-                                     _coords,
-                                     _global_num_cells);
+        _gen_gnum_with_connectivity(_is_cell_face_method,
+                                    _local_comm_pdm,
+                                    _n_part,
+                                    _n_cells,
+                                    -1,
+                                    _cell_vtx_idx,
+                                    _cell_vtx,
+                                    _cell_face_idx,
+                                    _cell_face,
+                                    -1,
+                                    _face_vtx_idx,
+                                    _face_vtx,
+                                    _coords,
+                                    _global_num_cells);
       }
 
       if (_is_cell_face_method) {
@@ -671,7 +716,7 @@ namespace cwipi {
                                                 PDM_OWNERSHIP_KEEP);
         }
       }
-      blockDBUpdate();
+      _blockDBUpdate();
     }
 
     else {
@@ -702,7 +747,7 @@ namespace cwipi {
 
         CWP_Block_t block_type = _block_DB[i_block]->blockTypeGet();
 
-        PDM_Mesh_nodal_elt_t pdm_block_type = (PDM_Mesh_nodal_elt_t) block_type;
+        PDM_Mesh_nodal_elt_t pdm_block_type = static_cast<PDM_Mesh_nodal_elt_t>(block_type);
         int i_section = PDM_part_mesh_nodal_section_add(_pmn,
                                                         pdm_block_type);
         _block_DB[i_block]->blockIdPdmSet(i_section);
@@ -710,23 +755,16 @@ namespace cwipi {
         if (block_type == CWP_BLOCK_CELL_POLY) {
           BlockCP *block = dynamic_cast<BlockCP *>(_block_DB[i_block]);
 
-          std::vector<CWP_g_num_t *> global_num;
+          vector<CWP_g_num_t *> global_num;
           global_num.resize(_n_part, nullptr);
 
-           _gen_gnum_with_connectivity(false,
-                                       _local_comm_pdm,
-                                       _n_part,
-                                       block->nFacesGet(),
-                                       -1,
-                                       block->faceConnecIdxGet(),
-                                       block->faceConnecGet(),
-                                       _face_edge_idx, // useless
-                                       _face_edge,     // useless
-                                       -1,
-                                       _face_edge_idx, // useless
-                                       _edge_vtx,      // useless
-                                       _coords,
-                                       global_num);
+          _gen_gnum_with_connectivity_elements(_local_comm_pdm,
+                                               _n_part,
+                                               block->nFacesGet(),
+                                               block->faceConnecIdxGet(),
+                                               block->faceConnecGet(),
+                                               _coords,
+                                               global_num);
 
           block->faceGlobalNumSet(global_num);
         }
@@ -751,10 +789,10 @@ namespace cwipi {
       if (compute_gnum) {
         _is_elt_gnum_computed = true;
 
-        std::vector<double*> cell_centers;
+        vector<double*> cell_centers;
         cell_centers.resize(_n_part, nullptr);
 
-        std::vector<CWP_g_num_t*> global_num;
+        vector<CWP_g_num_t*> global_num;
         global_num.resize(_n_part, nullptr);
 
         for (int i_part = 0; i_part < _n_part; i_part++) {
@@ -800,7 +838,7 @@ namespace cwipi {
             }
             else if (_block_DB[i_block]->blockTypeStdIs()) {
               BlockStd *block = dynamic_cast<BlockStd *>(_block_DB[i_block]);
-              PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) block_type;
+              PDM_Mesh_nodal_elt_t elt_type = static_cast<PDM_Mesh_nodal_elt_t>(block_type);
               int cell_n_vtx = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, 1);
               _compute_centers_with_connectivity(false,
                                                  true,
@@ -819,7 +857,7 @@ namespace cwipi {
             }
             else {
               BlockHO *block = dynamic_cast<BlockHO *>(_block_DB[i_block]);
-              PDM_Mesh_nodal_elt_t elt_type = (PDM_Mesh_nodal_elt_t) block_type;
+              PDM_Mesh_nodal_elt_t elt_type = static_cast<PDM_Mesh_nodal_elt_t>(block_type);
               int cell_n_vtx = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, block->orderGet());
               _compute_centers_with_connectivity(false,
                                                  true,
@@ -849,7 +887,7 @@ namespace cwipi {
 
           for (int i_block = 0; i_block < _n_blocks; i_block++) {
             int          n_elts           = _block_DB[i_block]->nEltsGet(i_part);
-            CWP_g_num_t *global_num_block = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+            CWP_g_num_t *global_num_block = static_cast<CWP_g_num_t *>(malloc(sizeof(CWP_g_num_t) * n_elts));
             if (n_elts > 0) {
               int idx_read = _block_DB[i_block]->parentNumGet(i_part)[0];
               memcpy(global_num_block, &global_num[i_part][idx_read], n_elts * sizeof(CWP_g_num_t));
@@ -1175,7 +1213,7 @@ namespace cwipi {
     }
 
     _n_blocks = 0;
-    for (int i = 0; i < (int) _block_DB.size(); i++) {
+    for (int i = 0; i < static_cast<int>(_block_DB.size()); i++) {
       delete _block_DB[i];
     }
     _block_DB.clear();
@@ -1188,7 +1226,7 @@ namespace cwipi {
     const CWP_Block_t block_type
   )
   {
-    Block *block = FB::getInstance().CreateObject(block_type);
+    Block *block = FB::instanceGet().objectCreate(block_type);
     block->blockAdd(block_type, this);
     int block_id_cwipi = _n_blocks;
     _block_DB.push_back(block);

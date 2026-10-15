@@ -70,7 +70,7 @@ namespace cwipi {
     (
       CWP_Block_t  block_type,
       Mesh        *mesh
-    );
+    ) override;
 
 
     /**
@@ -166,7 +166,7 @@ namespace cwipi {
      *
      */
     void
-    geomFinalize();
+    geomFinalize() override;
 
 
     /**
