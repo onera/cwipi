@@ -89,17 +89,16 @@ _get_values
   }
   // 2 ranks = dispatch codes to share ranks if share_ranks == true
   else {
-    if (!share_ranks && i_rank == 1) {
-      code_names.push_back("code1");
+    if (share_ranks) {
+      code_names = {"code1", "code2"};
     }
-    else if (share_ranks) {
-      code_names.push_back("code1");
-    }
-    if (!share_ranks && i_rank == 0) {
-      code_names.push_back("code2");
-    }
-    else if (share_ranks) {
-      code_names.push_back("code2");
+    else {
+      if (i_rank == 1) {
+        code_names.push_back("code1");
+      }
+      else { // i_rank == 0
+        code_names.push_back("code2");
+      }
     }
   }
   int n_code = static_cast<int>(code_names.size());
@@ -216,7 +215,7 @@ _get_values
       recv_val4[i_code][i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * 2 * pn_face[i_code][i_part]);
 
       for (int i_vtx = 0; i_vtx < pn_vtx[i_code][i_part]; i_vtx++) {
-        send_val2[i_code][i_part][i_vtx] = (double) pvtx_ln_to_gn[i_code][i_part][i_vtx];
+        send_val2[i_code][i_part][i_vtx] = static_cast<double>(pvtx_ln_to_gn[i_code][i_part][i_vtx]);
       }
       for (int i_face = 0; i_face < pn_face[i_code][i_part]; i_face++) {
         send_val4[i_code][i_part][2 * i_face    ] = 2 * pface_ln_to_gn[i_code][i_part][i_face];
