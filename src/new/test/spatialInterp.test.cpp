@@ -76,22 +76,14 @@ struct Data {
       case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE:
       case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE:
       case CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT:
-        if (!backward) {
-          cell_cell = true;
-          cell_vtx  = true;
-          cell_usr  = true;
-          vtx_cell  = true;
-          vtx_vtx   = true;
-          vtx_usr   = true;
-        }
-        else {
-          cell_cell = true;
-          cell_vtx  = true;
-          vtx_cell  = true;
-          vtx_vtx   = true;
-          usr_cell  = true;
-          usr_vtx   = true;
-        }
+        cell_cell = true;
+        cell_vtx  = true;
+        cell_usr  = !backward;
+        vtx_cell  = true;
+        vtx_vtx   = true;
+        vtx_usr   = !backward;
+        usr_cell  = backward;
+        usr_vtx   = backward;
         break;
       }
 
@@ -785,17 +777,16 @@ _get_values
   }
   // 2 ranks = dispatch codes to share ranks if share_ranks == true
   else {
-    if (!share_ranks && i_rank == 1) {
-      code_names.push_back("code1");
+    if (share_ranks) {
+      code_names = {"code1", "code2"};
     }
-    else if (share_ranks) {
-      code_names.push_back("code1");
-    }
-    if (!share_ranks && i_rank == 0) {
-      code_names.push_back("code2");
-    }
-    else if (share_ranks) {
-      code_names.push_back("code2");
+    else {
+      if (i_rank == 1) {
+        code_names.push_back("code1");
+      }
+      else { // i_rank == 0
+        code_names.push_back("code2");
+      }
     }
   }
   int n_code = static_cast<int>(code_names.size());
@@ -808,9 +799,9 @@ _get_values
            intra_comm);
 
   // Create coupling
-  int        *n_part   = (int *) malloc(sizeof(int) * n_code);
-  int         n_vtx    = 9;
-  const char *cpl_name = "spatialInterpTest";
+  int        *n_part    = (int *) malloc(sizeof(int) * n_code);
+  int         n_vtx_seg = 9;
+  const char *cpl_name  = "spatialInterpTest";
 
   for (int i_code = 0; i_code < n_code; i_code++) {
 
@@ -867,7 +858,7 @@ _get_values
     _gen_mesh(mesh_comm,
               n_part         [i_code],
               CWPT_SPLIT_DUAL_WITH_HILBERT,
-              n_vtx,
+              n_vtx_seg,
               &pn_face       [i_code],
               &pn_vtx        [i_code],
               &pface_vtx_idx [i_code],
