@@ -23,6 +23,7 @@
 
 #include "mesh.hxx"
 
+#include <cstdlib>
 #include <vector>
 
 /**
@@ -102,7 +103,6 @@ namespace cwipi {
     *connec_cells_idx = _connec_cells_idx[i_part];
     *connec_cells     = _connec_cells    [i_part];
     *global_num       = _global_num      [i_part];
-
   }
 
 

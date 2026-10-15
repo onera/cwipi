@@ -19,13 +19,13 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "cwp.h"
+
 #include "block.hxx"
 #include "blockCP.hxx"
 #include "blockFP.hxx"
 #include "blockHO.hxx"
 #include "blockStd.hxx"
-
-#include "cwp.h"
 
 #include "pdm_part_mesh_nodal.h"
 
@@ -523,7 +523,7 @@ namespace cwipi {
     elementGlobalNumGet
     (
       int i_part
-    );
+    ) const;
 
 
     /**
@@ -572,7 +572,16 @@ namespace cwipi {
      *
      */
     void
-    blockDBUpdate();
+    _blockDBUpdate();
+
+
+    /**
+     * \brief Return the mesh dimension from the interface entity dimension.
+     *
+     * \return Mesh dimension (0, 1, 2 or 3)
+     */
+    int
+    _meshDimensionGet() const;
 
 
     int                           _n_part;                /*!< Number of partitions */

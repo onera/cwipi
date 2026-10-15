@@ -23,7 +23,6 @@
 
 #include "cwp.h"
 
-#include <cstdlib>
 #include <vector>
 
 /**
@@ -70,7 +69,7 @@ namespace cwipi {
     (
       CWP_Block_t  block_type,
       Mesh        *mesh
-    );
+    ) override;
 
 
     /**
@@ -127,7 +126,7 @@ namespace cwipi {
      *
      */
     void
-    geomFinalize();
+    geomFinalize() override;
 
   private:
 

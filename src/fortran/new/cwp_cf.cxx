@@ -117,10 +117,10 @@ _n_vtx_block_get
 //  )
 // {
 //   cwipi::CouplingDB & couplingDB =
-//     cwipi::CouplingDB::getInstance();
+//     cwipi::CouplingDB::instanceGet();
 
 //   cwipi::CodePropertiesDB & properties =
-//     cwipi::CodePropertiesDB::getInstance();
+//     cwipi::CodePropertiesDB::instanceGet();
 
 //    const string &cpl_name_str = cpl_id;
 //    return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
