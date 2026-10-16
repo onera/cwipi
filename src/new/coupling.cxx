@@ -576,11 +576,9 @@ namespace cwipi {
                 _localCodeProperties.nameGet().c_str());
     }
 
-    MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
                                           exch_id);
 
     int send_request = -1;
@@ -634,11 +632,9 @@ namespace cwipi {
     }
 
 
-    MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
                                           exch_id);
 
     int recv_request = -1;
