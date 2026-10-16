@@ -1671,6 +1671,9 @@ namespace cwipi {
         std::vector<CWP_Dof_location_t> localFieldLocationV;
         localFieldLocationV.reserve(localNbField);
 
+        std::vector<int> localFieldNComponent;
+        localFieldNComponent.reserve(localNbField);
+
         std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
         while(it != _fields.end()){
@@ -1680,6 +1683,7 @@ namespace cwipi {
           localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
           localFieldLocationV.push_back(field->locationGet());
           localFieldsExch.push_back(field->exchangeTypeGet());
+          localFieldNComponent.push_back(field->nComponentGet());
 
           it++;
         }
@@ -1711,9 +1715,10 @@ namespace cwipi {
 
         // - Allocate memory to receive data
 
-        vector<int               > cplFieldNameIdx  (cplNbField + 1, 0);
-        vector<CWP_Field_exch_t  > cplFieldExch     (cplNbField);
-        vector<CWP_Dof_location_t> cplFieldLocationV(cplNbField);
+        vector<int               > cplFieldNameIdx   (cplNbField + 1, 0);
+        vector<CWP_Field_exch_t  > cplFieldExch      (cplNbField);
+        vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
+        vector<int               > cplFieldNComponent(cplNbField);
         string                     cplFieldName;
 
         // - Transfer memory to receive data
@@ -1775,6 +1780,18 @@ namespace cwipi {
                                                                    NULL);
         localFieldLocationV.clear();
 
+        nSendData   = localNbField;
+        nRecvData   = cplNbField;
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                   nSendData,
+                                                                   (void *) localFieldNComponent.data(),
+                                                                   -1,
+                                                                   NULL,
+                                                                   nRecvData,
+                                                                   (void *) cplFieldNComponent.data(),
+                                                                   -1,
+                                                                   NULL);
+
         // Create spatial interpolation objects
 
         it = _fields.begin();
@@ -1789,6 +1806,11 @@ namespace cwipi {
 
             if (_cplFieldName == localFieldName) {
               field->linkedFieldLocationSet(cplFieldLocationV[j]);
+
+              if (cplFieldNComponent[j] != field->nComponentGet()) {
+                PDM_error(__FILE__, __LINE__, 0, "Number of components for local (%i) and coupled (%i) fields '%s' not consistent\n",
+                          cplFieldNComponent[j], field->nComponentGet(), cplFieldName.c_str());
+              }
 
               if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
@@ -1990,6 +2012,9 @@ namespace cwipi {
           std::vector<CWP_Dof_location_t> localFieldLocationV;
           localFieldLocationV.reserve(localNbField);
 
+          std::vector<int> localFieldNComponent;
+          localFieldNComponent.reserve(localNbField);
+
           std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
           while(it != _fields.end()){
@@ -1999,6 +2024,7 @@ namespace cwipi {
             localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
             localFieldLocationV.push_back(field->locationGet());
             localFieldsExch.push_back(field->exchangeTypeGet());
+            localFieldNComponent.push_back(field->nComponentGet());
 
             it++;
           }
@@ -2017,6 +2043,9 @@ namespace cwipi {
           std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
           cpl_localFieldLocationV.reserve(cpl_localNbField);
 
+          std::vector<int> cpl_localFieldNComponent;
+          cpl_localFieldNComponent.reserve(cpl_localNbField);
+
           it = cpl_cpl._fields.begin();
 
           while(it != cpl_cpl._fields.end()){
@@ -2026,6 +2055,7 @@ namespace cwipi {
             cpl_localFieldsNameIdx.push_back((int) (cpl_localFieldsNameIdx[cpl_localFieldsNameIdx.size()-1]+it->first.size()));
             cpl_localFieldLocationV.push_back(field->locationGet());
             cpl_localFieldsExch.push_back(field->exchangeTypeGet());
+            cpl_localFieldNComponent.push_back(field->nComponentGet());
 
             it++;
           }
@@ -2063,14 +2093,16 @@ namespace cwipi {
 
           // - Allocate memory to receive data
 
-          vector<int               > cplFieldsNameIdx (cplNbField + 1, 0);
-          vector<CWP_Field_exch_t  > cplFieldsExch (cplNbField);
+          vector<int               > cplFieldsNameIdx   (cplNbField + 1, 0);
+          vector<CWP_Field_exch_t  > cplFieldsExch      (cplNbField);
           vector<CWP_Dof_location_t> cplFieldsLocationV (cplNbField);
+          vector<CWP_Dof_location_t> cplFieldsNComponent(cplNbField);
           string                     cplFieldsName;
 
-          vector<int               > cpl_cplFieldsNameIdx (cpl_cplNbField + 1, 0);
-          vector<CWP_Field_exch_t  > cpl_cplFieldsExch (cpl_cplNbField);
+          vector<int               > cpl_cplFieldsNameIdx   (cpl_cplNbField + 1, 0);
+          vector<CWP_Field_exch_t  > cpl_cplFieldsExch      (cpl_cplNbField);
           vector<CWP_Dof_location_t> cpl_cplFieldsLocationV (cpl_cplNbField);
+          vector<CWP_Dof_location_t> cpl_cplFieldsNComponent(cpl_cplNbField);
           string                     cpl_cplFieldsName;
 
           // - Transfer memory to receive data
@@ -2154,6 +2186,25 @@ namespace cwipi {
           localFieldLocationV.clear();
           cpl_localFieldLocationV.clear();
 
+          nSendData   = localNbField;
+          nRecvData   = cplNbField;
+
+          cpl_nSendData   = cpl_localNbField;
+          cpl_nRecvData   = cpl_cplNbField;
+
+          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                     nSendData,
+                                                                     (void *) localFieldNComponent.data(),
+                                                                     cpl_nSendData,
+                                                                     (void *) cpl_localFieldNComponent.data(),
+                                                                     nRecvData,
+                                                                     (void *) cplFieldsNComponent.data(),
+                                                                     cpl_nRecvData,
+                                                                     (void *) cpl_cplFieldsNComponent.data());
+
+          localFieldNComponent.clear();
+          cpl_localFieldNComponent.clear();
+
           // Create spatial interpolation objects
 
           it = _fields.begin();
@@ -2172,6 +2223,11 @@ namespace cwipi {
                 if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
                   PDM_error(__FILE__, __LINE__, 0, "'%s' Field not found\n",
                             cplFieldName.c_str());
+                }
+
+                if (cplFieldsNComponent[j] != field->nComponentGet()) {
+                  PDM_error(__FILE__, __LINE__, 0, "Number of components for local (%i) and coupled (%i) fields '%s' not consistent\n",
+                            cplFieldsNComponent[j], field->nComponentGet(), cplFieldName.c_str());
                 }
 
                 cpl_cpl._fields[cplFieldName]->linkedFieldLocationSet(localFieldLocation);
