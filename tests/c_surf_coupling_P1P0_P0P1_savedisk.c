@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -28,16 +28,16 @@
 #include "cwipi.h"
 #include "grid_mesh.h"
 
-#define  IP_BEGIN_ANGLE   0 
+#define  IP_BEGIN_ANGLE   0
 #define  IP_END_ANGLE     360
 #define  IP_FREQ_ANGLE    10
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump status exchange                                                
- *                                                                     
+ *
+ * Dump status exchange
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
@@ -56,11 +56,11 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump not located points                                             
- *                                                                     
+ *
+ * Dump not located points
+ *
  * parameters:
- *   coupling_id         <-- Coupling id               
+ *   coupling_id         <-- Coupling id
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
@@ -78,9 +78,9 @@ static void _dumpNotLocatedPoints(FILE* outputFile,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Display usage                                             
- *                                                                     
+ *
+ * Display usage
+ *
  * parameters:
  *   exit code           <-- Exit code
  *---------------------------------------------------------------------*/
@@ -99,11 +99,11 @@ _usage(int exit_code)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read args from the command line                           
- *                                                                     
+ *
+ * Read args from the command line
+ *
  * parameters:
- *   nVertex             <-- Number of vertices in bandwidth                         
+ *   nVertex             <-- Number of vertices in bandwidth
  *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
@@ -141,11 +141,11 @@ _read_args(int            argc,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : surface coupling test : P1P0_P0P1 
+ *
+ * Main : surface coupling test : P1P0_P0P1
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -254,14 +254,14 @@ int main
 
   if (rank == 0)
     printf("        Create coupling\n");
-  
+
   cwipi_solver_type_t solver_type;
-  
+
   if (codeId == 1)
     solver_type = CWIPI_SOLVER_CELL_VERTEX;
   else
     solver_type = CWIPI_SOLVER_CELL_CENTER;
-  
+
   /* Coupling creation
    * ----------------- */
 
@@ -287,7 +287,7 @@ int main
   int nElts = 0;                 // Number of elements
   int *eltsConnecPointer = NULL; // Connectivity index
   int *eltsConnec = NULL;        // Connectivity
-  
+
   /* Domain bounds */
 
   const double xmin = -10;
@@ -303,21 +303,21 @@ int main
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
 
-  grid_mesh(xmin, 
-            xmax, 
-            ymin, 
-            ymax, 
+  grid_mesh(xmin,
+            xmax,
+            ymin,
+            ymax,
             randLevel,
             nVertexSeg,
-            n_partition, 
-            coords_t0, 
+            n_partition,
+            coords_t0,
             eltsConnecPointer,
             eltsConnec,
-            localComm); 
+            localComm);
 
-  carre2rond(xmin, 
-	     xmax, 
-	     ymin, 
+  carre2rond(xmin,
+	     xmax,
+	     ymin,
 	     ymax,
 	     coords_t0,
 	     nVertex);
@@ -325,7 +325,7 @@ int main
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; } 
+  for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; }
 
   cwipi_define_mesh("c_surf_cpl_P1P0_P0P1",
                     nVertex,
@@ -346,7 +346,7 @@ int main
 
   double *sendValues = NULL;
   double *recvValues = NULL;
-  
+
   if (codeId == 1) {
     sendValues = (double *) malloc(sizeof(double) * nVertex);
     recvValues = (double *) malloc(sizeof(double) * nVertex);
@@ -394,24 +394,24 @@ int main
   fichier_existe = fopen(cl_savefile, "r");
   if(fichier_existe == NULL) {
     //    printf("Le fichier n existe pas, creation pour stockage\n");
-    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"w"); 
+    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"w");
   } else {
     //printf("Le fichier existe, mode lecture \n");
     fclose(fichier_existe);
-    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"r"); 
+    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"r");
   }
   //fclose(fichier_existe);
 
 
   for (int angle = IP_BEGIN_ANGLE ; angle <= IP_END_ANGLE; angle += IP_FREQ_ANGLE) {
-    for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; } 
-    ttime = angle;  
+    for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; }
+    ttime = angle;
 
     cwipi_update_location("c_surf_cpl_P1P0_P0P1");
-    
+
     if (codeId == 1) {
       //      if (rank == 0) printf("vertex==> Angle : %d \n",angle);
- 
+
       mesh_rotate(coords, nVertex, ttime);
 
       if(fichier_existe == NULL) {
@@ -430,7 +430,7 @@ int main
 						      NULL,
 						      NULL,
 						      &nNotLocatedPoints);
-      
+
       status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
 			      "ech2",
 			      1,
@@ -441,15 +441,15 @@ int main
 			      recvValuesName,
 			      recvValues,
 			      &nNotLocatedPoints);
-      
-      if(fichier_existe == NULL) cwipi_save_location("c_surf_cpl_P1P0_P0P1"); 
-     
+
+      if(fichier_existe == NULL) cwipi_save_location("c_surf_cpl_P1P0_P0P1");
+
       _dumpStatus(outputFile, status);
       _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
     }
-    
+
     else {
-      
+
       if(fichier_existe == NULL) {
 	cwipi_update_location("c_surf_cpl_P1P0_P0P1");
       } else {
@@ -465,11 +465,11 @@ int main
 						      recvValuesName,
 						      recvValues,
 						      &nNotLocatedPoints);
-      
-      
+
+
       _dumpStatus(outputFile, status);
       _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
-      
+
       status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
 			      "ech2",
 			      1,
@@ -481,11 +481,13 @@ int main
 			      NULL,
 			      &nNotLocatedPoints);
 
-      if(fichier_existe == NULL) cwipi_save_location("c_surf_cpl_P1P0_P0P1"); 
-     
-      
+      if(fichier_existe == NULL) cwipi_save_location("c_surf_cpl_P1P0_P0P1");
+
+
     }
   }
+
+  cwipi_close_location_file("c_surf_cpl_P1P0_P0P1");
 
   /* Coupling deletion
    * ----------------- */

@@ -108,8 +108,12 @@ namespace cwipi {
       MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank,
                                  unionGroup, cplRanks2 + gap2);
 
-      MPI_Group_incl(unionGroup, 2, cplRanks2, &_cplGroup);
-
+      if (cplRanks2[0] == cplRanks2[1]) {
+        MPI_Group_incl(unionGroup, 1, &cplRanks2[0], &_cplGroup);
+      }
+      else {
+        MPI_Group_incl(unionGroup, 2, cplRanks2, &_cplGroup);
+      }
       MPI_Comm_create (_unionComm, _cplGroup, &_cplComm);
 
     }

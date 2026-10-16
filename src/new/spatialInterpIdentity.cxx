@@ -160,7 +160,7 @@ namespace cwipi {
                                         0,
                                         (const int         **) _src_to_tgt_idx,
                                         (const PDM_g_num_t **) _src_gnum,
-                                        _pdmCplComm);
+                                        _pdmUnionComm);
       }
       else {
         for (int i_part = 0; i_part < _nPart; i_part++) {
@@ -180,7 +180,7 @@ namespace cwipi {
                                         _nPart,
                                         (const int         **) NULL,
                                         (const PDM_g_num_t **) NULL,
-                                        _pdmCplComm);
+                                        _pdmUnionComm);
       }
     }
     else {
@@ -227,7 +227,7 @@ namespace cwipi {
                                           _cplNPart,
                                           (const int         **) _src_to_tgt_idx,
                                           (const PDM_g_num_t **) _src_gnum,
-                                          _pdmCplComm);
+                                          _pdmUnionComm);
         }
         else {
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
@@ -255,7 +255,7 @@ namespace cwipi {
                                           _nPart,
                                           (const int         **) cpl_spatial_interp->_src_to_tgt_idx,
                                           (const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
-                                          _pdmCplComm);
+                                          _pdmUnionComm);
         }
 
         cpl_spatial_interp->_ptsp = _ptsp;

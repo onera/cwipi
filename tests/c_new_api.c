@@ -580,6 +580,12 @@ main(int argc, char *argv[]) {
     CWP_Time_step_end("code4");
   }
 
+  // Get properties
+  char *properties = NULL;
+  CWP_Properties_str_dump(&properties);
+  CWP_Log(CWP_LOG_DEBUG, properties);
+  free(properties);
+
   // Delete coupling
   if (cond_code1) {
     CWP_Cpl_del("code1", cpl_id1);
