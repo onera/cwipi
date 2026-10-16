@@ -22,7 +22,7 @@ _concat
   return a+b;
 }
 
-struct Data {
+struct Cases {
 
   int n_cases = 0;
 
@@ -34,7 +34,7 @@ struct Data {
 
   // Fill structure with spatial interpolation method
   // compatible configurations
-  Data
+  Cases
   (
     CWP_Spatial_interp_t  method,
     bool                  backward,
@@ -738,8 +738,8 @@ _get_values
   // Generate 9 cases for send -> recv from code1 to code2
   // and      9 cases for send -> recv from code2 to code1
   // 9 cases to cover all source/target points location
-  Data forward_cases (spatial_interp, false, 0, "_forward");
-  Data backward_cases(spatial_interp, true,  9, "_backward");
+  Cases forward_cases (spatial_interp, false, 0, "_forward");
+  Cases backward_cases(spatial_interp, true,  9, "_backward");
 
   std::vector<double> res_loc = {0., 0., 0., 0., 0., 0., 0., 0., 0.,
                                  0., 0., 0., 0., 0., 0., 0., 0., 0.};
