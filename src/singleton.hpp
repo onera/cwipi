@@ -26,15 +26,15 @@
 namespace cwipi {
 
   template <typename T>
-  class Singleton {
 
-    /**
-     * \class Singleton singleton.hpp "singleton.hpp"
-     * \brief Singleton pattern implementation.
-     *
-     * Template singleton class ensuring a single instance per type
-     *
-     */
+  /**
+   * \class Singleton singleton.hpp "singleton.hpp"
+   * \brief Singleton pattern implementation.
+   *
+   * Template singleton class ensuring a single instance per type
+   *
+   */
+  class Singleton {
 
   public:
 
@@ -82,12 +82,12 @@ namespace cwipi {
 
   private:
 
-    static T *_singleton; /*!< Pointer to the singleton instance */
+    static T* _singleton; /*!< Pointer to the singleton instance */
 
   };
 
   template <typename T>
-  T *Singleton<T>::_singleton = nullptr;
+  T* Singleton<T>::_singleton = nullptr;
 
 }
 

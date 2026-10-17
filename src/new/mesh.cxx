@@ -731,7 +731,7 @@ namespace cwipi {
         int idx = 0;
         for (int i_block = 0; i_block < _n_blocks; i_block++) {
           int  n_elts     = _block_DB[i_block]->nEltsGet(i_part);
-          int *parent_num = (int *) malloc(sizeof(int) * n_elts);
+          int *parent_num = static_cast<int *>(malloc(sizeof(int) * n_elts));
           for (int i = 0; i < n_elts; i++) {
             parent_num[i] = idx++;
           }

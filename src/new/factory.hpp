@@ -58,7 +58,7 @@ namespace cwipi {
        *
        * \return "Unknown Type"
        */
-      const char* what() const throw() { return "Unknown Type"; }
+      const char* what() const throw() override { return "Unknown Type"; }
 
     };
 
@@ -114,7 +114,7 @@ namespace cwipi {
     {
       return _associations.insert(
         typename IdToProductMap::value_type(id,
-                        newCreator<ConcreteProduct>)).second != 0;
+                                            newCreator<ConcreteProduct>)).second != 0;
     }
 
 
@@ -148,8 +148,8 @@ namespace cwipi {
 
   private:
 
-    typedef std::map<IdentifierType, ProductCreator> IdToProductMap;   /*!< Container type (map) */
-    IdToProductMap _associations;                                     /*!< Container */
+    typedef std::map<IdentifierType, ProductCreator> IdToProductMap; /*!< Container type (map) */
+    IdToProductMap _associations;                                    /*!< Container */
 
     /**
      * \brief Create an object of Concrete product from its identifier.
@@ -159,7 +159,7 @@ namespace cwipi {
      *
      */
     template <class ConcreteProduct>
-    static AbstractProduct * newCreator() {
+    static AbstractProduct* newCreator() {
       return new ConcreteProduct;
     }
 

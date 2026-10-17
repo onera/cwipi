@@ -19,8 +19,6 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cwp.h"
-
 #include <mpi.h>
 
 /**
@@ -36,7 +34,6 @@ namespace cwipi {
    * This class is global data abstract interface
    *
    */
-
   class GlobalData {
 
   public:
@@ -57,7 +54,7 @@ namespace cwipi {
      * \brief Destructor.
      *
      */
-    ~GlobalData();
+    virtual ~GlobalData();
 
 
     /**

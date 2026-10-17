@@ -95,7 +95,6 @@ _cwp_log_va
         va_list  args
 )
 {
-
   // Suppress unused warning
   (void)(level);
   (void)(func);

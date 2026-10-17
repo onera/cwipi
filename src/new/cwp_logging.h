@@ -22,7 +22,7 @@
 
 /*-----------------------------------------------------------------------------*/
 #include <stdbool.h>
-#include <stdio.h>
+#include <stddef.h>
 /*-----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -93,7 +93,7 @@ _cwp_log_fail
 
 
 /**
- * \brief Set logging level on local rank
+ * \brief Set logging level on local rank.
  *
  * \param [in]  level Logging level
  *
@@ -106,7 +106,7 @@ CWP_Log_level_set
 
 
 /**
- * \brief Enable/disable console logging on local rank
+ * \brief Enable/disable console logging on local rank.
  *
  * \param [in]  enable Enable console logging on local rank (0 = quiet [default], 1 = verbose)
  *
@@ -119,7 +119,7 @@ CWP_Log_console_enable
 
 
 /**
- * \brief Enable/disable logfile logging on local rank
+ * \brief Enable/disable logfile logging on local rank.
  *
  * \param [in]  enable Enable logfile logging on local rank (0 = quiet [default], 1 = verbose)
  *
@@ -132,7 +132,7 @@ CWP_Log_logfile_enable
 
 
 /**
- * \brief Pretty print of array in log
+ * \brief Pretty print of array in log.
  *
  * \param [in]  level  Logging level
  * \param [in]  array  Array to print
@@ -151,7 +151,7 @@ CWP_Log_array_int
 
 
 /**
- * \brief Pretty print of array in log
+ * \brief Pretty print of array in log.
  *
  * \param [in]  level  Logging level
  * \param [in]  array  Array to print
@@ -170,7 +170,7 @@ CWP_Log_array_double
 
 
 /**
- * \brief Pretty print of array in log
+ * \brief Pretty print of array in log.
  *
  * \param [in]  level  Logging level
  * \param [in]  array  Array to print

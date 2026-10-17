@@ -68,7 +68,7 @@ namespace cwipi {
      * \brief Destructor.
      *
      */
-    ~PartData();
+    virtual ~PartData();
 
 
     /**

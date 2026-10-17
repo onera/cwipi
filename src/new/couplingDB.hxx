@@ -74,6 +74,7 @@ namespace cwipi {
      * \param [in]  localCodeProperties   Source code
      * \param [in]  cplId                 Coupling identifier
      * \param [in]  coupledCodeProperties Coupled code properties
+     * \param [in]  entities_dim          Interface dimension
      * \param [in]  commType              Communication type
      * \param [in]  spatialInterpAlgo     Spatial interpolation algorithm
      * \param [in]  nPart                 Number of interface partition
@@ -117,6 +118,7 @@ namespace cwipi {
      * \param [in]  localCodeProperties Source code
      * \param [in]  cplId               Coupling identifier
      *
+     * \return Reference to the coupling object
      */
     inline Coupling&
     couplingGet
@@ -131,6 +133,7 @@ namespace cwipi {
      *
      * \param [in]  localCodeProperties Source code
      *
+     * \return Reference to the map of coupling objects
      */
     inline std::map<std::string, Coupling *>&
     couplingListGet

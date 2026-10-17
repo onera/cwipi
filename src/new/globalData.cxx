@@ -19,8 +19,6 @@
 
 #include "globalData.hxx"
 
-#include "cwp.h"
-
 #include <mpi.h>
 
 /**
