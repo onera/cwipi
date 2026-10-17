@@ -32,7 +32,7 @@
 namespace cwipi {
 
   BlockFP::BlockFP()
-    : Block::Block()
+  : Block::Block()
   {
   }
 

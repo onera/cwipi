@@ -33,7 +33,7 @@
 namespace cwipi {
 
   BlockCP::BlockCP()
-    : Block::Block()
+  : Block::Block()
   {
   }
 

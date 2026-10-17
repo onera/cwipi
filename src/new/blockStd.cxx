@@ -32,7 +32,7 @@
 namespace cwipi {
 
   BlockStd::BlockStd()
-    : Block::Block()
+  : Block::Block()
   {
   }
 

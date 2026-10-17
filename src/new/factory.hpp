@@ -105,8 +105,8 @@ namespace cwipi {
     /**
      * \brief Add a new couple identifier / concrete product.
      *
-     * \tparam     ConcreteProduct Concrete product
-     * \param [in] id              Identifier
+     * \tparam ConcreteProduct Concrete product
+     * \param [in]  id Identifier
      *
      */
     template < class ConcreteProduct >

@@ -36,10 +36,10 @@ namespace cwipi {
   : _s_entity(s_entity),
     _stride(stride),
     _n_entity(n_entity),
-    _data_send_request(MPI_REQUEST_NULL),
-    _data_recv_request(MPI_REQUEST_NULL),
     _send_data(nullptr),
-    _recv_data(nullptr)
+    _recv_data(nullptr),
+    _data_send_request(MPI_REQUEST_NULL),
+    _data_recv_request(MPI_REQUEST_NULL)
   {
   }
 

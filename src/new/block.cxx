@@ -35,7 +35,8 @@
 namespace cwipi {
 
   Block::Block()
-  : _global_num_owner(PDM_OWNERSHIP_USER)
+  : _global_num_owner(PDM_OWNERSHIP_USER),
+    _parent_num_owner(PDM_OWNERSHIP_USER)
   {
   }
 
@@ -66,30 +67,6 @@ namespace cwipi {
     _elt_centers.resize(_n_part, nullptr);
     _global_num .resize(_n_part, nullptr);
     _parent_num .resize(_n_part, nullptr);
-  }
-
-
-  double*
-  Block::elementCentersGet
-  (
-    int i_part
-  )
-  {
-    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmPartMeshNodalGet(),
-                                                 _block_id_pdm,
-                                                 i_part);
-
-    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmPartMeshNodalGet(),
-                                                   _block_id_pdm,
-                                                   i_part,
-                                                   PDM_OWNERSHIP_KEEP);
-
-    _elt_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmPartMeshNodalGet(),
-                                                                                          _block_id_pdm,
-                                                                                          i_part,
-                                                                                          PDM_OWNERSHIP_KEEP));
-
-    return _elt_centers[i_part];
   }
 
 
@@ -148,6 +125,29 @@ namespace cwipi {
     }
   }
 
+
+  double*
+  Block::elementCentersGet
+  (
+    int i_part
+  )
+  {
+    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmPartMeshNodalGet(),
+                                                 _block_id_pdm,
+                                                 i_part);
+
+    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmPartMeshNodalGet(),
+                                                   _block_id_pdm,
+                                                   i_part,
+                                                   PDM_OWNERSHIP_KEEP);
+
+    _elt_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmPartMeshNodalGet(),
+                                                                                          _block_id_pdm,
+                                                                                          i_part,
+                                                                                          PDM_OWNERSHIP_KEEP));
+
+    return _elt_centers[i_part];
+  }
 
 }
 

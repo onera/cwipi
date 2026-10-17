@@ -120,7 +120,7 @@ namespace cwipi {
     /**
      * \brief Return the connectivity for a partition.
      *
-     * \param [in] i_part Partition identifier
+     * \param [in]  i_part Partition identifier
      * \return Connectivity array
      */
     inline int*
@@ -133,7 +133,7 @@ namespace cwipi {
     /**
      * \brief Return the IJK connectivity for a partition.
      *
-     * \param [in] i_part Partition identifier
+     * \param [in]  i_part Partition identifier
      * \return IJK connectivity array
      */
     inline int*
@@ -168,15 +168,15 @@ namespace cwipi {
     void
     geomFinalize() override;
 
+  private:
 
     /**
      * \brief Reorder the connectivity.
      *
      */
     void
-    reorder();
+    _reorder();
 
-  private:
 
     int                _order;       /*!< Element order */
     char              *_ho_ordering; /*!< HO ordering name */

@@ -72,6 +72,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Get the exchange type.
+     *
+     * \return Exchange type
+     */
+    inline CWP_PartData_exch_t
+    exchTypeGet() const;
+
+
+    /**
      * \brief Set the data.
      *
      * \param [in]  exch_id Exchange identifier
@@ -139,15 +148,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Get the part-to-part object.
-     *
-     * \return Part-to-part object
-     */
-    inline PDM_part_to_part_t*
-    pdmPartToPartGet() const;
-
-
-    /**
      * \brief Set the part-to-part object.
      *
      * \param [in]  ptp Part-to-part object
@@ -157,6 +157,15 @@ namespace cwipi {
     (
       PDM_part_to_part_t *ptp
     );
+
+
+    /**
+     * \brief Get the part-to-part object.
+     *
+     * \return Part-to-part object
+     */
+    inline PDM_part_to_part_t*
+    pdmPartToPartGet() const;
 
 
     /**
@@ -185,15 +194,6 @@ namespace cwipi {
     inline int
     nPartGet() const;
 
-
-    /**
-     * \brief Get the exchange type.
-     *
-     * \return Exchange type
-     */
-    inline CWP_PartData_exch_t
-    exchTypeGet() const;
-
   private:
 
     std::string              _part_data_id; /*!< Part data identifier */
@@ -209,10 +209,10 @@ namespace cwipi {
     std::map<int, int>       _request;      /*!< Request per exchange */
   };
 
-  inline PDM_part_to_part_t*
-  PartData::pdmPartToPartGet() const
+  inline CWP_PartData_exch_t
+  PartData::exchTypeGet() const
   {
-    return _ptp;
+    return _exch_type;
   }
 
 
@@ -223,6 +223,13 @@ namespace cwipi {
   )
   {
     _ptp = ptp;
+  }
+
+
+  inline PDM_part_to_part_t*
+  PartData::pdmPartToPartGet() const
+  {
+    return _ptp;
   }
 
 
@@ -244,13 +251,6 @@ namespace cwipi {
   PartData::nPartGet() const
   {
     return _n_part;
-  }
-
-
-  inline CWP_PartData_exch_t
-  PartData::exchTypeGet() const
-  {
-    return _exch_type;
   }
 
 }

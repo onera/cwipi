@@ -38,7 +38,7 @@
 namespace cwipi {
 
   BlockHO::BlockHO()
-    : BlockStd::BlockStd()
+  : BlockStd::BlockStd()
   {
     _order       = 0;
     _ho_ordering = nullptr;
@@ -127,12 +127,12 @@ namespace cwipi {
   void
   BlockHO::geomFinalize()
   {
-    reorder();
+    _reorder();
   }
 
 
   void
-  BlockHO::reorder()
+  BlockHO::_reorder()
   {
     if (PDM_ho_ordering_id_get(_ho_ordering) < 0) {
       PDM_error(__FILE__, __LINE__, 0,

@@ -37,7 +37,6 @@ namespace cwipi {
 
   class Mesh;
 
-
   /**
    * \class Block block.hxx "block.hxx"
    * \brief Mesh mother Block definition.
@@ -98,15 +97,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the CWIPI block identifier.
-     *
-     * \return Block identifier
-     */
-    inline int
-    blockIdCwipiGet() const;
-
-
-    /**
      * \brief Set the CWIPI block identifier.
      *
      * \param [in]  block_id Block identifier
@@ -119,12 +109,12 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the PDM block identifier.
+     * \brief Return the CWIPI block identifier.
      *
      * \return Block identifier
      */
     inline int
-    blockIdPdmGet() const;
+    blockIdCwipiGet() const;
 
 
     /**
@@ -140,6 +130,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Return the PDM block identifier.
+     *
+     * \return Block identifier
+     */
+    inline int
+    blockIdPdmGet() const;
+
+
+    /**
      * \brief Return the number of elements for a partition.
      *
      * \param [in]  i_part Partition identifier
@@ -147,19 +146,6 @@ namespace cwipi {
      */
     inline int
     nEltsGet
-    (
-      int i_part
-    ) const;
-
-
-    /**
-     * \brief Return the element global numbering for a partition.
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Global numbering array
-     */
-    inline CWP_g_num_t*
-    globalNumGet
     (
       int i_part
     ) const;
@@ -185,6 +171,19 @@ namespace cwipi {
 
 
     /**
+     * \brief Return the element global numbering for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Global numbering array
+     */
+    inline CWP_g_num_t*
+    globalNumGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
      * \brief Free the element global numbering.
      *
      * \param [in]  i_part Partition identifier
@@ -194,19 +193,6 @@ namespace cwipi {
     (
       int i_part
     );
-
-
-    /**
-     * \brief Return the parent numbering.
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Parent numbering array
-     */
-    inline int*
-    parentNumGet
-    (
-      int i_part
-    ) const;
 
 
     /**
@@ -226,6 +212,19 @@ namespace cwipi {
       int             *parent_num,
       PDM_ownership_t  owner
     );
+
+
+    /**
+     * \brief Return the parent numbering.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Parent numbering array
+     */
+    inline int*
+    parentNumGet
+    (
+      int i_part
+    ) const;
 
 
     /**
@@ -261,38 +260,17 @@ namespace cwipi {
     virtual void
     geomFinalize() = 0;
 
-  private:
-
-    /**
-     * \brief Assignment operator.
-     *
-     */
-    Block& operator=
-    (
-      const Block &other
-    );
-
-
-    /**
-     * \brief Copy constructor.
-     *
-     */
-    Block
-    (
-      const Block& other
-    );
-
   protected:
 
     CWP_Block_t                _block_type;       /*!< Block type */
+    int                        _block_id_pdm;     /*!< Block identifier in PDM */
+    int                        _block_id_cwipi;   /*!< Block identifier in CWIPI */
+    Mesh                      *_mesh;             /*!< Pointer to the mesh object owning the block */
     int                        _n_part;           /*!< Number of partitions */
     std::vector<int>           _n_elts;           /*!< Number of elements for each partition */
     std::vector<double*>       _elt_centers;      /*!< Element centers */
-    int                        _block_id_pdm;     /*!< Block identifier in PDM */
-    int                        _block_id_cwipi;   /*!< Block identifier in CWIPI */
     std::vector<CWP_g_num_t*>  _global_num;       /*!< Global numbering in the mesh */
     std::vector<int*>          _parent_num;       /*!< Parent numbering */
-    Mesh                      *_mesh;             /*!< Pointer to the mesh object owning the block */
     PDM_ownership_t            _global_num_owner; /*!< Owner of global numbers */
     PDM_ownership_t            _parent_num_owner; /*!< Owner of parent numbers */
 
@@ -319,13 +297,6 @@ namespace cwipi {
   }
 
 
-  inline int
-  Block::blockIdCwipiGet() const
-  {
-    return _block_id_cwipi;
-  }
-
-
   inline void
   Block::blockIdCwipiSet
   (
@@ -333,6 +304,13 @@ namespace cwipi {
   )
   {
     _block_id_cwipi = block_id;
+  }
+
+
+  inline int
+  Block::blockIdCwipiGet() const
+  {
+    return _block_id_cwipi;
   }
 
 

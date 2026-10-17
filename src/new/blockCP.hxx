@@ -125,28 +125,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the number of faces for a partition (Cells_POLY_3D).
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Number of faces for the partition
-     */
-    inline int
-    nFacesGet
-    (
-      int i_part
-    ) const;
-
-
-    /**
-     * \brief Return the number of faces for all partitions.
-     *
-     * \return Vector of face counts for each partition
-     */
-    inline const std::vector<int>&
-    nFacesGet() const;
-
-
-    /**
      * \brief Return the cell to face connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
@@ -170,6 +148,28 @@ namespace cwipi {
     (
       int i_part
     ) const;
+
+
+    /**
+     * \brief Return the number of faces for a partition (Cells_POLY_3D).
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of faces for the partition
+     */
+    inline int
+    nFacesGet
+    (
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Return the number of faces for all partitions.
+     *
+     * \return Vector of face counts for each partition
+     */
+    inline const std::vector<int>&
+    nFacesGet() const;
 
 
     /**
@@ -217,19 +217,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Return the faces global numbering for a partition.
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Faces global numbering array for the partition
-     */
-    inline CWP_g_num_t*
-    faceGlobalNumGet
-    (
-      int i_part
-    ) const;
-
-
-    /**
      * \brief Set the faces global numbering for a partition.
      *
      * \param [in]  i_part           Partition identifier
@@ -253,6 +240,19 @@ namespace cwipi {
     (
       const std::vector<CWP_g_num_t*>& global_num_faces
     );
+
+
+    /**
+     * \brief Return the faces global numbering for a partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Faces global numbering array for the partition
+     */
+    inline CWP_g_num_t*
+    faceGlobalNumGet
+    (
+      int i_part
+    ) const;
 
 
     /**
@@ -305,6 +305,23 @@ namespace cwipi {
   }
 
 
+  inline int
+  BlockCP::nFacesGet
+  (
+    int i_part
+  ) const
+  {
+    return _n_faces[i_part];
+  }
+
+
+  inline const std::vector<int>&
+  BlockCP::nFacesGet() const
+  {
+    return _n_faces;
+  }
+
+
   inline int*
   BlockCP::faceConnecGet
   (
@@ -339,33 +356,6 @@ namespace cwipi {
   }
 
 
-  inline int
-  BlockCP::nFacesGet
-  (
-    int i_part
-  ) const
-  {
-    return _n_faces[i_part];
-  }
-
-
-  inline const std::vector<int>&
-  BlockCP::nFacesGet() const
-  {
-    return _n_faces;
-  }
-
-
-  inline CWP_g_num_t*
-  BlockCP::faceGlobalNumGet
-  (
-    int i_part
-  ) const
-  {
-    return _global_num_faces[i_part];
-  }
-
-
   inline void
   BlockCP::faceGlobalNumSet
   (
@@ -384,6 +374,16 @@ namespace cwipi {
   )
   {
     _global_num_faces = global_num_faces;
+  }
+
+
+  inline CWP_g_num_t*
+  BlockCP::faceGlobalNumGet
+  (
+    int i_part
+  ) const
+  {
+    return _global_num_faces[i_part];
   }
 
 }

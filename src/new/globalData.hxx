@@ -85,24 +85,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Get send data pointer.
-     *
-     * \return Pointer to send data
-     */
-    inline void*
-    sendDataGet() const;
-
-
-    /**
-     * \brief Get receive data pointer.
-     *
-     * \return Pointer to receive data
-     */
-    inline void*
-    recvDataGet() const;
-
-
-    /**
      * \brief Set send data pointer.
      *
      * \param [in]  send_data Pointer to send data
@@ -112,6 +94,15 @@ namespace cwipi {
     (
       void *send_data
     );
+
+
+    /**
+     * \brief Get send data pointer.
+     *
+     * \return Pointer to send data
+     */
+    inline void*
+    sendDataGet() const;
 
 
     /**
@@ -127,21 +118,12 @@ namespace cwipi {
 
 
     /**
-     * \brief Get send MPI request.
+     * \brief Get receive data pointer.
      *
-     * \return MPI request for send
+     * \return Pointer to receive data
      */
-    inline MPI_Request
-    dataSendRequestGet() const;
-
-
-    /**
-     * \brief Get receive MPI request.
-     *
-     * \return MPI request for receive
-     */
-    inline MPI_Request
-    dataRecvRequestGet() const;
+    inline void*
+    recvDataGet() const;
 
 
     /**
@@ -157,6 +139,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Get send MPI request.
+     *
+     * \return MPI request for send
+     */
+    inline MPI_Request
+    dataSendRequestGet() const;
+
+
+    /**
      * \brief Set receive MPI request.
      *
      * \param [in]  req MPI request for receive
@@ -167,15 +158,24 @@ namespace cwipi {
       MPI_Request req
     );
 
+
+    /**
+     * \brief Get receive MPI request.
+     *
+     * \return MPI request for receive
+     */
+    inline MPI_Request
+    dataRecvRequestGet() const;
+
   private:
 
     size_t       _s_entity;          /*!< Size of datatype in bytes */
     int          _stride;            /*!< Stride of data */
     int          _n_entity;          /*!< Number of entities */
-    MPI_Request  _data_send_request; /*!< Send MPI request */
-    MPI_Request  _data_recv_request; /*!< Receive MPI request */
     void        *_send_data;         /*!< Send data buffer */
     void        *_recv_data;         /*!< Receive data buffer */
+    MPI_Request  _data_send_request; /*!< Send MPI request */
+    MPI_Request  _data_recv_request; /*!< Receive MPI request */
 
   };
 
@@ -200,20 +200,6 @@ namespace cwipi {
   }
 
 
-  inline void*
-  GlobalData::sendDataGet() const
-  {
-    return _send_data;
-  }
-
-
-  inline void*
-  GlobalData::recvDataGet() const
-  {
-    return _recv_data;
-  }
-
-
   inline void
   GlobalData::sendDataSet
   (
@@ -221,6 +207,13 @@ namespace cwipi {
   )
   {
     _send_data = send_data;
+  }
+
+
+  inline void*
+  GlobalData::sendDataGet() const
+  {
+    return _send_data;
   }
 
 
@@ -234,17 +227,10 @@ namespace cwipi {
   }
 
 
-  inline MPI_Request
-  GlobalData::dataSendRequestGet() const
+  inline void*
+  GlobalData::recvDataGet() const
   {
-    return _data_send_request;
-  }
-
-
-  inline MPI_Request
-  GlobalData::dataRecvRequestGet() const
-  {
-    return _data_recv_request;
+    return _recv_data;
   }
 
 
@@ -258,6 +244,13 @@ namespace cwipi {
   }
 
 
+  inline MPI_Request
+  GlobalData::dataSendRequestGet() const
+  {
+    return _data_send_request;
+  }
+
+
   inline void
   GlobalData::dataRecvRequestSet
   (
@@ -265,6 +258,13 @@ namespace cwipi {
   )
   {
     _data_recv_request = req;
+  }
+
+
+  inline MPI_Request
+  GlobalData::dataRecvRequestGet() const
+  {
+    return _data_recv_request;
   }
 
 }

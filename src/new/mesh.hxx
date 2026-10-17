@@ -244,6 +244,27 @@ namespace cwipi {
 
 
     /**
+     * \brief Get a standard block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] connec     Element to vertex connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    stdBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int         **connec,
+            CWP_g_num_t **global_num
+    );
+
+
+    /**
      * \brief Set a high-order block to the interface mesh.
      *
      * \param [in]  i_part      Partition identifier
@@ -269,6 +290,29 @@ namespace cwipi {
 
 
     /**
+     * \brief Get a high-order block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] order      Element order
+     * \param [out] connec     Element to vertex connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    hoBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int          *order,
+            int         **connec,
+            CWP_g_num_t **global_num
+    );
+
+
+    /**
      * \brief Set a face polygon block to the interface mesh.
      *
      * \param [in]  i_part     Partition identifier
@@ -288,6 +332,29 @@ namespace cwipi {
             int         connec_idx[],
             int         connec[],
             CWP_g_num_t global_num[]
+    );
+
+
+    /**
+     * \brief Get a face polygon block from the interface mesh.
+     *
+     * \param [in]  i_part     Partition identifier
+     * \param [in]  block_id   Block identifier
+     * \param [out] n_elts     Number of elements
+     * \param [out] connec_idx Element to vertex connectivity index
+     * \param [out] connec     Element to vertex connectivity
+     * \param [out] global_num Element global numbering (or NULL)
+     *
+     */
+    void
+    poly2DBlockGet
+    (
+      const int           i_part,
+      const int           block_id,
+            int          *n_elts,
+            int         **connec_idx,
+            int         **connec,
+            CWP_g_num_t **global_num
     );
 
 
@@ -317,73 +384,6 @@ namespace cwipi {
             int         connec_cells_idx[],
             int         connec_cells[],
             CWP_g_num_t global_num[]
-    );
-
-
-    /**
-     * \brief Get a standard block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of elements
-     * \param [out] connec     Element to vertex connectivity
-     * \param [out] global_num Element global numbering (or NULL)
-     *
-     */
-    void
-    stdBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int         **connec,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
-     * \brief Get a high-order block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of elements
-     * \param [out] order      Element order
-     * \param [out] connec     Element to vertex connectivity
-     * \param [out] global_num Element global numbering (or NULL)
-     *
-     */
-    void
-    hoBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int          *order,
-            int         **connec,
-            CWP_g_num_t **global_num
-    );
-
-
-    /**
-     * \brief Get a face polygon block from the interface mesh.
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  block_id   Block identifier
-     * \param [out] n_elts     Number of elements
-     * \param [out] connec_idx Element to vertex connectivity index
-     * \param [out] connec     Element to vertex connectivity
-     * \param [out] global_num Element global numbering (or NULL)
-     *
-     */
-    void
-    poly2DBlockGet
-    (
-      const int           i_part,
-      const int           block_id,
-            int          *n_elts,
-            int         **connec_idx,
-            int         **connec,
-            CWP_g_num_t **global_num
     );
 
 
@@ -455,20 +455,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Get the number of elements of the partition.
-     *
-     * \param [in]  i_part Partition identifier
-     * \return Number of elements of the partition
-     *
-     */
-    int
-    nEltsGet
-    (
-      int i_part
-    ) const;
-
-
-    /**
      * \brief Get the vertices coordinates of the partition.
      *
      * \param [in]  i_part Partition identifier
@@ -508,6 +494,20 @@ namespace cwipi {
     blockGlobalNumGet
     (
       int id_block,
+      int i_part
+    ) const;
+
+
+    /**
+     * \brief Get the number of elements of the partition.
+     *
+     * \param [in]  i_part Partition identifier
+     * \return Number of elements of the partition
+     *
+     */
+    int
+    nEltsGet
+    (
       int i_part
     ) const;
 
@@ -631,17 +631,20 @@ namespace cwipi {
 
   };
 
+  inline CWP_Block_t
+  Mesh::blockTypeGet
+  (
+    int id_block
+  ) const
+  {
+    return _block_DB[id_block]->blockTypeGet();
+  }
+
+
   inline int
   Mesh::nPartGet() const
   {
     return _n_part;
-  }
-
-
-  inline PDM_part_mesh_nodal_t*
-  Mesh::pdmPartMeshNodalGet() const
-  {
-    return _pmn;
   }
 
 
@@ -675,16 +678,6 @@ namespace cwipi {
   }
 
 
-  inline CWP_Block_t
-  Mesh::blockTypeGet
-  (
-    int id_block
-  ) const
-  {
-    return _block_DB[id_block]->blockTypeGet();
-  }
-
-
   inline CWP_g_num_t*
   Mesh::blockGlobalNumGet
   (
@@ -693,6 +686,13 @@ namespace cwipi {
   ) const
   {
     return _block_DB[id_block]->globalNumGet(i_part);
+  }
+
+
+  inline PDM_part_mesh_nodal_t*
+  Mesh::pdmPartMeshNodalGet() const
+  {
+    return _pmn;
   }
 
 }

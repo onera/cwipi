@@ -283,16 +283,16 @@ namespace cwipi {
 
     _n_part = n_part;
 
-    /* Vertex data */
+    // Vertex data
     _n_vtx         .resize(_n_part, 0);
     _coords        .resize(_n_part, nullptr);
     _global_num_vtx.resize(_n_part, nullptr);
 
-    /* Element data */
+    // Element data
     _n_elts     .resize(_n_part, 0);
     _elt_centers.resize(_n_part, nullptr);
 
-    /* Cell data */
+    // Cell data
     _n_cells         .resize(_n_part, 0);
     _cell_face_idx   .resize(_n_part, nullptr);
     _cell_face       .resize(_n_part, nullptr);
@@ -300,7 +300,7 @@ namespace cwipi {
     _cell_vtx        .resize(_n_part, nullptr);
     _global_num_cells.resize(_n_part, nullptr);
 
-    /* Face data */
+    // Face data
     _n_faces         .resize(_n_part, 0);
     _face_edge_idx   .resize(_n_part, nullptr);
     _face_edge       .resize(_n_part, nullptr);
@@ -308,7 +308,7 @@ namespace cwipi {
     _face_vtx        .resize(_n_part, nullptr);
     _global_num_faces.resize(_n_part, nullptr);
 
-    /* Edge data */
+    // Edge data
     _n_edges .resize(_n_part, 0);
     _edge_vtx.resize(_n_part, nullptr);
 
@@ -331,28 +331,321 @@ namespace cwipi {
   }
 
 
-  int
-  Mesh::_meshDimensionGet() const
-  {
-    switch (_cpl->entitiesDimGet()) {
-      case CWP_INTERFACE_POINT:
-        return 0;
-      case CWP_INTERFACE_LINEAR:
-        return 1;
-      case CWP_INTERFACE_SURFACE:
-        return 2;
-      case CWP_INTERFACE_VOLUME:
-        return 3;
-      default:
-        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
-        return -1;
-    }
-  }
-
-
   Mesh::~Mesh()
   {
     meshDel();
+  }
+
+
+  void
+  Mesh::coordSet
+  (
+    const int         i_part,
+    const int         n_vtx,
+          double      coords[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    _n_vtx         [i_part] = n_vtx;
+    _coords        [i_part] = coords;
+    _global_num_vtx[i_part] = global_num;
+  }
+
+
+  void
+  Mesh::fromCellFaceSet
+  (
+    const int         i_part,
+    const int         n_cells,
+          int         cell_face_idx[],
+          int         cell_face[],
+          int         n_faces,
+          int         face_vtx_idx[],
+          int         face_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    _is_cell_face_method = true;
+    _n_cells         [i_part] = n_cells;
+    _cell_face_idx   [i_part] = cell_face_idx;
+    _cell_face       [i_part] = cell_face;
+    _global_num_cells[i_part] = global_num;
+    _n_faces         [i_part] = n_faces;
+    _face_vtx_idx    [i_part] = face_vtx_idx;
+    _face_vtx        [i_part] = face_vtx;
+  }
+
+
+  void
+  Mesh::fromFaceEdgeSet
+  (
+    const int         i_part,
+    const int         n_faces,
+          int         face_edge_idx[],
+          int         face_edge[],
+    const int         n_edges,
+          int         edge_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    _is_face_edge_method = true;
+    _n_faces         [i_part] = n_faces;
+    _face_edge_idx   [i_part] = face_edge_idx;
+    _face_edge       [i_part] = face_edge;
+    _global_num_faces[i_part] = global_num;
+    _n_edges         [i_part] = n_edges;
+    _edge_vtx        [i_part] = edge_vtx;
+  }
+
+
+  void
+  Mesh::fromFaceVtxSet
+  (
+    const int         i_part,
+    const int         n_faces,
+          int         face_vtx_idx[],
+          int         face_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    _is_face_vtx_method = true;
+    _n_faces         [i_part] = n_faces;
+    _face_vtx_idx    [i_part] = face_vtx_idx;
+    _face_vtx        [i_part] = face_vtx;
+    _global_num_faces[i_part] = global_num;
+  }
+
+
+  void
+  Mesh::fromCellVtxSet
+  (
+    const int         i_part,
+    const int         n_cells,
+          int         cell_vtx_idx[],
+          int         cell_vtx[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    _is_cell_vtx_method = true;
+    _n_cells         [i_part] = n_cells;
+    _cell_vtx_idx    [i_part] = cell_vtx_idx;
+    _cell_vtx        [i_part] = cell_vtx;
+    _global_num_cells[i_part] = global_num;
+  }
+
+
+  int
+  Mesh::blockAdd
+  (
+    const CWP_Block_t block_type
+  )
+  {
+    Block *block = FB::instanceGet().objectCreate(block_type);
+    block->blockAdd(block_type, this);
+    int block_id_cwipi = _n_blocks;
+    _block_DB.push_back(block);
+    block->blockIdCwipiSet(block_id_cwipi);
+    _n_blocks = _block_DB.size();
+    return block->blockIdCwipiGet();
+  }
+
+
+  void
+  Mesh::stdBlockSet
+  (
+    const int         i_part,
+    const int         block_id,
+    const int         n_elts,
+          int         connec[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    BlockStd *block = dynamic_cast<BlockStd *>(_block_DB[block_id]);
+    block->blockSet(i_part,
+                    n_elts,
+                    connec,
+                    global_num);
+    _n_elts[i_part] += n_elts;
+  }
+
+
+  void
+  Mesh::stdBlockGet
+  (
+    const int           i_part,
+    const int           block_id,
+          int          *n_elts,
+          int         **connec,
+          CWP_g_num_t **global_num
+  )
+  {
+    BlockStd *block = dynamic_cast<BlockStd *>(_block_DB[block_id]);
+    block->blockGet(i_part,
+                    n_elts,
+                    connec,
+                    global_num);
+  }
+
+
+  void
+  Mesh::hoBlockSet
+  (
+    const int          i_part,
+    const int          block_id,
+    const int          n_elts,
+          int          connec[],
+          CWP_g_num_t  global_num[],
+    const int          order,
+    const char        *ho_ordering
+  )
+  {
+    BlockHO *block = dynamic_cast<BlockHO *>(_block_DB[block_id]);
+    block->blockSet(i_part,
+                    n_elts,
+                    connec,
+                    global_num,
+                    order,
+                    ho_ordering);
+    _n_elts[i_part] += n_elts;
+  }
+
+
+  void
+  Mesh::hoBlockGet
+  (
+    const int           i_part,
+    const int           block_id,
+          int          *n_elts,
+          int          *order,
+          int         **connec,
+          CWP_g_num_t **global_num
+  )
+  {
+    BlockHO *block = dynamic_cast<BlockHO *>(_block_DB[block_id]);
+    char *ho_ordering;
+    block->blockGet(i_part,
+                    n_elts,
+                    connec,
+                    global_num,
+                    order,
+                    &ho_ordering);
+  }
+
+
+  void
+  Mesh::poly2DBlockSet
+  (
+    const int         i_part,
+    const int         block_id,
+    const int         n_elts,
+          int         connec_idx[],
+          int         connec[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    BlockFP *block = dynamic_cast<BlockFP *>(_block_DB[block_id]);
+    block->blockSet(i_part,
+                    n_elts,
+                    connec_idx,
+                    connec,
+                    global_num);
+    _n_elts[i_part] += n_elts;
+  }
+
+
+  void
+  Mesh::poly2DBlockGet
+  (
+    const int           i_part,
+    const int           block_id,
+          int          *n_elts,
+          int         **connec_idx,
+          int         **connec,
+          CWP_g_num_t **global_num
+  )
+  {
+    BlockFP *block = dynamic_cast<BlockFP *>(_block_DB[block_id]);
+    block->blockGet(i_part,
+                    n_elts,
+                    connec_idx,
+                    connec,
+                    global_num);
+  }
+
+
+  void
+  Mesh::poly3DBlockSet
+  (
+    const int         i_part,
+    const int         block_id,
+    const int         n_elts,
+    const int         n_faces,
+          int         connec_faces_idx[],
+          int         connec_faces[],
+          int         connec_cells_idx[],
+          int         connec_cells[],
+          CWP_g_num_t global_num[]
+  )
+  {
+    BlockCP *block = dynamic_cast<BlockCP *>(_block_DB[block_id]);
+    block->blockSet(i_part,
+                    n_elts,
+                    n_faces,
+                    connec_faces_idx,
+                    connec_faces,
+                    connec_cells_idx,
+                    connec_cells,
+                    global_num);
+    _n_elts[i_part] += n_elts;
+  }
+
+
+  void
+  Mesh::poly3DBlockGet
+  (
+    const int           i_part,
+    const int           block_id,
+          int          *n_elts,
+          int          *n_faces,
+          int         **connec_faces_idx,
+          int         **connec_faces,
+          int         **connec_cells_idx,
+          int         **connec_cells,
+          CWP_g_num_t **global_num
+  )
+  {
+    BlockCP *block = dynamic_cast<BlockCP *>(_block_DB[block_id]);
+    block->blockGet(i_part,
+                    n_elts,
+                    n_faces,
+                    connec_faces_idx,
+                    connec_faces,
+                    connec_cells_idx,
+                    connec_cells,
+                    global_num);
+  }
+
+
+  int
+  Mesh::nEltsGet
+  (
+    int id_part
+  ) const
+  {
+    return PDM_part_mesh_nodal_n_elmts_get(_pmn, _geom_kind, id_part);
+  }
+
+
+  CWP_g_num_t *
+  Mesh::elementGlobalNumGet
+  (
+    int i_part
+  ) const
+  {
+    return PDM_part_mesh_nodal_g_num_get_from_part(_pmn,
+                                                   _geom_kind,
+                                                   i_part,
+                                                   PDM_OWNERSHIP_KEEP);
   }
 
 
@@ -378,150 +671,6 @@ namespace cwipi {
       }
     }
     return _elt_centers[i_part];
-  }
-
-
-  CWP_g_num_t *
-  Mesh::elementGlobalNumGet
-  (
-    int i_part
-  ) const
-  {
-    return PDM_part_mesh_nodal_g_num_get_from_part(_pmn,
-                                                   _geom_kind,
-                                                   i_part,
-                                                   PDM_OWNERSHIP_KEEP);
-  }
-
-
-  void
-  Mesh::coordSet
-  (
-    const int         i_part,
-    const int         n_vtx,
-          double      coords[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    _n_vtx         [i_part] = n_vtx;
-    _coords        [i_part] = coords;
-    _global_num_vtx[i_part] = global_num;
-  }
-
-
-  void
-  Mesh::_blockDBUpdate()
-  {
-    PDM_part_mesh_nodal_elmts_t *pmne = PDM_part_mesh_nodal_part_mesh_nodal_elmts_get(_pmn,
-                                                                                      _geom_kind);
-
-    int  n_block     = PDM_part_mesh_nodal_elmts_n_section_get  (pmne);
-    int *section_ids = PDM_part_mesh_nodal_elmts_sections_id_get(pmne);
-
-    for (int i_block = 0; i_block < n_block; i_block++) {
-      CWP_Block_t block_type = static_cast<CWP_Block_t>(PDM_part_mesh_nodal_elmts_section_type_get(pmne,
-                                                                                                   section_ids[i_block]));
-
-      int block_id = blockAdd(block_type);
-
-      for (int i_part = 0; i_part < _n_part; i_part++) {
-        int n_elts = PDM_part_mesh_nodal_elmts_section_n_elt_get(pmne,
-                                                                 section_ids[i_block],
-                                                                 i_part);
-
-        if (block_type == CWP_BLOCK_FACE_POLY) {
-          int         *connec     = nullptr;
-          int         *connec_idx = nullptr;
-          CWP_g_num_t *global_num = nullptr;
-          PDM_part_mesh_nodal_elmts_section_poly2d_get(pmne,
-                                                       section_ids[i_block],
-                                                       i_part,
-                                                       &connec_idx,
-                                                       &connec,
-                                                       PDM_OWNERSHIP_KEEP);
-
-          global_num = PDM_part_mesh_nodal_elmts_g_num_get(pmne,
-                                                           section_ids[i_block],
-                                                           i_part,
-                                                           PDM_OWNERSHIP_KEEP);
-
-          poly2DBlockSet(i_part,
-                         block_id,
-                         n_elts,
-                         connec_idx,
-                         connec,
-                         global_num);
-        }
-        else if (block_type == CWP_BLOCK_CELL_POLY) {
-          int          n_face          = 0;
-          CWP_g_num_t *face_global_num = nullptr;
-          int         *face_vtx_idx    = nullptr;
-          int         *face_vtx        = nullptr;
-          CWP_g_num_t *cell_global_num = nullptr;
-          int         *cell_face_idx   = nullptr;
-          int         *cell_face       = nullptr;
-          int         *fake_num        = nullptr;
-          CWP_g_num_t *fake_global_num = nullptr;
-          PDM_part_mesh_nodal_elmts_section_poly3d_get(pmne,
-                                                       section_ids[i_block],
-                                                       i_part,
-                                                       &n_face,
-                                                       &face_global_num,
-                                                       &face_vtx_idx,
-                                                       &face_vtx,
-                                                       &cell_global_num,
-                                                       &cell_face_idx,
-                                                       &cell_face,
-                                                       &fake_num,
-                                                       &fake_global_num,
-                                                       PDM_OWNERSHIP_KEEP);
-
-          poly3DBlockSet(i_part,
-                         block_id,
-                         n_elts,
-                         n_face,
-                         face_vtx_idx,
-                         face_vtx,
-                         cell_face_idx,
-                         cell_face,
-                         cell_global_num);
-        }
-        else if (_block_DB[i_block]->blockTypeStdIs()) {
-          int         *connec          = nullptr;
-          CWP_g_num_t *global_num      = nullptr;
-          int         *fake_num        = nullptr;
-          CWP_g_num_t *fake_global_num = nullptr;
-          PDM_part_mesh_nodal_elmts_section_std_get(pmne,
-                                                    section_ids[i_block],
-                                                    i_part,
-                                                    &connec,
-                                                    &global_num,
-                                                    &fake_num,
-                                                    &fake_global_num,
-                                                    PDM_OWNERSHIP_KEEP);
-
-          stdBlockSet(i_part,
-                      block_id,
-                      n_elts,
-                      connec,
-                      global_num);
-        }
-
-        int *parent_num = PDM_part_mesh_nodal_elmts_parent_num_get(pmne,
-                                                                   section_ids[i_block],
-                                                                   i_part,
-                                                                   PDM_OWNERSHIP_KEEP);
-
-        _block_DB[block_id]->parentNumSet(i_part,
-                                          parent_num,
-                                          PDM_OWNERSHIP_USER);
-      }
-
-      int i_section = PDM_part_mesh_nodal_section_id_from_geom_kind_get(_pmn,
-                                                                        _geom_kind,
-                                                                        section_ids[i_block]);
-      _block_DB[block_id]->blockIdPdmSet(i_section);
-    }
   }
 
 
@@ -982,182 +1131,6 @@ namespace cwipi {
 
 
   void
-  Mesh::stdBlockSet
-  (
-    const int         i_part,
-    const int         block_id,
-    const int         n_elts,
-          int         connec[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    BlockStd *block = dynamic_cast<BlockStd *>(_block_DB[block_id]);
-    block->blockSet(i_part,
-                    n_elts,
-                    connec,
-                    global_num);
-    _n_elts[i_part] += n_elts;
-  }
-
-
-  void
-  Mesh::stdBlockGet
-  (
-    const int           i_part,
-    const int           block_id,
-          int          *n_elts,
-          int         **connec,
-          CWP_g_num_t **global_num
-  )
-  {
-    BlockStd *block = dynamic_cast<BlockStd *>(_block_DB[block_id]);
-    block->blockGet(i_part,
-                    n_elts,
-                    connec,
-                    global_num);
-  }
-
-
-  void
-  Mesh::hoBlockSet
-  (
-    const int          i_part,
-    const int          block_id,
-    const int          n_elts,
-          int          connec[],
-          CWP_g_num_t  global_num[],
-    const int          order,
-    const char        *ho_ordering
-  )
-  {
-    BlockHO *block = dynamic_cast<BlockHO *>(_block_DB[block_id]);
-    block->blockSet(i_part,
-                    n_elts,
-                    connec,
-                    global_num,
-                    order,
-                    ho_ordering);
-    _n_elts[i_part] += n_elts;
-  }
-
-
-  void
-  Mesh::hoBlockGet
-  (
-    const int           i_part,
-    const int           block_id,
-          int          *n_elts,
-          int          *order,
-          int         **connec,
-          CWP_g_num_t **global_num
-  )
-  {
-    BlockHO *block = dynamic_cast<BlockHO *>(_block_DB[block_id]);
-    char *ho_ordering;
-    block->blockGet(i_part,
-                    n_elts,
-                    connec,
-                    global_num,
-                    order,
-                    &ho_ordering);
-  }
-
-
-  void
-  Mesh::poly2DBlockSet
-  (
-    const int         i_part,
-    const int         block_id,
-    const int         n_elts,
-          int         connec_idx[],
-          int         connec[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    BlockFP *block = dynamic_cast<BlockFP *>(_block_DB[block_id]);
-    block->blockSet(i_part,
-                    n_elts,
-                    connec_idx,
-                    connec,
-                    global_num);
-    _n_elts[i_part] += n_elts;
-  }
-
-
-  void
-  Mesh::poly2DBlockGet
-  (
-    const int           i_part,
-    const int           block_id,
-          int          *n_elts,
-          int         **connec_idx,
-          int         **connec,
-          CWP_g_num_t **global_num
-  )
-  {
-    BlockFP *block = dynamic_cast<BlockFP *>(_block_DB[block_id]);
-    block->blockGet(i_part,
-                    n_elts,
-                    connec_idx,
-                    connec,
-                    global_num);
-  }
-
-
-  void
-  Mesh::poly3DBlockSet
-  (
-    const int         i_part,
-    const int         block_id,
-    const int         n_elts,
-    const int         n_faces,
-          int         connec_faces_idx[],
-          int         connec_faces[],
-          int         connec_cells_idx[],
-          int         connec_cells[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    BlockCP *block = dynamic_cast<BlockCP *>(_block_DB[block_id]);
-    block->blockSet(i_part,
-                    n_elts,
-                    n_faces,
-                    connec_faces_idx,
-                    connec_faces,
-                    connec_cells_idx,
-                    connec_cells,
-                    global_num);
-    _n_elts[i_part] += n_elts;
-  }
-
-
-  void
-  Mesh::poly3DBlockGet
-  (
-    const int           i_part,
-    const int           block_id,
-          int          *n_elts,
-          int          *n_faces,
-          int         **connec_faces_idx,
-          int         **connec_faces,
-          int         **connec_cells_idx,
-          int         **connec_cells,
-          CWP_g_num_t **global_num
-  )
-  {
-    BlockCP *block = dynamic_cast<BlockCP *>(_block_DB[block_id]);
-    block->blockGet(i_part,
-                    n_elts,
-                    n_faces,
-                    connec_faces_idx,
-                    connec_faces,
-                    connec_cells_idx,
-                    connec_cells,
-                    global_num);
-  }
-
-
-  void
   Mesh::meshDel()
   {
     if (_pmn != nullptr) {
@@ -1220,111 +1193,138 @@ namespace cwipi {
   }
 
 
+  void
+  Mesh::_blockDBUpdate()
+  {
+    PDM_part_mesh_nodal_elmts_t *pmne = PDM_part_mesh_nodal_part_mesh_nodal_elmts_get(_pmn,
+                                                                                      _geom_kind);
+
+    int  n_block     = PDM_part_mesh_nodal_elmts_n_section_get  (pmne);
+    int *section_ids = PDM_part_mesh_nodal_elmts_sections_id_get(pmne);
+
+    for (int i_block = 0; i_block < n_block; i_block++) {
+      CWP_Block_t block_type = static_cast<CWP_Block_t>(PDM_part_mesh_nodal_elmts_section_type_get(pmne,
+                                                                                                   section_ids[i_block]));
+
+      int block_id = blockAdd(block_type);
+
+      for (int i_part = 0; i_part < _n_part; i_part++) {
+        int n_elts = PDM_part_mesh_nodal_elmts_section_n_elt_get(pmne,
+                                                                 section_ids[i_block],
+                                                                 i_part);
+
+        if (block_type == CWP_BLOCK_FACE_POLY) {
+          int         *connec     = nullptr;
+          int         *connec_idx = nullptr;
+          CWP_g_num_t *global_num = nullptr;
+          PDM_part_mesh_nodal_elmts_section_poly2d_get(pmne,
+                                                       section_ids[i_block],
+                                                       i_part,
+                                                       &connec_idx,
+                                                       &connec,
+                                                       PDM_OWNERSHIP_KEEP);
+
+          global_num = PDM_part_mesh_nodal_elmts_g_num_get(pmne,
+                                                           section_ids[i_block],
+                                                           i_part,
+                                                           PDM_OWNERSHIP_KEEP);
+
+          poly2DBlockSet(i_part,
+                         block_id,
+                         n_elts,
+                         connec_idx,
+                         connec,
+                         global_num);
+        }
+        else if (block_type == CWP_BLOCK_CELL_POLY) {
+          int          n_face          = 0;
+          CWP_g_num_t *face_global_num = nullptr;
+          int         *face_vtx_idx    = nullptr;
+          int         *face_vtx        = nullptr;
+          CWP_g_num_t *cell_global_num = nullptr;
+          int         *cell_face_idx   = nullptr;
+          int         *cell_face       = nullptr;
+          int         *fake_num        = nullptr;
+          CWP_g_num_t *fake_global_num = nullptr;
+          PDM_part_mesh_nodal_elmts_section_poly3d_get(pmne,
+                                                       section_ids[i_block],
+                                                       i_part,
+                                                       &n_face,
+                                                       &face_global_num,
+                                                       &face_vtx_idx,
+                                                       &face_vtx,
+                                                       &cell_global_num,
+                                                       &cell_face_idx,
+                                                       &cell_face,
+                                                       &fake_num,
+                                                       &fake_global_num,
+                                                       PDM_OWNERSHIP_KEEP);
+
+          poly3DBlockSet(i_part,
+                         block_id,
+                         n_elts,
+                         n_face,
+                         face_vtx_idx,
+                         face_vtx,
+                         cell_face_idx,
+                         cell_face,
+                         cell_global_num);
+        }
+        else if (_block_DB[i_block]->blockTypeStdIs()) {
+          int         *connec          = nullptr;
+          CWP_g_num_t *global_num      = nullptr;
+          int         *fake_num        = nullptr;
+          CWP_g_num_t *fake_global_num = nullptr;
+          PDM_part_mesh_nodal_elmts_section_std_get(pmne,
+                                                    section_ids[i_block],
+                                                    i_part,
+                                                    &connec,
+                                                    &global_num,
+                                                    &fake_num,
+                                                    &fake_global_num,
+                                                    PDM_OWNERSHIP_KEEP);
+
+          stdBlockSet(i_part,
+                      block_id,
+                      n_elts,
+                      connec,
+                      global_num);
+        }
+
+        int *parent_num = PDM_part_mesh_nodal_elmts_parent_num_get(pmne,
+                                                                   section_ids[i_block],
+                                                                   i_part,
+                                                                   PDM_OWNERSHIP_KEEP);
+
+        _block_DB[block_id]->parentNumSet(i_part,
+                                          parent_num,
+                                          PDM_OWNERSHIP_USER);
+      }
+
+      int i_section = PDM_part_mesh_nodal_section_id_from_geom_kind_get(_pmn,
+                                                                        _geom_kind,
+                                                                        section_ids[i_block]);
+      _block_DB[block_id]->blockIdPdmSet(i_section);
+    }
+  }
+
+
   int
-  Mesh::blockAdd
-  (
-    const CWP_Block_t block_type
-  )
+  Mesh::_meshDimensionGet() const
   {
-    Block *block = FB::instanceGet().objectCreate(block_type);
-    block->blockAdd(block_type, this);
-    int block_id_cwipi = _n_blocks;
-    _block_DB.push_back(block);
-    block->blockIdCwipiSet(block_id_cwipi);
-    _n_blocks = _block_DB.size();
-    return block->blockIdCwipiGet();
-  }
-
-
-  void
-  Mesh::fromCellFaceSet
-  (
-    const int         i_part,
-    const int         n_cells,
-          int         cell_face_idx[],
-          int         cell_face[],
-          int         n_faces,
-          int         face_vtx_idx[],
-          int         face_vtx[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    _is_cell_face_method = true;
-    _n_cells         [i_part] = n_cells;
-    _cell_face_idx   [i_part] = cell_face_idx;
-    _cell_face       [i_part] = cell_face;
-    _global_num_cells[i_part] = global_num;
-    _n_faces         [i_part] = n_faces;
-    _face_vtx_idx    [i_part] = face_vtx_idx;
-    _face_vtx        [i_part] = face_vtx;
-  }
-
-
-  void
-  Mesh::fromFaceEdgeSet
-  (
-    const int         i_part,
-    const int         n_faces,
-          int         face_edge_idx[],
-          int         face_edge[],
-    const int         n_edges,
-          int         edge_vtx[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    _is_face_edge_method = true;
-    _n_faces         [i_part] = n_faces;
-    _face_edge_idx   [i_part] = face_edge_idx;
-    _face_edge       [i_part] = face_edge;
-    _global_num_faces[i_part] = global_num;
-    _n_edges         [i_part] = n_edges;
-    _edge_vtx        [i_part] = edge_vtx;
-  }
-
-
-  void
-  Mesh::fromFaceVtxSet
-  (
-    const int         i_part,
-    const int         n_faces,
-          int         face_vtx_idx[],
-          int         face_vtx[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    _is_face_vtx_method = true;
-    _n_faces         [i_part] = n_faces;
-    _face_vtx_idx    [i_part] = face_vtx_idx;
-    _face_vtx        [i_part] = face_vtx;
-    _global_num_faces[i_part] = global_num;
-  }
-
-
-  void
-  Mesh::fromCellVtxSet
-  (
-    const int         i_part,
-    const int         n_cells,
-          int         cell_vtx_idx[],
-          int         cell_vtx[],
-          CWP_g_num_t global_num[]
-  )
-  {
-    _is_cell_vtx_method = true;
-    _n_cells         [i_part] = n_cells;
-    _cell_vtx_idx    [i_part] = cell_vtx_idx;
-    _cell_vtx        [i_part] = cell_vtx;
-    _global_num_cells[i_part] = global_num;
-  }
-
-
-  int
-  Mesh::nEltsGet
-  (
-    int id_part
-  ) const
-  {
-    return PDM_part_mesh_nodal_n_elmts_get(_pmn, _geom_kind, id_part);
+    switch (_cpl->entitiesDimGet()) {
+      case CWP_INTERFACE_POINT:
+        return 0;
+      case CWP_INTERFACE_LINEAR:
+        return 1;
+      case CWP_INTERFACE_SURFACE:
+        return 2;
+      case CWP_INTERFACE_VOLUME:
+        return 3;
+      default:
+        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
+        return -1;
+    }
   }
 
 }

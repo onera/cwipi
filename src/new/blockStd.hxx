@@ -111,7 +111,7 @@ namespace cwipi {
     /**
      * \brief Return the element connectivity for a specific partition.
      *
-     * \param [in] i_part Partition identifier
+     * \param [in]  i_part Partition identifier
      * \return Connectivity array for the specified partition
      */
     inline int*
