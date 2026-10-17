@@ -3371,18 +3371,14 @@ namespace cwipi {
           CWP_Field_exch_t exchange_type = it_f1->second->exchangeTypeGet();
           if (exchange_type == CWP_FIELD_EXCH_SEND || exchange_type == CWP_FIELD_EXCH_SENDRECV) {
             // has not been sent
-            if (it_f1->second->is_send_yet_get() == 0) {
-              it_f1->second->is_send_end_step_set(1);
+            if (!it_f1->second->isSendYetGet()) {
               it_f1->second->write(CWP_FIELD_EXCH_SEND);
-              it_f1->second->is_send_end_step_set(0);
             }
           }
           else if (exchange_type == CWP_FIELD_EXCH_RECV || exchange_type == CWP_FIELD_EXCH_SENDRECV) {
             // has not been received
-            if (it_f1->second->is_recv_yet_get() == 0) {
-              it_f1->second->is_recv_end_step_set(1);
+            if (!it_f1->second->isRecvYetGet()) {
               it_f1->second->write(CWP_FIELD_EXCH_RECV);
-              it_f1->second->is_recv_end_step_set(0);
             }
           }
         }
@@ -3399,8 +3395,8 @@ namespace cwipi {
     // reset field status to unexchanged
     std::map < string, Field * >::iterator it_f2 = _fields.begin();
     while (it_f2 != _fields.end()) {
-      it_f2->second->is_send_yet_set(0);
-      it_f2->second->is_recv_yet_set(0);
+      it_f2->second->isSendYetSet(false);
+      it_f2->second->isRecvYetSet(false);
       it_f2++;
     }
   }

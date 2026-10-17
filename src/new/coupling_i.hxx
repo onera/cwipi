@@ -25,6 +25,7 @@
 #include "pdm_logging.h"
 #include "mesh.hxx"
 #include "field.hxx"
+#include "field_i.hxx"
 
 namespace cwipi {
 
@@ -837,16 +838,16 @@ namespace cwipi {
         if (itf->second->visuStatusGet() == CWP_STATUS_ON) {
 
           for (int i = 0; i < itf->second->nComponentGet(); i++) {
-            int id_send = itf->second->_id_writer_var_send_get()[i];
-            int id_recv = itf->second->_id_writer_var_recv_get()[i];
+            int id_send = itf->second->idWriterVarSendGet(i);
+            int id_recv = itf->second->idWriterVarRecvGet(i);
 
             if (id_send >= 0) PDM_writer_var_data_free(_writer, id_send);
             if (id_recv >= 0) PDM_writer_var_data_free(_writer, id_recv);
           }
 
-          int id_send_status = itf->second->_id_writer_var_send_status_get();
+          int id_send_status = itf->second->idWriterVarSendStatusGet();
           if (id_send_status >= 0) PDM_writer_var_data_free(_writer, id_send_status);
-          int id_recv_status = itf->second->_id_writer_var_recv_status_get();
+          int id_recv_status = itf->second->idWriterVarRecvStatusGet();
           if (id_recv_status >= 0) PDM_writer_var_data_free(_writer, id_recv_status);
 
         } // end if field is visualized
@@ -1039,7 +1040,7 @@ namespace cwipi {
       PDM_error("Error nUncomputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+    if (!has_mesh() && !field->computedTgtBcastEnabledIs()) {
       PDM_error("Error nUncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1074,7 +1075,7 @@ namespace cwipi {
       PDM_error("Error unncomputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+    if (!has_mesh() && !field->computedTgtBcastEnabledIs()) {
       PDM_error("Error uncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1106,7 +1107,7 @@ namespace cwipi {
       PDM_error("Error nComputedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+    if (!has_mesh() && !field->computedTgtBcastEnabledIs()) {
       PDM_error("Error nComputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1138,7 +1139,7 @@ namespace cwipi {
       PDM_error("Error computedTargetsGet : '%s' does not receive data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+    if (!has_mesh() && !field->computedTgtBcastEnabledIs()) {
       PDM_error("Error computedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1187,7 +1188,7 @@ namespace cwipi {
       PDM_error("Error nInvolvedSourcesGet : '%s' does not send data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
+    if (!has_mesh() && !field->involvedSrcBcastEnabledIs()) {
       PDM_error("Error nInvolvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1212,7 +1213,7 @@ namespace cwipi {
       PDM_error("Error involvedSourcesGet : '%s' does not send data", field_id.c_str());
     }
 
-    if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
+    if (!has_mesh() && !field->involvedSrcBcastEnabledIs()) {
       PDM_error("Error involvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'", field_id.c_str());
     }
 
@@ -1310,7 +1311,7 @@ namespace cwipi {
       PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
-      It -> second -> interpFunctionUnSet();
+      It -> second -> interpFunctionUnset();
     }
   }
 
@@ -1324,7 +1325,7 @@ namespace cwipi {
       PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
-      It -> second -> interpFunctionFUnSet();
+      It -> second -> interpFunctionFUnset();
     }
   }
 

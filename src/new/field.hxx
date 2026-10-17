@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,15 +19,13 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <sstream>
-#include <mesh.hxx>
-#include <map>
-
-#include <coupling.hxx>
-#include "cwp.h"
 #include "cwp_priv.h"
+
+#include "cwp.h"
+
 #include "pdm_writer.h"
 
+#include <string>
 
 /**
  * \cond
@@ -35,453 +33,500 @@
 
 namespace cwipi {
 
+  class Coupling;
+  class Mesh;
+
   /**
    * \class Field field.hxx "field.hxx"
-   * \brief Abstract field
+   * \brief Abstract field.
    *
-   *  This class is field abstract interface
+   * This class is the field abstract interface
    *
    */
-  class Mesh;
   class Field {
 
   public:
 
     /**
-     * \brief Constructor
+     * \brief Constructor.
+     *
+     * \param [in]  field_id     Field identifier
+     * \param [in]  fieldIDInt   Integer field identifier
+     * \param [in]  dataType     Field datatype
+     * \param [in]  cpl          Coupling
+     * \param [in]  fieldType    Value location
+     * \param [in]  storage      Storage type
+     * \param [in]  nComponent   Number of field components
+     * \param [in]  exchangeType Exchange type
+     * \param [in]  visuStatus   Visualization status
      *
      */
-
-    Field() {}
-
-    Field (std::string            field_id    ,
-           int                    fieldIDInt,
-           CWP_Type_t             dataType    ,
-           Coupling*              cpl         ,
-           CWP_Dof_location_t      fieldType   ,
-           CWP_Field_storage_t    storage     ,
-           int                    nComponent  ,
-           CWP_Field_exch_t       exchangeType,
-           CWP_Status_t           visuStatus);
-
-    /**
-     * \brief Destructor
-     *
-     */
-
-    ~Field();
-
-    /**
-     * \brief set data array
-     *
-     * \param [in] data   Data array
-     *
-     */
-
-    void dataSet (int i_part, const CWP_Field_map_t  map_type, void* data);
-
-
-
-    /**
-     * \brief Write th
-     *
-     * \param [in] data   Data array
-     *
-     */
-
-    void write
+    Field
     (
-      CWP_Field_exch_t exch_type
+      std::string         field_id,
+      int                 fieldIDInt,
+      CWP_Type_t          dataType,
+      Coupling*           cpl,
+      CWP_Dof_location_t  fieldType,
+      CWP_Field_storage_t storage,
+      int                 nComponent,
+      CWP_Field_exch_t    exchangeType,
+      CWP_Status_t        visuStatus
     );
 
 
     /**
-     *
-     * \brief Get field storage type
-     *
-     * \return            Field storage type
+     * \brief Destructor.
      *
      */
+    ~Field();
 
-    inline CWP_Field_storage_t
-    storageTypeGet() const
-    {
-      return _storage;
-    }
 
     /**
+     * \brief Get field identifier.
      *
-     * \brief Get nunmber of field components
-     *
-     * \return             Number of field components
-     *
+     * \return Field identifier
      */
+    inline std::string
+    fieldIDGet() const;
 
+
+    /**
+     * \brief Get integer field identifier.
+     *
+     * \return Integer field identifier
+     */
     inline int
-    nComponentGet() const
-    {
-      return _nComponent;
-    }
+    fieldIDIntGet() const;
+
 
     /**
+     * \brief Get field data type.
      *
-     * \brief Get nunmber of field degrees of freedom
-     *
-     * \param [in]   i_part         Partition identifier
-     *
-     * \return             Number of field degrees of freedom
-     *
+     * \return Field data type
      */
+    inline CWP_Type_t
+    dataTypeGet() const;
 
+
+    /**
+     * \brief Get field data type size.
+     *
+     * \return Field data type size
+     */
+    inline int
+    dataTypeSizeGet() const;
+
+
+    /**
+     * \brief Get field location.
+     *
+     * \return Field location
+     */
+    inline CWP_Dof_location_t
+    locationGet() const;
+
+
+    /**
+     * \brief Set linked field location.
+     *
+     * \param [in]  linkedFieldLocation Linked field location
+     */
+    inline void
+    linkedFieldLocationSet
+    (
+      const CWP_Dof_location_t linkedFieldLocation
+    );
+
+
+    /**
+     * \brief Get linked field location.
+     *
+     * \return Linked field location
+     */
+    inline CWP_Dof_location_t
+    linkedFieldLocationGet() const;
+
+
+    /**
+     * \brief Get field storage type.
+     *
+     * \return Field storage type
+     */
+    inline CWP_Field_storage_t
+    storageTypeGet() const;
+
+
+    /**
+     * \brief Get number of field components.
+     *
+     * \return Number of field components
+     */
+    inline int
+    nComponentGet() const;
+
+
+    /**
+     * \brief Get exchange type.
+     *
+     * \return Exchange type
+     */
+    inline CWP_Field_exch_t
+    exchangeTypeGet() const;
+
+
+    /**
+     * \brief Get visualization status.
+     *
+     * \return Visualization status
+     */
+    inline CWP_Status_t
+    visuStatusGet() const;
+
+
+    /**
+     * \brief Get number of field partitions.
+     *
+     * \return Number of partitions
+     */
+    inline int
+    nPartGet() const;
+
+
+    /**
+     * \brief Get number of field degrees of freedom.
+     *
+     * \param [in]  i_part Partition identifier
+     *
+     * \return Number of field degrees of freedom
+     */
     int
     nDOFGet
     (
-     int i_part
+      const int i_part
     );
 
-    inline std::string
-    fieldIDGet() const
-    {
-      return _fieldID;
-    }
+
+    /**
+     * \brief Set data array.
+     *
+     * \param [in]  i_part   Partition identifier
+     * \param [in]  map_type Data map type
+     * \param [in]  data     Data array
+     */
+    inline void
+    dataSet
+    (
+      const int             i_part,
+      const CWP_Field_map_t map_type,
+            void*           data
+    );
 
 
+    /**
+     * \brief Get data array.
+     *
+     * \param [in]  i_part   Partition identifier
+     * \param [in]  map_type Data map type
+     *
+     * \return Data array
+     */
+    inline void*
+    dataGet
+    (
+      const int             i_part,
+      const CWP_Field_map_t map_type
+    ) const;
+
+
+    /**
+     * \brief Write field.
+     *
+     */
+    void
+    write
+    (
+      const CWP_Field_exch_t exch_type
+    );
+
+
+    /**
+     * \brief Set interpolation function.
+     *
+     * \param [in]  fct Interpolation function
+     */
+    inline void
+    interpFunctionSet
+    (
+      const CWP_Interp_function_t fct
+    );
+
+
+    /**
+     * \brief Get interpolation function.
+     *
+     * \return Interpolation function
+     */
+    inline CWP_Interp_function_t
+    interpFunctionGet() const;
+
+
+    /**
+     * \brief Unset interpolation function.
+     *
+     */
+    inline void
+    interpFunctionUnset();
+
+
+    /**
+     * \brief Set Fortran interpolation function.
+     *
+     * \param [in]  fct Interpolation function
+     */
+    inline void
+    interpFunctionFSet
+    (
+      const CWP_Interp_function_t fct
+    );
+
+
+    /**
+     * \brief Get Fortran interpolation function.
+     *
+     * \return Interpolation function
+     */
+    inline CWP_Interp_function_t
+    interpFunctionFGet() const;
+
+
+    /**
+     * \brief Unset Fortran interpolation function.
+     *
+     */
+    inline void
+    interpFunctionFUnset();
+
+
+    /**
+     * \brief Set Python interpolation function.
+     *
+     * \param [in]  fct Interpolation function
+     */
+    inline void
+    interpFunctionPSet
+    (
+      const CWP_Interp_function_p_t fct
+    );
+
+
+    /**
+     * \brief Get Python interpolation function.
+     *
+     * \return Interpolation function
+     */
+    inline CWP_Interp_function_p_t
+    interpFunctionPGet() const;
+
+
+    /**
+     * \brief Unset Python interpolation function.
+     *
+     */
+    inline void
+    interpFunctionPUnset();
+
+
+    /**
+     * \brief Get interpolation type.
+     *
+     * \return Interpolation type
+     */
+    inline CWP_Interpolation_t
+    interpolationTypeGet() const;
+
+
+    /**
+     * \brief Set python object.
+     *
+     * \param [in]  p Python object
+     */
+    inline void
+    pythonObjectSet
+    (
+      void *p
+    );
+
+
+    /**
+     * \brief Get python object.
+     *
+     * \return Python object
+     */
+    inline void *
+    pythonObjectGet() const;
+
+
+    /**
+     * \brief Set send already performed flag.
+     *
+     * \param [in]  value Flag value
+     */
+    inline void
+    isSendYetSet
+    (
+      const bool value
+    );
+
+
+    /**
+     * \brief Get send already performed flag.
+     *
+     * \return Send already performed flag
+     */
+    inline bool
+    isSendYetGet() const;
+
+
+    /**
+     * \brief Set receive already performed flag.
+     *
+     * \param [in]  value Flag value
+     */
+    inline void
+    isRecvYetSet
+    (
+      const bool value
+    );
+
+
+    /**
+     * \brief Get receive already performed flag.
+     *
+     * \return Receive already performed flag
+     */
+    inline bool
+    isRecvYetGet() const;
+
+
+    /**
+     * \brief Get sent variable writer identifier.
+     *
+     * \param [in]  i Component identifier
+     *
+     * \return Sent variable writer identifier
+     */
     inline int
-    fieldIDIntGet() const
-    {
-      return _fieldIDInt;
-    }
+    idWriterVarSendGet
+    (
+      const int i_comp
+    ) const;
 
-    inline int *
-    _id_writer_var_send_get()
-    {
-      return _id_writer_var_send;
-    }
 
+    /**
+     * \brief Get sent variable status writer identifier.
+     *
+     * \return Sent variable status writer identifier
+     */
     inline int
-    _id_writer_var_send_status_get()
-    {
-      return _id_writer_var_send_status;
-    }
+    idWriterVarSendStatusGet() const;
 
-    inline int *
-    _id_writer_var_recv_get()
-    {
-      return _id_writer_var_recv;
-    }
 
+    /**
+     * \brief Get received variable writer identifiers.
+     *
+     * \param [in]  i Component identifier
+     *
+     * \return Received variable writer identifiers
+     */
     inline int
-    _id_writer_var_recv_status_get()
-    {
-      return _id_writer_var_recv_status;
-    }
+    idWriterVarRecvGet
+    (
+      const int i_comp
+    ) const;
+
 
     /**
+     * \brief Get received variable status writer identifier.
      *
-     * \brief Get field nature
-     *
-     * \return           Field nature
-     *
+     * \return Received variable status writer identifier
      */
+    inline int
+    idWriterVarRecvStatusGet() const;
 
-    inline CWP_Dof_location_t
-    locationGet() const
-    {
-      return _fieldLocation;
-    }
-
-    CWP_Type_t
-    dataTypeGet() const
-    {
-      return _dataType;
-    }
-
-    int
-    dataTypeSizeGet() const
-    {
-      return _dataTypeSize;
-    }
 
     /**
-     *
-     * \brief Get exchange type
-     *
-     * \return          Exchange type
+     * \brief Enable computed target broadcast.
      *
      */
+    inline void
+    computedTgtBcastEnable();
 
-    inline CWP_Field_exch_t
-    exchangeTypeGet() const
-    {
-      return _exchangeType;
-    }
 
     /**
+     * \brief Check if computed target broadcast is enabled.
      *
-     * \brief Get visu status
-     *
-     * \return          Exchange type
-     *
+     * \return true if enabled, false otherwise
      */
+    inline bool
+    computedTgtBcastEnabledIs() const;
 
-    inline CWP_Status_t
-    visuStatusGet()  const
-    {
-      return _visuStatus;
-    }
 
     /**
-     *
-     * \brief Get data
-     *
-     * \return          Data
+     * \brief Enable involved source broadcast.
      *
      */
-
-    void* dataGet(int i_part,  const CWP_Field_map_t  map_type) const
-    {
-      if (map_type == CWP_FIELD_MAP_SOURCE) {
-        return _data_src[i_part];
-      }
-      else if (map_type == CWP_FIELD_MAP_TARGET) {
-        return _data_tgt[i_part];
-      }
-      else {
-        PDM_error("Field::dataSet Error : unknown data type.");
-        return nullptr;
-      }
-    }
+    inline void
+    involvedSrcBcastEnable();
 
 
-    void interpFunctionSet(CWP_Interp_function_t fct)
-    {
-      _interpolationType     = CWP_INTERPOLATION_USER ;
-      _interpolationFunction = fct;
-    }
-
-    void interpFunctionFSet(CWP_Interp_function_t fct)
-    {
-      _interpolationType       = CWP_INTERPOLATION_USER ;
-      _interpolationFunction_f = fct;
-    }
-
-    void interpFunctionPSet(CWP_Interp_function_p_t fct)
-    {
-      _interpolationType       = CWP_INTERPOLATION_USER ;
-      _interpolationFunction_p = fct;
-    }
-
-    CWP_Interp_function_t interpFunctionFGet()
-    {
-      return _interpolationFunction_f;
-    }
-
-    CWP_Interp_function_p_t interpFunctionPGet()
-    {
-      return _interpolationFunction_p;
-    }
-
-    void interpFunctionUnSet()
-    {
-      _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
-      _interpolationFunction = NULL;
-    }
-
-    void interpFunctionFUnSet()
-    {
-      _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
-      _interpolationFunction_f = NULL;
-    }
-
-    void interpFunctionPUnset()
-    {
-      _interpolationType       = CWP_INTERPOLATION_DEFAULT ;
-      _interpolationFunction_p = NULL;
-    }
-
-    CWP_Interp_function_t interpolationFunctionGet() {
-      return _interpolationFunction;
-    }
-
-    CWP_Interpolation_t interpolationTypeGet() {
-      return _interpolationType;
-    }
-
-
-    // std::vector<void*> dataGetAll() const
-    // {
-    //   return _data;
-    // }
-
-    // Field has been sent ?
-    void is_send_yet_set (int value)
-    {
-      _is_send_yet = value;
-    }
-
-    int is_send_yet_get ()
-    {
-      return _is_send_yet;
-    }
-
-    void is_send_end_step_set (int value)
-    {
-      _is_send_end_step = value;
-    }
-
-    int is_send_end_step_get ()
-    {
-      return _is_send_end_step;
-    }
-
-    // Field has been received ?
-    void is_recv_yet_set (int value)
-    {
-      _is_recv_yet = value;
-    }
-
-    int is_recv_yet_get ()
-    {
-      return _is_recv_yet;
-    }
-
-    void is_recv_end_step_set (int value)
-    {
-      _is_recv_end_step = value;
-    }
-
-    int is_recv_end_step_get ()
-    {
-      return _is_recv_end_step;
-    }
-
-    int computedTgtBcastIsEnabled() const
-    {
-      return _computed_tgt_bcast_enabled;
-    }
-
-    void computedTgtBcastEnable()
-    {
-      _computed_tgt_bcast_enabled = 1;
-    }
-
-    int involvedSrcBcastIsEnabled() const
-    {
-      return _involved_src_bcast_enabled;
-    }
-
-    void involvedSrcBcastEnable()
-    {
-      _involved_src_bcast_enabled = 1;
-    }
-
-
-  void lastRequestAdd (int i_proc, MPI_Request request) {
-    _last_request[i_proc] = request;
-  }
-
-
-  MPI_Request lastRequestGet (int i_proc) {
-    return _last_request[i_proc];
-
-  }
-
-  void lastRequestAdd_p2p (int i_proc, std::vector<MPI_Request> request) {
-    _last_request_p2p[i_proc] = request;
-  }
-
-
-  std::vector<MPI_Request> lastRequestGet_p2p (int i_proc) {
-    return _last_request_p2p[i_proc];
-  }
-
-
-  void* recvBufferGet () {
-    return _recvBuffer;
-  }
-
-  void* sendBufferGet () {
-    return _sendBuffer;
-  }
-
-  void sendBufferSet (void* sendBuffer) {
-    _sendBuffer = sendBuffer;
-  }
-
-  void linkedFieldLocationSet(CWP_Dof_location_t linkedFieldLocation){
-    _linkedFieldLocation = linkedFieldLocation;
-  }
-
-  CWP_Dof_location_t linkedFieldLocationGet(){
-    return _linkedFieldLocation;
-  }
-
-  Coupling *couplingGet(){
-    return _cpl;
-  }
-
-  Mesh *meshGet(){
-    return _mesh;
-  }
-
-  void pythonObjectSet(void *p) {
-    _python_object = p;
-  }
-
-  void *pythonObjectGet() {
-    return _python_object;
-  }
+    /**
+     * \brief Check if involved source broadcast is enabled.
+     *
+     * \return true if enabled, false otherwise
+     */
+    inline bool
+    involvedSrcBcastEnabledIs() const;
 
   private:
 
-    CWP_Field_storage_t                      _storage;        /*!< Storage type */
-    int                                      _nComponent;     /*!< Number of component */
-    CWP_Dof_location_t                       _fieldLocation;  /*!< Value location Interpolation methods for sender and cloud points type for receiver */
-    CWP_Dof_location_t                       _linkedFieldLocation; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
-    CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
-    CWP_Status_t                             _visuStatus;     /*!< Visualization status */
-    // std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
-    // std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
-    void                                   **_data_src;
-    void                                   **_data_tgt;
-    CWP_Type_t                               _dataType;
-    std::string                              _fieldID;
-    int                                      _fieldIDInt;
-    void                                    *_sendBuffer;
-    void                                    *_recvBuffer;
-    Coupling                                *_cpl;
-    Mesh                                    *_mesh;
-    int                                      _n_part;
-    PDM_writer_t                            *_writer;
-    int                                     *_id_writer_var_send;
-    int                                     *_id_writer_var_recv;
+    std::string               _field_id;                      /*!< Field identifier */
+    int                       _field_id_int;                  /*!< Integer field identifier */
+    CWP_Type_t                _data_type;                     /*!< Field data type */
+    int                       _data_type_size;                /*!< Field data type size */
+    CWP_Dof_location_t        _field_location;                /*!< Value location */
+    CWP_Dof_location_t        _linked_field_location;         /*!< Value location of coupled field */
+    int                       _n_component;                   /*!< Number of components */
+    CWP_Field_storage_t       _storage;                       /*!< Storage type */
+    CWP_Field_exch_t          _exchange_type;                 /*!< Exchange type */
+    CWP_Status_t              _visu_status;                   /*!< Visualization status */
+
+    Coupling                 *_cpl;                           /*!< Coupling */
+    Mesh                     *_mesh;                          /*!< Mesh */
+    int                       _n_part;                        /*!< Number of partitions */
+    void                    **_data_tgt;                      /*!< Target data array */
+    void                    **_data_src;                      /*!< Source data array */
+
+    bool                      _is_send_yet;                   /*!< Tells if a field has been sent at a given moment */
+    bool                      _is_recv_yet;                   /*!< Tells if a field has been received at a given moment */
+
+    PDM_writer_t             *_writer;                        /*!< PDM writer */
+    int                      *_id_writer_var_send;            /*!< Sent variable writer identifiers */
+    int                      *_id_writer_var_recv;            /*!< Received variable writer identifiers */
+    int                       _id_writer_var_send_status;     /*!< Sent variable status writer identifier */
+    int                       _id_writer_var_recv_status;     /*!< Received variable status writer identifier */
     /* status = -1: not exchanged,
                  0: computed and exchanged,
                  1: not computed and exchanged */
-    int                                      _id_writer_var_send_status;
-    int                                      _id_writer_var_recv_status;
 
-    std::map <int,MPI_Request>               _last_request;
-    std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
-    int                                      _dataTypeSize;
-    CWP_Interp_function_t                    _interpolationFunction;
-    CWP_Interpolation_t                      _interpolationType;
-    CWP_Interp_function_t                    _interpolationFunction_f;
-    CWP_Interp_function_p_t                  _interpolationFunction_p;
+    CWP_Interpolation_t       _interpolation_type;            /*!< Interpolation type */
+    CWP_Interp_function_t     _interpolation_function;        /*!< Interpolation function */
+    CWP_Interp_function_t     _interpolation_function_f;      /*!< Fortran interpolation function */
+    CWP_Interp_function_p_t   _interpolation_function_p;      /*!< Python interpolation function */
+    void                     *_python_object;                 /*!< Python object */
 
-    Field &operator=(const Field &other);       /*!< Assignment operator not available */
-    Field (const Field& other);                 /*!< Copy constructor not available */
-
-    int                                      _computed_tgt_bcast_enabled;
-    int                                      _involved_src_bcast_enabled;
-
-    // writer
-    int _is_send_yet;      /*!< Tells if a field has been sent at a given moment */
-    int _is_send_end_step; /*!< Tells if a field has been sent at the end of a step */
-    int _is_recv_yet;      /*!< Tells if a field has been received at a given moment */
-    int _is_recv_end_step; /*!< Tells if a field has been received at the end of a step */
-
-    void *_python_object;
+    bool                      _is_computed_tgt_bcast_enabled; /*!< Computed target broadcast enabled flag */
+    bool                      _is_involved_src_bcast_enabled; /*!< Involved source broadcast enabled flag */
   };
 
 }
@@ -490,4 +535,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif //__FIELD_H__
+#endif // __FIELD_H__

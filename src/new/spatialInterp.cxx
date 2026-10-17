@@ -354,7 +354,7 @@ namespace cwipi {
 
   void SpatialInterp::issend(Field* referenceField) {
 
-    if (referenceField->is_send_yet_get() == 1) {
+    if (referenceField->isSendYetGet() == 1) {
       PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
                 "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
@@ -564,7 +564,7 @@ namespace cwipi {
                                             &_n_elt2);
 
       if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART &&
-          referenceField->involvedSrcBcastIsEnabled()) {
+          referenceField->involvedSrcBcastEnabledIs()) {
         const int localRootRank = _localCodeProperties->rootRankGet();
         const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
         int globalRank;
@@ -649,7 +649,7 @@ namespace cwipi {
         PDM_part_to_part_iexch_wait(_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
 
         if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART &&
-          referenceField->involvedSrcBcastIsEnabled()) {
+          referenceField->involvedSrcBcastEnabledIs()) {
           const int localRootRank = _localCodeProperties->rootRankGet();
           const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
           int globalRank;
@@ -799,7 +799,7 @@ namespace cwipi {
                       cplRootRankInIntraConnectableComm,
                       _coupledCodeProperties->connectableCommGet());
 
-            if (cpl_referenceField->computedTgtBcastIsEnabled()) {
+            if (cpl_referenceField->computedTgtBcastEnabledIs()) {
               // Broadcast (un)computed tgt as well
               MPI_Bcast((void *) &cpl_spatial_interp->_n_computed_tgt[i],
                         1,
@@ -853,13 +853,13 @@ namespace cwipi {
     } // end if joint
 
     // set field to sent
-    referenceField->is_send_yet_set(1);
+    referenceField->isSendYetSet(1);
   }
 
 
   void SpatialInterp::irecv(Field *referenceField) {
 
-    if (referenceField->is_recv_yet_get()) {
+    if (referenceField->isRecvYetGet()) {
       PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
                 "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
@@ -1106,7 +1106,7 @@ namespace cwipi {
                     localRootRankInIntraConnectableComm,
                     _localCodeProperties->connectableCommGet());
 
-          if (referenceField->computedTgtBcastIsEnabled()) {
+          if (referenceField->computedTgtBcastEnabledIs()) {
             // Broadcast (un)computed tgt as well
             MPI_Bcast((void *) &_n_computed_tgt[i],
                       1,
@@ -1260,7 +1260,7 @@ namespace cwipi {
                       localRootRankInIntraConnectableComm,
                       _localCodeProperties->connectableCommGet());
 
-            if (referenceField->computedTgtBcastIsEnabled()) {
+            if (referenceField->computedTgtBcastEnabledIs()) {
               // Broadcast (un)computed tgt as well
               MPI_Bcast((void *) &_n_computed_tgt[i],
                         1,
@@ -1344,7 +1344,7 @@ namespace cwipi {
     } // end if joint
 
     // set field to received
-    referenceField->is_recv_yet_set(1);
+    referenceField->isRecvYetSet(1);
   }
 
 

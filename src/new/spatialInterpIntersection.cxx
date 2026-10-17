@@ -666,7 +666,7 @@ namespace cwipi {
     const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
-      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet();
+      CWP_Interp_function_t   interpolationFunction  = referenceField->interpFunctionGet();
       CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();
       CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();
 

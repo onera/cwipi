@@ -439,9 +439,9 @@ namespace cwipi {
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
 
-      CWP_Interp_function_t   interpolationFunction  = referenceField->interpolationFunctionGet(); // C/C++   user-defined interpolation function
-      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet();       // Fortran user-defined interpolation function
-      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet();       // Python  user-defined interpolation function
+      CWP_Interp_function_t   interpolationFunction  = referenceField->interpFunctionGet();  // C/C++   user-defined interpolation function
+      CWP_Interp_function_t   interpolationFunctionF = referenceField->interpFunctionFGet(); // Fortran user-defined interpolation function
+      CWP_Interp_function_p_t interpolationFunctionP = referenceField->interpFunctionPGet(); // Python  user-defined interpolation function
 
       CWP_Interp_function_t _interpolationFunction = NULL;
       if (interpolationFunction != NULL) {
