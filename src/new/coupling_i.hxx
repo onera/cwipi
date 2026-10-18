@@ -1165,10 +1165,10 @@ namespace cwipi {
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' does not receive data\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' does not send data\n", field_id.c_str());
     }
 
-    field->computedTgtBcastEnable();
+    field->involvedSrcBcastEnable();
   }
 
 
