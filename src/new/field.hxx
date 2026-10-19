@@ -63,15 +63,15 @@ namespace cwipi {
      */
     Field
     (
-      std::string         field_id,
-      int                 fieldIDInt,
-      CWP_Type_t          dataType,
-      Coupling*           cpl,
-      CWP_Dof_location_t  fieldType,
-      CWP_Field_storage_t storage,
-      int                 nComponent,
-      CWP_Field_exch_t    exchangeType,
-      CWP_Status_t        visuStatus
+      const std::string         field_id,
+      const int                 fieldIDInt,
+      const CWP_Type_t          dataType,
+            Coupling*           cpl,
+      const CWP_Dof_location_t  fieldType,
+      const CWP_Field_storage_t storage,
+      const int                 nComponent,
+      const CWP_Field_exch_t    exchangeType,
+      const CWP_Status_t        visuStatus
     );
 
 
