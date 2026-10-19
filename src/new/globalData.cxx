@@ -29,9 +29,9 @@ namespace cwipi {
 
   GlobalData::GlobalData
   (
-    size_t s_entity,
-    int    stride,
-    int    n_entity
+    const size_t s_entity,
+    const int    stride,
+    const int    n_entity
   )
   : _s_entity(s_entity),
     _stride(stride),
