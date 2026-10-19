@@ -169,7 +169,7 @@ namespace cwipi {
     timeStepBegin
     (
       const CodeProperties &localCodeProperties,
-            double          current_time
+      const double          current_time
     );
 
 

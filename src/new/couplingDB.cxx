@@ -132,7 +132,7 @@ namespace cwipi {
   CouplingDB::timeStepBegin
   (
     const CodeProperties &localCodeProperties,
-          double          current_time
+    const double          current_time
   )
   {
     typedef const map<const CodeProperties *, map<string, Coupling *>>::iterator Iterator;

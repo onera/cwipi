@@ -55,10 +55,10 @@ typedef enum {
 void
 _cwp_log
 (
-        int   level,
+  const int   level,
   const char *func,
   const char *file,
-        int   line,
+  const int   line,
   const char *fmt,
   ...
 );
@@ -67,10 +67,10 @@ _cwp_log
 void
 _cwp_log_assert
 (
-        bool  condition,
+  const bool  condition,
   const char *func,
   const char *file,
-        int   line,
+  const int   line,
   const char *fmt,
   ...
 );
@@ -81,7 +81,7 @@ _cwp_log_fail
 (
   const char *func,
   const char *file,
-        int   line,
+  const int   line,
   const char *fmt,
   ...
 );
@@ -101,7 +101,7 @@ _cwp_log_fail
 void
 CWP_Log_level_set
 (
-  int level
+  const int level
 );
 
 
@@ -114,7 +114,7 @@ CWP_Log_level_set
 void
 CWP_Log_console_enable
 (
-  int enable
+  const int enable
 );
 
 
@@ -127,7 +127,7 @@ CWP_Log_console_enable
 void
 CWP_Log_logfile_enable
 (
-  int enable
+  const int enable
 );
 
 
