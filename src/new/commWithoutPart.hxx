@@ -63,7 +63,7 @@ namespace cwipi {
      * \return Communication type
      */
     inline CWP_Comm_t
-    commTypeGet() override;
+    commTypeGet() const override;
 
   private:
 
@@ -75,7 +75,7 @@ namespace cwipi {
     void
     cplCommCreate
     (
-      CWP_Comm_t cplCodeCommType
+      const CWP_Comm_t cplCodeCommType
     ) override;
 
     CWP_Comm_t _commType; /*!< Communication type */
@@ -83,7 +83,7 @@ namespace cwipi {
   };
 
   inline CWP_Comm_t
-  CommWithoutPart::commTypeGet()
+  CommWithoutPart::commTypeGet() const
   {
     return _commType;
   }

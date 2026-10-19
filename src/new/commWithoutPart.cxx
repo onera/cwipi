@@ -50,7 +50,7 @@ namespace cwipi {
   void
   CommWithoutPart::cplCommCreate
   (
-    CWP_Comm_t cplCodeCommType
+    const CWP_Comm_t cplCodeCommType
   )
   {
     MPI_Group globalGroup;

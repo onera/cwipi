@@ -192,7 +192,7 @@ namespace cwipi {
   void
   Communication::init
   (
-    Communication &cplCodeComm
+    const Communication &cplCodeComm
   )
   {
     _local_code_properties         = cplCodeComm._cpl_code_properties;
@@ -209,7 +209,7 @@ namespace cwipi {
   Communication::tagGet
   (
     const string name,
-          int    offset
+    const int    offset
   )
   {
     MPI_Aint *maxTagTmp;
@@ -230,15 +230,15 @@ namespace cwipi {
   void
   Communication::globalDataBetweenCodesThroughUnionCommExch
   (
-    size_t  s_data,
-    int     n_send_data,
-    void   *send_data,
-    int     n_send_data_cpl,
-    void   *send_data_cpl,
-    int     n_recv_data,
-    void   *recv_data,
-    int     n_recv_data_cpl,
-    void   *recv_data_cpl
+    const size_t  s_data,
+    const int     n_send_data,
+    const void   *send_data,
+    const int     n_send_data_cpl,
+    const void   *send_data_cpl,
+    const int     n_recv_data,
+          void   *recv_data,
+    const int     n_recv_data_cpl,
+          void   *recv_data_cpl
   )
   {
     if (_cpl_code_properties->localCodeIs()) {
@@ -378,10 +378,10 @@ namespace cwipi {
   (
     const string       global_data_id,
           MPI_Request *data_send_request,
-          size_t       s_entity,
-          int          stride,
-          int          n_entity,
-          void        *send_data
+    const size_t       s_entity,
+    const int          stride,
+    const int          n_entity,
+    const void        *send_data
   )
   {
     assert(send_data != nullptr);
@@ -427,9 +427,9 @@ namespace cwipi {
   (
     const string       global_data_id,
           MPI_Request *data_recv_request,
-          size_t       s_entity,
-          int          stride,
-          int          n_entity,
+    const size_t       s_entity,
+    const int          stride,
+    const int          n_entity,
           void        *recv_data
   )
   {
@@ -474,12 +474,12 @@ namespace cwipi {
   void
   Communication::globalDataBetweenCodesThroughUnionCommWaitIssend
   (
-    MPI_Request  data_send_request,
-    size_t       s_entity,
-    int          stride,
-    int          n_entity,
-    void        *send_data,
-    void        *recv_data
+          MPI_Request  data_send_request,
+    const size_t       s_entity,
+    const int          stride,
+    const int          n_entity,
+    const void        *send_data,
+          void        *recv_data
   )
   {
     int unionCommRank;
@@ -518,12 +518,12 @@ namespace cwipi {
   void
   Communication::globalDataBetweenCodesThroughUnionCommWaitIrecv
   (
-    MPI_Request  data_recv_request,
-    size_t       s_entity,
-    int          stride,
-    int          n_entity,
-    void        *send_data,
-    void        *recv_data
+          MPI_Request  data_recv_request,
+    const size_t       s_entity,
+    const int          stride,
+    const int          n_entity,
+    const void        *send_data,
+          void        *recv_data
   )
   {
     int unionCommRank;
@@ -570,7 +570,7 @@ namespace cwipi {
   Communication::_adler32Compute
   (
     const void   *buf,
-          size_t  buflength
+    const size_t  buflength
   )
   {
     const uint8_t *buffer = static_cast<const uint8_t *>(buf);
