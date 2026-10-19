@@ -832,6 +832,15 @@ _get_values
 
   }
 
+  // Enable visualization
+  for (int i_code = 0; i_code < n_code; i_code++) {
+    CWP_Visu_set(code_names[i_code],
+                 cpl_name,
+                 2,
+                 CWP_VISU_FORMAT_ENSIGHT,
+                 "binary");
+  }
+
   // Define mesh
   int          **pn_face        = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
   int          **pn_vtx         = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
