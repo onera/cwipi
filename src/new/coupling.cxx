@@ -1782,7 +1782,7 @@ namespace cwipi {
 
         nSendData   = localNbField;
         nRecvData   = cplNbField;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                    nSendData,
                                                                    (void *) localFieldNComponent.data(),
                                                                    -1,
@@ -2192,7 +2192,7 @@ namespace cwipi {
           cpl_nSendData   = cpl_localNbField;
           cpl_nRecvData   = cpl_cplNbField;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                      nSendData,
                                                                      (void *) localFieldNComponent.data(),
                                                                      cpl_nSendData,
