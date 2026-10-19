@@ -5,7 +5,7 @@
 - Porting for GCC 14, 15, 16
 - Porting for IntelLLVM 2025
 ### Changed
-- New version of ParaDiGM : 2.8.0
+- New version of ParaDiGM : 2.9.0
 - Improvements of README, CONTRIBUTING, COMMUNITY and documentation
 ### Deprecated
 ### Removed

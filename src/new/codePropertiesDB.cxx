@@ -119,7 +119,7 @@ namespace cwipi {
 
     MPI_Initialized(&flag);
     if (!flag) {
-      PDM_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
+      PDM_error("MPI is not initialized");
     }
 
     MPI_Comm_rank(globalComm, &currentRank);

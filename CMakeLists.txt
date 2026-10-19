@@ -416,7 +416,7 @@ if (CWP_ENABLE_EXTERNAL_PDM)
     list(APPEND REQUIRED_COMPONENTS Pypdm)
   endif ()
 
-  find_package(pdm CONFIG 2.8.0
+  find_package(pdm CONFIG 2.9.0
                REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
                HINTS $ENV{PDM_ROOT}
                )

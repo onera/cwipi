@@ -1012,7 +1012,7 @@ namespace cwipi {
 
         if (_interpolationFunction == NULL &&
             interpolationFunctionP == NULL) {
-          PDM_error(__FILE__, __LINE__, 0, "Undefined user interpolation function\n");
+          PDM_error("Undefined user interpolation function");
         }
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {

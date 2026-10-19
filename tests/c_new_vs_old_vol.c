@@ -47,6 +47,7 @@
 
 #include "pdm_part_extension.h"
 #include "pdm_vtk.h"
+#include "pdm_timer.h"
 
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal_to_dmesh.h"
@@ -110,7 +111,6 @@ _read_args
   int                  *nProcData,
   PDM_split_dual_t     *part_method,
   CWP_Spatial_interp_t *loc_method,
-  char                **output_filename,
   int                  *verbose,
   int                  *extension_depth_tgt,
   int                  *extension_depth_src,
@@ -196,16 +196,6 @@ _read_args
         _usage(EXIT_FAILURE);
       else
         *separation_z = atof(argv[i]);
-    }
-
-    else if (strcmp(argv[i], "-output") == 0) {
-      i++;
-      if (i >= argc) {
-        _usage(EXIT_FAILURE);
-      }
-      else {
-        *output_filename = argv[i];
-      }
     }
     else if (strcmp(argv[i], "-def") == 0) {
       *deform = 1;
@@ -1058,9 +1048,6 @@ main(int argc, char *argv[]) {
 
   double      tolerance           = 1e-2;
 
-  char* output_filename           = NULL;
-  int filedump                    = 0;
-
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
   int         use_gnum            = 1;
@@ -1083,17 +1070,12 @@ main(int argc, char *argv[]) {
              &n_proc_data,
              &part_method,
              &loc_method,
-             &output_filename,
              &verbose,
              &extension_depth_tgt,
              &extension_depth_src,
              &elt_type,
              &use_gnum,
              &interlaced_field);
-
-  if (output_filename !=NULL) {
-    filedump = 1;
-  }
 
   CWP_Field_storage_t field_storage = CWP_FIELD_STORAGE_INTERLEAVED;
   if (interlaced_field) {
@@ -1470,17 +1452,10 @@ main(int argc, char *argv[]) {
   }
 
   // Perform geometric algorithm
-  CWP_timer_t *timer = CWP_timer_create();
-  double t_start, t_end;
+  PDM_timer_t *timer = PDM_timer_create(MPI_COMM_WORLD);
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_init(timer);
+  PDM_timer_start(timer, "locate", 1 /* Force synchro */);
 
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
-
-
-  double max_geom_time;
   int n_unlocated = 0;
   int n_located = 0;
   const int *located = NULL;
@@ -1493,257 +1468,24 @@ main(int argc, char *argv[]) {
       located = cwipi_get_located_points(coupling_name);
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    CWP_timer_hang_on(timer);
-    t_end = CWP_timer_elapsed(timer);
-    CWP_timer_resume(timer);
-
-    double geom_time = t_end - t_start;
-    MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
   }
   else {
-    PDM_part_to_block_global_statistic_reset();
-    PDM_block_to_part_global_statistic_reset();
-
     char char_tol[99];
     sprintf(char_tol, "%e", tolerance);
     CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", CWP_DOUBLE, char_tol);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    CWP_timer_hang_on(timer);
-    t_end = CWP_timer_elapsed(timer);
-    CWP_timer_resume(timer);
-
-    double geom_time = t_end - t_start;
-    MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (code_id != 1) {
       n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
       n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
       located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
     }
-
-    double min_elaps_create_ptb;
-    double max_elaps_create_ptb;
-    double min_cpu_create_ptb;
-    double max_cpu_create_ptb;
-    double min_elaps_create2_ptb;
-    double max_elaps_create2_ptb;
-    double min_cpu_create2_ptb;
-    double max_cpu_create2_ptb;
-    double min_elaps_exch_ptb;
-    double max_elaps_exch_ptb;
-    double min_cpu_exch_ptb;
-    double max_cpu_exch_ptb;
-
-    PDM_part_to_block_global_timer_get(PDM_MPI_COMM_WORLD,
-                                       &min_elaps_create_ptb,
-                                       &max_elaps_create_ptb,
-                                       &min_cpu_create_ptb,
-                                       &max_cpu_create_ptb,
-                                       &min_elaps_create2_ptb,
-                                       &max_elaps_create2_ptb,
-                                       &min_cpu_create2_ptb,
-                                       &max_cpu_create2_ptb,
-                                       &min_elaps_exch_ptb,
-                                       &max_elaps_exch_ptb,
-                                       &min_cpu_exch_ptb,
-                                       &max_cpu_exch_ptb);
-
-    double min_elaps_create_btp;
-    double max_elaps_create_btp;
-    double min_cpu_create_btp;
-    double max_cpu_create_btp;
-    double min_elaps_exch_btp;
-    double max_elaps_exch_btp;
-    double min_cpu_exch_btp;
-    double max_cpu_exch_btp;
-
-    PDM_block_to_part_global_timer_get(PDM_MPI_COMM_WORLD,
-                                       &min_elaps_create_btp,
-                                       &max_elaps_create_btp,
-                                       &min_cpu_create_btp,
-                                       &max_cpu_create_btp,
-                                       &min_elaps_exch_btp,
-                                       &max_elaps_exch_btp,
-                                       &min_cpu_exch_btp,
-                                       &max_cpu_exch_btp);
-
-    int min_exch_rank_send_ptb;
-    int min_exch_rank_recv_ptb;
-    int max_exch_rank_send_ptb;
-    int max_exch_rank_recv_ptb;
-    unsigned long long min_exch_data_send_ptb;
-    unsigned long long min_exch_data_recv_ptb;
-    unsigned long long max_exch_data_send_ptb;
-    unsigned long long max_exch_data_recv_ptb;
-
-    PDM_part_to_block_global_statistic_get(PDM_MPI_COMM_WORLD,
-                                           &min_exch_rank_send_ptb,
-                                           &min_exch_rank_recv_ptb,
-                                           &max_exch_rank_send_ptb,
-                                           &max_exch_rank_recv_ptb,
-                                           &min_exch_data_send_ptb,
-                                           &min_exch_data_recv_ptb,
-                                           &max_exch_data_send_ptb,
-                                           &max_exch_data_recv_ptb);
-
-    int min_exch_rank_send_btp;
-    int min_exch_rank_recv_btp;
-    int max_exch_rank_send_btp;
-    int max_exch_rank_recv_btp;
-    unsigned long long min_exch_data_send_btp;
-    unsigned long long min_exch_data_recv_btp;
-    unsigned long long max_exch_data_send_btp;
-    unsigned long long max_exch_data_recv_btp;
-
-    PDM_block_to_part_global_statistic_get(PDM_MPI_COMM_WORLD,
-                                           &min_exch_rank_send_btp,
-                                           &min_exch_rank_recv_btp,
-                                           &max_exch_rank_send_btp,
-                                           &max_exch_rank_recv_btp,
-                                           &min_exch_data_send_btp,
-                                           &min_exch_data_recv_btp,
-                                           &max_exch_data_send_btp,
-                                           &max_exch_data_recv_btp);
-
-    if (rank == 0) {
-      printf("Global time in PDM_part_to_block : \n");
-      printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
-             min_elaps_create_ptb,
-             max_elaps_create_ptb);
-      printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
-             min_elaps_create2_ptb,
-             max_elaps_create2_ptb);
-      printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
-             min_elaps_exch_ptb,
-             max_elaps_exch_ptb);
-
-      printf("   - ptb min max send rank     : %d %d\n",
-             min_exch_rank_send_ptb,
-             max_exch_rank_send_ptb);
-      printf("   - ptb min max recv rank     : %d %d\n",
-             min_exch_rank_recv_ptb,
-             max_exch_rank_recv_ptb);
-      printf("   - ptb min max send data     : %llu %llu\n",
-             min_exch_data_send_ptb,
-             max_exch_data_send_ptb);
-      printf("   - ptb min max recv data     : %llu %llu\n",
-             min_exch_data_recv_ptb,
-             max_exch_data_recv_ptb);
-      fflush(stdout);
-
-      printf("Global time in PDM_block_to_part : \n");
-      printf("   - btp min max elaps create  : %12.5e %12.5e\n",
-             min_elaps_create_btp,
-             max_elaps_create_btp);
-      printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
-             min_elaps_exch_btp,
-             max_elaps_exch_btp);
-
-      printf("   - btp min max send rank     : %d %d\n",
-             min_exch_rank_send_btp,
-             max_exch_rank_send_btp);
-      printf("   - btp min max recv rank     : %d %d\n",
-             min_exch_rank_recv_btp,
-             max_exch_rank_recv_btp);
-      printf("   - btp min max send data     : %llu %llu\n",
-             min_exch_data_send_btp,
-             max_exch_data_send_btp);
-      printf("   - btp min max recv data     : %llu %llu\n",
-             min_exch_data_recv_btp,
-             max_exch_data_recv_btp);
-      fflush(stdout);
-
-      char output_filename_ptbbtp[50];
-      FILE* output_ptbbtp = stdout;
-      if (filedump) {
-        sprintf(output_filename_ptbbtp, "ptbbtp_%s", output_filename);
-        output_ptbbtp = fopen(output_filename_ptbbtp, "w");
-      }
-
-      // fprintf(output_ptbbtp,
-      //         "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
-      //         comm_world_size,
-      //         min_elaps_create_ptb,
-      //         max_elaps_create_ptb,
-      //         min_elaps_create2_ptb,
-      //         max_elaps_create2_ptb,
-      //         min_elaps_exch_ptb,
-      //         max_elaps_exch_ptb);
-
-
-//      fprintf(output_ptbbtp,
-//              "%d %d %d %d %llu %llu %llu %llu ",
-//              min_exch_rank_send_ptb,
-//              max_exch_rank_send_ptb,
-//              min_exch_rank_recv_ptb,
-//              max_exch_rank_recv_ptb,
-//              min_exch_data_send_ptb,
-//              max_exch_data_send_ptb,
-//              min_exch_data_recv_ptb,
-//              max_exch_data_recv_ptb);
-
-      // fprintf(output_ptbbtp,
-      //       "%12.5e %12.5e %12.5e %12.5e\n",
-      //       min_elaps_create_btp,
-      //       max_elaps_create_btp,
-      //       min_elaps_exch_btp,
-      //       max_elaps_exch_btp);
-
-//      fprintf(output_ptbbtp,
-//              "%d %d %d %d %llu %llu %llu %llu ",
-//              min_exch_rank_send_btp,
-//              max_exch_rank_send_btp,
-//              min_exch_rank_recv_btp,
-//              max_exch_rank_recv_btp,
-//              min_exch_data_send_btp,
-//              max_exch_data_send_btp,
-//              min_exch_data_recv_btp,
-//              max_exch_data_recv_btp);
-
-      if (filedump) {
-        fclose(output_ptbbtp);
-      }
-    }
   }
+  CWP_UNUSED(n_unlocated);
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_end(timer, "locate", 1 /* Force synchro */);
 
-  // double geom_time = t_end - t_start;
-  // double max_geom_time;
-  // MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  FILE *output = stdout;
-  if (filedump) {
-    output = fopen(output_filename, "w");
-  }
-
-  if (rank == 0) {
-    printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
-
-    if (filedump) {
-      fprintf(output, "%d %12.5e ", comm_world_size, max_geom_time);
-    }
-  }
-
-  if (verbose && rank == 0) {
-    printf("Geometric algorithm OK\n");
-
-  }
-
-  printf("n_unlocated : %d\n", n_unlocated);
-
-  //  Exchange interpolated fields 1
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "exch field 1", 1 /* Force synchro */);
 
   int request;
   if (version == CWP_VERSION_OLD) {
@@ -1764,14 +1506,10 @@ main(int argc, char *argv[]) {
     }
   }
 
-  /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* CWP_timer_hang_on(timer); */
-  /* t_end = CWP_timer_elapsed(timer); */
-  /* double exch_time1 = t_end - t_start; */
-  /* double max_exch_time1; */
-  /* t_start = t_end; */
-  /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
-  /* CWP_timer_resume(timer); */
+  //  Exchange interpolated fields 1
+  PDM_timer_start(timer, "exch field 1", 1 /* Force synchro */);
+
+  PDM_timer_start(timer, "exch field 2", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1790,35 +1528,10 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  double exch_time = t_end - t_start;
-  double max_exch_time;
-  MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-    /* printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1); */
-    /* printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time); */
-    /* printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time); */
-    printf("Total Exchange 1              : %12.5es\n", max_exch_time);
-
-    if (filedump) {
-      fprintf(output, "%12.5e ", max_exch_time);
-    }
-  }
-
-  /* double exch_time1 = 0; */
-  /* double redondance_geom = max_exch_time1; */
-  /* max_geom_time += max_exch_time1; */
+  PDM_timer_end(timer, "exch field 2", 1 /* Force synchro */);
 
   //  Exchange interpolated fields 2
-  CWP_timer_resume(timer);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "exch field 3", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1838,24 +1551,9 @@ main(int argc, char *argv[]) {
     }
   }
 
-  /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* CWP_timer_hang_on(timer); */
-  /* t_end = CWP_timer_elapsed(timer); */
-  /* exch_time1 = t_end - t_start; */
+  PDM_timer_end(timer, "exch field 3", 1 /* Force synchro */);
 
-  /* CWP_UNUSED (max_exch_time1); */
-
-  /* t_start = t_end; */
-  /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
-
-  /* CWP_timer_resume(timer); */
-
-  /* MPI_Barrier(MPI_COMM_WORLD); */
-  /* CWP_timer_hang_on(timer); */
-  /* t_start = CWP_timer_elapsed(timer); */
-  /* CWP_timer_resume(timer); */
-
-  /* redondance_geom += -max_exch_time1; */
+  PDM_timer_start(timer, "exch field 4", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1874,32 +1572,12 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  exch_time = t_end - t_start;
-  /* CWP_UNUSED (max_exch_time1); */
-  MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  PDM_timer_end(timer, "exch field 4", 1 /* Force synchro */);
 
-  if (rank == 0) {
-    /* printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1); */
-    /* printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time); */
-    printf("Total exchange 2               :%12.5es\n", max_exch_time);
 
-    printf("\n\nTemps geometrie                            : %12.5es\n", max_geom_time);
-    /* printf("Temps geometrie escompte (sans redondance) : %12.5es\n", */
-    /*        max_geom_time - redondance_geom); */
-    /* printf("Temps un Echange aux noeuds                : %12.5es\n", */
-    /*        max_exch_time1 + max_exch_time); */
-
-    /* if (filedump) { */
-    /*   fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time); */
-    /*   fclose(output); */
-    /* } */
-  }
+  PDM_timer_gather_dump(timer, NULL);
 
   //  Check
-
   if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
       loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
     double max_err = 0.;
@@ -2052,7 +1730,7 @@ main(int argc, char *argv[]) {
     free(recv_val);
     free(recv_val2);
   }
-  CWP_timer_free(timer);
+  PDM_timer_free(timer);
 
   //  Finalize CWIPI
   if (version == CWP_VERSION_OLD) {
@@ -2060,77 +1738,6 @@ main(int argc, char *argv[]) {
   }
   else {
     CWP_Finalize();
-  }
-
-  if (version == CWP_VERSION_NEW) {
-    double min_elaps_create_ptb;
-    double max_elaps_create_ptb;
-    double min_cpu_create_ptb;
-    double max_cpu_create_ptb;
-    double min_elaps_create2_ptb;
-    double max_elaps_create2_ptb;
-    double min_cpu_create2_ptb;
-    double max_cpu_create2_ptb;
-    double min_elaps_exch_ptb;
-    double max_elaps_exch_ptb;
-    double min_cpu_exch_ptb;
-    double max_cpu_exch_ptb;
-
-    PDM_part_to_block_global_timer_get(PDM_MPI_COMM_WORLD,
-                                       &min_elaps_create_ptb,
-                                       &max_elaps_create_ptb,
-                                       &min_cpu_create_ptb,
-                                       &max_cpu_create_ptb,
-                                       &min_elaps_create2_ptb,
-                                       &max_elaps_create2_ptb,
-                                       &min_cpu_create2_ptb,
-                                       &max_cpu_create2_ptb,
-                                       &min_elaps_exch_ptb,
-                                       &max_elaps_exch_ptb,
-                                       &min_cpu_exch_ptb,
-                                       &max_cpu_exch_ptb);
-
-    double min_elaps_create_btp;
-    double max_elaps_create_btp;
-    double min_cpu_create_btp;
-    double max_cpu_create_btp;
-    double min_elaps_exch_btp;
-    double max_elaps_exch_btp;
-    double min_cpu_exch_btp;
-    double max_cpu_exch_btp;
-
-    PDM_block_to_part_global_timer_get(PDM_MPI_COMM_WORLD,
-                                       &min_elaps_create_btp,
-                                       &max_elaps_create_btp,
-                                       &min_cpu_create_btp,
-                                       &max_cpu_create_btp,
-                                       &min_elaps_exch_btp,
-                                       &max_elaps_exch_btp,
-                                       &min_cpu_exch_btp,
-                                       &max_cpu_exch_btp);
-
-    if (rank == 0) {
-      printf("Global time in PDM_part_to_block : \n");
-      printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
-             min_elaps_create_ptb,
-             max_elaps_create_ptb);
-      printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
-             min_elaps_create2_ptb,
-             max_elaps_create2_ptb);
-      printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
-             min_elaps_exch_ptb,
-             max_elaps_exch_ptb);
-      fflush(stdout);
-
-      printf("Global time in PDM_block_to_part : \n");
-      printf("   - btp min max elaps create  : %12.5e %12.5e\n",
-             min_elaps_create_btp,
-             max_elaps_create_btp);
-      printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
-             min_elaps_exch_btp,
-             max_elaps_exch_btp);
-      fflush(stdout);
-    }
   }
 
   // Finalize MPI

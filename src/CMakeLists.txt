@@ -44,7 +44,8 @@ endif()
 
 if (NOT CWP_ENABLE_EXTERNAL_PDM)
   file(GLOB_RECURSE SOURCESPDM
-      ${PDM_SOURCE_DIR}/src/*.[ch])
+      ${PDM_SOURCE_DIR}/src/*.[ch] ${PDM_SOURCE_DIR}/src/*.cpp)
+  list(FILTER SOURCESPDM EXCLUDE REGEX "\\.test\\.cpp$")
   add_library(pdm OBJECT ${SOURCESPDM})
   list(APPEND PDM_INC ${PDM_SOURCE_DIR}/src
                       ${PDM_SOURCE_DIR}/src/algorithm

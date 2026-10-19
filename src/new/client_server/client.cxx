@@ -128,7 +128,7 @@ static int n_vtx_get(CWP_Block_t block_type) {
 
   case CWP_BLOCK_FACE_POLY: {
     // TO DO: what value ?
-    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_FACE_POLY\n");
+    PDM_error("Number of nodes unknown for CWP_BLOCK_FACE_POLY");
     return -1;
     } break;
 
@@ -150,12 +150,12 @@ static int n_vtx_get(CWP_Block_t block_type) {
 
   case CWP_BLOCK_CELL_POLY: {
     // TO DO: what value ?
-    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_CELL_POLY\n");
+    PDM_error("Number of nodes unknown for CWP_BLOCK_CELL_POLY");
     return -1;
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown block type %d\n", block_type);
+    PDM_error("Unknown block type %d", block_type);
     return -1;
   }
 
@@ -213,7 +213,7 @@ switch (block_type) {
     return (order + 1) * (order + 1) * (order + 1);
     break;
   default :
-    PDM_error (__FILE__, __LINE__, 0, "Unknown order for Poly2D and Poly3D (block_type %d)\n", block_type);
+    PDM_error("Unknown order for Poly2D and Poly3D (block_type %d)", block_type);
   }
   return -1;
 }
@@ -713,7 +713,7 @@ static void verbose(t_message msg) {
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown cwipi function %d\n", msg.message_type);
+    PDM_error("Unknown cwipi function %d", msg.message_type);
   }
 
   char *flag = (char *) malloc(sizeof(char) * 99);
@@ -735,7 +735,7 @@ static void verbose(t_message msg) {
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown server flag %d\n", msg.flag);
+    PDM_error("Unknown server flag %d", msg.flag);
   }
 
   // print
@@ -794,7 +794,7 @@ CWP_client_connect
 
   // create socket
   if ((clt->socket = socket(svr_info->ai_family, SOCK_STREAM, 0)) == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not create Socket\n");
+    PDM_error("Could not create Socket");
     return -1;
   }
 
@@ -1055,7 +1055,7 @@ CWP_client_Init
 
   // check number of ranks
   if (n_rank != nb_rank) {
-    PDM_error(__FILE__, __LINE__, 0, "Client executing on %d and server on %d ranks. Should be on the same number of ranks\n", n_rank, nb_rank);
+    PDM_error("Client executing on %d and server on %d ranks. Should be on the same number of ranks", n_rank, nb_rank);
   }
 
   // --> block read hostname/port
@@ -1097,7 +1097,7 @@ CWP_client_Init
 
   // connect
   if (CWP_client_connect(comm, server_name, server_port, flags) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
+    PDM_error("Client connexion failed");
   }
 
   // code name
@@ -1128,7 +1128,7 @@ CWP_client_Init
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Init failed to send message header\n");
+    PDM_error("CWP_client_Init failed to send message header");
   }
 
   // receive status msg
@@ -1193,7 +1193,7 @@ CWP_client_Finalize()
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Finalize failed to send message header\n");
+    PDM_error("CWP_client_Finalize failed to send message header");
   }
 
   // receive status msg
@@ -1262,7 +1262,7 @@ const char *code_name
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_lock failed to send message header\n");
+    PDM_error("CWP_client_Param_lock failed to send message header");
   }
 
   // receive status msg
@@ -1313,7 +1313,7 @@ const char *code_name
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_unlock failed to send message header\n");
+    PDM_error("CWP_client_Param_unlock failed to send message header");
   }
 
   // receive status msg
@@ -1367,7 +1367,7 @@ CWP_client_Param_add
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_add failed to send message header\n");
+    PDM_error("CWP_client_Param_add failed to send message header");
   }
 
   // receive status msg
@@ -1409,7 +1409,7 @@ CWP_client_Param_add
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Unknown CWP_Type_t %i", data_type);
   }
 
   // receive status msg
@@ -1452,7 +1452,7 @@ CWP_client_Param_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_get failed to send message header\n");
+    PDM_error("CWP_client_Param_get failed to send message header");
   }
 
   // receive status msg
@@ -1511,7 +1511,7 @@ CWP_client_Param_get
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Unknown CWP_Type_t %i", data_type);
   }
 }
 
@@ -1538,7 +1538,7 @@ CWP_client_Param_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_set failed to send message header\n");
+    PDM_error("CWP_client_Param_set failed to send message header");
   }
 
   // receive status msg
@@ -1579,7 +1579,7 @@ CWP_client_Param_set
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Unknown CWP_Type_t %i", data_type);
   }
 
   // receive status msg
@@ -1621,7 +1621,7 @@ CWP_client_Param_del
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_del failed to send message header\n");
+    PDM_error("CWP_client_Param_del failed to send message header");
   }
 
   // receive status msg
@@ -1681,7 +1681,7 @@ CWP_client_Param_n_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_n_get failed to send message header\n");
+    PDM_error("CWP_client_Param_n_get failed to send message header");
   }
 
   // receive status msg
@@ -1746,7 +1746,7 @@ CWP_client_Param_list_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_list_get failed to send message header\n");
+    PDM_error("CWP_client_Param_list_get failed to send message header");
   }
 
   // receive status msg
@@ -1815,7 +1815,7 @@ CWP_client_Param_is
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_is failed to send message header\n");
+    PDM_error("CWP_client_Param_is failed to send message header");
   }
 
   // receive status msg
@@ -1885,7 +1885,7 @@ CWP_client_Param_reduce
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_reduce failed to send message header\n");
+    PDM_error("CWP_client_Param_reduce failed to send message header");
   }
 
   // receive status msg
@@ -1947,7 +1947,7 @@ CWP_client_Param_reduce
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i or impossible on CWP_CHAR\n", data_type);
+    PDM_error("Unknown CWP_Type_t %i or impossible on CWP_CHAR", data_type);
   }
 }
 
@@ -1979,7 +1979,7 @@ CWP_client_Cpl_create
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_create failed to send message header\n");
+    PDM_error("CWP_client_Cpl_create failed to send message header");
   }
 
   // receive status msg
@@ -2075,7 +2075,7 @@ CWP_client_Cpl_barrier
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_barrier failed to send message header\n");
+    PDM_error("CWP_client_Cpl_barrier failed to send message header");
   }
 
   // receive status msg
@@ -2130,7 +2130,7 @@ CWP_client_Cpl_del
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_del failed to send message header\n");
+    PDM_error("CWP_client_Cpl_del failed to send message header");
   }
 
   // receive status msg
@@ -2345,7 +2345,7 @@ void
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Properties_dump failed to send message header\n");
+    PDM_error("CWP_client_Properties_dump failed to send message header");
   }
 
   // receive status msg
@@ -2402,7 +2402,7 @@ CWP_client_Visu_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Visu_set failed to send message header\n");
+    PDM_error("CWP_client_Visu_set failed to send message header");
   }
 
   // receive status msg
@@ -2470,7 +2470,7 @@ CWP_client_State_update
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_update failed to send message header\n");
+    PDM_error("CWP_client_State_update failed to send message header");
   }
 
   // receive status msg
@@ -2527,7 +2527,7 @@ CWP_client_Time_step_beg
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_step_beg failed to send message header\n");
+    PDM_error("CWP_client_Time_step_beg failed to send message header");
   }
 
   // receive status msg
@@ -2584,7 +2584,7 @@ CWP_client_Time_step_end
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_step_end failed to send message header\n");
+    PDM_error("CWP_client_Time_step_end failed to send message header");
   }
 
   // receive status msg
@@ -2670,7 +2670,7 @@ CWP_client_State_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_get failed to send message header\n");
+    PDM_error("CWP_client_State_get failed to send message header");
   }
 
   // receive status msg
@@ -2727,7 +2727,7 @@ CWP_client_Codes_nb_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_nb_get failed to send message header\n");
+    PDM_error("CWP_client_Codes_nb_get failed to send message header");
   }
 
   // receive status msg
@@ -2773,7 +2773,7 @@ void
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_list_get failed to send message header\n");
+    PDM_error("CWP_client_Codes_list_get failed to send message header");
   }
 
   // receive status msg
@@ -2824,7 +2824,7 @@ CWP_client_Loc_codes_nb_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_nb_get failed to send message header\n");
+    PDM_error("CWP_client_Loc_codes_nb_get failed to send message header");
   }
 
   // receive status msg
@@ -2870,7 +2870,7 @@ CWP_client_Loc_codes_list_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_list_get failed to send message header\n");
+    PDM_error("CWP_client_Loc_codes_list_get failed to send message header");
   }
 
   // receive status msg
@@ -2923,7 +2923,7 @@ CWP_client_Computed_tgts_bcast_enable
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Computed_tgts_bcast_enable failed to send message header\n");
+    PDM_error("CWP_client_Computed_tgts_bcast_enable failed to send message header");
   }
 
   // receive status msg
@@ -2983,7 +2983,7 @@ CWP_client_Involved_srcs_bcast_enable
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Involved_srcs_bcast_enable failed to send message header\n");
+    PDM_error("CWP_client_Involved_srcs_bcast_enable failed to send message header");
   }
 
   // receive status msg
@@ -3043,7 +3043,7 @@ CWP_client_N_uncomputed_tgts_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_uncomputed_tgts_get failed to send message header\n");
+    PDM_error("CWP_client_N_uncomputed_tgts_get failed to send message header");
   }
 
   // receive status msg
@@ -3114,7 +3114,7 @@ CWP_client_Uncomputed_tgts_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Uncomputed_tgts_get failed to send message header\n");
+    PDM_error("CWP_client_Uncomputed_tgts_get failed to send message header");
   }
 
   // receive status msg
@@ -3191,7 +3191,7 @@ CWP_client_N_computed_tgts_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_computed_tgts_get failed to send message header\n");
+    PDM_error("CWP_client_N_computed_tgts_get failed to send message header");
   }
 
   // receive status msg
@@ -3262,7 +3262,7 @@ CWP_client_Computed_tgts_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Computed_tgts_get failed to send message header\n");
+    PDM_error("CWP_client_Computed_tgts_get failed to send message header");
   }
 
   // receive status msg
@@ -3339,7 +3339,7 @@ CWP_client_N_involved_srcs_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_involved_srcs_get failed to send message header\n");
+    PDM_error("CWP_client_N_involved_srcs_get failed to send message header");
   }
 
   // receive status msg
@@ -3410,7 +3410,7 @@ CWP_client_Involved_srcs_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Involved_srcs_get failed to send message header\n");
+    PDM_error("CWP_client_Involved_srcs_get failed to send message header");
   }
 
   // receive status msg
@@ -3485,7 +3485,7 @@ CWP_client_Spatial_interp_weights_compute
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_weights_compute failed to send message header\n");
+    PDM_error("CWP_client_Spatial_interp_weights_compute failed to send message header");
   }
 
   // receive status msg
@@ -3565,7 +3565,7 @@ CWP_client_Spatial_interp_property_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_property_set failed to send message header\n");
+    PDM_error("CWP_client_Spatial_interp_property_set failed to send message header");
   }
 
   // receive status msg
@@ -3636,7 +3636,7 @@ CWP_client_User_tgt_pts_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_User_tgt_pts_set failed to send message header\n");
+    PDM_error("CWP_client_User_tgt_pts_set failed to send message header");
   }
 
   // receive status msg
@@ -3757,7 +3757,7 @@ CWP_client_Mesh_interf_finalize
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_finalize failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_finalize failed to send message header");
   }
 
   // receive status msg
@@ -3816,7 +3816,7 @@ CWP_client_Mesh_interf_vtx_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_vtx_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_vtx_set failed to send message header");
   }
 
   // receive status msg
@@ -3938,7 +3938,7 @@ CWP_client_Mesh_interf_block_add
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_add failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_block_add failed to send message header");
   }
 
   // receive status msg
@@ -4009,7 +4009,7 @@ CWP_client_Mesh_interf_block_std_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_std_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_block_std_set failed to send message header");
   }
 
   // receive status msg
@@ -4134,7 +4134,7 @@ CWP_client_Mesh_interf_block_std_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_std_get failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_block_std_get failed to send message header");
   }
 
   // receive status msg
@@ -4240,7 +4240,7 @@ CWP_client_std_block_type_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_std_block_type_get failed to send message header\n");
+    PDM_error("CWP_client_std_block_type_get failed to send message header");
   }
 
   // receive status msg
@@ -4312,7 +4312,7 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_f_poly_block_set failed to send message header");
   }
 
   // receive status msg
@@ -4437,7 +4437,7 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_get failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_f_poly_block_get failed to send message header");
   }
 
   // receive status msg
@@ -4555,7 +4555,7 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_c_poly_block_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_c_poly_block_set failed to send message header");
   }
 
   // receive status msg
@@ -4702,7 +4702,7 @@ CWP_client_Mesh_interf_c_poly_block_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_c_poly_block_get failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_c_poly_block_get failed to send message header");
   }
 
   // receive status msg
@@ -4829,7 +4829,7 @@ CWP_client_Mesh_interf_del
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_del failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_del failed to send message header");
   }
 
   // receive status msg
@@ -5067,7 +5067,7 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_from_cellface_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_from_cellface_set failed to send message header");
   }
 
   // receive status msg
@@ -5207,7 +5207,7 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_from_faceedge_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_from_faceedge_set failed to send message header");
   }
 
   // receive status msg
@@ -5340,7 +5340,7 @@ CWP_client_Field_create
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_create failed to send message header\n");
+    PDM_error("CWP_client_Field_create failed to send message header");
   }
 
   // receive status msg
@@ -5451,7 +5451,7 @@ CWP_client_Field_data_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_data_set failed to send message header\n");
+    PDM_error("CWP_client_Field_data_set failed to send message header");
   }
 
   // receive status msg
@@ -5560,7 +5560,7 @@ CWP_client_Field_dof_location_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_dof_location_get failed to send message header\n");
+    PDM_error("CWP_client_Field_dof_location_get failed to send message header");
   }
 
   // receive status msg
@@ -5625,7 +5625,7 @@ CWP_client_Field_storage_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_storage_get failed to send message header\n");
+    PDM_error("CWP_client_Field_storage_get failed to send message header");
   }
 
   // receive status msg
@@ -5690,7 +5690,7 @@ CWP_client_Field_n_components_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_n_components_get failed to send message header\n");
+    PDM_error("CWP_client_Field_n_components_get failed to send message header");
   }
 
   // receive status msg
@@ -5756,7 +5756,7 @@ CWP_client_Field_n_dof_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_n_dof_get failed to send message header\n");
+    PDM_error("CWP_client_Field_n_dof_get failed to send message header");
   }
 
   // receive status msg
@@ -5826,7 +5826,7 @@ CWP_client_Field_del
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_del failed to send message header\n");
+    PDM_error("CWP_client_Field_del failed to send message header");
   }
 
   // receive status msg
@@ -5902,7 +5902,7 @@ CWP_client_Field_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_issend failed to send message header\n");
+    PDM_error("CWP_client_Field_issend failed to send message header");
   }
 
   // receive status msg
@@ -5972,7 +5972,7 @@ CWP_client_Field_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_irecv failed to send message header\n");
+    PDM_error("CWP_client_Field_irecv failed to send message header");
   }
 
   // receive status msg
@@ -6031,7 +6031,7 @@ CWP_client_Field_wait_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_wait_issend failed to send message header\n");
+    PDM_error("CWP_client_Field_wait_issend failed to send message header");
   }
 
   // receive status msg
@@ -6087,7 +6087,7 @@ CWP_client_Field_wait_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_wait_irecv failed to send message header\n");
+    PDM_error("CWP_client_Field_wait_irecv failed to send message header");
   }
 
   // receive status msg
@@ -6182,7 +6182,7 @@ CWP_client_Interp_function_unset
 
   // // send message
   // if (CWP_client_send_msg(&msg) != 0) {
-  //   PDM_error(__FILE__, __LINE__, 0, "CWP_client_Interp_function_unset failed to send message header\n");
+  //   PDM_error("CWP_client_Interp_function_unset failed to send message header");
   // }
 
   // // send local code name
@@ -6249,7 +6249,7 @@ CWP_client_Mesh_interf_block_ho_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_h_order_block_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_h_order_block_set failed to send message header");
   }
 
   // receive status msg
@@ -6380,7 +6380,7 @@ CWP_client_Mesh_interf_block_ho_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_ho_get failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_block_ho_get failed to send message header");
   }
 
   // receive status msg
@@ -6491,7 +6491,7 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_ho_ordering_from_IJK_set failed to send message header\n");
+    PDM_error("CWP_client_Mesh_interf_ho_ordering_from_IJK_set failed to send message header");
   }
 
   // receive status msg
@@ -6574,7 +6574,7 @@ CWP_client_Cpl_spatial_interp_algo_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_spatial_interp_algo_get failed to send message header\n");
+    PDM_error("CWP_client_Cpl_spatial_interp_algo_get failed to send message header");
   }
 
   // receive status msg
@@ -6640,7 +6640,7 @@ CWP_client_Global_data_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_issend failed to send message header\n");
+    PDM_error("CWP_client_Global_data_issend failed to send message header");
   }
 
   // receive status msg
@@ -6727,7 +6727,7 @@ CWP_client_Global_data_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_irecv failed to send message header\n");
+    PDM_error("CWP_client_Global_data_irecv failed to send message header");
   }
 
   // receive status msg
@@ -6815,7 +6815,7 @@ CWP_client_Global_data_wait_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_wait_issend failed to send message header\n");
+    PDM_error("CWP_client_Global_data_wait_issend failed to send message header");
   }
 
   // receive status msg
@@ -6874,7 +6874,7 @@ CWP_client_Global_data_wait_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_wait_irecv failed to send message header\n");
+    PDM_error("CWP_client_Global_data_wait_irecv failed to send message header");
   }
 
   // receive status msg
@@ -6943,7 +6943,7 @@ CWP_client_Part_data_create
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_create failed to send message header\n");
+    PDM_error("CWP_client_Part_data_create failed to send message header");
   }
 
   // receive status msg
@@ -7044,7 +7044,7 @@ CWP_client_Part_data_del
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_del failed to send message header\n");
+    PDM_error("CWP_client_Part_data_del failed to send message header");
   }
 
   // receive status msg
@@ -7118,7 +7118,7 @@ CWP_client_Part_data_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_issend failed to send message header\n");
+    PDM_error("CWP_client_Part_data_issend failed to send message header");
   }
 
   // receive status msg
@@ -7211,7 +7211,7 @@ CWP_client_Part_data_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_irecv failed to send message header\n");
+    PDM_error("CWP_client_Part_data_irecv failed to send message header");
   }
 
   // receive status msg
@@ -7302,7 +7302,7 @@ CWP_client_Part_data_wait_issend
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_wait_issend failed to send message header\n");
+    PDM_error("CWP_client_Part_data_wait_issend failed to send message header");
   }
 
   // receive status msg
@@ -7367,7 +7367,7 @@ CWP_client_Part_data_wait_irecv
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_wait_irecv failed to send message header\n");
+    PDM_error("CWP_client_Part_data_wait_irecv failed to send message header");
   }
 
   // receive status msg

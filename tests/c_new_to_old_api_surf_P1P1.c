@@ -26,6 +26,7 @@
 #include "cwipi.h"
 #include "cwp.h"
 #include "cwp_priv.h"
+#include "pdm_timer.h"
 
 #define ABS(a)    ((a) <  0  ? -(a) : (a))
 #define MAX(a, b) ((a) > (b) ?  (a) : (b))
@@ -77,7 +78,6 @@ _read_args
  int                   *randomize,
  int                   *nProcData,
  CWP_Spatial_interp_t  *loc_method,
- char                 **output_filename,
  int                   *verbose
  )
 {
@@ -138,15 +138,6 @@ _read_args
       }
       else {
         *depth = atof(argv[i]);
-      }
-    }
-    else if (strcmp(argv[i], "-output") == 0) {
-      i++;
-      if (i >= argc) {
-        _usage(EXIT_FAILURE);
-      }
-      else {
-        *output_filename = argv[i];
       }
     }
     else if (strcmp(argv[i], "-rot") == 0) {
@@ -338,7 +329,6 @@ main
   double                width           = 20.;
   double                depth           = 1.;
   int                   rotation        = 0;
-  char                 *output_filename = NULL;
 
   _read_args(argc,
              argv,
@@ -351,13 +341,7 @@ main
              &randomize,
              &n_proc_data,
              &loc_method,
-             &output_filename,
              &verbose);
-
-  int filedump = 0;
-  if (output_filename != NULL) {
-    filedump = 1;
-  }
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -619,14 +603,9 @@ main
   }
 
   // Perform geometric algorithm
-  CWP_timer_t *timer = CWP_timer_create();
-  double t_start, t_end;
+  PDM_timer_t *timer = PDM_timer_create(MPI_COMM_WORLD);
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_init(timer);
-
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "locate", 1 /* Force synchro */);
 
   // int n_unlocated = 0;
   int n_located = 0;
@@ -651,36 +630,14 @@ main
     }
   }
 
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
-  double geom_time = t_end - t_start;
-  double max_geom_time;
-  MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  FILE *output;
-  if (filedump) {
-    output = fopen(output_filename, "w");
-  }
-
-  if (i_rank == 0) {
-    printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
-
-    if (filedump) {
-      fprintf(output, "%d %12.5e ", n_rank, max_geom_time);
-    }
-  }
+  PDM_timer_end(timer, "locate", 1 /* Force synchro */);
 
   if (verbose && i_rank == 0) {
     printf("Geometric algorithm OK\n");
   }
 
   //  Exchange interpolated fields 1
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  CWP_timer_hang_on(timer);
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "exch1", 1 /* Force synchro */);
 
   int request;
   if (version == CWP_VERSION_OLD) {
@@ -701,14 +658,9 @@ main
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  double exch_time1 = t_end - t_start;
-  double max_exch_time1;
-  t_start = t_end;
-  MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  CWP_timer_resume(timer);
+  PDM_timer_end(timer, "exch1", 1 /* Force synchro */);
+
+  PDM_timer_start(timer, "exch2", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -727,33 +679,10 @@ main
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  double exch_time = t_end - t_start;
-  double max_exch_time;
-  MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  if (i_rank == 0) {
-    printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1);
-    printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
-    printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
-
-    if (filedump) {
-      fprintf(output, "%12.5e ", max_exch_time1 + max_exch_time);
-    }
-  }
-
-  double redondance_geom = max_exch_time1;
-  max_geom_time += max_exch_time1;
+  PDM_timer_end(timer, "exch2", 1 /* Force synchro */);
 
   //  Exchange interpolated fields 2
-  CWP_timer_resume(timer);
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  CWP_timer_hang_on(timer);
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "exch_field2", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -773,16 +702,9 @@ main
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  exch_time1 = t_end - t_start;
-  CWP_UNUSED (max_exch_time1);
-  t_start = t_end;
-  MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  CWP_timer_resume(timer);
+  PDM_timer_end(timer, "exch_field2", 1 /* Force synchro */);
 
-  redondance_geom += -max_exch_time1;
+  PDM_timer_start(timer, "exch3", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -801,30 +723,9 @@ main
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  exch_time = t_end - t_start;
-  CWP_UNUSED (max_exch_time1);
-  MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  PDM_timer_end(timer, "exch3", 1 /* Force synchro */);
 
-  if (i_rank == 0) {
-    printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1);
-    printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time);
-    printf("Total exchange 2               :%12.5es\n", max_exch_time1 + max_exch_time);
-
-    printf("\n\nTemps geometrie                            : %12.5es\n", max_geom_time);
-    printf("Temps geometrie escompte (sans redondance) : %12.5es\n",
-           max_geom_time - redondance_geom);
-    printf("Temps un Echange aux noeuds                : %12.5es\n",
-           max_exch_time1 + max_exch_time);
-
-    if (filedump) {
-      fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time);
-      fclose(output);
-    }
-  }
-
+  PDM_timer_gather_dump(timer, NULL);
 
   //  Check
   int check = EXIT_SUCCESS;
@@ -881,7 +782,7 @@ main
   else {
     free(recv_val);
   }
-  CWP_timer_free(timer);
+  PDM_timer_free(timer);
 
   //  Finalize CWIPI
   if (version == CWP_VERSION_OLD) {

@@ -68,7 +68,7 @@ namespace cwipi {
     map<int, void **>::iterator it = _data.find(exch_id);
 
     if (it != _data.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Data pointer with exch_type %d already set for exch_id %d\n",
+      PDM_error("PartData '%s': Data pointer with exch_type %d already set for exch_id %d",
                 _part_data_id.c_str(), _exch_type, exch_id);
     }
 
@@ -89,7 +89,7 @@ namespace cwipi {
     map<int, int>::iterator it = _request.find(exch_id);
 
     if (it != _request.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Request pointer with exch_type %d already set for exch_id %d\n",
+      PDM_error("PartData '%s': Request pointer with exch_type %d already set for exch_id %d",
                 _part_data_id.c_str(), _exch_type, exch_id);
     }
 
@@ -107,7 +107,7 @@ namespace cwipi {
     map<int, int>::iterator it = _request.find(exch_id);
 
     if (it == _request.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Request for exch_type %d undefined for exch_id %d\n",
+      PDM_error("PartData '%s': Request for exch_type %d undefined for exch_id %d",
                 _part_data_id.c_str(), _exch_type, exch_id);
     }
 
@@ -126,7 +126,7 @@ namespace cwipi {
     map<int, void **>::iterator it = _data.find(exch_id);
 
     if (it == _data.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "PartData '%s': Recv data pointer not set for exch_id %d\n",
+      PDM_error("PartData '%s': Recv data pointer not set for exch_id %d",
                 _part_data_id.c_str(), exch_id);
     }
 

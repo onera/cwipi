@@ -123,7 +123,7 @@ static int n_vtx_get(CWP_Block_t block_type) {
 
   case CWP_BLOCK_FACE_POLY: {
     // TO DO: what value ?
-    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_FACE_POLY\n");
+    PDM_error("Number of nodes unknown for CWP_BLOCK_FACE_POLY");
     return -1;
     } break;
 
@@ -145,12 +145,12 @@ static int n_vtx_get(CWP_Block_t block_type) {
 
   case CWP_BLOCK_CELL_POLY: {
     // TO DO: what value ?
-    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_CELL_POLY\n");
+    PDM_error("Number of nodes unknown for CWP_BLOCK_CELL_POLY");
     return -1;
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown block type %d\n", block_type);
+    PDM_error("Unknown block type %d", block_type);
     return -1;
   }
 
@@ -208,7 +208,7 @@ switch (block_type) {
     return (order + 1) * (order + 1) * (order + 1);
     break;
   default :
-    PDM_error (__FILE__, __LINE__, 0, "Unknown order for Poly2D and Poly3D (block_type %d)\n", block_type);
+    PDM_error("Unknown order for Poly2D and Poly3D (block_type %d)", block_type);
   }
   return -1;
 }
@@ -241,7 +241,7 @@ CWP_server_Init
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &n_code, sizeof(int));
 
   if (n_code > 1) {
-    PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
+    PDM_error("CWIPI client-server not implemented yet for n_code > 1");
   }
 
   code_names = (char **) malloc(sizeof(char *) * n_code);
@@ -528,7 +528,7 @@ CWP_server_Param_add
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Received unknown CWP_Type_t %i", data_type);
   }
 
   // send status msg
@@ -648,7 +648,7 @@ CWP_server_Param_get
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Received unknown CWP_Type_t %i", data_type);
   }
 
   // free
@@ -750,7 +750,7 @@ CWP_server_Param_set
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+    PDM_error("Received unknown CWP_Type_t %i", data_type);
   }
 
   // send status msg
@@ -1118,7 +1118,7 @@ CWP_server_Param_reduce
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i or impossible on CWP_CHAR\n", data_type);
+    PDM_error("Unknown CWP_Type_t %i or impossible on CWP_CHAR", data_type);
   }
 
   // free
@@ -6596,7 +6596,7 @@ CWP_server_create
 
   // retreive hostname
   if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not get host name\n");
+    PDM_error("Could not get host name");
     return -1;
   }
 
@@ -6623,7 +6623,7 @@ CWP_server_create
   svr->listen_socket = socket(AF_INET, SOCK_STREAM, 0);
 
   if (svr->listen_socket == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not create socket to listen\n");
+    PDM_error("Could not create socket to listen");
     return -1;
   }
 
@@ -6640,7 +6640,7 @@ CWP_server_create
 
   // ensure restarted process can reconnect to same socket
   if (setsockopt(svr->listen_socket, SOL_SOCKET, SO_REUSEADDR, &vrai, sizeof(int)) == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Setsockopt failed\n");
+    PDM_error("Setsockopt failed");
     return -1;
   }
 
@@ -6652,13 +6652,13 @@ CWP_server_create
 
   // bind socket to ip adress + port
   if (bind(svr->listen_socket, (struct sockaddr *) server_addr, sizeof(struct sockaddr)) == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Unable to bind socket\n");
+    PDM_error("Unable to bind socket");
     return -1;
   }
 
   // wait for client to connect
   if (listen(svr->listen_socket, SOMAXCONN) == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Unable to listen on socket\n");
+    PDM_error("Unable to listen on socket");
     return -1;
   }
 
@@ -7648,7 +7648,7 @@ CWP_server_msg_handler
     break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Received unknown message type %i, terminating server\n", msg->message_type);
+    PDM_error("Received unknown message type %i, terminating server", msg->message_type);
     return -1;
   }
 
@@ -7681,7 +7681,7 @@ CWP_server_run
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   if(CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,
            &il_cl_endian,sizeof(int))!=0) {
-    PDM_error(__FILE__, __LINE__, 0, "Client endian read failed\n");
+    PDM_error("Client endian read failed");
     svr->state=CWP_SVRSTATE_LISTENINGMSG;
     return -1;
   }
@@ -7693,7 +7693,7 @@ CWP_server_run
 
   if(CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
            &il_sv_endian,sizeof(int))!=0) {
-    PDM_error(__FILE__, __LINE__, 0, "Server endian send failed\n");
+    PDM_error("Server endian send failed");
     svr->state=CWP_SVRSTATE_LISTENINGMSG;
     return -1;
   }
@@ -7714,7 +7714,7 @@ CWP_server_run
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,&msg, sizeof(t_message));
 
     if (CWP_server_msg_handler(svr,&msg) != 0) {
-      PDM_error(__FILE__, __LINE__, 0, "Server message handling failed\n");
+      PDM_error("Server message handling failed");
       return -1;
     }
 

@@ -69,7 +69,7 @@ Field::Field
       _dataTypeSize = sizeof(int);
       break;
     default:
-      PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
+      PDM_error("CWP_CHAR is not usable.");
   }
 
 
@@ -205,7 +205,7 @@ void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
     _data_tgt[i_part] = data;
   }
   else {
-    PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknoown data type.\n");
+    PDM_error("Field::dataSet Error : unknoown data type.");
   }
 
 }

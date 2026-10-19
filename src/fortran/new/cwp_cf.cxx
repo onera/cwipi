@@ -104,7 +104,7 @@ _n_vtx_block_get
       break;
 
     default:
-      PDM_error(__FILE__, __LINE__, 0, "Unkown block type %d\n", block_type);
+      PDM_error("Unkown block type %d", block_type);
   }
   return 0;
 }
