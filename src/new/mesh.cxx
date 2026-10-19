@@ -1322,7 +1322,7 @@ namespace cwipi {
       case CWP_INTERFACE_VOLUME:
         return 3;
       default:
-        PDM_error(__FILE__, __LINE__, 0, "Invalid entity dimension %d\n", _cpl->entitiesDimGet());
+        PDM_error("Invalid entity dimension %d", _cpl->entitiesDimGet());
         return -1;
     }
   }

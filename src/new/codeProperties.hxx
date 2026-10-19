@@ -1632,12 +1632,11 @@ namespace cwipi {
       int nStrParam = _winGlobData[3];
 
       if (nStrParam >= _n_param_max) {
-        PDM_error(__FILE__, __LINE__, 0,
-                   "Impossible to create the '%s' parameter. \n"
-                   "The maximum number of parameters is exceeded. \n"
-                   "To increase the maximum number of parameters : "
-                   "Define the environment variable 'CWP_N_PARAM_MAX'\n",
-                    name.c_str());
+        PDM_error("Impossible to create the '%s' parameter. \n"
+                  "The maximum number of parameters is exceeded. \n"
+                  "To increase the maximum number of parameters : "
+                  "Define the environment variable 'CWP_N_PARAM_MAX'",
+                  name.c_str());
       }
 
       if (name.size() >= _str_size_max) {
