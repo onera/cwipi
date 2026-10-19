@@ -63,8 +63,8 @@ namespace cwipi {
   void
   BlockHO::blockAdd
   (
-    CWP_Block_t  block_type,
-    Mesh        *mesh
+    const CWP_Block_t  block_type,
+          Mesh        *mesh
   )
   {
     BlockStd::blockAdd(block_type, mesh);
@@ -76,8 +76,8 @@ namespace cwipi {
   void
   BlockHO::blockSet
   (
-          int          i_part,
-          int          n_elts,
+    const int          i_part,
+    const int          n_elts,
           int         *connec,
           CWP_g_num_t *global_num,
     const int          order,
@@ -108,12 +108,12 @@ namespace cwipi {
   void
   BlockHO::blockGet
   (
-    int           i_part,
-    int          *n_elts,
-    int         **connec,
-    CWP_g_num_t **global_num,
-    int          *order,
-    char        **ho_ordering
+    const int           i_part,
+          int          *n_elts,
+          int         **connec,
+          CWP_g_num_t **global_num,
+          int          *order,
+          char        **ho_ordering
   )
   {
     *n_elts      = _n_elts    [i_part];

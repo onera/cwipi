@@ -73,8 +73,8 @@ namespace cwipi {
     virtual void
     blockAdd
     (
-      CWP_Block_t  block_type,
-      Mesh        *mesh
+      const CWP_Block_t  block_type,
+            Mesh        *mesh
     );
 
 
@@ -104,7 +104,7 @@ namespace cwipi {
     inline void
     blockIdCwipiSet
     (
-      int block_id
+      const int block_id
     );
 
 
@@ -125,7 +125,7 @@ namespace cwipi {
     inline void
     blockIdPdmSet
     (
-      int block_id
+      const int block_id
     );
 
 
@@ -147,7 +147,7 @@ namespace cwipi {
     inline int
     nEltsGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -164,9 +164,9 @@ namespace cwipi {
     void
     globalNumSet
     (
-      int              i_part,
-      CWP_g_num_t     *global_num,
-      PDM_ownership_t  owner
+      const int              i_part,
+            CWP_g_num_t     *global_num,
+      const PDM_ownership_t  owner
     );
 
 
@@ -179,7 +179,7 @@ namespace cwipi {
     inline CWP_g_num_t*
     globalNumGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -191,7 +191,7 @@ namespace cwipi {
     void
     globalNumFree
     (
-      int i_part
+      const int i_part
     );
 
 
@@ -208,9 +208,9 @@ namespace cwipi {
     void
     parentNumSet
     (
-      int              i_part,
-      int             *parent_num,
-      PDM_ownership_t  owner
+      const int              i_part,
+            int             *parent_num,
+      const PDM_ownership_t  owner
     );
 
 
@@ -223,7 +223,7 @@ namespace cwipi {
     inline int*
     parentNumGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -235,7 +235,7 @@ namespace cwipi {
     void
     parentNumFree
     (
-      int i_part
+      const int i_part
     );
 
 
@@ -248,7 +248,7 @@ namespace cwipi {
     double*
     elementCentersGet
     (
-      int i_part
+      const int i_part
     );
 
 
@@ -300,7 +300,7 @@ namespace cwipi {
   inline void
   Block::blockIdCwipiSet
   (
-    int block_id
+    const int block_id
   )
   {
     _block_id_cwipi = block_id;
@@ -317,7 +317,7 @@ namespace cwipi {
   inline void
   Block::blockIdPdmSet
   (
-    int block_id
+    const int block_id
   )
   {
     _block_id_pdm = block_id;
@@ -334,7 +334,7 @@ namespace cwipi {
   inline int
   Block::nEltsGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _n_elts[i_part];
@@ -344,7 +344,7 @@ namespace cwipi {
   inline CWP_g_num_t*
   Block::globalNumGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _global_num[i_part];
@@ -354,7 +354,7 @@ namespace cwipi {
   inline int*
   Block::parentNumGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _parent_num[i_part];

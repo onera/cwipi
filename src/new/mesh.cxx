@@ -262,8 +262,8 @@ namespace cwipi {
   Mesh::Mesh
   (
     const MPI_Comm           &local_comm,
-          int                 n_part,
-          CWP_Dynamic_mesh_t  displacement,
+    const int                 n_part,
+    const CWP_Dynamic_mesh_t  displacement,
           Coupling           *cpl
   )
   : _n_blocks(0),
@@ -359,7 +359,7 @@ namespace cwipi {
     const int         n_cells,
           int         cell_face_idx[],
           int         cell_face[],
-          int         n_faces,
+    const int         n_faces,
           int         face_vtx_idx[],
           int         face_vtx[],
           CWP_g_num_t global_num[]
