@@ -56,11 +56,11 @@ namespace cwipi {
      */
     PartData
     (
-      std::string           part_data_id,
-      CWP_PartData_exch_t   exch_type,
-      CWP_g_num_t         **global_num,
-      int                  *n_elts,
-      int                   n_part
+      const std::string           part_data_id,
+      const CWP_PartData_exch_t   exch_type,
+            CWP_g_num_t         **global_num,
+            int                  *n_elts,
+      const int                   n_part
     );
 
 
@@ -90,9 +90,9 @@ namespace cwipi {
     void
     dataSet
     (
-      int      exch_id,
-      size_t   s_unit,
-      void   **data
+      const int      exch_id,
+      const size_t   s_unit,
+            void   **data
     );
 
 
@@ -105,8 +105,8 @@ namespace cwipi {
     void
     requestSet
     (
-      int exch_id,
-      int request
+      const int exch_id,
+      const int request
     );
 
 
@@ -119,7 +119,7 @@ namespace cwipi {
     int
     requestGet
     (
-      int exch_id
+      const int exch_id
     );
 
 
@@ -131,7 +131,7 @@ namespace cwipi {
     void
     recvDataFilter
     (
-      int exch_id
+      const int exch_id
     );
 
 
@@ -143,7 +143,7 @@ namespace cwipi {
     void
     exchClear
     (
-      int exch_id
+      const int exch_id
     );
 
 

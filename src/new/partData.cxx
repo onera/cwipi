@@ -36,11 +36,11 @@ namespace cwipi {
 
   PartData::PartData
   (
-    string                part_data_id,
-    CWP_PartData_exch_t   exch_type,
-    CWP_g_num_t         **global_num,
-    int                  *n_elts,
-    int                   n_part
+    const string                part_data_id,
+    const CWP_PartData_exch_t   exch_type,
+          CWP_g_num_t         **global_num,
+          int                  *n_elts,
+    const int                   n_part
   )
   : _part_data_id(part_data_id),
     _exch_type(exch_type),
@@ -60,9 +60,9 @@ namespace cwipi {
   void
   PartData::dataSet
   (
-    int      exch_id,
-    size_t   s_unit,
-    void   **data
+    const int      exch_id,
+    const size_t   s_unit,
+          void   **data
   )
   {
     map<int, void **>::iterator it = _data.find(exch_id);
@@ -82,8 +82,8 @@ namespace cwipi {
   void
   PartData::requestSet
   (
-    int exch_id,
-    int request
+    const int exch_id,
+    const int request
   )
   {
     map<int, int>::iterator it = _request.find(exch_id);
@@ -101,7 +101,7 @@ namespace cwipi {
   int
   PartData::requestGet
   (
-    int exch_id
+    const int exch_id
   )
   {
     map<int, int>::iterator it = _request.find(exch_id);
@@ -118,7 +118,7 @@ namespace cwipi {
   void
   PartData::recvDataFilter
   (
-    int exch_id
+    const int exch_id
   )
   {
     assert(_exch_type == CWP_PARTDATA_RECV);
@@ -167,7 +167,7 @@ namespace cwipi {
   void
   PartData::exchClear
   (
-    int exch_id
+    const int exch_id
   )
   {
     _data   .erase(exch_id);
