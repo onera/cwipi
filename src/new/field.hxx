@@ -55,7 +55,7 @@ namespace cwipi {
     Field() {}
 
     Field (std::string            field_id    ,
-           int                    fieldIDInt,      
+           int                    fieldIDInt,
            CWP_Type_t             dataType    ,
            Coupling*              cpl         ,
            CWP_Dof_location_t      fieldType   ,
@@ -89,7 +89,7 @@ namespace cwipi {
      *
      */
 
-    void write 
+    void write
     (
       CWP_Field_exch_t exch_type
     );
@@ -367,12 +367,12 @@ namespace cwipi {
 
     int involvedSrcBcastIsEnabled() const
     {
-      return _computed_tgt_bcast_enabled;
+      return _involved_src_bcast_enabled;
     }
 
     void involvedSrcBcastEnable()
     {
-      _computed_tgt_bcast_enabled = 1;
+      _involved_src_bcast_enabled = 1;
     }
 
 
