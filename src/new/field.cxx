@@ -90,7 +90,7 @@ namespace cwipi {
         _data_type_size = sizeof(int);
         break;
       default:
-        PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR not usable.\n");
+        PDM_error("CWP_CHAR not usable");
     }
 
     if (visuStatus == CWP_STATUS_ON) {

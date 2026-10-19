@@ -123,7 +123,7 @@ namespace cwipi {
       _data_tgt[i_part] = data;
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "Error : unknown map type.\n");
+      PDM_error("Unknown map type");
     }
   }
 
@@ -142,7 +142,7 @@ namespace cwipi {
       return _data_tgt[i_part];
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "Error : unknown map type.\n");
+      PDM_error("Unknown map type");
     }
     return nullptr;
   }
