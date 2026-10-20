@@ -51,7 +51,7 @@ namespace cwipi {
      *
      * \return Reference to the singleton instance
      */
-    static T &instanceGet()
+    static T &getInstance()
     {
       if (_singleton == nullptr)
         _singleton = new T;

@@ -168,7 +168,7 @@ namespace cwipi {
    )
   :_cplId(cplId),
    _commType(cplType),
-   _communication(*(FC::instanceGet().objectCreate(cplType))),
+   _communication(*(FC::getInstance().objectCreate(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _entities_dim(entities_dim),
@@ -1815,7 +1815,7 @@ namespace cwipi {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
 
-                    _spatial_interp_send.insert(make_pair(newKey, FG::instanceGet().objectCreate(_spatialInterpAlgo)));
+                    _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
 
                     _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                   }
@@ -1825,7 +1825,7 @@ namespace cwipi {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                   if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
 
-                    _spatial_interp_recv.insert(make_pair(newKey, FG::instanceGet().objectCreate(_spatialInterpAlgo)));
+                    _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
 
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
 
@@ -2236,8 +2236,8 @@ namespace cwipi {
 
                     if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
 
-                      _spatial_interp_send.insert(make_pair(newKey, FG::instanceGet().objectCreate(_spatialInterpAlgo)));
-                      cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::instanceGet().objectCreate(cpl_cpl._spatialInterpAlgo)));
+                      _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
+                      cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().objectCreate(cpl_cpl._spatialInterpAlgo)));
 
                       _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                       cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);
@@ -2252,8 +2252,8 @@ namespace cwipi {
 
                     if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
 
-                      _spatial_interp_recv.insert(make_pair(newKey, FG::instanceGet().objectCreate(_spatialInterpAlgo)));
-                      cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::instanceGet().objectCreate(cpl_cpl._spatialInterpAlgo)));
+                      _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
+                      cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().objectCreate(cpl_cpl._spatialInterpAlgo)));
 
                       _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_RECV);
                       cpl_cpl._spatial_interp_send[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_SEND);
