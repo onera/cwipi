@@ -440,7 +440,7 @@ namespace cwipi {
     const CWP_Block_t block_type
   )
   {
-    Block *block = FB::instanceGet().objectCreate(block_type);
+    Block *block = FB::getInstance().objectCreate(block_type);
     block->blockAdd(block_type, this);
     int block_id_cwipi = _n_blocks;
     _block_DB.push_back(block);

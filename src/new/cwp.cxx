@@ -133,7 +133,7 @@ _is_active_rank
  const char *local_code_name
  )
 {
-   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::instanceGet();
+   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
    const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
    return properties.isActiveRank();
 }
@@ -147,10 +147,10 @@ _cpl_get
  )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::instanceGet();
+    cwipi::CouplingDB::getInstance();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
    const string &cpl_name_str = cpl_id;
    return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
@@ -278,7 +278,7 @@ CWP_Connectable_comm_get
 {
 
   if(_is_active_rank(local_code_name)){
-    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
     const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
     MPI_Comm connecComm = localCodeProperties.connectableCommGet();
 
@@ -416,7 +416,7 @@ CWP_Init
    * Get application properties
    */
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   int my_rank;
   MPI_Comm_rank (global_comm, &my_rank);
@@ -460,7 +460,7 @@ CWP_Init
    */
 
   cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
-    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::instanceGet();
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
 
   factoryComm.add<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
   factoryComm.add<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
@@ -470,7 +470,7 @@ CWP_Init
    */
 
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
-    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::instanceGet();
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
   factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
   factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
@@ -485,7 +485,7 @@ CWP_Init
    */
 
   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
-    cwipi::Factory<cwipi::Block, CWP_Block_t>::instanceGet();
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
 
   factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_NODE);
   factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
@@ -536,12 +536,12 @@ CWP_Finalize
   // or couplingDB is freed and all structures are to be freed explicitely by the user
   // (Cpl, Interf, Field,...)
   //cwipi::CouplingDB & couplingDB =
-  //  cwipi::CouplingDB::instanceGet();
+  //  cwipi::CouplingDB::getInstance();
   //
   //couplingDB.kill();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   int flag = 0;
 
@@ -557,7 +557,7 @@ CWP_Finalize
   properties.kill();
 
   cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
-    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::instanceGet();
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
 
   factoryComm.remove(CWP_COMM_PAR_WITH_PART);
   factoryComm.remove(CWP_COMM_PAR_WITHOUT_PART);
@@ -565,7 +565,7 @@ CWP_Finalize
   factoryComm.kill();
 
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
-    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::instanceGet();
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
   factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
   factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
@@ -578,7 +578,7 @@ CWP_Finalize
   factorySpatialInterp.kill();
 
   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
-    cwipi::Factory<cwipi::Block, CWP_Block_t>::instanceGet();
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
 
   factoryBlock.remove(CWP_BLOCK_NODE);
   factoryBlock.remove(CWP_BLOCK_EDGE2);
@@ -624,7 +624,7 @@ CWP_State_update
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   properties.ctrlParamSet<int>(string(local_code_name), "state", state);
 }
@@ -645,7 +645,7 @@ CWP_State_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   return static_cast<CWP_State_t> (
       properties.ctrlParamGet<int>(string(code_name), "state"));
@@ -664,7 +664,7 @@ CWP_Codes_nb_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   return properties.codesNbGet();
 }
@@ -681,7 +681,7 @@ CWP_Codes_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
   return properties.codesListGet();
 }
 
@@ -697,7 +697,7 @@ CWP_Loc_codes_nb_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   return properties.localCodesNbGet();
 }
@@ -715,7 +715,7 @@ CWP_Loc_codes_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
   return properties.localCodesListGet();
 }
 
@@ -735,7 +735,7 @@ CWP_Time_step_beg
  const double current_time
 )
 {
-  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
 
   int is_locked = properties.isLocked(local_code_name);
 
@@ -752,7 +752,7 @@ CWP_Time_step_beg
   MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
   MPI_Barrier(connectable_comm);
 
-  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::instanceGet();
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 
   couplingDB.timeStepBegin(properties.codePropertiesGet(local_code_name),
                            current_time);
@@ -771,12 +771,12 @@ CWP_Time_step_end
  const char* local_code_name
 )
 {
-  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::instanceGet();
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
 
   MPI_Comm connectable_comm = properties.connectableCommGet(local_code_name);
   MPI_Barrier(connectable_comm);
 
-  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::instanceGet();
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 
   couplingDB.timeStepEnd(properties.codePropertiesGet(local_code_name));
 }
@@ -799,7 +799,7 @@ CWP_User_structure_set
 )
 {
   cwipi::CodePropertiesDB & properties =
-  cwipi::CodePropertiesDB::instanceGet();
+  cwipi::CodePropertiesDB::getInstance();
   properties.userStructureSet(string(local_code_name), user_structure);
 }
 
@@ -821,7 +821,7 @@ CWP_User_structure_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-  cwipi::CodePropertiesDB::instanceGet();
+  cwipi::CodePropertiesDB::getInstance();
   return properties.userStructureGet(string(local_code_name));
 
 }
@@ -878,7 +878,7 @@ CWP_Properties_dump
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
   properties.dump();
 }
 
@@ -894,7 +894,7 @@ CWP_Properties_str_dump
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
   string str_out = properties.str_dump();
 
   // prepare output
@@ -939,10 +939,10 @@ CWP_Cpl_create
 )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::instanceGet();
+    cwipi::CouplingDB::getInstance();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
@@ -1003,10 +1003,10 @@ const char *cpl_id
 )
 {
   cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::instanceGet();
+    cwipi::CouplingDB::getInstance();
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   // end (free) visualization
   if(_is_active_rank(local_code_name)){
@@ -3089,7 +3089,7 @@ CWP_Param_add
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3132,7 +3132,7 @@ CWP_Param_set
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3172,7 +3172,7 @@ CWP_Param_del
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
@@ -3215,7 +3215,7 @@ CWP_Param_n_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
   int nParam = -1;
@@ -3259,7 +3259,7 @@ CWP_Param_list_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
 
@@ -3300,7 +3300,7 @@ CWP_Param_is
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
@@ -3343,7 +3343,7 @@ CWP_Param_get
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
@@ -3397,7 +3397,7 @@ CWP_Param_reduce
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &nameStr = param_name;
 
@@ -3436,7 +3436,7 @@ const char *code_name
   const string &nameStr = code_name;
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   properties.lock(nameStr);
 }
@@ -3461,7 +3461,7 @@ const char *code_name
   const string &nameStr = code_name;
 
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::instanceGet();
+    cwipi::CodePropertiesDB::getInstance();
 
   properties.unLock(nameStr);
 }

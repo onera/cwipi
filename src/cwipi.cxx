@@ -140,7 +140,7 @@ void cwipi_init
 {
 
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
@@ -179,7 +179,7 @@ void cwipi_set_output_listing
 void cwipi_add_local_int_control_parameter(const char *name, int initial_value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.addLocalIntControlParameter(name, initial_value);
 }
@@ -199,7 +199,7 @@ void cwipi_add_local_double_control_parameter
  double initial_value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.addLocalDoubleControlParameter(name, initial_value);
 }
@@ -219,7 +219,7 @@ void cwipi_add_local_string_control_parameter
  const char *initial_value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.addLocalStringControlParameter(name, initial_value);
 }
@@ -237,7 +237,7 @@ void cwipi_add_local_string_control_parameter
 void cwipi_set_local_int_control_parameter(const char *name, int value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.setLocalIntControlParameter(name, value);
 }
@@ -255,7 +255,7 @@ void cwipi_set_local_int_control_parameter(const char *name, int value)
 void cwipi_set_local_double_control_parameter(const char *name, double value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.setLocalDoubleControlParameter(name, value);
 }
@@ -274,7 +274,7 @@ void cwipi_set_local_double_control_parameter(const char *name, double value)
 void cwipi_set_local_string_control_parameter(const char *name, const char *value)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.setLocalStringControlParameter(name, value);
 }
@@ -291,7 +291,7 @@ void cwipi_set_local_string_control_parameter(const char *name, const char *valu
 int cwipi_get_local_int_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return properties.getLocalIntControlParameter(name);
 }
@@ -308,7 +308,7 @@ int cwipi_get_local_int_control_parameter(const char *name)
 double cwipi_get_local_double_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return properties.getLocalDoubleControlParameter(name);
 }
@@ -325,7 +325,7 @@ double cwipi_get_local_double_control_parameter(const char *name)
 const char* cwipi_get_local_string_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return (properties.getLocalStringControlParameter(name).c_str());
 }
@@ -342,7 +342,7 @@ const char* cwipi_get_local_string_control_parameter(const char *name)
 void cwipi_delete_local_int_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.eraseLocalIntControlParameter(name);
 }
@@ -359,7 +359,7 @@ void cwipi_delete_local_int_control_parameter(const char *name)
 void cwipi_delete_local_double_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.eraseLocalDoubleControlParameter(name);
 }
@@ -377,7 +377,7 @@ void cwipi_delete_local_double_control_parameter(const char *name)
 void cwipi_delete_local_string_control_parameter(const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   properties.eraseLocalStringControlParameter(name);
 }
@@ -397,7 +397,7 @@ int cwipi_get_distant_int_control_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return properties.getDistantIntControlParameter(application_name, name);
 }
@@ -417,7 +417,7 @@ double cwipi_get_distant_double_control_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return properties.getDistantDoubleControlParameter(application_name, name);
 }
@@ -437,7 +437,7 @@ const char *cwipi_get_distant_string_control_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   return properties.getDistantStringControlParameter(application_name, name).c_str();
 }
@@ -459,7 +459,7 @@ int cwipi_has_int_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalIntControlParameter(name);
@@ -484,7 +484,7 @@ int cwipi_has_double_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalDoubleControlParameter(name);
@@ -509,7 +509,7 @@ int cwipi_has_string_parameter
  const char *name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalStringControlParameter(name);
@@ -532,7 +532,7 @@ int cwipi_get_n_int_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNIntControlParameter();
@@ -555,7 +555,7 @@ int cwipi_get_n_double_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNDoubleControlParameter();
@@ -578,7 +578,7 @@ int cwipi_get_n_string_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNStringControlParameter();
@@ -601,7 +601,7 @@ char** cwipi_get_list_int_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListIntControlParameter();
@@ -624,7 +624,7 @@ char** cwipi_get_list_double_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListDoubleControlParameter();
@@ -647,7 +647,7 @@ char** cwipi_get_list_string_parameters
 (const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListStringControlParameter();
@@ -669,7 +669,7 @@ char** cwipi_get_list_string_parameters
 void cwipi_synchronize_control_parameter(const char *application_name)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &application_nameStr = application_name;
   return properties.mergeParameters(application_nameStr);
@@ -738,10 +738,10 @@ void cwipi_create_coupling
   va_end(args);
 
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &coupled_application_str = coupled_application;
 
@@ -775,7 +775,7 @@ cwipi_set_data_user
 )
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -804,7 +804,7 @@ cwipi_get_data_user
 )
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -827,7 +827,7 @@ void cwipi_set_location_index (const char *coupling_name,
 			       const int index)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -846,7 +846,7 @@ void cwipi_set_location_index (const char *coupling_name,
 void cwipi_save_location(const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -867,7 +867,7 @@ void cwipi_save_location(const char *coupling_name)
 void cwipi_load_location(const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -892,7 +892,7 @@ void cwipi_open_location_file (const char *coupling_name,
 			       const char *mode)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -911,7 +911,7 @@ void cwipi_open_location_file (const char *coupling_name,
 void cwipi_close_location_file (const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -940,7 +940,7 @@ void cwipi_set_points_to_locate
  double coordinate[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1054,7 +1054,7 @@ void cwipi_define_mesh(const char *coupling_name,
                        int connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1076,7 +1076,7 @@ void cwipi_ho_define_mesh(const char *coupling_name,
                           int connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1096,7 +1096,7 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
                             void* fvmc_nodal)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1115,7 +1115,7 @@ void cwipi_add_polyhedra(const char *coupling_name,
                          int face_connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1151,7 +1151,7 @@ void cwipi_ho_options_set (const char *coupling_id,
                            const char *value)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1180,7 +1180,7 @@ void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
 
 
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1208,7 +1208,7 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
                                          const double *coords)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1297,7 +1297,7 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
 void cwipi_locate (const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1317,7 +1317,7 @@ void cwipi_locate (const char *coupling_name)
 void cwipi_update_location (const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1339,7 +1339,7 @@ void cwipi_update_location (const char *coupling_name)
 const int *cwipi_get_distant_location (const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1361,7 +1361,7 @@ const int *cwipi_get_distant_location (const char *coupling_id)
 const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1383,7 +1383,7 @@ const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling
 const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1407,7 +1407,7 @@ const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id
 int cwipi_get_n_located_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1431,7 +1431,7 @@ int cwipi_get_n_located_points(const char *coupling_id)
 int cwipi_get_n_not_located_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1477,7 +1477,7 @@ cwipi_exchange_status_t cwipi_exchange
 
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1529,7 +1529,7 @@ void cwipi_issend
  int                       *request)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1577,7 +1577,7 @@ void cwipi_irecv
  int                       *request)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1605,7 +1605,7 @@ void cwipi_irecv
 const float *cwipi_distance_located_pts_get(const char  *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1629,7 +1629,7 @@ void cwipi_wait_issend(const char  *coupling_name,
                        int          request)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1652,7 +1652,7 @@ void cwipi_wait_irecv(const char  *coupling_name,
                      int          request)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1676,7 +1676,7 @@ void cwipi_set_interpolation_function
  cwipi_interpolation_fct_t fct)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1700,7 +1700,7 @@ void cwipi_ho_set_interpolation_function
  cwipi_user_interp_ho_fct_t fct)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1725,7 +1725,7 @@ void cwipi_set_interpolation_function_f
  void * fct)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1747,7 +1747,7 @@ void cwipi_set_interpolation_function_f
 void cwipi_delete_coupling(const char *coupling_name)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1763,10 +1763,10 @@ void cwipi_delete_coupling(const char *coupling_name)
 void cwipi_finalize(void)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
@@ -1798,7 +1798,7 @@ void cwipi_finalize(void)
 void cwipi_dump_application_properties(void)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::instanceGet();
+    cwipi::ApplicationPropertiesDataBase::getInstance();
   properties.dump();
 }
 
@@ -1817,7 +1817,7 @@ void cwipi_dump_application_properties(void)
 const int * cwipi_get_not_located_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1841,7 +1841,7 @@ const int * cwipi_get_not_located_points(const char *coupling_id)
 const int * cwipi_get_located_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1865,7 +1865,7 @@ const int * cwipi_get_located_points(const char *coupling_id)
 int cwipi_get_n_distant_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1890,7 +1890,7 @@ int cwipi_get_n_distant_points(const char *coupling_id)
 int cwipi_get_n_distant_ranks(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1915,7 +1915,7 @@ int cwipi_get_n_distant_ranks(const char *coupling_id)
 const int *cwipi_get_distant_distribution(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1940,7 +1940,7 @@ const int *cwipi_get_distant_distribution(const char *coupling_id)
 const int *cwipi_get_located_points_distribution(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1963,7 +1963,7 @@ const int *cwipi_get_located_points_distribution(const char *coupling_id)
 const double *cwipi_get_distant_coordinates (const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
@@ -1985,7 +1985,7 @@ const double *cwipi_get_distant_coordinates (const char *coupling_id)
 const float *cwipi_get_distant_distance (const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::instanceGet();
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
 
