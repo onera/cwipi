@@ -48,7 +48,7 @@ _get_values
   }
   int n_code = static_cast<int>(code_names.size());
 
-  MPI_Comm *intra_comm = (MPI_Comm *) malloc(sizeof(MPI_Comm) * n_code);
+  MPI_Comm *intra_comm = static_cast<MPI_Comm *>(malloc(sizeof(MPI_Comm) * n_code));
   CWP_Init(comm,
            n_code,
            code_names.data(),
@@ -56,7 +56,7 @@ _get_values
            intra_comm);
 
   // Create coupling
-  int        *n_part   = (int *) malloc(sizeof(int) * n_code);
+  int        *n_part   = static_cast<int *>(malloc(sizeof(int) * n_code));
   const char *cpl_name = "globalDataTest";
 
   for (int i_code = 0; i_code < n_code; i_code++) {
@@ -93,15 +93,15 @@ _get_values
   size_t  s_entity1  = sizeof(double);
   int     stride1    = 2;
   int     n_entity1  = 1;
-  double *send_data1 = (double *) malloc(s_entity1 * stride1 * n_entity1);
-  double *recv_data1 = (double *) malloc(s_entity1 * stride1 * n_entity1);
+  double *send_data1 = static_cast<double *>(malloc(s_entity1 * stride1 * n_entity1));
+  double *recv_data1 = static_cast<double *>(malloc(s_entity1 * stride1 * n_entity1));
 
   const char *global_data_name2 = "capybara";
   size_t  s_entity2  = sizeof(double);
   int     stride2    = 2;
   int     n_entity2  = 3;
-  double *send_data2 = (double *) malloc(s_entity2 * stride2 * n_entity2);
-  double *recv_data2 = (double *) malloc(s_entity2 * stride2 * n_entity2);
+  double *send_data2 = static_cast<double *>(malloc(s_entity2 * stride2 * n_entity2));
+  double *recv_data2 = static_cast<double *>(malloc(s_entity2 * stride2 * n_entity2));
 
   // Fill buffers
   send_data1[0] = 1991.07;

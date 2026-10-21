@@ -616,17 +616,17 @@ _get_value_cpl
 )
 {
   // Allocate buffers and set field data
-  double ***send_val = (double ***) malloc(sizeof(double **) * n_code);
-  double ***recv_val = (double ***) malloc(sizeof(double **) * n_code);
+  double ***send_val = static_cast<double ***>(malloc(sizeof(double **) * n_code));
+  double ***recv_val = static_cast<double ***>(malloc(sizeof(double **) * n_code));
   for (int i_code = 0; i_code < n_code; i_code++) {
     if (strcmp(code_names[i_code], order[0]) == 0) {
-      send_val[i_code] = (double **) malloc(sizeof(double *) * n_part[i_code]);
+      send_val[i_code] = static_cast<double **>(malloc(sizeof(double *) * n_part[i_code]));
       for (int i_part = 0; i_part < n_part[i_code]; i_part++) {
         if (loc_send == CWP_DOF_LOCATION_CELL_CENTER) {
-          send_val[i_code][i_part] = (double *) malloc(sizeof(double) * 2 * pn_face[i_code][i_part]);
+          send_val[i_code][i_part] = static_cast<double *>(malloc(sizeof(double) * 2 * pn_face[i_code][i_part]));
         }
         else {
-          send_val[i_code][i_part] = (double *) malloc(sizeof(double) * 2 * pn_vtx[i_code][i_part]);
+          send_val[i_code][i_part] = static_cast<double *>(malloc(sizeof(double) * 2 * pn_vtx[i_code][i_part]));
         }
 
         CWP_Field_data_set(code_names[i_code],
@@ -645,13 +645,13 @@ _get_value_cpl
     }
 
     if (strcmp(code_names[i_code], order[1]) == 0) {
-      recv_val[i_code] = (double **) malloc(sizeof(double *) * n_part[i_code]);
+      recv_val[i_code] = static_cast<double **>(malloc(sizeof(double *) * n_part[i_code]));
       for (int i_part = 0; i_part < n_part[i_code]; i_part++) {
         if (loc_recv == CWP_DOF_LOCATION_CELL_CENTER) {
-          recv_val[i_code][i_part] = (double *) malloc(sizeof(double) * 2 * pn_face[i_code][i_part]);
+          recv_val[i_code][i_part] = static_cast<double *>(malloc(sizeof(double) * 2 * pn_face[i_code][i_part]));
         }
         else {
-          recv_val[i_code][i_part] = (double *) malloc(sizeof(double) * 2 * pn_vtx[i_code][i_part]);
+          recv_val[i_code][i_part] = static_cast<double *>(malloc(sizeof(double) * 2 * pn_vtx[i_code][i_part]));
         }
 
         CWP_Field_data_set(code_names[i_code],
@@ -791,7 +791,7 @@ _get_values
   }
   int n_code = static_cast<int>(code_names.size());
 
-  MPI_Comm *intra_comm = (MPI_Comm *) malloc(sizeof(MPI_Comm) * n_code);
+  MPI_Comm *intra_comm = static_cast<MPI_Comm *>(malloc(sizeof(MPI_Comm) * n_code));
   CWP_Init(comm,
            n_code,
            code_names.data(),
@@ -799,7 +799,7 @@ _get_values
            intra_comm);
 
   // Create coupling
-  int        *n_part    = (int *) malloc(sizeof(int) * n_code);
+  int        *n_part    = static_cast<int *>(malloc(sizeof(int) * n_code));
   int         n_vtx_seg = 9;
   const char *cpl_name  = "spatialInterpTest";
 
@@ -833,13 +833,13 @@ _get_values
   }
 
   // Define mesh
-  int          **pn_face        = (int          **) malloc(sizeof(int          *) * n_code);
-  int          **pn_vtx         = (int          **) malloc(sizeof(int          *) * n_code);
-  int         ***pface_vtx_idx  = (int         ***) malloc(sizeof(int         **) * n_code);
-  int         ***pface_vtx      = (int         ***) malloc(sizeof(int         **) * n_code);
-  double      ***pvtx_coord     = (double      ***) malloc(sizeof(double      **) * n_code);
-  CWP_g_num_t ***pface_ln_to_gn = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
-  CWP_g_num_t ***pvtx_ln_to_gn  = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
+  int          **pn_face        = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
+  int          **pn_vtx         = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
+  int         ***pface_vtx_idx  = static_cast<int         ***>(malloc(sizeof(int         **) * n_code));
+  int         ***pface_vtx      = static_cast<int         ***>(malloc(sizeof(int         **) * n_code));
+  double      ***pvtx_coord     = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  CWP_g_num_t ***pface_ln_to_gn = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
+  CWP_g_num_t ***pvtx_ln_to_gn  = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
 
   for (int i_code = 0; i_code < n_code; i_code++) {
 
