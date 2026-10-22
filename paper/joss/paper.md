@@ -87,7 +87,7 @@ From a scientific perspective, CWIPI is primarily used within the aeronautics an
 
 CWIPI is also employed as both an internal and external coupling library in leading combustion simulation environments such as YALES2 [@Moureau2011] and AVBP [@Schonfeld1999]. A notable HPC application [@Dombard2018] combining CWIPI with AVBP on a complex geometry demonstrated the robustness and scalability of the coupling approach on massively parallel architectures. Its capabilities were highlighted as early as 2017 [@Duchaine2017] and confirmed by an invitation to the ExCALIBUR workshop [@Andrieu2021]. Recent work in aeroelasticity with YALES2 [@Fabbri2023] further demonstrates its versatility. CWIPI's integration into the software stack of national HPC facilities such as the CCRT confirms its recognition at a national level.
 
-Beyond its original ecosystem, the open-source community has adopted CWIPI through GitHub-based interfacing projects with OpenFOAM [@Weller1998; @MoratillaVega2022_2; @nd922025] and Nektar++ [@Cantwell2015], enabling applications in aeroacoustics and data assimilation [@Valero2026]. Finally, CWIPI serves as the interpolation engine of the OpenPALM coupler [@Duchaine2015], illustrating its central role in the broader multiphysics and HPC coupling ecosystem.
+Beyond its original ecosystem, the open-source community has adopted CWIPI through GitHub-based interfacing projects with OpenFOAM [@Weller1998; @MoratillaVega2022_2; @nd922025] and Nektar++ [@Cantwell2015], enabling applications in aeroacoustics and data assimilation [@Valero2024]. Finally, CWIPI serves as the interpolation engine of the OpenPALM coupler [@Duchaine2015], illustrating its central role in the broader multiphysics and HPC coupling ecosystem.
 
 # AI Usage Disclosure
 
