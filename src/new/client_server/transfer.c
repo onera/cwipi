@@ -125,7 +125,7 @@ CWP_transfer_readdata
       timeout--;
     }
     if(timeout<=0 && read_bytes<=0) {
-      PDM_error(__FILE__, __LINE__, 0, "Transfer Error, read data read %i/%i bytes and socket returned %i\n",
+      PDM_error("Transfer Error, read data read %i/%i bytes and socket returned %i",
         data_read,data_size,read_bytes);
       return -1;
     }
@@ -137,7 +137,7 @@ CWP_transfer_readdata
   }
 
   if (read_bytes!=xfer_size) {
-    PDM_error(__FILE__, __LINE__, 0, "Transfer Error, read data was waiting for %i bytes and recieved %i bytes\n",
+    PDM_error("Transfer Error, read data was waiting for %i bytes and recieved %i bytes",
       data_size,data_read);
     return -1;
   }
@@ -166,7 +166,7 @@ CWP_transfer_writedata
     }
     sent_bytes=send(socket,buf,xfer_size,0);
     if(sent_bytes<=0 && xfer_size>0) {
-      PDM_error(__FILE__, __LINE__, 0, "Transfer Error, write tried to send %i bytes, socket send returned %i\n",
+      PDM_error("Transfer Error, write tried to send %i bytes, socket send returned %i",
         xfer_size,sent_bytes);
     return -1;
     }

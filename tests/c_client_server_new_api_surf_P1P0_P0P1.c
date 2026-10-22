@@ -229,8 +229,8 @@ main
     system("rm -f ./client_new_api_surf_P1P0_P0P1_o/code1/cwp_config_srv.txt");
     system("rm -f ./client_new_api_surf_P1P0_P0P1_o/code2/cwp_config_srv.txt");
 
-    sprintf(cmd, "mpirun -n %d cwp_server -cn code1 -p %d %d -c \"client_new_api_surf_P1P0_P0P1_o/code1/cwp_config_srv.txt\" \
-                  : -n %d  cwp_server -cn code2 -p %d %d -c \"client_new_api_surf_P1P0_P0P1_o/code2/cwp_config_srv.txt\" &",
+    sprintf(cmd, "mpirun $Oversubscribe -n %d cwp_server -cn code1 -p %d %d -c \"client_new_api_surf_P1P0_P0P1_o/code1/cwp_config_srv.txt\" \
+                  : -n %d cwp_server -cn code2 -p %d %d -c \"client_new_api_surf_P1P0_P0P1_o/code2/cwp_config_srv.txt\" &",
                   code_n_rank[0], 52100, 52100 + code_n_rank[0] - 1,
                   code_n_rank[1], 52100 + code_n_rank[0], 52100 + code_n_rank[0] + code_n_rank[1] - 1);
     system(cmd);

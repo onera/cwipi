@@ -1,7 +1,7 @@
 #ifndef __APPLICATION_PROPERTIES_DATA_BASE_H__
 #define __APPLICATION_PROPERTIES_DATA_BASE_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -23,6 +23,7 @@
 
 #include <mpi.h>
 #include <map>
+#include <string>
 
 #include <bftc_printf.h>
 

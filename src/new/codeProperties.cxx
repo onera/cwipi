@@ -24,7 +24,6 @@
 #include "codeProperties.hxx"
 #include "pdm_printf.h"
 
-
 /**
  * \cond
  */
@@ -50,18 +49,19 @@ namespace cwipi
 
   CodeProperties::CodeProperties
   (
-   string &name,
-   int    id,
-   int    rootRank,
-   bool   isLocal,
-   const MPI_Comm globalComm,
-   int            n_param_max,
-   int            str_size_max
+          string   &name,
+          int       id,
+          int       rootRank,
+          bool      isLocal,
+    const MPI_Comm  globalComm,
+          int       n_param_max,
+          int       str_size_max
   ): _name(name), _id(id), _isLocal(isLocal),
      _rootRankInGlobalComm(rootRank),
      _globalComm(globalComm),
      _isActiveRank(false),
      _userStruct(NULL),
+     _winGlob(MPI_WIN_NULL),
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -108,7 +108,7 @@ namespace cwipi
 
   CodeProperties::CodeProperties
   (
-   const CodeProperties& other
+    const CodeProperties& other
   ): _name(other._name), _id(other._id), _isLocal(other._isLocal),
      _rootRankInGlobalComm(other._rootRankInGlobalComm),
      _globalComm(other._globalComm),
@@ -141,11 +141,8 @@ namespace cwipi
      _winStrParamValueData(other._winStrParamValueData),
      _n_param_max(other._n_param_max),
      _str_size_max(other._str_size_max)
-
   {
-
     memcpy(_winGlobData, other._winGlobData, 4 *sizeof(int));
-
   }
 
   /**
@@ -176,7 +173,6 @@ namespace cwipi
     PDM_printf ("\n");
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
-
 
     char tmpName [81];
     char tmpValue[81];
@@ -209,9 +205,6 @@ namespace cwipi
       PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
     }
 
-
-
-
     /* Double parameters */
     _updateDoubleValues ();
 
@@ -238,8 +231,6 @@ namespace cwipi
 
       PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
     }
-
-
 
     /* Char parameters */
     _updateStrValues ();
@@ -280,7 +271,6 @@ namespace cwipi
 
     PDM_printf_flush();
   }
-
 
   /**
    * \brief Dump string of properties
@@ -323,10 +313,8 @@ namespace cwipi
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
-
     char tmpName [81];
     char tmpValue[81];
-
 
     // Update and print integer
     _updateIntValues ();
@@ -439,7 +427,6 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
-
     if (_winGlob != MPI_WIN_NULL) {
       MPI_Win_free(&_winGlob);
     }

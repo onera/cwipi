@@ -26,6 +26,7 @@
 #include "cwipi.h"
 #include "cwp.h"
 #include "cwp_priv.h"
+#include "pdm_timer.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
 #define MIN(a,b) ((a) < (b) ?  (a) : (b))
@@ -904,14 +905,9 @@ main(int argc, char *argv[]) {
   }
 
   // Perform geometric algorithm
-  CWP_timer_t *timer = CWP_timer_create();
-  double t_start, t_end;
+  PDM_timer_t *timer = PDM_timer_create(MPI_COMM_WORLD);
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_init(timer);
-
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "locate", 1 /* Force synchro */);
 
   // int n_unlocated = 0;
   int n_located = 0;
@@ -940,23 +936,10 @@ main(int argc, char *argv[]) {
     located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name, 0);
   }
 
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
-  double geom_time = t_end - t_start;
-  double max_geom_time;
-  MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-    printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
-  }
+  PDM_timer_end(timer, "locate", 1 /* Force synchro */);
 
   //  Exchange interpolated fields 1
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  CWP_timer_hang_on(timer);
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "exch1", 1 /* Force synchro */);
 
   int request;
   if (version == CWP_VERSION_OLD) {
@@ -1005,14 +988,9 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  double exch_time1 = t_end - t_start;
-  double max_exch_time1;
-  t_start = t_end;
-  MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  CWP_timer_resume(timer);
+  PDM_timer_end(timer, "exch1", 1 /* Force synchro */);
+
+  PDM_timer_start(timer, "exch2", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1033,21 +1011,9 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
-  double exch_time = t_end - t_start;
-  double max_exch_time;
-  MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  PDM_timer_end(timer, "exch2", 1 /* Force synchro */);
 
-  if (rank == 0) {
-    printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1);
-    printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
-    printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
-  }
-
-  // double redondance_geom = max_exch_time1;
-  max_geom_time += max_exch_time1;
+  PDM_timer_gather_dump(timer, NULL);
 
   //  Check
   if (1) {
@@ -1143,7 +1109,7 @@ main(int argc, char *argv[]) {
   free(send_val);
   free(recv_val);
 
-  CWP_timer_free(timer);
+  PDM_timer_free(timer);
 
   //  Finalize CWIPI
   if (version == CWP_VERSION_OLD) {

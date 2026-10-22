@@ -29,17 +29,18 @@
 #include "cwp_priv.h"
 
 #include "grid_mesh.h"
-#include "pdm_poly_surf_gen.h"
+#include "pdm_array.h"
+#include "pdm_dcube_nodal_gen.h"
+#include "pdm_dmesh.h"
+#include "pdm_error.h"
+#include "pdm_ho_ordering.h"
+#include "pdm_logging.h"
+#include "pdm_mpi.h"
 #include "pdm_multipart.h"
 #include "pdm_part_connectivity_transform.h"
-#include "pdm_dmesh.h"
-#include "pdm_array.h"
-#include "pdm_logging.h"
-#include "pdm_error.h"
-#include "pdm_mpi.h"
-#include "pdm_timer.h"
-#include "pdm_dcube_nodal_gen.h"
 #include "pdm_part_mesh_nodal.h"
+#include "pdm_poly_surf_gen.h"
+#include "pdm_timer.h"
 #include "pdm_vtk.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
@@ -262,7 +263,7 @@ _gen_mesh
     int order_deformation = MAX(1, (int) ceil (sqrt(order)));
     const PDM_g_num_t *distrib_vtx = PDM_DMesh_nodal_distrib_vtx_get(dmn);
     int dn_vtx = distrib_vtx[i_rank+1] - distrib_vtx[i_rank];
-    double *dvtx_coord = PDM_DMesh_nodal_vtx_get(dmn);
+    double *dvtx_coord = PDM_DMesh_nodal_vtx_get(dmn, PDM_OWNERSHIP_KEEP);
     // _rotate(dn_vtx,
     //         dvtx_coord);
     for (int i = 0; i < dn_vtx; i++) {
@@ -300,11 +301,11 @@ _gen_mesh
     (*n_node)[ipart] = PDM_part_mesh_nodal_n_vtx_get        (pmn, ipart);
     (*n_elt) [ipart] = PDM_part_mesh_nodal_section_n_elt_get(pmn, 0, ipart);
 
-    double *_node_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart);
+    double *_node_coord = PDM_part_mesh_nodal_vtx_coord_get(pmn, ipart, PDM_OWNERSHIP_KEEP);
     (*node_coord)[ipart] = malloc(sizeof(double) * (*n_node)[ipart] * 3);
     memcpy((*node_coord)[ipart], _node_coord, sizeof(double) * (*n_node)[ipart] * 3);
 
-    PDM_g_num_t *_node_ln_to_gn = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart);
+    PDM_g_num_t *_node_ln_to_gn = PDM_part_mesh_nodal_vtx_g_num_get(pmn, ipart, PDM_OWNERSHIP_KEEP);
     (*node_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_node)[ipart]);
     memcpy((*node_ln_to_gn)[ipart], _node_ln_to_gn, sizeof(PDM_g_num_t) * (*n_node)[ipart]);
 
@@ -334,8 +335,6 @@ _gen_mesh
     (*elt_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*n_elt)[ipart]);
     memcpy((*elt_ln_to_gn)[ipart], numabs, sizeof(PDM_g_num_t) * (*n_elt)[ipart]);
   }
-
-  PDM_part_mesh_nodal_free(pmn);
 
   PDM_dcube_nodal_gen_free(dcube);
 
@@ -373,7 +372,7 @@ _ijk_grid
       break;
     }
     default:
-      PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+      PDM_error("Invalid t_elt");
   }
 
   return n_node;
@@ -694,7 +693,7 @@ main
       old_block_type = CWIPI_CELL_PYRAMHO;
       break;
     default:
-      PDM_error (__FILE__, __LINE__, 0, "invalid elt type %d\n", (int) elt_type);
+      PDM_error("Invalid elt type %d", (int) elt_type);
     }
 
 
@@ -835,14 +834,9 @@ main
   }
 
 
-  CWP_timer_t *timer = CWP_timer_create();
-  double t_start, t_end;
-  MPI_Barrier(comm);
+  PDM_timer_t *timer = PDM_timer_create(MPI_COMM_WORLD);
 
-  CWP_timer_init(timer);
-
-  t_start = CWP_timer_elapsed(timer);
-  CWP_timer_resume(timer);
+  PDM_timer_start(timer, "locate", 1 /* Force synchro */);
 
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(cpl_name);
@@ -859,28 +853,12 @@ main
     }
   }
 
-  MPI_Barrier(comm);
+  PDM_timer_end(timer, "locate", 1 /* Force synchro */);
 
-  CWP_timer_hang_on(timer);
-  t_end = CWP_timer_elapsed(timer);
+  PDM_timer_gather_dump(timer, NULL);
 
-  CWP_timer_free(timer);
+  PDM_timer_free(timer);
 
-  double dt = t_end - t_start;
-  double dt_min;
-  double dt_max;
-  MPI_Reduce(&dt, &dt_min, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
-  MPI_Reduce(&dt, &dt_max, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
-
-  MPI_Barrier(comm);
-  if (i_rank == 0) {
-    printf("Interpolation weights computation OK\n");
-    printf("dt_min = %12.5es\n", dt_min);
-    printf("dt_max = %12.5es\n", dt_max);
-  }
-
-  MPI_Barrier(comm);
 
   if (version == CWP_VERSION_OLD) {
     int request;

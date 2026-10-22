@@ -1,34 +1,58 @@
-# CWIPI #
+<p align="center">
+    <img src="doc/images/cwipiNew.svg" alt="Logo" width="25%"/>
+</p>
 
-**CWIPI** (Coupling With Interpolation Parallel Interface) is a parallel coupling library under LGPL, with interfaces in C, Fortran and Python.
+**CWIPI** (Coupling With Interpolation Parallel Interface) is a library for coupling parallel scientific codes via MPI communications to perform multi-physics simulations in massively parallel, distributed-memory environments, with interfaces in C, Python and Fortran.
 
-## Documentation  ##
 
-User documentation is deployed on the Gitlab pages server: https://numerics.gitlab-pages.onera.net/coupling/cwipi/cwipi-1.1.0/index.html
+## 📖 Documentation
 
-## Build and install ##
+The user documentation is available either on [the GitHub page](https://onera.github.io/cwipi/index.html) or on [ONERA's internal Gitlab](https://numerics.gitlab-pages.onera.net/coupling/cwipi/index.html).
+
+
+## 🛠️ Build and install
 
 ### Dependencies
 
 General dependencies for building **CWIPI** are:
-- a C++ compiler
+- a C++ compiler (tested with `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
 - [CMake](https://cmake.org/) (version 3.16 or higher)
-- an MPI distribution
+- an MPI distribution (tested with `openmpi` and `intel oneapi`)
+
+To run **CWIPI** tests with `cwp_run`, additional dependencies are:
+- `bc`
+- `awk`
+- [gnu-time](https://formulae.brew.sh/formula/gnu-time) on macOS
+
+To build **CWIPI** Fortran API, additional dependencies are:
+- a Fortran 90 compiler (tested with `gfortran` based on `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
+
+To build **CWIPI** Python API, additional dependencies are:
+- `numpy (1.x)`
+- `mpi4py`
+- `Cython (0.29.x, 3.x)`
 
 ### Basic Installation
 
 Follow these steps to build **CWIPI** from the sources:
 
-1. `git clone git@gitlab.onera.net:numerics/coupling/cwipi.git` (for ONERA users only)
-1. `cd cwipi`
-1. `git submodule update --init` (needed for dependencies)
-1. `mkdir build`
-1. `cd build`
-1. `cmake ..`
-1. `make`
-1. `make install`
-1. `./cwp_run` (if you want to run the test cases)
+First, clone the repository
+  - either from [GitHub](https://github.com/onera/cwipi): `git clone git@github.com:onera/cwipi.git`
+  - or from [GitLab](https://gitlab.onera.net/numerics/coupling/cwipi) (for ONERA users only): `git clone git@gitlab.onera.net:numerics/coupling/cwipi.git`
 
+Then, use the following commands:
+1. `cd cwipi`
+2. `git submodule update --init` (needed for dependencies such as [**ParaDiGM**](https://github.com/onera/paradigm))
+3. `mkdir build`
+4. `cd build`
+5. `cmake ..`
+6. `make`
+7. `make install`
+8. `./cwp_run` (if you want to run the test cases, at least 10 CPU cores are required)
+
+<details>
+
+<summary>Configuration with CMake</summary>
 
 ### CMake general options
     cmake -D<option1_name>=<option1_value> ... -D<option2_name>=<option2_value>
@@ -56,83 +80,44 @@ Refer to [FindPython](https://cmake.org/cmake/help/latest/module/FindPython.html
 #### Build static library
     CWP_ENABLE_STATIC=<ON | OFF> (default : OFF)
 
-#### Enable MPI wrapper check
-    CWP_ENABLE_MPI_CHECK=<ON | OFF> (default : ON)
-
 #### Hide symbols of internal ParaDiGM library
     CWP_ENABLE_HIDE_PDM_SYMBOLS=<ON | OFF> (default : ON)
 
-If [```CWP_ENABLE_STATIC=ON```](#build-static-library) then ```CWP_ENABLE_HIDE_PDM_SYMBOLS=OFF``` is forced
+If ```CWP_ENABLE_STATIC=ON``` then ```CWP_ENABLE_HIDE_PDM_SYMBOLS=OFF``` is forced
 
 #### Enable the use of external ParaDiGM library
     CWP_ENABLE_EXTERNAL_PDM=<ON | OFF> (default : OFF)
 
-If ```CWP_ENABLE_EXTERNAL_PDM=ON```, you must define this variable to find ParaDiGM :
+If ```CWP_ENABLE_EXTERNAL_PDM=ON```, you must define this variable to find ParaDiGM:
 
     PDM_SOURCE_DIR=<path> Where to find the base directory of ParaDiGM
 
-If [```CWP_ENABLE_HIDE_PDM_SYMBOLS=ON```](#hide-symbols-of-internal-paradigm-library) then ```CWP_ENABLE_EXTERNAL_PDM=OFF``` if forced
+If ```CWP_ENABLE_HIDE_PDM_SYMBOLS=ON``` then ```CWP_ENABLE_EXTERNAL_PDM=OFF``` is forced
 
-#### Enable the use of [BLAS](https://www.netlib.org/blas/) (linear algebra)
-    CWP_ENABLE_BLASLAPACK=<ON | OFF> (default : OFF)
-
-If a simple autodetection fails, you can use these options to find BLAS :
-
-    BLAS_DIR=<path>      Where to find the base directory of BLAS
-    BLAS_INCDIR=<path>   Where to find the header files
-    BLAS_LIBDIR=<path>   Where to find the library files
-
-To force the use of a list of libraries, use :
-
-    DBLAS_LIBRARIES="<lib_1> ... <lib_n>"
-
-#### Enable client-server mode
-    CWP_ENABLE_CLIENT_SERVER=<ON | OFF> (default : OFF)
-
-#### Enable tests
-    CWP_ENABLE_TESTS=<ON | OFF> (default : ON)
-
-#### Enable documentation mode
-    CWP_ENABLE_DOCUMENTATION=<ON | OFF> (default : OFF)
-
-#### Enable training mode
-    CWP_ENABLE_TRAINING=<ON | OFF> (default : OFF)
-
-Once built, the documentation can be found in `build/doc/sphinx/html` and launch `index.html` file
-
-### Compiler choice
-
-    CC=<C compiler> CXX=<CXX compiler> FC=<Fortran compiler> cmake ...
-
-or use the following CMake options
-
-    CMAKE_C_COMPILER=<C compiler>
-    CMAKE_CXX_COMPILER=<CXX compiler>
-    CMAKE_Fortran_COMPILER=<Fortran compiler>
-
-### CMake MPI options
-
-    MPI_C_COMPILER=<C MPI wrapper>
-    MPI_CXX_COMPILER=<CXX MPI wrapper>
-    MPI_Fortran_COMPILER=<Fortran MPI wrapper>
-
-If a simple autodetection fails, you can use these options to find MPI :
-
-    MPI_<language>_LIBRARIES
-    MPI_<language>_INCLUDE_PATH
-
-Refer to [FindMPI](https://cmake.org/cmake/help/latest/module/FindMPI.html) in the CMake documentation for more information.
-
-## Issues ##
-
-Issues can be reported directly in the [Issues](https://gitlab.onera.net/numerics/coupling/cwipi/-/issues) section.
+</details>
 
 
-## License ##
+## 🚀 Quick Start
 
-**CWIPI** is available under the LGPL3 license (https://www.gnu.org/licenses/lgpl-3.0.fr.html).
+You can find a basic example of two-way coupling using **CWIPI** in the [quick start section of the documentation](#documentation).
+Additional examples for more advanced scenarios can be found in the ``tests`` directory.
 
 
-## Copyright ##
+## ⁉️ Questions & Bug Reporting
 
-Copyright 2023, ONERA The French Aerospace Lab
+If you have a question or encounter a problem, please follow the [rules of our community](COMMUNITY.md).
+
+
+## 💡 Contributing to CWIPI
+
+If you would like to contribute to **CWIPI**, make sure you follow [these instructions](CONTRIBUTING.md).
+
+
+## ⚖️ License
+
+**CWIPI** is available under the [LGPL3 license](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+
+
+## © Copyright
+
+Copyright 2026, ONERA The French Aerospace Lab

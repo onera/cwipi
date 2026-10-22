@@ -128,7 +128,7 @@ namespace cwipi {
     _unionComm              = _cpl->communicationGet()->unionCommGet();
     _pdmUnionComm           = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
 
-    _nPart                  = _mesh->getNPart();
+    _nPart                  = _mesh->nPartGet();
 
     _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
     _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();
@@ -152,8 +152,8 @@ namespace cwipi {
 
 
     for (size_t i = 0; i < _cpl->fieldsGet()->size(); i++) {
-      _send_buffer[i]  = NULL;
-      _recv_buffer[i]  = NULL;
+      _send_buffer [i] = NULL;
+      _recv_buffer [i] = NULL;
       _send_request[i] = -1;
       _recv_request[i] = -1;
     }
@@ -164,65 +164,67 @@ namespace cwipi {
     _ptsp = NULL;
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      _src_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
-      _src_gnum =  (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
+      // Local code is the source, coupled code is the target
+      _src_n_gnum = (      int          *) malloc(sizeof(int        ) * _nPart);
+      _src_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _nPart);
 
-      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
-      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
+      _tgt_n_gnum = (      int          *) malloc(sizeof(int        ) * _cplNPart);
+      _tgt_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _cplNPart);
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
-        _src_gnum[i_part] = nullptr;
+        _src_gnum  [i_part] = NULL;
       }
 
       for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
-        _tgt_gnum[i_part] = nullptr;
+        _tgt_gnum  [i_part] = NULL;
       }
     }
     else {
-      _src_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
-      _src_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
+      // Local code is the target, coupled code is the source
+      _src_n_gnum = (      int          *) malloc(sizeof(int        ) * _cplNPart);
+      _src_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _cplNPart);
 
-      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
-      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
+      _tgt_n_gnum = (      int          *) malloc(sizeof(int        ) * _nPart);
+      _tgt_gnum   = (const PDM_g_num_t **) malloc(sizeof(PDM_g_num_t) * _nPart);
 
       for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
         _src_n_gnum[i_part] = 0;
-        _src_gnum[i_part] = nullptr;
+        _src_gnum  [i_part] = NULL;
       }
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) {
         _tgt_n_gnum[i_part] = 0;
-        _tgt_gnum[i_part] = nullptr;
+        _tgt_gnum  [i_part] = NULL;
       }
     }
 
 
-    _n_elt_weights =  (int *) malloc (sizeof(int) * (_nPart));
-    _weights_idx =  (int **) malloc (sizeof(int *) * (_nPart));
-    _weights =  (double **) malloc (sizeof(double *) * (_nPart));
+    _n_elt_weights          = (int     *) malloc(sizeof(int     ) * _nPart);
+    _weights_idx            = (int    **) malloc(sizeof(int    *) * _nPart);
+    _weights                = (double **) malloc(sizeof(double *) * _nPart);
 
-    _n_computed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _computed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_computed_tgt         = (int     *) malloc(sizeof(int     ) * _nPart);
+    _computed_tgt           = (int    **) malloc(sizeof(int    *) * _nPart);
 
-    _n_involved_sources_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _involved_sources_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_uncomputed_tgt       = (int     *) malloc(sizeof(int     ) * _nPart);
+    _uncomputed_tgt         = (int    **) malloc(sizeof(int    *) * _nPart);
 
-    _n_uncomputed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
-    _uncomputed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
+    _n_involved_sources_tgt = (int     *) malloc(sizeof(int     ) * _nPart);
+    _involved_sources_tgt   = (int    **) malloc(sizeof(int    *) * _nPart);
 
     for (int i = 0; i < _nPart; i++) {
-      _weights_idx[i] = NULL;
-      _weights[i] = NULL;
-      _computed_tgt[i] = NULL;
-      _uncomputed_tgt[i] = NULL;
+      _weights_idx         [i] = NULL;
+      _weights             [i] = NULL;
+      _computed_tgt        [i] = NULL;
+      _uncomputed_tgt      [i] = NULL;
       _involved_sources_tgt[i] = NULL;
 
-      _n_uncomputed_tgt[i] = 0;
-      _n_computed_tgt[i] = 0;
+      _n_uncomputed_tgt      [i] = 0;
+      _n_computed_tgt        [i] = 0;
       _n_involved_sources_tgt[i] = 0;
-      _n_elt_weights[i] = 0;
+      _n_elt_weights         [i] = 0;
     }
 
   }
@@ -353,10 +355,9 @@ namespace cwipi {
   void SpatialInterp::issend(Field* referenceField) {
 
     if (referenceField->is_send_yet_get() == 1) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step. "
+      PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
-                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)\n");
+                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {
@@ -780,7 +781,7 @@ namespace cwipi {
                                                 &n_part2,
                                                 &n_elt1,
                                                 &n_elt2);
-          for (int i = 0; i < _nPart; i++) {
+          for (int i = 0; i < _cplNPart; i++) {
             if (globalRank == cplRootRank) {
               n_elt = n_elt2[i];
             }
@@ -859,10 +860,9 @@ namespace cwipi {
   void SpatialInterp::irecv(Field *referenceField) {
 
     if (referenceField->is_recv_yet_get()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step. "
+      PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
-                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)\n");
+                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {

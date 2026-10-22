@@ -1,0 +1,8 @@
+# List of packages or libraries needed to build cwipi's python module:
+
+# Python bindings
+Cython
+
+# Sphinx documentation
+sphinx-fortran
+sphinx-rtd-theme

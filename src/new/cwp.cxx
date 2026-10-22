@@ -171,14 +171,14 @@ _check_interface_spatial_interp_compatibility
       if (spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
           spatial_interp != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES &&
           spatial_interp != CWP_SPATIAL_INTERP_FROM_IDENTITY) {
-        PDM_error(__FILE__, __LINE__, 0, "Only 'Nearest Neighbors' or 'Identity' spatial interpolation methods can be used with CWP_INTERFACE_POINT\n");
+        PDM_error("Only 'Nearest Neighbors' or 'Identity' spatial interpolation methods can be used with CWP_INTERFACE_POINT");
       }
       break;
     }
     case CWP_INTERFACE_LINEAR:
     {
       if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-        PDM_error(__FILE__, __LINE__, 0, "'Intersection' spatial interpolation is not yet implemented for CWP_INTERFACE_LINEAR\n");
+        PDM_error("'Intersection' spatial interpolation is not yet implemented for CWP_INTERFACE_LINEAR");
       }
       break;
     }
@@ -192,7 +192,7 @@ _check_interface_spatial_interp_compatibility
     }
     default:
     {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid coupling interface dimension (%d)\n", entities_dim);
+      PDM_error("Invalid coupling interface dimension (%d)", entities_dim);
     }
   }
 }
@@ -215,13 +215,11 @@ _check_dof_location_spatial_interp_compatibility
     case CWP_SPATIAL_INTERP_FROM_INTERSECTION:
     {
       if (dof_location == CWP_DOF_LOCATION_USER) {
-        PDM_error(__FILE__, __LINE__, 0,
-                  "Field dofs must be located at mesh nodes or cell centers when using spatial interpolation from intersection\n");
+        PDM_error("Field dofs must be located at mesh nodes or cell centers when using spatial interpolation from intersection");
       }
 
       if (dof_location == CWP_DOF_LOCATION_NODE) {
-        PDM_error(__FILE__, __LINE__, 0,
-                  "Spatial interpolation from intersection is not yet implemented for dof located at mesh nodes\n");
+        PDM_error("Spatial interpolation from intersection is not yet implemented for dof located at mesh nodes");
       }
       break;
     }
@@ -234,8 +232,7 @@ _check_dof_location_spatial_interp_compatibility
       }
       else {
         if (dof_location == CWP_DOF_LOCATION_USER) {
-          PDM_error(__FILE__, __LINE__, 0,
-                    "Source field dofs must be located at mesh nodes or cell centers when using spatial interpolation from location\n");
+          PDM_error("Source field dofs must be located at mesh nodes or cell centers when using spatial interpolation from location");
         }
       }
       break;
@@ -247,7 +244,7 @@ _check_dof_location_spatial_interp_compatibility
     }
     default:
     {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid spatial interpolation method (%d)\n", spatial_interp);
+      PDM_error("Invalid spatial interpolation method (%d)", spatial_interp);
     }
   }
 }
@@ -465,8 +462,8 @@ CWP_Init
   cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
     cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
 
-  factoryComm.Register<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
-  factoryComm.Register<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
+  factoryComm.add<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
+  factoryComm.add<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
 
   /*
    * Create spatial interpolation abstract factory
@@ -475,13 +472,13 @@ CWP_Init
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
     cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
-  factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
-  factorySpatialInterp.Register<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
-  factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
+  factorySpatialInterp.add<cwipi::SpatialInterpLocationMeshLocationLocateAllTgt>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
+  factorySpatialInterp.add<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.add<cwipi::SpatialInterpClosestSources>(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.add<cwipi::SpatialInterpClosestTargets>(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.add<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   /*
    * Create block abstract factory
@@ -490,22 +487,22 @@ CWP_Init
   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
     cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
 
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_NODE);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
-  factoryBlock.Register<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
-  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
-  factoryBlock.Register<cwipi::BlockCP >(CWP_BLOCK_CELL_POLY);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_TRIAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_QUADHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_TETRAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
-  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_NODE);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.add<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.add<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.add<cwipi::BlockCP >(CWP_BLOCK_CELL_POLY);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.add<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
 
   MPI_Barrier(global_comm);
 
@@ -535,25 +532,75 @@ CWP_Finalize
  void
 )
 {
-  int flag = 0;
-
-  MPI_Initialized(&flag);
+  // Two choices: couplingDB is kept alive and the signleton remains as a potential leak
+  // or couplingDB is freed and all structures are to be freed explicitely by the user
+  // (Cpl, Interf, Field,...)
+  //cwipi::CouplingDB & couplingDB =
+  //  cwipi::CouplingDB::getInstance();
+  //
+  //couplingDB.kill();
 
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  const MPI_Comm globalComm = properties.globalCommGet();
+  int flag = 0;
 
- // PDM_printf("CWP_Finalize\n");
+  MPI_Initialized(&flag);
+
   fflush(stdout);
   if (flag != 0) {
     PDM_printf_flush();
+    const MPI_Comm globalComm = properties.globalCommGet();
     MPI_Barrier(globalComm);
-//    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
 
-
   properties.kill();
+
+  cwipi::Factory<cwipi::Communication, CWP_Comm_t> &factoryComm =
+    cwipi::Factory<cwipi::Communication, CWP_Comm_t>::getInstance();
+
+  factoryComm.remove(CWP_COMM_PAR_WITH_PART);
+  factoryComm.remove(CWP_COMM_PAR_WITHOUT_PART);
+
+  factoryComm.kill();
+
+  cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
+
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES);
+  factorySpatialInterp.remove(CWP_SPATIAL_INTERP_FROM_IDENTITY);
+
+  factorySpatialInterp.kill();
+
+  cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
+
+  factoryBlock.remove(CWP_BLOCK_NODE);
+  factoryBlock.remove(CWP_BLOCK_EDGE2);
+  factoryBlock.remove(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.remove(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.remove(CWP_BLOCK_FACE_POLY);
+  factoryBlock.remove(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.remove(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.remove(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.remove(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.remove(CWP_BLOCK_CELL_POLY);
+  factoryBlock.remove(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.remove(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.remove(CWP_BLOCK_CELL_PYRAMHO);
+
+  factoryBlock.kill();
+
+  // Free PDM
+  PDM_Finalize();
 
 }
 
@@ -707,7 +754,7 @@ CWP_Time_step_beg
 
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 
-  couplingDB.time_step_beg(properties.codePropertiesGet(local_code_name),
+  couplingDB.timeStepBegin(properties.codePropertiesGet(local_code_name),
                            current_time);
 }
 
@@ -731,7 +778,7 @@ CWP_Time_step_end
 
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
 
-  couplingDB.time_step_end(properties.codePropertiesGet(local_code_name));
+  couplingDB.timeStepEnd(properties.codePropertiesGet(local_code_name));
 }
 
 /**
@@ -2617,7 +2664,7 @@ CWP_Field_location_weights_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int    **tmp_weights_idx = NULL; // UNUSED
@@ -2664,7 +2711,7 @@ CWP_Field_location_point_data_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **tmp_points_coords           = NULL;
@@ -2714,7 +2761,7 @@ CWP_Field_location_internal_cell_vtx_get
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE)         &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int **tmp_cell_vtx_idx = NULL;
@@ -2754,7 +2801,7 @@ CWP_Field_intersection_volumes_get
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int     **tmp_volumes_idx = NULL; // UNUSED
@@ -2794,7 +2841,7 @@ CWP_Field_intersection_tgt_elt_volumes_get
   CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **_tgt_elt_volumes = NULL;
@@ -2832,7 +2879,7 @@ CWP_Field_nearest_neighbors_distances_get
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
       spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   int    **tmp_distances2_idx = NULL; // UNUSED
@@ -2873,7 +2920,7 @@ CWP_Field_nearest_neighbors_coord_get
 
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_SOURCES_LEAST_SQUARES &&
       spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES) {
-    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+    PDM_error("Getter unavailable for spatial interpolation algorithm %d", spatial_interp_algorithm);
   }
 
   double **_nearest_src_coord = NULL;
@@ -3058,8 +3105,7 @@ CWP_Param_add
     properties.ctrlParamAdd<char *>(codeNameStr,nameStr, *(char **)initial_value);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3101,8 +3147,7 @@ CWP_Param_set
     properties.ctrlParamSet<char *>(codeNameStr, nameStr, * (char **) value);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3139,11 +3184,10 @@ CWP_Param_del
     properties.ctrlParamCancel<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    properties.ctrlParamCancel<string>(codeNameStr, nameStr);
+    properties.ctrlParamCancel<char *>(codeNameStr, nameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3183,11 +3227,10 @@ CWP_Param_n_get
     nParam = properties.ctrlParamNGet<double>(codeNameStr);
     break;
   case CWP_CHAR :
-    nParam = properties.ctrlParamNGet<string>(codeNameStr);
+    nParam = properties.ctrlParamNGet<char *>(codeNameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-                "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   return nParam;
 }
@@ -3228,11 +3271,10 @@ CWP_Param_list_get
     properties.ctrlParamListGet<double>(codeNameStr, nParam, paramNames);
     break;
   case CWP_CHAR :
-    properties.ctrlParamListGet<string>(codeNameStr, nParam, paramNames);
+    properties.ctrlParamListGet<char *>(codeNameStr, nParam, paramNames);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -3271,11 +3313,10 @@ CWP_Param_is
     isParam = properties.ctrlParamIs<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    isParam = properties.ctrlParamIs<string>(codeNameStr, nameStr);
+    isParam = properties.ctrlParamIs<char *>(codeNameStr, nameStr);
     break;
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   return isParam;
 }
@@ -3323,8 +3364,7 @@ CWP_Param_get
     break;
   }
   default : {
-    PDM_error(__FILE__, __LINE__, 0,
-              "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
   }
 }
@@ -3373,8 +3413,7 @@ CWP_Param_reduce
     break;
   }
   default :
-    PDM_error(__FILE__, __LINE__, 0,
-               "Not yet implemented data type\n");
+    PDM_error("Not yet implemented data type");
   }
 }
 
@@ -4495,166 +4534,6 @@ CWPT_generate_mesh_parallelepiped_ngon
 
 
 }
-
-
-/*****************************************************************************************************
- *                                                                                                   *
- *                  CWIPI timer                                                                      *
- *                                                                                                   *
- *****************************************************************************************************/
-
-/**
- * \brief Create a timer object
- *
- * \return timer
- *
- */
-
-CWP_timer_t
-CWP_timer_create
-(
-  void
-)
-{
-  return (void *) PDM_timer_create();
-}
-
-/**
- * \brief Initialize a timer object
- *
- * \param[in] timer
- *
- */
-
-void
-CWP_timer_init
-(
-  CWP_timer_t timer
-)
-{
-  PDM_timer_init((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Resuming time measurement
- *
- * \param[in] timer
- *
- */
-
-void
-CWP_timer_resume
-(
-  CWP_timer_t timer
-)
-{
-  PDM_timer_resume((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Suspend time measurement
- *
- * \param[in] timer
- *
- */
-
-void
-CWP_timer_hang_on
-(
-  CWP_timer_t timer
-)
-{
-  PDM_timer_hang_on((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Get user time
- *
- * \param[in] timer
- *
- * \return User time
- *
- */
-
-double
-CWP_timer_cpu
-(
-  CWP_timer_t timer
-)
-{
-  return PDM_timer_cpu((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Get user cpu time
- *
- * \param[in] timer
- *
- * \return User cpu time
- *
- */
-
-double
-CWP_timer_cpu_user
-(
-  CWP_timer_t timer
-)
-{
- return PDM_timer_cpu_user((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Get system cpu time
- *
- * \param[in] timer
- *
- * \return System cpu time
- *
- */
-
-double
-CWP_timer_cpu_sys
-(
-  CWP_timer_t timer
-)
-{
-  return PDM_timer_cpu_sys((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Get elpased time
- *
- * \param[in] timer
- *
- * \return Elapsed time
- *
- */
-
-double
-CWP_timer_elapsed
-(
-  CWP_timer_t timer
-)
-{
-  return PDM_timer_elapsed((PDM_timer_t *) timer);
-}
-
-/**
- * \brief Free timer
- *
- * \param[in] timer
- *
- */
-
-void
-CWP_timer_free
-(
-  CWP_timer_t timer
-)
-{
-  PDM_timer_free((PDM_timer_t *) timer);
-}
-
 
 /*-----------------------------------------------------------------------------*/
 

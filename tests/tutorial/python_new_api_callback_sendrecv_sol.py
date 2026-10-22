@@ -304,6 +304,8 @@ def run_coupling():
   cpl_PF.mesh_interf_del()
 
   # Finalize CWIPI
+  del fieldCP, fieldPF
+  del cpl_CP, cpl_PF
   pycwp.finalize()
 
   print(f"Python rank {i_rank} FINISHED :D")

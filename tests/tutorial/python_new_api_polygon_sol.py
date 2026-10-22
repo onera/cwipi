@@ -1,23 +1,4 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
-# This file is part of the CWIPI library.
-#
-# Copyright (C) 2023  ONERA
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 3 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library. If not, see <http://www.gnu.org/licenses/>.
-#-----------------------------------------------------------------------------
-
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
@@ -136,7 +117,7 @@ def runTest():
     # In this example there is only one time step. It is mandatory to create the
     # coupling and the associated fields before starting the first time step.
     pycwp.time_step_beg(code_name[0],
-                        0.0);
+                        0.0)
 
     # Set the mesh vertices coordinates :
     # The coordinate system in CWIPI is always 3D, so
@@ -144,8 +125,8 @@ def runTest():
     # (11 here) to set the coordinates in. The coordinates are
     # interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
     # The None argument will be explained later.
-    coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
-              3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
+    coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
+                       3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
     cpl.mesh_interf_vtx_set(0,
                             coords,
                             None)
@@ -161,7 +142,7 @@ def runTest():
     block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
     connec_idx = np.array([0,3,7,11,16,21], dtype=np.int32)
-    connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
+    connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9,   5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
     cpl.mesh_interf_f_poly_block_set(0,
                                      block_id,
                                      connec_idx,
@@ -231,22 +212,20 @@ def runTest():
     # These functions allow to know how many and for which target
     # vertices the interpolation operation has been unsuccessful.
     if (i_rank == 1):
-      n_uncomputed_tgts = field.n_uncomputed_tgts_get(0);
-      uncomputed_tgts   = field.uncomputed_tgts_get(0);
+      n_uncomputed_tgts = field.n_uncomputed_tgts_get(0)
+      uncomputed_tgts   = field.uncomputed_tgts_get(0)
 
     # End time step :
     pycwp.time_step_end(code_name[0])
 
     # Delete field :
-    # del of the class Field is automatically called once there
-    # are no more references to the field instance in cpl
+    del field
 
     # Delete Mesh :
     cpl.mesh_interf_del()
 
     # Delete the coupling :
-    # del of the class Coupling is automatically called once there
-    # are no more references to cpl
+    del cpl
 
     # Finalize CWIPI :
     pycwp.finalize()

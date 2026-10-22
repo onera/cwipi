@@ -70,24 +70,15 @@ endif()
 # - Our doc files have been updated
 # - The Sphinx config has been updated
 
-#file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 file(GLOB_RECURSE SOURCES_SPHINX
   ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/*.rst
 )
-
-#foreach(_src IN ITEMS ${SOURCES_SPHINX})
-#  file(RELATIVE_PATH F_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
-#  configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME})
-#endforeach()
 
 add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    COMMAND ${CMAKE_COMMAND} -E env ${DOC_PYTHONPATH} env ${DOC_PRELOAD} env ${RUN_LSAN}
                    ${SPHINX_EXECUTABLE} -b html
                    -Q
                    -w ${CMAKE_CURRENT_BINARY_DIR}/sphinx_build_warnings.log
-                   # Tell Breathe where to find the Doxygen output
-                   -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
                    ${SPHINX_SOURCE} ${SPHINX_BUILD} > ${CMAKE_CURRENT_BINARY_DIR}/sphinx.log 2>&1
                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                    DEPENDS
@@ -104,12 +95,11 @@ add_custom_target(sphinx ALL DEPENDS ${SPHINX_INDEX_FILE} doxygen)
 add_custom_target(doc ALL DEPENDS doxygen sphinx)
 
 if(CWP_ENABLE_PYTHON_BINDINGS)
-  add_dependencies(sphinx pycwp)
+  add_dependencies(sphinx pycwp pycwpt)
+  if(CWP_ENABLE_CLIENT_SERVER)
+    add_dependencies(sphinx pycwpclt)
+  endif()
 endif()
-
-#add_custom_command(TARGET doc POST_BUILD
-#                   COMMAND ;
-#                   COMMENT "Sphinx documentation can be found at ${CMAKE_BINARY_DIR}/doc/sphinx/html. Open index.html")#
 
 install(DIRECTORY ${SPHINX_BUILD}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/cwp)

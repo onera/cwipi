@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# This file is part of the CWIPI library. 
+# This file is part of the CWIPI library.
 #
 # Copyright (C) 2011  ONERA
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library. If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-    
+
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
@@ -54,7 +54,7 @@ def userInterp(entities_dim,
 
     if (distant_field is not None):
         distant_field = 1.234
-            
+
 
 def runTest():
     """
@@ -82,17 +82,16 @@ def runTest():
         from cwipi import cwipi
     except:
         if rank == 0:
-            print("      Error : CWIPI module not found (update PYTHONPATH variable)")
-        sys.exit(1)
+            print("      Error : cwipi module not found (update PYTHONPATH variable)")
+        raise # re-raise the same error
 
     #
-    # Define a python file to write CWIPI outputs 
+    # Define a python file to write CWIPI outputs
 
     if (rank == 0):
         print("        Output redirection")
 
-    srank = '{0}'.format(rank)
-    f=open("python_api_"+srank.zfill(4)+".txt",'w')
+    f = open(f"python_api_{rank:04d}.txt", 'w')
     cwipi.set_output_listing(f)
     comm_loc = cwipi.init(MPI.COMM_WORLD, applis[rank])
 
@@ -163,15 +162,15 @@ def runTest():
 
     cpl = cwipi.Coupling("cpl",
                          cwipi.COUPLING_PARALLEL_WITH_PARTITIONING,
-                         applis[(rank + 1) % 2] , 
-                         2, 
-                         0.1,  
+                         applis[(rank + 1) % 2] ,
+                         2,
+                         0.1,
                          cwipi.CYCLIC_MESH,
                          cwipi.SOLVER_CELL_VERTEX,
-                         1, 
-                         "Ensight", 
+                         1,
+                         "Ensight",
                          "txt")
-                         
+
 
     # Mesh
 
@@ -184,7 +183,7 @@ def runTest():
 
     cpl.define_mesh(4, 1, coord, connec_idx, connec)
 
-    # Only send 
+    # Only send
 
     if (rank == 0):
         print("        Exchange Proc 0 -> Proc 1")
@@ -195,18 +194,18 @@ def runTest():
     recvField=np.arange(4, dtype=np.double)
 
     if rank == 0:
-        result = cpl.exchange("ech1", 
-                              1, 
-                              1, 
-                              0.1, 
-                              "field_s", sendField, 
+        result = cpl.exchange("ech1",
+                              1,
+                              1,
+                              0.1,
+                              "field_s", sendField,
                               "field_r", None)
     else:
-        result = cpl.exchange("ech1", 
-                              1, 
-                              1, 
-                              0.1, 
-                              "field_s", None, 
+        result = cpl.exchange("ech1",
+                              1,
+                              1,
+                              0.1,
+                              "field_s", None,
                               "field_r", recvField)
 
     f.write('  - status : {param_1}\n'.format(param_1=result["status"]))
@@ -226,11 +225,11 @@ def runTest():
     if (rank == 0):
         print("        Exchange Proc 0 <-> Proc 1 with user interpolation")
 
-    result = cpl.exchange("ech2", 
-                          1, 
-                          1, 
-                          0.1, 
-                          "field_s2", sendField, 
+    result = cpl.exchange("ech2",
+                          1,
+                          1,
+                          0.1,
+                          "field_s2", sendField,
                           "field_r2", recvField)
 
     f.write("  - status : {param_1}\n".format(param_1=result["status"]))

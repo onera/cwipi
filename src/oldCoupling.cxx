@@ -23,6 +23,7 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <iostream>
 
 #include <bftc_error.h>
 #include <bftc_file.h>

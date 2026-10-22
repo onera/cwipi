@@ -353,8 +353,7 @@ def runTest():
     exit(1)
 
   for icode in range(n_code-1, -1, -1):
-    if code_name[icode] == all_code_name[icode]:
-      del part_data[icode]
+    del part_data[icode]
 
   comm.Barrier()
   if i_rank == 0:
@@ -410,12 +409,12 @@ def runTest():
     print("End")
 
   for icode in range(n_code-1, -1, -1):
-    if code_name[icode] == all_code_name[icode]:
-      del field[icode]
+    del field[icode]
 
-  for icode in range(n_code):
+  for icode in range(n_code-1, -1, -1):
     pycwp.time_step_end(code_name[icode])
     cpl[icode].mesh_interf_del()
+    del cpl[icode]
 
   # FINALIZE
   pycwp.finalize()

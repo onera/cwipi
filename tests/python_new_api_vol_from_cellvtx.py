@@ -35,7 +35,7 @@ def run_test():
       print(f"cwp : {pycwp.__file__}")
       sys.exit(1)
 
-  
+
   # Even ranks run code0, odd ranks run code1
   i_code = comm.rank % 2
   code_name = f"code{i_code}"
@@ -77,7 +77,7 @@ def run_test():
         vtx_coord[3*i_vtx+1] = j - 1
         vtx_coord[3*i_vtx+2] = k - 1
         i_vtx += 1
-    
+
   if i_code == 0:
     # Rotate 90° around z-axis
     x = np.array(vtx_coord[0::3])
@@ -120,7 +120,7 @@ def run_test():
                                    None)
 
   cpl.mesh_interf_finalize()
-  
+
 
   # Define field
   n_vtx = vtx_coord.size//3
@@ -138,12 +138,12 @@ def run_test():
 
   pycwp.time_step_beg(code_name, 0.)
 
-  
+
   field.data_set(0,
                  pycwp.FIELD_MAP_SOURCE,
                  send_val)
 
-  
+
   field.data_set(0,
                  pycwp.FIELD_MAP_TARGET,
                  recv_val)
@@ -169,6 +169,9 @@ def run_test():
     sys.exit(1)
 
   # Finalize CWIPI
+  del field
+  cpl.mesh_interf_del()
+  del cpl
   pycwp.finalize()
 
   if comm.rank == 0:

@@ -25,13 +25,9 @@ set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules;${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules")
 
 include(${CWP_CMAKE_DIR}/modules/cwp_version.cmake)
-project(CWP VERSION ${CWP_DEF_VERSION_MAJOR} LANGUAGES C CXX Fortran)
+project(CWP VERSION ${CWP_DEF_VERSION_MAJOR} LANGUAGES C CXX)
 
 set(CWP_VERSION "${CWP_VERSION_MAJOR}.${CWP_VERSION_MINOR}.${CWP_VERSION_PATCH}")
-
-#------------------------------------------------------------------------------
-# Enable languages
-#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # User option Definition
@@ -68,6 +64,10 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 option(CWP_ENABLE_Fortran "Build Shared Fortran Interface" OFF)
 
 option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" OFF)
+
+if (CWP_ENABLE_Fortran)
+  enable_language(Fortran)
+endif()
 
 # BLAS
 # ----
@@ -107,13 +107,34 @@ option(CWP_ENABLE_DOCUMENTATION "Enable Sphinx documentation" OFF)
 
 option(CWP_ENABLE_TRAINING "Enable training Jupyter Notebooks" OFF)
 
-# Enable tests
-# ------------
+# Tests
+# -----
 
 option(CWP_ENABLE_TESTS "Enable Tests" ON)
 
+# Unit tests
+# ----------
+
+option(CWP_ENABLE_UNIT_TESTS "Enable Unit Tests" OFF)
+
+if (CWP_ENABLE_UNIT_TESTS)
+
+  include(FetchContent)
+  FetchContent_Declare(
+    doctest
+    GIT_REPOSITORY https://github.com/doctest/doctest.git
+    GIT_TAG        v2.5.3
+  )
+  FetchContent_GetProperties(doctest)
+  if (NOT doctest_POPULATED)
+    FetchContent_Populate(doctest)
+    add_subdirectory(${doctest_SOURCE_DIR} ${doctest_BINARY_DIR})
+  endif()
+
+endif()
+
 # Hide ParaDiGM Library symbols into the CWIPI library.
-# This option is not available if a static library is genererated (CWP_ENABLE_STATIC)
+# This option is not available if a static library is generated (CWP_ENABLE_STATIC)
 # -----------------------------------------------------------------------------------
 
 option(CWP_ENABLE_HIDE_PDM_SYMBOLS "Hide PDM symbols" ON)
@@ -162,30 +183,21 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm/cmake/modules/default_flag
 #------------------------------------------------------------------------------
 
 include(CheckIncludeFile)
-check_include_file("dlfcn.h"        HAVE_DLFCN_H)
-check_include_file("fcntl.h"        HAVE_FCNTL_H)
-check_include_file("malloc.h"       HAVE_MALLOC_H)
 check_include_file("stddef.h"       HAVE_STDDEF_H)
 
 check_include_file("inttypes.h"     HAVE_INTTYPES_H)
-check_include_file("memory.h"       HAVE_MEMORY_H)
 check_include_file("stdbool.h"      HAVE_STDBOOL_H)
 check_include_file("stdint.h"       HAVE_STDINT_H)
-check_include_file("stdlib.h"       HAVE_STDLIB_H)
-check_include_file("strings.h"      HAVE_STRINGS_H)
-check_include_file("string.h"       HAVE_STRING_H)
 check_include_file("unistd.h"       HAVE_UNISTD_H)
 if (NOT HAVE_UNISTD_H)
-  check_include_file("sys/unistd.h"   HAVE_UNISTD_H)
+  check_include_file("sys/unistd.h" HAVE_UNISTD_H)
 endif()
 
 check_include_file("sys/stat.h"     HAVE_SYS_STAT_H)
 check_include_file("sys/types.h"    HAVE_SYS_TYPES_H)
 check_include_file("sys/procfs.h"   HAVE_SYS_PROCFS_H)
-check_include_file("sys/signal.h"   HAVE_SYS_SIGNAL_H)
 check_include_file("sys/sysinfo.h"  HAVE_SYS_SYSINFO_H)
 check_include_file("sys/utsname.h"  HAVE_SYS_UTSNAME_H)
-check_include_file("sys/resource.h" HAVE_SYS_RESOURCE_H)
 check_include_file("sys/time.h"     HAVE_SYS_TIME_H)
 check_include_file("time.h"         HAVE_TIME_H)
 
@@ -194,17 +206,9 @@ check_include_file("time.h"         HAVE_TIME_H)
 #------------------------------------------------------------------------------
 
 include(CheckTypeSize)
-check_type_size("size_t"       SIZEOF_SIZE_T)
-if (HAVE_SIZEOF_SIZE_T)
-  set (HAVE_SIZE_T 1)
-endif()
 check_type_size("_Bool"        SIZEOF__BOOL)
 if (HAVE_SIZEOF__BOOL)
   set (HAVE__BOOL 1)
-endif()
-check_type_size("ssize_t"      SIZEOF_SSIZE_T)
-if (HAVE_SIZEOF_SSIZE_T)
-  set (HAVE_SSIZE_T 1)
 endif()
 check_type_size("long long"    SIZEOF_LONG_LONG)
 if (HAVE_SIZEOF_LONG_LONG)
@@ -242,10 +246,6 @@ check_type_size("uint64_t"     SIZEOF_UINT64_T)
 if (HAVE_SIZEOF_UINT64_T)
   set (HAVE_UINT64_T 1)
 endif()
-check_type_size("unistd_t"     SIZEOF_UNISTD_T)
-if (HAVE_SIZEOF_UNISTD_T)
-  set (HAVE_UNISTD_T 1)
-endif()
 check_type_size("float"        SIZEOF_FLOAT)
 if (HAVE_SIZEOF_FLOAT_T)
   set (HAVE_FLOAT_T 1)
@@ -253,10 +253,6 @@ endif()
 check_type_size("double"       SIZEOF_DOUBLE)
 if (HAVE_SIZEOF_DOUBLE_T)
   set (HAVE_DOUBLE_T 1)
-endif()
-check_type_size("long double"  SIZEOF_LONG_DOUBLE)
-if (HAVE_SIZEOF_LONG_DOUBLE_T)
-  set (HAVE_LONG_DOUBLE_T 1)
 endif()
 check_type_size("void *"       SIZEOF_VOID_P)
 if (HAVE_SIZEOF_VOID_P)
@@ -276,23 +272,22 @@ endif()
 #------------------------------------------------------------------------------
 
 include(CheckFunctionExists)
-CHECK_FUNCTION_EXISTS(sysinfo HAVE_SYSINFO)
-CHECK_FUNCTION_EXISTS(sbrk HAVE_SBRK)
-CHECK_FUNCTION_EXISTS(mkdir HAVE_MKDIR)
+CHECK_FUNCTION_EXISTS(sysinfo        HAVE_SYSINFO)
+CHECK_FUNCTION_EXISTS(sbrk           HAVE_SBRK)
+CHECK_FUNCTION_EXISTS(mkdir          HAVE_MKDIR)
 CHECK_FUNCTION_EXISTS(posix_memalign HAVE_POSIX_MEMALIGN)
-CHECK_FUNCTION_EXISTS(backtrace HAVE_BACKTRACE)
-CHECK_FUNCTION_EXISTS(fseeko HAVE_FSEEKO)
-CHECK_FUNCTION_EXISTS(getrusage HAVE_GETRUSAGE)
-CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
-CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
-CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
+CHECK_FUNCTION_EXISTS(backtrace      HAVE_BACKTRACE)
+CHECK_FUNCTION_EXISTS(fseeko         HAVE_FSEEKO)
+CHECK_FUNCTION_EXISTS(getrusage      HAVE_GETRUSAGE)
+CHECK_FUNCTION_EXISTS(gettimeofday   HAVE_GETTIMEOFDAY)
+CHECK_FUNCTION_EXISTS(snprintf       HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Check dependecies
+# Check dependencies
 #------------------------------------------------------------------------------
 
 # Check MPI
-# ----------------------------------------------------
+# ---------
 
 if (CWP_ENABLE_Fortran)
   find_package(MPI REQUIRED COMPONENTS C CXX Fortran)
@@ -371,7 +366,7 @@ if (NOT (CWP_ENABLE_SHARED_Fortran_LIB OR CWP_ENABLE_STATIC_Fortran_LIB))
 endif()
 
 #------------------------------------------------------------------------------
-# Store variable in configure file
+# Store variables in configure file
 #------------------------------------------------------------------------------
 
 configure_file(cwp_config_priv.h.in "${CMAKE_CURRENT_BINARY_DIR}/config_priv.h")
@@ -421,26 +416,23 @@ if (CWP_ENABLE_EXTERNAL_PDM)
     list(APPEND REQUIRED_COMPONENTS Pypdm)
   endif ()
 
-  find_package(pdm CONFIG 2.4.1
+  find_package(pdm CONFIG 2.9.0
                REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
                HINTS $ENV{PDM_ROOT}
                )
 
-  #find_package(PARADIGM 2.3.0
-  #             REQUIRED COMPONENTS ${REQUIRED_COMPONENTS}
-  #             OPTIONAL_COMPONENTS PARADIGMA_LIBRARIES PARADIGMA_FORTRAN_LIBRARIES PARADIGM_NO_MPI_LIBRARIES)
-
 else ()
 
   # Global options
-  # ------
+  # --------------
 
   set(PDM_HAVE_CUDA OFF)
   set(PDM_HAVE_ANISO_AGGLO OFF)
-  set(PDM_HAVE_GETRUSAGE ${HAVE_PDM_HAVE_GETRUSAGE})
+  set(PDM_HAVE_GETRUSAGE ${HAVE_GETRUSAGE})
   set(PDM_HAVE_GETTIMEOFDAY ${HAVE_GETTIMEOFDAY})
   set(PDM_HAVE_BLAS OFF)
   set(PDM_HAVE_LAPACK OFF)
+  set(PDM_HAVE_MKL OFF)
   set(PDM_USE_MULTIPART OFF)
 
   # OpenMP
@@ -558,113 +550,88 @@ add_subdirectory(${CWP_CMAKE_DIR}/post-install)
 # Create CWP_run file
 #------------------------------------------------------------------------------
 
-string(REPLACE ";" " " PDM_LIST_TEST "${CWP_LIST_TEST}")
+if (CWP_ENABLE_TESTS OR CWP_ENABLE_UNIT_TESTS)
 
-string(REPLACE ";" " " PDM_LIST_NRANK "${CWP_LIST_NRANK}")
+  string(REPLACE ";" " " PDM_LIST_TEST "${CWP_LIST_TEST}")
 
-set (PDM_RUN_PRELOAD "")
-set (PDM_RUN_LSAN "")
-set (PDM_RUN_PYTHONPATH "")
+  string(REPLACE ";" " " PDM_LIST_NRANK "${CWP_LIST_NRANK}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-  execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(PDM_RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
-  set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-  set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
-endif()
+  set (PDM_RUN_PRELOAD "")
+  set (PDM_RUN_LSAN "")
+  set (PDM_RUN_UBSAN "")
+  set (PDM_RUN_PYTHONPATH "")
+  set (PDM_RUN_TIME "")
 
-if (CWP_ENABLE_EXTERNAL_PDM)
-  if(DEFINED ENV{PYTHONPATH})
-    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
+  find_program(USR_BC  NAMES bc  PATHS /usr/bin)
+  find_program(USR_AWK NAMES awk PATHS /usr/bin)
+  if (APPLE)
+    find_program(GNU_TIME NAMES gtime PATHS /usr/bin /opt)
+    set (PDM_RUN_TIME "${GNU_TIME}")
   else()
-    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython")
+    find_program(USR_TIME NAMES time PATHS /usr/bin)
+    set (PDM_RUN_TIME "${USR_TIME}")
   endif()
-else()
-  if(DEFINED ENV{PYTHONPATH})
-    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython:$ENV{PYTHONPATH}")
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
+    execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PRELOAD_ASAN OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PDM_RUN_LSAN "LSAN_OPTIONS=suppressions=${PROJECT_SOURCE_DIR}/external/paradigm/script/asan/asan.supp")
+    set(PDM_RUN_UBSAN "UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0")
+    set(PDM_RUN_PRELOAD "LD_PRELOAD ${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+    set(PDM_RUN_PRELOAD_SRUN "LD_PRELOAD=${PRELOAD_ASAN}:${PROJECT_BINARY_DIR}/script/asan/fake_dlclose/libdlclose.so")
+  endif()
+
+  if (CWP_ENABLE_EXTERNAL_PDM)
+    if(DEFINED ENV{PYTHONPATH})
+      set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:$ENV{PYTHONPATH}")
+    else()
+      set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython")
+    endif()
   else()
-    set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython")
+    if(DEFINED ENV{PYTHONPATH})
+      set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython:$ENV{PYTHONPATH}")
+    else()
+      set (PDM_RUN_PYTHONPATH "PYTHONPATH=${PROJECT_BINARY_DIR}/Cython:${PROJECT_BINARY_DIR}/external/paradigm/Cython")
+    endif()
   endif()
+
+  if(DEFINED ENV{PATH})
+    set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin:$ENV{PATH}")
+  else()
+    set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin")
+  endif()
+
+  configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
+                 @ONLY)
+
+  configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
+                 @ONLY)
+
+  configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${PROJECT_BINARY_DIR}/pdm_launch"
+                 @ONLY)
+
+  configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch_python.in "${PROJECT_BINARY_DIR}/pdm_launch_python"
+                 @ONLY)
+
 endif()
-
-if(DEFINED ENV{PATH})
-  set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin:$ENV{PATH}")
-else()
-  set (PDM_RUN_PATH "PATH=${PROJECT_BINARY_DIR}/bin")
-endif()
-
-configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/cwp_run"
-               @ONLY)
-
-configure_file(${PROJECT_SOURCE_DIR}/script/cwp_run.in "${PROJECT_BINARY_DIR}/tests/cwp_run"
-               @ONLY)
-
-configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch.in "${PROJECT_BINARY_DIR}/pdm_launch"
-               @ONLY)
-
-configure_file(${PROJECT_SOURCE_DIR}/external/paradigm/script/pdm_launch_python.in "${PROJECT_BINARY_DIR}/pdm_launch_python"
-               @ONLY)
 
 #------------------------------------------------------------------------------
-# Print coverage report
+# Coverage checks
 #------------------------------------------------------------------------------
 
 if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-  if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU") # "Clang"
-    message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC and Clang")
+  if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    message(FATAL_ERROR "Code coverage unavailable for compilers other than GCC")
   endif()
 
-  # link for coverage
-  add_link_options("--coverage")
-
-  # find gcov and gcovr
-  find_program( GCOV_PATH gcov )
+  # Check for gcov and gcovr
+  find_program(GCOV_PATH gcov)
   if (NOT GCOV_PATH)
     message(FATAL_ERROR "gcov is mandatory for code coverage")
   endif()
-
-  find_package( Python REQUIRED COMPONENTS Interpreter )
-  if (NOT Python_Interpreter_FOUND)
-    message(FATAL_ERROR "Python required since .xml coverage file is generated by Python module Gcovr")
-  endif()
-
-  find_program( GCOVR_PATH gcovr )
+  find_program(GCOVR_PATH gcovr)
   if (NOT GCOVR_PATH)
     message(FATAL_ERROR "Gcovr is mandatory for code coverage")
   endif()
-
-  # list of tests
-  get_property(TEST_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests PROPERTY TESTS)
-  get_property(TUTORIAL_NAMES DIRECTORY ${CMAKE_SOURCE_DIR}/tests/tutorial PROPERTY TESTS)
-  list (APPEND TEST_NAMES ${TUTORIAL_NAMES})
-
-
-  # run tests
-  add_custom_target(cwp_test
-                    COMMAND ./cwp_run -timeout 2 || echo "" # || echo "" to ensure zero error code, non-zero if tests fail
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-                    DEPENDS ${TEST_NAMES}
-                    COMMENT "Running tests for coverage")
-
-  # command to generate html coverage summary
-  add_custom_target(coverage
-                    COMMAND cd ${CMAKE_BINARY_DIR}/src/CMakeFiles/cwp.dir/new &&
-                            gcov -b -l -p -c *.gcno &&
-                            cd ${CMAKE_BINARY_DIR} &&
-                            ${GCOVR_PATH}
-                            --gcov-ignore-parse-errors
-                            --root ${CMAKE_SOURCE_DIR}
-                            --object-directory ${CMAKE_BINARY_DIR}
-                            -g
-                            -k
-                            --html
-                            --html-details
-                            --output index.html
-                            # --delete # delete .gcda files after processing
-                    BYPRODUCTS index.html
-                    # WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
-                    DEPENDS cwp_test
-                    COMMENT "Running gcovr to produce Cobertura code coverage report on source ${CMAKE_SOURCE_DIR} and build ${CMAKE_BINARY_DIR}")
 
 endif()

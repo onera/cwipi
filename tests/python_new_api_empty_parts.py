@@ -195,6 +195,9 @@ def run():
 
 
   # Finalize CWIPI
+  del field
+  cpl.mesh_interf_del()
+  del cpl
   pycwp.finalize()
 
   # Finalize MPI

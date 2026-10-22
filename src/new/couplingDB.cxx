@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,89 +17,68 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <pdm_error.h>
-
-#include "singleton.hpp"
 #include "couplingDB.hxx"
-#include "couplingDB_i.hxx"
+
 #include "codeProperties.hxx"
 #include "coupling.hxx"
+#include "couplingDB_i.hxx"
+
+#include "pdm_error.h"
+
+#include <map>
+#include <string>
+
+/**
+ * \cond
+ */
 
 using namespace std;
 
 namespace cwipi {
 
-  /**
-   * \brief Constructor
-   *
-   */
-
   CouplingDB::CouplingDB()
-    : _couplingDB(*new map < const CodeProperties *, map <string, Coupling * > > ())
+  : _couplingDB(*(new map<const CodeProperties *, map<string, Coupling *>>()))
   {
   }
 
-  /**
-   * \brief Destructor
-   *
-   */
 
   CouplingDB::~CouplingDB()
   {
-    typedef map < const CodeProperties *, map <string, Coupling * > >::iterator Iterator;
-    typedef map < string, Coupling * > ::iterator Iterator2;
+    typedef map<const CodeProperties *, map<string, Coupling *>>::iterator Iterator;
+    typedef map<string, Coupling *>::iterator Iterator2;
 
     for (Iterator p1 = _couplingDB.begin();
-           p1 != _couplingDB.end(); p1++) {
+         p1 != _couplingDB.end(); p1++) {
       for (Iterator2 p = p1->second.begin();
            p != p1->second.end(); p++) {
-        if (p->second != NULL)
+        if (p->second != nullptr)
           delete p->second;
       }
       p1->second.clear();
     }
+
     _couplingDB.clear();
     delete &_couplingDB;
   }
 
-  /**
-   * \brief Building and storage a coupling object
-   *
-   * This function creates a coupling object and defines its properties.
-   *
-   * \param [in]  localCodeProperties    Source code
-   * \param [in]  cplId                  Coupling identifier
-   * \param [in]  coupledCodeProperties  Coupled code properties
-   * \param [in]  commType               Communication type
-   * \param [in]  spatialInterpAlgo      Spatial interpolation algorithm
-   * \param [in]  nPart                  Number of interface partition
-   * \param [in]  movingStatus           Support moving status
-   * \param [in]  recvFreqType           Type of receiving frequency
-   *
-   */
 
   void
   CouplingDB::couplingCreate
   (
-         CodeProperties        &localCodeProperties,
-   const string                &cplId,
-         CodeProperties        &coupledCodeProperties,
-   const CWP_Interface_t       entities_dim,
-   const CWP_Comm_t            commType,
-   const CWP_Spatial_interp_t  spatialInterpAlgo,
-   const int                   nPart,
-   const CWP_Dynamic_mesh_t    movingStatus,
-   const CWP_Time_exch_t       recvFreqType
+          CodeProperties       &localCodeProperties,
+    const string               &cplId,
+          CodeProperties       &coupledCodeProperties,
+    const CWP_Interface_t       entities_dim,
+    const CWP_Comm_t            commType,
+    const CWP_Spatial_interp_t  spatialInterpAlgo,
+    const int                   nPart,
+    const CWP_Dynamic_mesh_t    movingStatus,
+    const CWP_Time_exch_t       recvFreqType
   )
   {
-
     if (couplingIs(localCodeProperties, cplId)) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' existing coupling\n", cplId.c_str());
+      PDM_error("'%s' existing coupling", cplId.c_str());
     }
-
-    //
-    // Create the new coupling
 
     Coupling *newCoupling = new Coupling(cplId,
                                          commType,
@@ -112,97 +91,81 @@ namespace cwipi {
                                          recvFreqType,
                                          *this);
 
-    map < string, Coupling * > & codeMap = _couplingDB[&localCodeProperties];
-
-    pair<string, Coupling* > newPair(string(cplId), newCoupling);
-
+    map<string, Coupling *>& codeMap = _couplingDB[&localCodeProperties];
+    pair<string, Coupling *> newPair(string(cplId), newCoupling);
     codeMap.insert(newPair);
-
   }
 
-  /**
-   * \brief Deletion a coupling object int the database.
-   *
-   * \param [in]  cplId              Coupling identifier
-   *
-   */
 
   void
   CouplingDB::couplingDel
   (
-   const CodeProperties &localCodeProperties,
-   const string &cplId
+    const CodeProperties &localCodeProperties,
+    const string         &cplId
   )
   {
-    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
-    typedef map <string, Coupling * > ::iterator Iterator2;
+    typedef const map<const CodeProperties *, map<string, Coupling *>>::iterator Iterator;
     Iterator p = _couplingDB.find(&localCodeProperties);
-    Iterator2 p1;
+
     if (p == _couplingDB.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' coupling not found for '%s' code\n", cplId.c_str(),
+      PDM_error("'%s' coupling not found for '%s' code", cplId.c_str(),
                 localCodeProperties.nameGet().c_str());
     }
     else {
-      p1 = p->second.find(cplId);
+      typedef map<string, Coupling *>::iterator Iterator2;
+      Iterator2 p1 = p->second.find(cplId);
+
       if (p1 == p->second.end()) {
-        PDM_error(__FILE__, __LINE__, 0,
-                    "'%s' coupling not found '%s' code\n", cplId.c_str(),
-                   localCodeProperties.nameGet().c_str());
+        PDM_error("'%s' coupling not found '%s' code", cplId.c_str(),
+                  localCodeProperties.nameGet().c_str());
       }
-      if (p1->second != NULL) {
+
+      if (p1->second != nullptr) {
         delete p1->second;
       }
-
       p->second.erase(p1);
-
     }
   }
 
-  void
-  CouplingDB::timeUpdate
-  (
-   const CodeProperties &localCodeProperties,
-   double                current_time
-   )
-  {
-    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
-    Iterator p = _couplingDB.find(&localCodeProperties);
-
-    map < string, Coupling * > :: iterator itc = p->second.begin();
-    while (itc != p->second.end()) {
-      itc->second->timeUpdate(current_time);
-      itc++;
-    }
-  }
 
   void
-  CouplingDB::time_step_beg
+  CouplingDB::timeStepBegin
   (
-   const CodeProperties &localCodeProperties,
-   double                current_time
+    const CodeProperties &localCodeProperties,
+          double          current_time
   )
   {
-    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef const map<const CodeProperties *, map<string, Coupling *>>::iterator Iterator;
     Iterator p = _couplingDB.find(&localCodeProperties);
 
-    map < string, Coupling * > :: iterator itc = p->second.begin();
+    if (p == _couplingDB.end()) {
+      PDM_error("'%s' code not found in couplingDB",
+                localCodeProperties.nameGet().c_str());
+    }
+
+    map<string, Coupling *>::iterator itc = p->second.begin();
     while (itc != p->second.end()) {
       itc->second->time_step_beg(current_time);
       itc++;
     }
   }
 
+
   void
-  CouplingDB::time_step_end
+  CouplingDB::timeStepEnd
   (
-   const CodeProperties &localCodeProperties
+    const CodeProperties &localCodeProperties
   )
   {
-    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef const map<const CodeProperties *, map<string, Coupling *>>::iterator Iterator;
     Iterator p = _couplingDB.find(&localCodeProperties);
 
-    map < string, Coupling * > :: iterator itc = p->second.begin();
+    if (p == _couplingDB.end()) {
+      PDM_error("'%s' code not found in couplingDB",
+                localCodeProperties.nameGet().c_str());
+    }
+
+    map<string, Coupling *>::iterator itc = p->second.begin();
     while (itc != p->second.end()) {
       itc->second->time_step_end();
       itc++;
@@ -210,3 +173,7 @@ namespace cwipi {
   }
 
 }
+
+/**
+ * \endcond
+ */

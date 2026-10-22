@@ -19,6 +19,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
+#include <cstdint>
 #include "codeProperties.hxx"
 #include "couplingDB.hxx"
 
@@ -301,7 +303,6 @@ namespace cwipi {
     uint32_t _get_tag
     (
      const string    name,
-     MPI_Comm        comm,
      int             offset
      );
 

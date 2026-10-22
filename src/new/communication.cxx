@@ -93,14 +93,13 @@ namespace cwipi {
             MPI_Comm_free(&_cplComm);
             _cplComm = MPI_COMM_NULL;
           }
-        }       
+        }
       }
     }
-    
-//    if (_unionGroup != MPI_GROUP_NULL) {
-//      MPI_Group_free(&_unionGroup);
-//    }
 
+    //if (_unionGroup != MPI_GROUP_NULL) {
+    //  MPI_Group_free(&_unionGroup);
+    //}
 
     if (_unionCommCplRanks != NULL) {
       delete _unionCommCplRanks;
@@ -174,10 +173,10 @@ namespace cwipi {
         CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wdiv-by-zero")
 
         MPI_Aint  *maxTagTmp;
-        int flag; 
+        int flag;
 
         MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
-        int maxTag = (int) *maxTagTmp; 
+        int maxTag = (int) *maxTagTmp;
 
         if (maxTag > 0) {
           _tag = _tag % maxTag;
@@ -262,6 +261,7 @@ namespace cwipi {
           MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank,
                                      _unionGroup, &_cplCodeRootRankUnionComm);
         }
+        MPI_Group_free(&_unionGroup);
 
       }
     }
@@ -417,15 +417,14 @@ uint32_t Communication::_adler32
 
 uint32_t Communication::_get_tag
 (
-const string    name,
-MPI_Comm        comm,
-int             offset
+const string name,
+int          offset
 )
 {
   MPI_Aint  *maxTagTmp;
   int flag;
 
-  MPI_Comm_get_attr(comm, MPI_TAG_UB, &maxTagTmp, &flag);
+  MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
   int maxTag = (int) *maxTagTmp;
 
   uint32_t mpi_tag = ((_adler32 (name.c_str(),
@@ -507,7 +506,7 @@ int             offset
 
     if (debug) {
       printf("%s - unionCommRank _locCodeRootRankUnionComm _locCodeRootRankCplComm rankglobalcomm localRootRank %d %d %d %d %d\n", _localCodeProperties->nameGet().c_str(),
-       unionCommRank, 
+       unionCommRank,
        _locCodeRootRankUnionComm,
        _locCodeRootRankCplComm,
        currentRank,
@@ -710,7 +709,6 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
           uint32_t data_tag = _get_tag(global_data_id,
-                                       _unionComm,
                                        0);
 
           MPI_Issend(send_data,
@@ -724,7 +722,6 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
         uint32_t data_tag = _get_tag(global_data_id,
-                                     _unionComm,
                                      0);
 
         MPI_Issend(send_data,
@@ -782,7 +779,6 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
           uint32_t data_tag = _get_tag(global_data_id,
-                                       _unionComm,
                                        0);
           MPI_Irecv(recv_data,
                     (int) s_entity * stride * n_entity,
@@ -795,7 +791,6 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
         uint32_t data_tag = _get_tag(global_data_id,
-                                     _unionComm,
                                      0);
         MPI_Irecv(recv_data,
                   (int) s_entity * stride * n_entity,

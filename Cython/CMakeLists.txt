@@ -36,10 +36,11 @@ if (NOT CWP_ENABLE_EXTERNAL_PDM AND (CWP_ENABLE_TESTS OR CWP_ENABLE_TRAINING) AN
   set(PYX_NPY_G_NUM NPY.int64_t)
   set(PYX_NPY_G_NUM_DTYPE NPY.int64)
   set(PDM_G_NUM_NPY_INT NPY.NPY_INT64)
-  set(PYX_PDM_HAS_PARMETIS False)
-  set(PYX_PDM_HAS_PTSCOTCH False)
-  set(PYX_PDM_HAS_PDMA     False)
-  set(COMMENT_NOT_PDMA      "\#")
+  set(PYX_PDM_HAS_PARMETIS    False)
+  set(PYX_PDM_HAS_PTSCOTCH    False)
+  set(PYX_PDM_HAS_PDMA        False)
+  set(COMMENT_NOT_PDMA        "\#" )
+  set(COMMENT_NOT_ANISO_AGGLO "\#" )
   file(COPY        ${PDM_SOURCE_DIR}/Cython/Pypdm
        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY        Pypdm/CMakeLists.txt

@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "cwp.h"
+#include "cwp_logging.h"
 
 
 /*----------------------------------------------------------------------
@@ -113,6 +114,11 @@ main(int argc, char *argv[]) {
     code_names[1] = "code3";
   }
 
+  CWP_Log_console_enable(1);
+  CWP_Log_logfile_enable(1);
+  CWP_Log_level_set(CWP_LOG_TRACE);
+  CWP_Log(CWP_LOG_DEBUG, "rank %d, n_code = %d\n", rank, n_code);
+
   char fileName[19];
   sprintf(fileName, "c_new_api_000%d.txt", rank);
   outputFile = fopen(fileName, "w");
@@ -138,7 +144,11 @@ main(int argc, char *argv[]) {
     int toto = 111;
     CWP_Param_lock("code1");
     CWP_Param_add("code1", "toto", CWP_INT, &toto);
+    CWP_Param_del("code1", "toto", CWP_INT);
+    CWP_Param_add("code1", "toto", CWP_INT, &toto);
     const char *A = "Bonjour code 1 !";
+    CWP_Param_add("code1", "toto2", CWP_CHAR, &A);
+    CWP_Param_del("code1", "toto2", CWP_CHAR);
     CWP_Param_add("code1", "toto2", CWP_CHAR, &A);
     CWP_Param_unlock("code1");
   }
@@ -569,6 +579,12 @@ main(int argc, char *argv[]) {
   if (cond_code4) {
     CWP_Time_step_end("code4");
   }
+
+  // Get properties
+  char *properties = NULL;
+  CWP_Properties_str_dump(&properties);
+  CWP_Log(CWP_LOG_DEBUG, properties);
+  free(properties);
 
   // Delete coupling
   if (cond_code1) {

@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 # This file is part of the CWIPI library.
 #
-# Copyright (C) 2022-2023  ONERA
+# Copyright (C) 2022-2026  ONERA
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@
 #-----------------------------------------------------------------------------
 
 """
-cwipi - Coupling With Interpolation Parallel Interface library.
+pycwpclt - Coupling With Interpolation Parallel Interface library.
 """
 
 #-----------------------------------------------------------------------------
@@ -28,7 +28,6 @@ cwipi - Coupling With Interpolation Parallel Interface library.
 # --> Python
 import numpy     as np
 from mpi4py import MPI
-import sys
 
 # --> Cython
 cimport cython
@@ -694,7 +693,7 @@ cdef extern from "Python.h":
   int PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
 
 # General
-cdef void dealloc_array_capsule(object capsule):
+cdef void dealloc_array_capsule(object capsule) noexcept:
     data = PyCapsule_GetPointer(capsule, NULL)
     PyTraceMalloc_Untrack(py_mem_domain, <uintptr_t> data)
     free(data)
@@ -772,7 +771,7 @@ def init(MPI.Comm global_comm,
       global_comm    (MPI.Comm)  : MPI global communicator
       config         (str)       : path to server configuration file
       code_name      (str)       : name of local code
-      is_active_rank (int)       : Does current rank have to be used by CWIPI
+      is_active_rank (int)       : current rank is to be used by CWIPI
     """
 
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
@@ -899,7 +898,7 @@ def codes_list_get():
       Names of codes known by CWIPI (str list)
     """
 
-    cdef char** c_code_list = CWP_client_Codes_list_get()
+    cdef char** c_code_list = <char**> CWP_client_Codes_list_get()
 
     cdef int n_code = CWP_client_Codes_nb_get()
     code_list = []
@@ -930,7 +929,7 @@ def loc_codes_list_get():
       Number of local codes known by CWIPI (int)
     """
 
-    cdef char** c_loc_code_list = CWP_client_Loc_codes_list_get()
+    cdef char** c_loc_code_list = <char**> CWP_client_Loc_codes_list_get()
 
     cdef int n_loc_code = CWP_client_Loc_codes_nb_get()
     loc_code_list = []
@@ -1235,7 +1234,7 @@ def param_reduce(CWP_Op_t    op,
                               data_type,
                               &(int_res),
                               n_code,
-                              c_code_names)
+                              <const char**> c_code_names)
       free(c_code_names)
       return int_res
 
@@ -1245,7 +1244,7 @@ def param_reduce(CWP_Op_t    op,
                               data_type,
                               &(dbl_res),
                               n_code,
-                              c_code_names)
+                              <const char**> c_code_names)
       free(c_code_names)
       return dbl_res
 
@@ -1255,7 +1254,7 @@ def param_reduce(CWP_Op_t    op,
                               data_type,
                               &(str_res),
                               n_code,
-                              c_code_names)
+                              <const char**> c_code_names)
       free(c_code_names)
     return str_res
 
@@ -1310,7 +1309,7 @@ cdef class PartData (object):
         __init__(local_code_name, cpl_id, part_data_id, exch_type, gnum_elt)
         Initialize a :py:class:`PartData` object.
 
-        .. warning:: PartData creation should be done using :py:meth:`Coupling.part_data_create`
+        .. warning:: PartData should be created using :py:meth:`Coupling.part_data_create` and explicity deleted before calling :py:meth:`finalize()`.
 
         Parameters:
           local_code_name (str)                             : Local code name
@@ -1341,12 +1340,8 @@ cdef class PartData (object):
                           <CWP_g_num_t **> self._gnum_elt,
                           <int   *> self.n_elt,
                                     self.n_part)
-        free(self.n_elt)
-        free(self._gnum_elt)
 
-    # TODO should work with __del__ but a leak remains
-    # in __dealloc__ Python object might already partially destroyed
-    def __dealloc__(self):
+    def __dealloc__(self): # __del__ not called with cython < 3
         """
         Delete a :py:class:`PartData` object.
         """
@@ -1354,6 +1349,8 @@ cdef class PartData (object):
         CWP_client_Part_data_del(self.local_code_name,
                                  self.cpl_id,
                                  self.part_data_id)
+        free(self.n_elt)
+        free(self._gnum_elt)
 
     # --> DATA
     def issend(self,
@@ -1476,7 +1473,7 @@ cdef class Field (object):
         __init__(local_code_name, cpl_id, field_id, data_type, storage, n_component, target_location, exch_type, visu_status)
         Initialize a :py:class:`Field` object.
 
-        .. warning:: Field creation should be done using :py:meth:`Coupling.field_create`
+        .. warning:: Field should be created using :py:meth:`Coupling.field_create` and explicity deleted before calling :py:meth:`finalize()`.
 
         Parameters:
           local_code_name (str)                 : Local code name
@@ -1547,8 +1544,7 @@ cdef class Field (object):
           if map_type == FIELD_MAP_TARGET:
 
             if len(data) < n_dof * n_components:
-              print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
-              sys.exit(1)
+              raise ValueError(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location")
 
         elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_LOCATE_ALL_TGT or
               spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE or
@@ -1557,8 +1553,7 @@ cdef class Field (object):
           if map_type == FIELD_MAP_SOURCE:
 
             if len(data) < n_dof * n_components:
-              print(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location", flush=True)
-              sys.exit(1)
+              raise ValueError(f"Error: coupling {self.cpl_id}: field {self.field_id}: data array size is inconsistent (too small) with the number of components and degree of freedom location")
 
         CWP_client_Field_data_set(self.local_code_name,
                                   self.cpl_id,
@@ -1836,6 +1831,8 @@ cdef class Coupling (object):
         __init__(local_code_name, cpl_id, coupled_code_name, entities_dim, comm_type, spatial_interp, n_part, displacement, recv_freq_type)
         Initialize a :py:class:`Coupling` object.
 
+        .. warning:: Coupling should be explicity deleted before calling :py:meth:`finalize()`.
+
         Parameters:
           local_code_name   (str)                  : Local code name
           cpl_id            (str)                  : Coupling identifier
@@ -2050,8 +2047,7 @@ cdef class Coupling (object):
         """
 
         if len(coord)%3 != 0:
-          print(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions", flush=True)
-          sys.exit(1)
+          raise ValueError(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
 
         cdef int n_pts = len(coord)//3
 
@@ -2112,8 +2108,7 @@ cdef class Coupling (object):
         cdef int stride = std_block_n_pts_get(block_type)
 
         if len(connec)%stride != 0:
-          print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})", flush=True)
-          sys.exit(1)
+          raise ValueError(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
 
         cdef int n_elts = len(connec)//stride
 
@@ -2381,8 +2376,7 @@ cdef class Coupling (object):
       cdef int stride = ho_n_vtx_get(block_type, order)
 
       if len(connec)%stride != 0:
-        print(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})", flush=True)
-        sys.exit(1)
+        raise ValueError(f"Error: coupling {self.cpl_id}: block {block_id}: length of connectivity array ({len(connec)}) is not a multiple of the element size ({stride})")
 
 
       cdef int n_elts = len(connec)//stride
@@ -2623,19 +2617,21 @@ cdef class Coupling (object):
     # --> USER TGT
     def user_tgt_pts_set(self,
                          int                                       i_part,
-                         int                                       n_pts,
                          np.ndarray[np.double_t, ndim=1, mode='c'] coord not None,
                          np.ndarray[npy_cwp_gnum_t,  ndim=1, mode='c'] global_num):
         """
-        user_tgt_pts_set(i_part, n_pts, coord, global_num)
+        user_tgt_pts_set(i_part, coord, global_num)
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
 
         Parameters:
-           i_part     (int)                    : Current partition
-           n_pts      (int)                    : Number of points
-           coord      (np.ndarray[np.double_t) : Coordinates (size = 3 * n_pts)
+           i_part     (int)                     : Current partition
+           coord      (np.ndarray[np.double_t]) : Coordinates (size = 3 * n_pts)
            global_num (np.ndarray[npy_cwp_gnum_t]) : Global number or None (size = n_pts)
         """
+
+        if len(coord)%3 != 0:
+          raise ValueError(f"Error: coupling {self.cpl_id}: coordinates must be provided in 3 dimensions")
+        cdef int n_pts = len(coord)//3
 
         if (global_num is None):
           CWP_client_User_tgt_pts_set(self.local_code_name,

@@ -135,9 +135,8 @@ def setup_mesh(comm, n_vtx_seg, elt_type, xyz_min, length, order, random_factor,
     # Volume mesh
     pmn = mpart.part_mesh_nodal_get(0)
 
-    section = PDM.part_mesh_nodal_get_sections(pmn,
-                                               PDM._PDM_GEOMETRY_KIND_VOLUMIC,
-                                               0)[0]
+    section = pmn.get_sections(PDM._PDM_GEOMETRY_KIND_VOLUMIC,
+                               0)[0]
 
     connec = section["np_connec"]
     n_elt  = len(section["np_numabs"])
