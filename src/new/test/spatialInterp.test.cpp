@@ -3,6 +3,7 @@
 #include "cwp.h"
 
 #include <string.h>
+#include <unistd.h>
 #include <vector>
 
 static double _max_error = 1e-6;
@@ -938,7 +939,7 @@ _get_values
                          2,
                          forward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         CWP_Field_create(code_names[i_code],
                          cpl_name,
                          forward_cases.fields_interleaved[i_field].c_str(),
@@ -947,7 +948,7 @@ _get_values
                          2,
                          forward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         if (part1 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Involved_srcs_bcast_enable(code_names[i_code],
                                          cpl_name,
@@ -966,7 +967,7 @@ _get_values
                          2,
                          backward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         CWP_Field_create(code_names[i_code],
                          cpl_name,
                          backward_cases.fields_interleaved[i_field].c_str(),
@@ -975,7 +976,7 @@ _get_values
                          2,
                          backward_cases.dof_location1[i_field],
                          CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         if (user_interp) {
           CWP_Field_interp_function_set(code_names[i_code],
                                         cpl_name,
@@ -1007,7 +1008,7 @@ _get_values
                          2,
                          forward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         CWP_Field_create(code_names[i_code],
                          cpl_name,
                          forward_cases.fields_interleaved[i_field].c_str(),
@@ -1016,7 +1017,7 @@ _get_values
                          2,
                          forward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         if (user_interp) {
           CWP_Field_interp_function_set(code_names[i_code],
                                         cpl_name,
@@ -1045,7 +1046,7 @@ _get_values
                          2,
                          backward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         CWP_Field_create(code_names[i_code],
                          cpl_name,
                          backward_cases.fields_interleaved[i_field].c_str(),
@@ -1054,7 +1055,7 @@ _get_values
                          2,
                          backward_cases.dof_location2[i_field],
                          CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
+                         (i_field == 0 ? CWP_STATUS_ON:CWP_STATUS_OFF));
         if (part2 == CWP_COMM_PAR_WITHOUT_PART) {
           CWP_Involved_srcs_bcast_enable(code_names[i_code],
                                          cpl_name,
@@ -1124,6 +1125,55 @@ _get_values
     }
 
   }
+
+  // Check files exist
+  MPI_Barrier(comm);
+  if (i_rank == 0) {
+    const std::vector<std::string> names {
+      "code1_code2/CHR.case",
+      "code1_code2/chr.geo.00001",
+      "code1_code2/chr.partitioning.00001",
+      "code1_code2/chr.ranking.00001",
+      "code1_code2/chr.r_fieldinterlacedcellcell_backward1.00001",
+      "code1_code2/chr.r_fieldinterlacedcellcell_backward2.00001",
+      "code1_code2/chr.r_fieldinterlacedcellcell_backward_status.00001",
+      "code1_code2/chr.r_fieldinterleavedcellcell_backward1.00001",
+      "code1_code2/chr.r_fieldinterleavedcellcell_backward2.00001",
+      "code1_code2/chr.r_fieldinterleavedcellcell_backward_status.00001",
+      "code1_code2/chr.s_fieldinterlacedcellcell_forward1.00001",
+      "code1_code2/chr.s_fieldinterlacedcellcell_forward2.00001",
+      "code1_code2/chr.s_fieldinterlacedcellcell_forward_status.00001",
+      "code1_code2/chr.s_fieldinterleavedcellcell_forward1.00001",
+      "code1_code2/chr.s_fieldinterleavedcellcell_forward2.00001",
+      "code1_code2/chr.s_fieldinterleavedcellcell_forward_status.00001",
+      "code1_code2/chr.user_tgt_partitioning.00001",
+      "code1_code2/chr.user_tgt_ranking.00001",
+      "code2_code1/CHR.case",
+      "code2_code1/chr.geo.00001",
+      "code2_code1/chr.partitioning.00001",
+      "code2_code1/chr.ranking.00001",
+      "code2_code1/chr.r_fieldinterlacedcellcell_forward1.00001",
+      "code2_code1/chr.r_fieldinterlacedcellcell_forward2.00001",
+      "code2_code1/chr.r_fieldinterlacedcellcell_forward_status.00001",
+      "code2_code1/chr.r_fieldinterleavedcellcell_forward1.00001",
+      "code2_code1/chr.r_fieldinterleavedcellcell_forward2.00001",
+      "code2_code1/chr.r_fieldinterleavedcellcell_forward_status.00001",
+      "code2_code1/chr.s_fieldinterlacedcellcell_backward1.00001",
+      "code2_code1/chr.s_fieldinterlacedcellcell_backward2.00001",
+      "code2_code1/chr.s_fieldinterlacedcellcell_backward_status.00001",
+      "code2_code1/chr.s_fieldinterleavedcellcell_backward1.00001",
+      "code2_code1/chr.s_fieldinterleavedcellcell_backward2.00001",
+      "code2_code1/chr.s_fieldinterleavedcellcell_backward_status.00001",
+      "code2_code1/chr.user_tgt_partitioning.00001",
+      "code2_code1/chr.user_tgt_ranking.00001"
+    };
+    const std::string prefix = "cwipi_writer/spatialInterpTest_";
+    for (const auto &n : names) {
+      const std::string concat = prefix + n;
+      CHECK(access(concat.c_str(), F_OK) == 0);
+      remove(concat.c_str());
+      }
+    }
 
   // Free all
   for (int i_code = 0; i_code < n_code; i_code++) {

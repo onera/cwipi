@@ -547,7 +547,7 @@ namespace cwipi {
 
   void SpatialInterp::waitIssend(Field* referenceField) {
     // set field to sent
-    referenceField->isSendYetSet(1);
+    referenceField->isSendYetSet(true);
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
@@ -1016,7 +1016,7 @@ namespace cwipi {
 
   void SpatialInterp::waitIrecv(Field* referenceField) {
     // set field to received
-    referenceField->isRecvYetSet(1);
+    referenceField->isRecvYetSet(true);
 
     if (!_coupledCodeProperties->localCodeIs()) {
 

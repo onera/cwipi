@@ -330,13 +330,13 @@ namespace cwipi {
       // Get status
       if (!is_exch) {
         for (int i = 0; i < n_dof; i++) {
-          _comp_data[i] = -1;
+          _comp_data[i] = CWP_FIELD_NOT_EXCHANGED;
         }
       }
       else {
         if (exch_type == CWP_FIELD_EXCH_SEND) {
           for (int i = 0; i < n_dof; i++) {
-            _comp_data[i] = 0;
+            _comp_data[i] = CWP_FIELD_COMPUTED_AND_EXCHANGED;
           }
         }
         else {
@@ -352,10 +352,10 @@ namespace cwipi {
           }
 
           for (int i = 0; i < n_uncomputed_target; i++) {
-            _comp_data[uncomputed_target[i] - 1] = 1;
+            _comp_data[uncomputed_target[i] - 1] = CWP_FIELD_NOT_COMPUTED_AND_EXCHANGED;
           }
           for (int i = 0; i < n_computed_target; i++) {
-            _comp_data[computed_target[i] - 1] = 0;
+            _comp_data[computed_target[i] - 1] = CWP_FIELD_COMPUTED_AND_EXCHANGED;
           }
         }
       }

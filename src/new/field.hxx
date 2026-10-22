@@ -412,7 +412,7 @@ namespace cwipi {
     /**
      * \brief Get sent variable writer identifier.
      *
-     * \param [in]  i Component identifier
+     * \param [in]  i_comp Component identifier
      *
      * \return Sent variable writer identifier
      */
@@ -435,7 +435,7 @@ namespace cwipi {
     /**
      * \brief Get received variable writer identifiers.
      *
-     * \param [in]  i Component identifier
+     * \param [in]  i_comp Component identifier
      *
      * \return Received variable writer identifiers
      */
@@ -515,9 +515,14 @@ namespace cwipi {
     int                      *_id_writer_var_recv;            /*!< Received variable writer identifiers */
     int                       _id_writer_var_send_status;     /*!< Sent variable status writer identifier */
     int                       _id_writer_var_recv_status;     /*!< Received variable status writer identifier */
-    /* status = -1: not exchanged,
-                 0: computed and exchanged,
-                 1: not computed and exchanged */
+
+    typedef enum {
+
+      CWP_FIELD_NOT_EXCHANGED              = -1,              /*!< Not exchanged */
+      CWP_FIELD_COMPUTED_AND_EXCHANGED     =  0,              /*!< Computed and exchanged */
+      CWP_FIELD_NOT_COMPUTED_AND_EXCHANGED =  1               /*!< Not computed and exchanged */
+
+    } CWP_Field_status_t;
 
     CWP_Interpolation_t       _interpolation_type;            /*!< Interpolation type */
     CWP_Interp_function_t     _interpolation_function;        /*!< Interpolation function */
