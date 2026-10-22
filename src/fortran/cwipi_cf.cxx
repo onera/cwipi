@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2021-2023  ONERA
 
@@ -730,14 +730,14 @@ void PROCF(cwipi_get_list_int_ctrl_param_cf,
   (const char *application_name,
    const int  *l_application_name,
    char *params,
-   const int  *l_param  
+   const int  *l_param
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
-  
+
   int n_param = cwipi_get_n_int_parameters(application_nameC);
   char ** c_params =  cwipi_get_list_int_parameters(application_nameC);
-  
+
   for (int i = 0; i < n_param; i++) {
     for (int j = 0; strlen(c_params[i]); j++)
       params[i * (*l_param) + j] =  c_params[i][j];
@@ -763,14 +763,14 @@ void PROCF(cwipi_get_list_dbl_ctrl_param_cf,
   (const char *application_name,
    const int  *l_application_name,
    char *params,
-   const int  *l_param  
+   const int  *l_param
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
-  
+
   int n_param = cwipi_get_n_double_parameters(application_nameC);
   char ** c_params =  cwipi_get_list_double_parameters(application_nameC);
-  
+
   for (int i = 0; i < n_param; i++) {
     for (int j = 0; strlen(c_params[i]); j++)
       params[i * (*l_param) + j] =  c_params[i][j];
@@ -796,14 +796,14 @@ void PROCF(cwipi_get_list_str_ctrl_param_cf,
   (const char *application_name,
    const int  *l_application_name,
    char *params,
-   const int  *l_param  
+   const int  *l_param
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
-  
+
   int n_param = cwipi_get_n_string_parameters(application_nameC);
   char ** c_params =  cwipi_get_list_string_parameters(application_nameC);
-  
+
   for (int i = 0; i < n_param; i++) {
     for (int j = 0; strlen(c_params[i]); j++)
       params[i * (*l_param) + j] =  c_params[i][j];
@@ -1011,7 +1011,7 @@ void PROCF(cwipi_ho_define_mesh_cf,
    const int  *l_coupling_name,
    const int *n_vertex,
    const int *n_element,
-   const int *order, 
+   const int *order,
    double *coordinates,
    int *connectivity_index,
    int *connectivity
@@ -1208,13 +1208,13 @@ void PROCF(cwipi_set_location_index_cf,
 
 /*----------------------------------------------------------------------------
  *
- * save/load  location 
+ * save/load  location
  *
  * parameters:
  *   coupling_name           <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_load_location_cf, 
+void PROCF(cwipi_load_location_cf,
            CWIPI_LOAD_LOCATION_CF)
 (const char *coupling_name,
  const int  *l_coupling_name
@@ -1238,7 +1238,7 @@ void PROCF(cwipi_load_location_cf,
 
 void PROCF(cwipi_save_location_cf,
            CWIPI_SAVE_LOCATION_CF)
-(const char *coupling_name, 
+(const char *coupling_name,
  const int  *l_coupling_name
  ARGF_SUPP_CHAINE)
 {
@@ -1265,7 +1265,7 @@ void PROCF(cwipi_save_location_cf,
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
- *   filename             <-- file name 
+ *   filename             <-- file name
  *   mode                 <-- "r" : read
  *                            "w" : write
  *----------------------------------------------------------------------------*/
@@ -1338,10 +1338,10 @@ void PROCF(cwipi_open_location_file_cf,
  *
  * parameters
  *   coupling_name        <-- Coupling identifier
- *   distance             <-- distance              
+ *   distance             <-- distance
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF) 
+void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF)
      (const char *coupling_name,
       const int  *l_coupling_name,
       float      *distance
@@ -1497,7 +1497,7 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
  *
  * parameters
  *   coupling_name        <-- Coupling identifier
- *   coordinates          --> Distant points coordinates 
+ *   coordinates          --> Distant points coordinates
  *
  *----------------------------------------------------------------------------*/
 
@@ -1661,7 +1661,7 @@ void PROCF(cwipi_get_dis_bary_coord_cf,
 
 /*----------------------------------------------------------------------------
  *
- * Get number of distant ranks 
+ * Get number of distant ranks
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1706,7 +1706,7 @@ void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF) 
+void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF)
 (const char *coupling_name,
  const int  *l_coupling_name,
  int *distrib
@@ -2149,7 +2149,7 @@ void PROCF(cwipi_issend_with_user_itp_cf,
   free ( sending_field_nameC);
 }
 
-void PROCF(cwipi_ireceive_cf, 
+void PROCF(cwipi_ireceive_cf,
            CWIPI_IRECEIVE_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,

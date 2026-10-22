@@ -1,9 +1,7 @@
-
-
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,129 +18,114 @@
 */
 
 #include "blockCP.hxx"
+
 #include "cwp.h"
-#include <pdm_gnum.h>
-#include <map>
+
+#include "mesh.hxx"
+
+#include <cstdlib>
 #include <vector>
-#include <mesh.hxx>
-#include <pdm_priv.h>
+
+/**
+ * \cond
+ */
 
 namespace cwipi {
+
   BlockCP::BlockCP()
-     :Block::Block()
+  : Block::Block()
   {
   }
 
 
   BlockCP::~BlockCP()
   {
-
   }
-
-
-  void BlockCP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
-  {
-    Block::BlockAdd(blockType, mesh);
-    _n_faces.resize(_n_part);
-    _connec_cells_idx.resize(_n_part,NULL);
-    _connec_cells.resize(_n_part,NULL);
-    _connec_faces_idx.resize(_n_part,NULL);
-    _connec_faces.resize(_n_part,NULL);
-    _face_ln_to_gn.resize(_n_part,NULL);
-  }
-
-  void BlockCP::blockSet(int          i_part,
-                         int          n_elts,
-                         int          n_faces,
-                         int*         connec_faces_idx,
-                         int*         connec_faces,
-                         int*         connec_cells_idx,
-                         int*         connec_cells,
-                         CWP_g_num_t* global_num)
-  {
-
-
-    _global_num[i_part] = global_num;
-
-    _n_elt[i_part]            = n_elts;
-    _n_faces[i_part]          = n_faces;
-    _connec_cells_idx[i_part] = connec_cells_idx;
-    _connec_cells[i_part]     = connec_cells;
-    _connec_faces_idx[i_part] = connec_faces_idx;
-    _connec_faces[i_part]     = connec_faces;
-
-  }
-
-
-
-   /**
-   * \brief Get a CWIPI block in a partition
-   *
-   * \param [in]  i_part     Partition identifier
-   * \param [out]  n_elts     Number of elements of the block in the partition
-   * \param [out]  n_faces    Number of faces of the block in the partition
-   * \param [out]  connec_faces_idx Vertices to faces connectivity index
-   * \param [out]  connec_faces     Vertices to faces connectivity
-   * \param [out]  connec_cells_idx Faces to cells connectivity index
-   * \param [out]  connec_cells     Faces to cells connectivity
-   * \param [out]  global_num Mesh  Global numbering of the block
-   *
-   */
-
-   void BlockCP::blockGet(int         i_part,
-                         int         *n_elts,
-                         int         *n_faces,
-                         int         **connec_faces_idx,
-                         int         **connec_faces,
-                         int         **connec_cells_idx,
-                         int         **connec_cells,
-                         CWP_g_num_t **global_num)
-   {
-
-    *global_num       = _global_num[i_part];
-    *n_elts           = _n_elt[i_part];
-    *n_faces          = _n_faces[i_part];
-    *connec_cells_idx = _connec_cells_idx[i_part];
-    *connec_cells     = _connec_cells[i_part];
-    *connec_faces_idx = _connec_faces_idx[i_part];
-    *connec_faces     = _connec_faces[i_part];
-
-   }
 
 
   void
-  BlockCP::FacesGNumFree(int i_part) {
-    // if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
-      if (_face_ln_to_gn[i_part] != NULL) {
-        free(_face_ln_to_gn[i_part]);
-        _face_ln_to_gn[i_part] = NULL;
-      }
-    // }
+  BlockCP::blockAdd
+  (
+    CWP_Block_t  block_type,
+    Mesh        *mesh
+  )
+  {
+    Block::blockAdd(block_type, mesh);
+    _n_faces         .resize(_n_part);
+    _connec_faces_idx.resize(_n_part, nullptr);
+    _connec_faces    .resize(_n_part, nullptr);
+    _connec_cells_idx.resize(_n_part, nullptr);
+    _connec_cells    .resize(_n_part, nullptr);
+    _global_num_faces.resize(_n_part, nullptr);
   }
 
 
-
-  void BlockCP::geomFinalize(){
-
-    // for(int i_part = 0; i_part<_n_part; i_part++){
-
-    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
-    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-    //     visu->GeomBlockPoly3D( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
-    //                               i_part,
-    //                               _n_elt[i_part] ,
-    //                               _n_faces[i_part],
-    //                               _connec_faces_idx [i_part],
-    //                               _connec_faces     [i_part],
-    //                               _connec_cells_idx[i_part],
-    //                               _connec_cells    [i_part],
-    //                               _global_num [i_part]);
-
-
-    //   }
-    // } //end i_part
-
-
+  void
+  BlockCP::blockSet
+  (
+    int          i_part,
+    int          n_elts,
+    int          n_faces,
+    int         *connec_faces_idx,
+    int         *connec_faces,
+    int         *connec_cells_idx,
+    int         *connec_cells,
+    CWP_g_num_t *global_num
+  )
+  {
+    _n_elts          [i_part] = n_elts;
+    _n_faces         [i_part] = n_faces;
+    _connec_faces_idx[i_part] = connec_faces_idx;
+    _connec_faces    [i_part] = connec_faces;
+    _connec_cells_idx[i_part] = connec_cells_idx;
+    _connec_cells    [i_part] = connec_cells;
+    _global_num      [i_part] = global_num;
   }
+
+
+  void
+  BlockCP::blockGet
+  (
+    int           i_part,
+    int          *n_elts,
+    int          *n_faces,
+    int         **connec_faces_idx,
+    int         **connec_faces,
+    int         **connec_cells_idx,
+    int         **connec_cells,
+    CWP_g_num_t **global_num
+  )
+  {
+    *n_elts           = _n_elts          [i_part];
+    *n_faces          = _n_faces         [i_part];
+    *connec_faces_idx = _connec_faces_idx[i_part];
+    *connec_faces     = _connec_faces    [i_part];
+    *connec_cells_idx = _connec_cells_idx[i_part];
+    *connec_cells     = _connec_cells    [i_part];
+    *global_num       = _global_num      [i_part];
+  }
+
+
+  void
+  BlockCP::faceGlobalNumFree
+  (
+    int i_part
+  )
+  {
+    if (_global_num_faces[i_part] != nullptr) {
+      free(_global_num_faces[i_part]);
+      _global_num_faces[i_part] = nullptr;
+    }
+  }
+
+
+  void
+  BlockCP::geomFinalize()
+  {
+  }
+
 }
 
+/**
+ * \endcond
+ */

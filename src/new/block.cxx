@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,100 +17,136 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pdm.h"
-#include "pdm_part_mesh_nodal.h"
-#include "pdm_gnum.h"
 #include "block.hxx"
-#include <map>
-#include <vector>
+
+#include "cwp.h"
+
 #include "mesh.hxx"
+
+#include "pdm_part_mesh_nodal.h"
+
+#include <cstdlib>
+#include <vector>
 
 /**
  * \cond
  */
 
-using namespace std;
-
 namespace cwipi {
 
   Block::Block()
-         :_owner_gnum(PDM_OWNERSHIP_USER)
+  : _global_num_owner(PDM_OWNERSHIP_USER),
+    _parent_num_owner(PDM_OWNERSHIP_USER)
   {
-
   }
 
 
-  void Block::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  Block::~Block()
   {
-     _mesh        = mesh;
-     _localComm   = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
-
-     _blockType   = blockType;
-     _n_part      = static_cast<Mesh*>(mesh)->getNPart();
-
-     _global_num  .resize(_n_part,NULL);
-     _n_elt       .resize(_n_part);
-     _cells_center.resize(_n_part, NULL);
-     _parent_num  .resize(_n_part, NULL);
-
-  }
-
-
-  Block::~Block(){
-   for (int i = 0; i < _n_part; i++) {
-      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != NULL) {
-        free (_global_num[i]);
+    for (int i = 0; i < _n_part; i++) {
+      if (_global_num_owner == PDM_OWNERSHIP_KEEP && _global_num[i] != nullptr) {
+        free(_global_num[i]);
       }
-
     }
-
   }
 
-
-  const double* Block::eltCentersGet(int i_part) {
-
-    if (_cells_center[i_part] == NULL) {
-      PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
-    }
-    return PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
-  }
-
-  CWP_g_num_t*
-  Block::GNumMeshGet(int i_part) {
-    return _global_num[i_part];
-  }
 
   void
-  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum, PDM_ownership_t owner) {
-    _global_num[i_part] = gnum;
+  Block::blockAdd
+  (
+    CWP_Block_t  block_type,
+    Mesh        *mesh
+  )
+  {
+    _mesh = mesh;
 
-    _owner_gnum = owner;
+    _block_type = block_type;
+    _n_part     = mesh->nPartGet();
+
+    _n_elts     .resize(_n_part);
+    _elt_centers.resize(_n_part, nullptr);
+    _global_num .resize(_n_part, nullptr);
+    _parent_num .resize(_n_part, nullptr);
   }
 
+
   void
-  Block::GNumMeshFree(int i_part) {
-    if (_owner_gnum == PDM_OWNERSHIP_KEEP) {
-      if (_global_num[i_part] != NULL) {
+  Block::globalNumSet
+  (
+    int              i_part,
+    CWP_g_num_t     *global_num,
+    PDM_ownership_t  owner
+  )
+  {
+    _global_num[i_part] = global_num;
+    _global_num_owner   = owner;
+  }
+
+
+  void
+  Block::globalNumFree
+  (
+    int i_part
+  )
+  {
+    if (_global_num_owner == PDM_OWNERSHIP_KEEP) {
+      if (_global_num[i_part] != nullptr) {
         free(_global_num[i_part]);
-        _global_num[i_part] = NULL;
+        _global_num[i_part] = nullptr;
       }
     }
   }
 
 
-  void Block::blockSetParentNum(int i_part, int* parent_num, PDM_ownership_t owner){
+  void
+  Block::parentNumSet
+  (
+    int              i_part,
+    int             *parent_num,
+    PDM_ownership_t  owner
+  )
+  {
     _parent_num[i_part] = parent_num;
-    _owner_parent_num = owner;
+    _parent_num_owner   = owner;
   }
 
 
-  void Block::ParentNumFree(int i_part) {
-    if (_owner_parent_num == PDM_OWNERSHIP_KEEP) {
-      if (_parent_num[i_part] != NULL) {
+  void
+  Block::parentNumFree
+  (
+    int i_part
+  )
+  {
+    if (_parent_num_owner == PDM_OWNERSHIP_KEEP) {
+      if (_parent_num[i_part] != nullptr) {
         free(_parent_num[i_part]);
-        _parent_num[i_part] = NULL;
+        _parent_num[i_part] = nullptr;
       }
     }
+  }
+
+
+  double*
+  Block::elementCentersGet
+  (
+    int i_part
+  )
+  {
+    PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmPartMeshNodalGet(),
+                                                 _block_id_pdm,
+                                                 i_part);
+
+    PDM_part_mesh_nodal_section_elt_center_compute(_mesh->pdmPartMeshNodalGet(),
+                                                   _block_id_pdm,
+                                                   i_part,
+                                                   PDM_OWNERSHIP_KEEP);
+
+    _elt_centers[i_part] = const_cast<double*>(PDM_part_mesh_nodal_section_elt_center_get(_mesh->pdmPartMeshNodalGet(),
+                                                                                          _block_id_pdm,
+                                                                                          i_part,
+                                                                                          PDM_OWNERSHIP_KEEP));
+
+    return _elt_centers[i_part];
   }
 
 }

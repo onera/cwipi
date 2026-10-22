@@ -128,7 +128,7 @@ namespace cwipi {
     _unionComm              = _cpl->communicationGet()->unionCommGet();
     _pdmUnionComm           = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
 
-    _nPart                  = _mesh->getNPart();
+    _nPart                  = _mesh->nPartGet();
 
     _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
     _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();
@@ -355,10 +355,9 @@ namespace cwipi {
   void SpatialInterp::issend(Field* referenceField) {
 
     if (referenceField->is_send_yet_get() == 1) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step. "
+      PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
-                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)\n");
+                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {
@@ -782,7 +781,7 @@ namespace cwipi {
                                                 &n_part2,
                                                 &n_elt1,
                                                 &n_elt2);
-          for (int i = 0; i < _nPart; i++) {
+          for (int i = 0; i < _cplNPart; i++) {
             if (globalRank == cplRootRank) {
               n_elt = n_elt2[i];
             }
@@ -861,10 +860,9 @@ namespace cwipi {
   void SpatialInterp::irecv(Field *referenceField) {
 
     if (referenceField->is_recv_yet_get()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step. "
+      PDM_error("The field has already been exchanged for the current time step. "
                 "Each field can only be exchanged once within a time step "
-                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)\n");
+                "(framed by calls to CWP_time_step_beg and CWP_time_step_end functions)");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {

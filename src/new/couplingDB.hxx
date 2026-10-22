@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,13 +19,16 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "singleton.hpp"
+
+#include "cwp.h"
+
 #include <map>
 #include <string>
 
-#include "singleton.hpp"
-#include "cwp.h"
-
-using namespace std;
+/**
+ * \cond
+ */
 
 namespace cwipi {
 
@@ -34,192 +37,164 @@ namespace cwipi {
 
   /**
    * \class CouplingDB couplingDB.hxx "couplingDB.hxx"
-   * \brief Coupling instances storage
+   * \brief Coupling instances storage.
    *
-   *  This class stores coupling instances
+   * This class stores coupling instances
    *
    */
 
-  class CouplingDB : public Singleton <CouplingDB>
+  class CouplingDB :
+    public Singleton <CouplingDB>
   {
+
     friend class Singleton <CouplingDB>;
     friend class Coupling;
 
   public:
 
     /**
-     * \brief Building and storage a coupling object
+     * \brief Constructor.
+     *
+     */
+    CouplingDB();
+
+
+    /**
+     * \brief Destructor.
+     *
+     */
+    virtual ~CouplingDB();
+
+
+    /**
+     * \brief Building and storage a coupling object.
      *
      * This function creates a coupling object and defines its properties.
      *
-     * \param [in]  localCodeProperties    Source code
-     * \param [in]  cplId                  Coupling identifier
-     * \param [in]  coupledCodeProperties  Coupled code properties
-     * \param [in]  commType               Communication type
-     * \param [in]  spatialInterpAlgo      Spatial interpolation algorithm
-     * \param [in]  nPart                  Number of interface partition
-     * \param [in]  movingStatus           Support moving status
-     * \param [in]  recvFreqType           Type of receiving frequency
+     * \param [in]  localCodeProperties   Source code
+     * \param [in]  cplId                 Coupling identifier
+     * \param [in]  coupledCodeProperties Coupled code properties
+     * \param [in]  entities_dim          Interface dimension
+     * \param [in]  commType              Communication type
+     * \param [in]  spatialInterpAlgo     Spatial interpolation algorithm
+     * \param [in]  nPart                 Number of interface partition
+     * \param [in]  movingStatus          Support moving status
+     * \param [in]  recvFreqType          Type of receiving frequency
      *
      */
-
     void
     couplingCreate
     (
-           CodeProperties       &localCodeProperties,
-     const string               &cplId,
-           CodeProperties       &coupledCodeProperties,
-     const CWP_Interface_t       entities_dim,
-     const CWP_Comm_t            commType,
-     const CWP_Spatial_interp_t  spatialInterpAlgo,
-     const int                   nPart,
-     const CWP_Dynamic_mesh_t    movingStatus,
-     const CWP_Time_exch_t       recvFreqType
+            CodeProperties       &localCodeProperties,
+      const std::string          &cplId,
+            CodeProperties       &coupledCodeProperties,
+      const CWP_Interface_t       entities_dim,
+      const CWP_Comm_t            commType,
+      const CWP_Spatial_interp_t  spatialInterpAlgo,
+      const int                   nPart,
+      const CWP_Dynamic_mesh_t    movingStatus,
+      const CWP_Time_exch_t       recvFreqType
     );
 
+
     /**
-     * \brief Delete a coupling object in the database
+     * \brief Delete a coupling object in the database.
      *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  cplId                Coupling identifier
+     * \param [in]  localCodeProperties Source code
+     * \param [in]  cplId               Coupling identifier
      *
      */
-
     void
     couplingDel
     (
-     const CodeProperties &localCodeProperties,
-     const string         &cplId
+      const CodeProperties &localCodeProperties,
+      const std::string    &cplId
     );
 
-    /**
-     * \brief Return a coupling object from it identifier
-     *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  cplId                Coupling identifier
-     *
-     */
 
+    /**
+     * \brief Return a coupling object from its identifier.
+     *
+     * \param [in]  localCodeProperties Source code
+     * \param [in]  cplId               Coupling identifier
+     *
+     * \return Reference to the coupling object
+     */
     inline Coupling&
     couplingGet
     (
-     const CodeProperties &localCodeProperties,
-     const string         &cplId
+      const CodeProperties &localCodeProperties,
+      const std::string    &cplId
     );
 
-    /**
-     * \brief Return the list of coupling objects for a code
-     *
-     * \param [in]  localCodeProperties  Source code
-     *
-     */
 
-    inline map <string, Coupling * >&
+    /**
+     * \brief Return the list of coupling objects for a code.
+     *
+     * \param [in]  localCodeProperties Source code
+     *
+     * \return Reference to the map of coupling objects
+     */
+    inline std::map<std::string, Coupling *>&
     couplingListGet
     (
-     const CodeProperties &localCodeProperties
+      const CodeProperties &localCodeProperties
     );
 
+
     /**
-     * \brief Return if a coupling identifier exists
+     * \brief Return if a coupling identifier exists.
      *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  cplId                Coupling identifier
+     * \param [in]  localCodeProperties Source code
+     * \param [in]  cplId               Coupling identifier
      *
      * \return status
      */
-
     inline bool
     couplingIs
     (
-     const CodeProperties &localCodeProperties,
-     const string         &cplId
+      const CodeProperties &localCodeProperties,
+      const std::string    &cplId
     );
 
+
     /**
-     * \brief Update time
+     * \brief Begin time step.
      *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  current_time         Current time
+     * \param [in]  localCodeProperties Source code
+     * \param [in]  current_time        Current time
      *
      */
-
     void
-    timeUpdate
+    timeStepBegin
     (
-     const CodeProperties &localCodeProperties,
-     double                current_time
+      const CodeProperties &localCodeProperties,
+            double          current_time
     );
 
-    /**
-     * \brief Begin time step
-     *
-     * \param [in]  localCodeProperties  Source code
-     * \param [in]  current_time         Current time
-     *
-     */
-
-    void
-    time_step_beg
-    (
-     const CodeProperties &localCodeProperties,
-     double                current_time
-    );
 
     /**
-     * \brief End time step
+     * \brief End time step.
      *
-     * \param [in]  localCodeProperties  Source code
+     * \param [in]  localCodeProperties Source code
      *
      */
-
     void
-    time_step_end
+    timeStepEnd
     (
-     const CodeProperties &localCodeProperties
+      const CodeProperties &localCodeProperties
     );
 
   private:
 
-    /**
-     * \brief Constructor
-     *
-     */
-
-    CouplingDB();
-
-    /**
-     * \brief Copy constructor
-     *
-     */
-
-    CouplingDB
-    (
-     const CouplingDB &other
-    );
-
-    /**
-     * \brief Default assignment (unavailable)
-     *
-     */
-
-    CouplingDB &
-    operator=
-    (
-     const CouplingDB &other
-    );
-
-    /**
-     * \brief Destructor
-     *
-     */
-
-    virtual ~CouplingDB();
-
-  private:
-    map < const CodeProperties *, map < string, Coupling * > > & _couplingDB; /*!< Couplings storage for each local Code */
+    std::map<const CodeProperties *, std::map<std::string, Coupling *>> &_couplingDB; /*!< Couplings storage for each local code */
 
   };
+
 }
 
-#endif
+/**
+ * \endcond
+ */
+
+#endif // __COUPLING_DB_H__

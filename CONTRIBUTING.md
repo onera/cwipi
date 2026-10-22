@@ -43,8 +43,7 @@ Your Pull Request will be reviewed by the core maintainers. Once accepted, it wi
 To maintain a clean and readable codebase, **CWIPI** follows professional standards. While we do not enforce a strict internal manual, our C/C++ code closely adheres to the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
 
 ### Specific Rules:
-* **Naming (C):** Use `snake_case` for functions and variables to maintain consistency with standard C libraries.
-* **Naming (Python):** Use (upper) `CamelCase` for classes, and `snake_case` for the rest.
+* **Naming (C++):** Use `PascalCase` for classes, `camelCase` for associated functions and `snake_case` for associated variables.
 * **Indentation:** We use **2 spaces** per indentation level (no tabs).
 * **Braces:** The opening brace `{` must be placed **at the end of the line** (not on a new line), as follows:
   ```cpp

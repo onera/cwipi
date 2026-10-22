@@ -4,16 +4,18 @@
 
 **CWIPI** (Coupling With Interpolation Parallel Interface) is a library for coupling parallel scientific codes via MPI communications to perform multi-physics simulations in massively parallel, distributed-memory environments, with interfaces in C, Python and Fortran.
 
+
 ## 📖 Documentation
 
 The user documentation is available either on [the GitHub page](https://onera.github.io/cwipi/index.html) or on [ONERA's internal Gitlab](https://numerics.gitlab-pages.onera.net/coupling/cwipi/index.html).
+
 
 ## 🛠️ Build and install
 
 ### Dependencies
 
 General dependencies for building **CWIPI** are:
-- a C++ compiler (tested with `gcc 10, 12, 14, 15`, `intel 2022`, `intel-llvm 2022`)
+- a C++ compiler (tested with `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
 - [CMake](https://cmake.org/) (version 3.16 or higher)
 - an MPI distribution (tested with `openmpi` and `intel oneapi`)
 
@@ -23,7 +25,7 @@ To run **CWIPI** tests with `cwp_run`, additional dependencies are:
 - [gnu-time](https://formulae.brew.sh/formula/gnu-time) on macOS
 
 To build **CWIPI** Fortran API, additional dependencies are:
-- a Fortran 90 compiler (tested with `gfortran` based on `gcc 10, 12, 14, 15`, `intel 2022`, `intel-llvm 2022`)
+- a Fortran 90 compiler (tested with `gfortran` based on `gcc 10, 12, 14, 15, 16`, `intel 2022`, `intel-llvm 2022`, `intel-llvm 2025`)
 
 To build **CWIPI** Python API, additional dependencies are:
 - `numpy (1.x)`
@@ -94,18 +96,27 @@ If ```CWP_ENABLE_HIDE_PDM_SYMBOLS=ON``` then ```CWP_ENABLE_EXTERNAL_PDM=OFF``` i
 
 </details>
 
-## 🚀 Quick start
+
+## 🚀 Quick Start
 
 You can find a basic example of two-way coupling using **CWIPI** in the [quick start section of the documentation](#documentation).
 Additional examples for more advanced scenarios can be found in the ``tests`` directory.
 
-## 🤕 Issues
 
-Issues can be reported directly in the [Issues](https://gitlab.onera.net/numerics/coupling/cwipi/-/issues) section.
+## ⁉️ Questions & Bug Reporting
+
+If you have a question or encounter a problem, please follow the [rules of our community](COMMUNITY.md).
+
+
+## 💡 Contributing to CWIPI
+
+If you would like to contribute to **CWIPI**, make sure you follow [these instructions](CONTRIBUTING.md).
+
 
 ## ⚖️ License
 
 **CWIPI** is available under the [LGPL3 license](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+
 
 ## © Copyright
 

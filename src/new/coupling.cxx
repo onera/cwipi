@@ -96,10 +96,10 @@ _check_cpl_consistency
   if (i_rank_cpl == 0) {
     for (int i = 1; i < n_rank_cpl; i++) {
       if (recv_buf[2*i] != entities_dim) {
-        PDM_error(__FILE__, __LINE__, 0, "Inconsistent interface dimension (%d / %d)\n", recv_buf[2*i], entities_dim);
+        PDM_error("Inconsistent interface dimension (%d / %d)", recv_buf[2*i], entities_dim);
       }
       if (recv_buf[2*i+1] != spatialInterpAlgo) {
-        PDM_error(__FILE__, __LINE__, 0, "Inconsistent spatial interpolation method (%d / %d)\n", recv_buf[2*i+1], spatialInterpAlgo);
+        PDM_error("Inconsistent spatial interpolation method (%d / %d)", recv_buf[2*i+1], spatialInterpAlgo);
       }
     }
     free(recv_buf);
@@ -168,7 +168,7 @@ namespace cwipi {
    )
   :_cplId(cplId),
    _commType(cplType),
-   _communication(*(FC::getInstance().CreateObject(cplType))),
+   _communication(*(FC::getInstance().objectCreate(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _entities_dim(entities_dim),
@@ -350,7 +350,7 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it != _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "'%s' partitionned data exchange object already exists\n", part_data_id.c_str());
+      PDM_error("'%s' partitionned data exchange object already exists", part_data_id.c_str());
     }
 
     // Create object
@@ -373,9 +373,9 @@ namespace cwipi {
 
       if (cpl_it != cpl_cpl._partData.end()) {
         if (exch_type == CWP_PARTDATA_SEND) {
-          CWP_g_num_t **gnum_elt2 = cpl_it->second.gnum_elt_get();
-          int          *n_elt2    = cpl_it->second.n_elt_get   ();
-          int           n_part2   = cpl_it->second.n_part_get  ();
+          CWP_g_num_t **gnum_elt2 = cpl_it->second.globalNumGet();
+          int          *n_elt2    = cpl_it->second.nEltsGet    ();
+          int           n_part2   = cpl_it->second.nPartGet    ();
 
           part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
           for (int i_part = 0; i_part < n_part; i_part++) {
@@ -402,9 +402,9 @@ namespace cwipi {
         }
 
         else {
-          CWP_g_num_t **gnum_elt1 = cpl_it->second.gnum_elt_get();
-          int          *n_elt1    = cpl_it->second.n_elt_get   ();
-          int           n_part1   = cpl_it->second.n_part_get  ();
+          CWP_g_num_t **gnum_elt1 = cpl_it->second.globalNumGet();
+          int          *n_elt1    = cpl_it->second.nEltsGet    ();
+          int           n_part1   = cpl_it->second.nPartGet    ();
 
           part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part1);
           for (int i_part = 0; i_part < n_part1; i_part++) {
@@ -435,13 +435,13 @@ namespace cwipi {
                                            &n_ref,
                                            &ref);
             if (n_ref[i_part] != n_elt[i_part]) {
-              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+              PDM_error("Error in input data of CWP_Part_data_create : make sure the global numbering is continous");
             }
           }
 
         }
 
-        cpl_it->second.ptp_set(ptp);
+        cpl_it->second.pdmPartToPartSet(ptp);
       }
     }
 
@@ -490,7 +490,7 @@ namespace cwipi {
                                        &ref);
         for (int i_part = 0; i_part < n_part; i_part++) {
           if (n_ref[i_part] != n_elt[i_part]) {
-            PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+            PDM_error("Error in input data of CWP_Part_data_create : make sure the global numbering is continous");
           }
         }
       }
@@ -499,7 +499,7 @@ namespace cwipi {
 
 
 
-    newPartData.ptp_set(ptp);
+    newPartData.pdmPartToPartSet(ptp);
 
 
     pair<string, PartData> newPair(part_data_id, newPartData);
@@ -524,12 +524,11 @@ namespace cwipi {
   {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
+      PDM_error("'%s' not existing partitionned data exchange object", part_data_id.c_str());
     }
 
     // free ptp
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     if (!_coupledCodeProperties.localCodeIs() ||
         _localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
@@ -566,21 +565,18 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
-    if (it->second.exch_type_get() != CWP_PARTDATA_SEND) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in SEND mode for %s\n",
+    if (it->second.exchTypeGet() != CWP_PARTDATA_SEND) {
+      PDM_error("PartData '%s' is not in SEND mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
 
-    MPI_Comm unionComm = _communication.unionCommGet();
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
                                           exch_id);
 
     int send_request = -1;
@@ -592,11 +588,12 @@ namespace cwipi {
                             mpi_tag,
                             &send_request);
 
-    it->second.data_set(exch_id,
-                        send_data);
+    it->second.dataSet(exch_id,
+                       s_data,
+                       send_data);
 
-    it->second.request_set(exch_id,
-                           send_request);
+    it->second.requestSet(exch_id,
+                          send_request);
   }
 
   /**
@@ -622,22 +619,19 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
-    if (it->second.exch_type_get() != CWP_PARTDATA_RECV) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in RECV mode for %s\n",
+    if (it->second.exchTypeGet() != CWP_PARTDATA_RECV) {
+      PDM_error("PartData '%s' is not in RECV mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
 
 
-    MPI_Comm unionComm = _communication.unionCommGet();
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     int mpi_tag = _communication._get_tag(part_data_id,
-                                          unionComm,
                                           exch_id);
 
     int recv_request = -1;
@@ -649,11 +643,12 @@ namespace cwipi {
                            mpi_tag,
                            &recv_request);
 
-    it->second.data_set(exch_id,
-                        recv_data);
+    it->second.dataSet(exch_id,
+                       s_data,
+                       recv_data);
 
-    it->second.request_set(exch_id,
-                           recv_request);
+    it->second.requestSet(exch_id,
+                          recv_request);
 
   }
 
@@ -674,24 +669,23 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
-    if (it->second.exch_type_get() != CWP_PARTDATA_SEND) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in SEND mode for %s\n",
+    if (it->second.exchTypeGet() != CWP_PARTDATA_SEND) {
+      PDM_error("PartData '%s' is not in SEND mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
 
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
-    int request = it->second.request_get(exch_id);
+    int request = it->second.requestGet(exch_id);
 
     PDM_part_to_part_issend_wait(ptp,
                                  request);
 
-    it->second.exch_clear(exch_id);
+    it->second.exchClear(exch_id);
   }
 
   /**
@@ -711,26 +705,25 @@ namespace cwipi {
   {
     map<string, PartData>::iterator it = _partData.find(part_data_id.c_str());
     if (it == _partData.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Invalid PartData '%s'\n", part_data_id.c_str());
+      PDM_error("Invalid PartData '%s'", part_data_id.c_str());
     }
 
-    if (it->second.exch_type_get() != CWP_PARTDATA_RECV) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "PartData '%s' is not in RECV mode for %s\n",
+    if (it->second.exchTypeGet() != CWP_PARTDATA_RECV) {
+      PDM_error("PartData '%s' is not in RECV mode for %s",
                 part_data_id.c_str(),
                 _localCodeProperties.nameGet().c_str());
     }
 
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
-    int request = it->second.request_get(exch_id);
+    int request = it->second.requestGet(exch_id);
 
     PDM_part_to_part_irecv_wait(ptp,
                                 request);
 
-    it->second.recv_data_filter(exch_id);
+    it->second.recvDataFilter(exch_id);
 
-    it->second.exch_clear(exch_id);
+    it->second.exchClear(exch_id);
   }
 
 
@@ -743,7 +736,7 @@ namespace cwipi {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     assert(it != _partData.end());
 
-    return it->second.n_part_get();
+    return it->second.nPartGet();
   }
 
   int
@@ -756,9 +749,9 @@ namespace cwipi {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     assert(it != _partData.end());
 
-    assert(i_part < it->second.n_part_get());
+    assert(i_part < it->second.nPartGet());
 
-    PDM_part_to_part_t *ptp = it->second.ptp_get();
+    PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
     int  *n_ref;
     int **ref;
@@ -790,17 +783,16 @@ namespace cwipi {
     // Create an instance of GlobalData
     map<string,GlobalData>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
-      cwipi::GlobalData newGlobalData(global_data_id,
-                                      s_send_entity,
+      cwipi::GlobalData newGlobalData(s_send_entity,
                                       send_stride,
                                       n_send_entity);
-      newGlobalData.send_data_set(send_data);
+      newGlobalData.sendDataSet(send_data);
 
       pair<string, GlobalData > newPair(global_data_id, newGlobalData);
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n", global_data_id.c_str());
+      PDM_error("GlobalData %s is already in use", global_data_id.c_str());
     }
     it = _globalData.find(global_data_id.c_str());
 
@@ -813,7 +805,7 @@ namespace cwipi {
                                                                send_stride,
                                                                n_send_entity,
                                                                send_data);
-    it->second.data_send_request_set(data_send_request);
+    it->second.dataSendRequestSet(data_send_request);
   }
 
   /**
@@ -833,17 +825,16 @@ namespace cwipi {
     // Create an instance of GlobalData
     map<string,GlobalData>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
-      cwipi::GlobalData newGlobalData(global_data_id,
-                                      s_recv_entity,
+      cwipi::GlobalData newGlobalData(s_recv_entity,
                                       recv_stride,
                                       n_recv_entity);
-      newGlobalData.recv_data_set(recv_data);
+      newGlobalData.recvDataSet(recv_data);
 
       pair<string, GlobalData > newPair(global_data_id, newGlobalData);
       _globalData.insert(newPair);
     } // end if does not exist
     else {
-      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n");
+      PDM_error("GlobalData %s is already in use");
     }
     it = _globalData.find(global_data_id.c_str());
 
@@ -856,7 +847,7 @@ namespace cwipi {
                                                               recv_stride,
                                                               n_recv_entity,
                                                               recv_data);
-    it->second.data_recv_request_set(data_recv_request);
+    it->second.dataRecvRequestSet(data_recv_request);
   }
 
   /**
@@ -872,18 +863,18 @@ namespace cwipi {
     // Get local
     map<string,GlobalData>::iterator it = _globalData.find(global_data_id.c_str());
     assert(it != _globalData.end());
-    MPI_Request  data_send_request = it->second.data_send_request_get();
-    size_t       s_entity          = it->second.s_entity_get();
-    int          stride            = it->second.stride_get();
-    int          n_entity          = it->second.n_entity_get();
-    void        *send_data         = it->second.send_data_get();
+    MPI_Request  data_send_request = it->second.dataSendRequestGet();
+    size_t       s_entity          = it->second.sEntityGet();
+    int          stride            = it->second.strideGet();
+    int          n_entity          = it->second.nEntityGet();
+    void        *send_data         = it->second.sendDataGet();
 
     void *cpl_recv_data = NULL;
     if (_coupledCodeProperties.localCodeIs()) {
       cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
       map<string,GlobalData>::iterator cpl_it = cpl_cpl._globalData.find(global_data_id.c_str());
       assert(cpl_it != cpl_cpl._globalData.end());
-      cpl_recv_data = cpl_it->second.recv_data_get();
+      cpl_recv_data = cpl_it->second.recvDataGet();
     }
 
     // Get coupled
@@ -908,18 +899,18 @@ namespace cwipi {
     // Get local
     map<string,GlobalData>::iterator it = _globalData.find(global_data_id.c_str());
     assert(it != _globalData.end());
-    MPI_Request  data_recv_request = it->second.data_recv_request_get();
-    size_t       s_entity          = it->second.s_entity_get();
-    int          stride            = it->second.stride_get();
-    int          n_entity          = it->second.n_entity_get();
-    void        *recv_data         = it->second.recv_data_get();
+    MPI_Request  data_recv_request = it->second.dataRecvRequestGet();
+    size_t       s_entity          = it->second.sEntityGet();
+    int          stride            = it->second.strideGet();
+    int          n_entity          = it->second.nEntityGet();
+    void        *recv_data         = it->second.recvDataGet();
 
     void *cpl_send_data = NULL;
     if (_coupledCodeProperties.localCodeIs()) {
       cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
       map<string,GlobalData>::iterator cpl_it = cpl_cpl._globalData.find(global_data_id.c_str());
       assert(cpl_it != cpl_cpl._globalData.end());
-      cpl_send_data = cpl_it->second.send_data_get();
+      cpl_send_data = cpl_it->second.sendDataGet();
     }
 
     // Get coupled
@@ -1068,7 +1059,7 @@ namespace cwipi {
         spatial_interp_map = _spatial_interp_recv;
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "Invalid spatial_interp_algo %d\n", spatial_interp_algo);
+        PDM_error("Invalid spatial_interp_algo %d", spatial_interp_algo);
       }
 
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = spatial_interp_map.find(newKey);
@@ -1288,7 +1279,7 @@ namespace cwipi {
         // Geometry
         cpl._id_geom_writer = PDM_writer_geom_create_from_mesh_nodal(cpl._writer,
                                                                      "geom",
-                                                                     cpl._mesh.getPdmNodalIndex());
+                                                                     cpl._mesh.pdmPartMeshNodalGet());
 
         if (cpl._userTargetN != nullptr) {
 
@@ -1396,28 +1387,28 @@ namespace cwipi {
         } // end if there is a user target
 
         // Variables to show user targets partitionning
-        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
-        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+        std::vector <double *> partitioning_field_data(cpl._mesh.nPartGet());
+        std::vector <double *> ranking_field_data(cpl._mesh.nPartGet());
         std::vector <double *> user_tgt_partitioning_field_data(cpl._nPart);
         std::vector <double *> user_tgt_ranking_field_data(cpl._nPart);
 
-        assert(cpl._mesh.getNPart() == cpl._nPart);
+        assert(cpl._mesh.nPartGet() == cpl._nPart);
 
         int i_rank;
         MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
 
-        int n_part = cpl._mesh.getNPart();
+        int n_part = cpl._mesh.nPartGet();
         int g_n_part = 0;
 
         MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
 
         g_n_part += -n_part;
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
-          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
-          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
 
-          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+          for(int i_elt = 0; i_elt < cpl._mesh.nEltsGet(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
             ranking_field_data[i_part][i_elt] = (double) i_rank;
           }
@@ -1454,7 +1445,7 @@ namespace cwipi {
           PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
         } // end if there is a user target
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
           free (partitioning_field_data[i_part]);
           free (ranking_field_data     [i_part]);
           partitioning_field_data[i_part] = nullptr;
@@ -1477,7 +1468,7 @@ namespace cwipi {
 
           PDM_writer_geom_set_from_mesh_nodal (cpl._writer,
                                                cpl._id_geom_writer,
-                                               cpl._mesh.getPdmNodalIndex());
+                                               cpl._mesh.pdmPartMeshNodalGet());
 
           if (cpl._userTargetN != nullptr) {
 
@@ -1530,28 +1521,28 @@ namespace cwipi {
         } // end if there is a user target
 
         // Variables to show user targets partitionning
-        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
-        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+        std::vector <double *> partitioning_field_data(cpl._mesh.nPartGet());
+        std::vector <double *> ranking_field_data(cpl._mesh.nPartGet());
         std::vector <double *> user_tgt_partitioning_field_data(cpl._nPart);
         std::vector <double *> user_tgt_ranking_field_data(cpl._nPart);
 
-        assert(cpl._mesh.getNPart() == cpl._nPart);
+        assert(cpl._mesh.nPartGet() == cpl._nPart);
 
         int i_rank;
         MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &i_rank);
 
-        int n_part = cpl._mesh.getNPart();
+        int n_part = cpl._mesh.nPartGet();
         int g_n_part = 0;
 
         MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
 
         g_n_part += -n_part;
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
-          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
-          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.nEltsGet(i_part) * sizeof(double) );
 
-          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+          for(int i_elt = 0; i_elt < cpl._mesh.nEltsGet(i_part); i_elt++){
             partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
             ranking_field_data     [i_part][i_elt] = (double) i_rank;
           }
@@ -1588,7 +1579,7 @@ namespace cwipi {
           PDM_writer_var_data_free(cpl._writer, cpl._id_user_tgt_field_ranking_writer);
         } // end if there is a user target
 
-        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+        for(int i_part= 0 ; i_part < cpl._mesh.nPartGet(); i_part++){
           free (partitioning_field_data[i_part]);
           free (ranking_field_data     [i_part]);
           partitioning_field_data[i_part] = nullptr;
@@ -1675,6 +1666,9 @@ namespace cwipi {
         std::vector<CWP_Dof_location_t> localFieldLocationV;
         localFieldLocationV.reserve(localNbField);
 
+        std::vector<int> localFieldNComponent;
+        localFieldNComponent.reserve(localNbField);
+
         std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
         while(it != _fields.end()){
@@ -1684,6 +1678,7 @@ namespace cwipi {
           localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
           localFieldLocationV.push_back(field->locationGet());
           localFieldsExch.push_back(field->exchangeTypeGet());
+          localFieldNComponent.push_back(field->nComponentGet());
 
           it++;
         }
@@ -1715,9 +1710,10 @@ namespace cwipi {
 
         // - Allocate memory to receive data
 
-        vector<int               > cplFieldNameIdx  (cplNbField + 1, 0);
-        vector<CWP_Field_exch_t  > cplFieldExch     (cplNbField);
-        vector<CWP_Dof_location_t> cplFieldLocationV(cplNbField);
+        vector<int               > cplFieldNameIdx   (cplNbField + 1, 0);
+        vector<CWP_Field_exch_t  > cplFieldExch      (cplNbField);
+        vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
+        vector<int               > cplFieldNComponent(cplNbField);
         string                     cplFieldName;
 
         // - Transfer memory to receive data
@@ -1779,6 +1775,18 @@ namespace cwipi {
                                                                    NULL);
         localFieldLocationV.clear();
 
+        nSendData   = localNbField;
+        nRecvData   = cplNbField;
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   nSendData,
+                                                                   (void *) localFieldNComponent.data(),
+                                                                   -1,
+                                                                   NULL,
+                                                                   nRecvData,
+                                                                   (void *) cplFieldNComponent.data(),
+                                                                   -1,
+                                                                   NULL);
+
         // Create spatial interpolation objects
 
         it = _fields.begin();
@@ -1794,6 +1802,11 @@ namespace cwipi {
             if (_cplFieldName == localFieldName) {
               field->linkedFieldLocationSet(cplFieldLocationV[j]);
 
+              if (cplFieldNComponent[j] != field->nComponentGet()) {
+                PDM_error("Number of components for local (%i) and coupled (%i) fields '%s' not consistent",
+                          cplFieldNComponent[j], field->nComponentGet(), cplFieldName.c_str());
+              }
+
               if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
@@ -1802,7 +1815,7 @@ namespace cwipi {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
 
-                    _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                    _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
 
                     _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                   }
@@ -1812,7 +1825,7 @@ namespace cwipi {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                   if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
 
-                    _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                    _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
 
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
 
@@ -1978,9 +1991,6 @@ namespace cwipi {
 
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
-        int codeID    = localCodePropertiesGet()->idGet();
-        int cplCodeID = coupledCodePropertiesGet()->idGet();
-
         if ( _is_spatial_interp_init == 0) {
 
           std::string localFieldsName="";
@@ -1997,6 +2007,9 @@ namespace cwipi {
           std::vector<CWP_Dof_location_t> localFieldLocationV;
           localFieldLocationV.reserve(localNbField);
 
+          std::vector<int> localFieldNComponent;
+          localFieldNComponent.reserve(localNbField);
+
           std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
           while(it != _fields.end()){
@@ -2006,6 +2019,7 @@ namespace cwipi {
             localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
             localFieldLocationV.push_back(field->locationGet());
             localFieldsExch.push_back(field->exchangeTypeGet());
+            localFieldNComponent.push_back(field->nComponentGet());
 
             it++;
           }
@@ -2024,6 +2038,9 @@ namespace cwipi {
           std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
           cpl_localFieldLocationV.reserve(cpl_localNbField);
 
+          std::vector<int> cpl_localFieldNComponent;
+          cpl_localFieldNComponent.reserve(cpl_localNbField);
+
           it = cpl_cpl._fields.begin();
 
           while(it != cpl_cpl._fields.end()){
@@ -2033,6 +2050,7 @@ namespace cwipi {
             cpl_localFieldsNameIdx.push_back((int) (cpl_localFieldsNameIdx[cpl_localFieldsNameIdx.size()-1]+it->first.size()));
             cpl_localFieldLocationV.push_back(field->locationGet());
             cpl_localFieldsExch.push_back(field->exchangeTypeGet());
+            cpl_localFieldNComponent.push_back(field->nComponentGet());
 
             it++;
           }
@@ -2070,14 +2088,16 @@ namespace cwipi {
 
           // - Allocate memory to receive data
 
-          vector<int               > cplFieldsNameIdx (cplNbField + 1, 0);
-          vector<CWP_Field_exch_t  > cplFieldsExch (cplNbField);
+          vector<int               > cplFieldsNameIdx   (cplNbField + 1, 0);
+          vector<CWP_Field_exch_t  > cplFieldsExch      (cplNbField);
           vector<CWP_Dof_location_t> cplFieldsLocationV (cplNbField);
+          vector<CWP_Dof_location_t> cplFieldsNComponent(cplNbField);
           string                     cplFieldsName;
 
-          vector<int               > cpl_cplFieldsNameIdx (cpl_cplNbField + 1, 0);
-          vector<CWP_Field_exch_t  > cpl_cplFieldsExch (cpl_cplNbField);
+          vector<int               > cpl_cplFieldsNameIdx   (cpl_cplNbField + 1, 0);
+          vector<CWP_Field_exch_t  > cpl_cplFieldsExch      (cpl_cplNbField);
           vector<CWP_Dof_location_t> cpl_cplFieldsLocationV (cpl_cplNbField);
+          vector<CWP_Dof_location_t> cpl_cplFieldsNComponent(cpl_cplNbField);
           string                     cpl_cplFieldsName;
 
           // - Transfer memory to receive data
@@ -2161,6 +2181,25 @@ namespace cwipi {
           localFieldLocationV.clear();
           cpl_localFieldLocationV.clear();
 
+          nSendData   = localNbField;
+          nRecvData   = cplNbField;
+
+          cpl_nSendData   = cpl_localNbField;
+          cpl_nRecvData   = cpl_cplNbField;
+
+          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                     nSendData,
+                                                                     (void *) localFieldNComponent.data(),
+                                                                     cpl_nSendData,
+                                                                     (void *) cpl_localFieldNComponent.data(),
+                                                                     nRecvData,
+                                                                     (void *) cplFieldsNComponent.data(),
+                                                                     cpl_nRecvData,
+                                                                     (void *) cpl_cplFieldsNComponent.data());
+
+          localFieldNComponent.clear();
+          cpl_localFieldNComponent.clear();
+
           // Create spatial interpolation objects
 
           it = _fields.begin();
@@ -2177,8 +2216,12 @@ namespace cwipi {
               if (cplFieldName == localFieldName) {
                 field->linkedFieldLocationSet(cplFieldsLocationV[j]);
                 if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
-                  PDM_error(__FILE__, __LINE__, 0, "'%s' Field not found\n",
-                            cplFieldName.c_str());
+                  PDM_error("'%s' Field not found", cplFieldName.c_str());
+                }
+
+                if (cplFieldsNComponent[j] != field->nComponentGet()) {
+                  PDM_error("Number of components for local (%i) and coupled (%i) fields '%s' not consistent",
+                            cplFieldsNComponent[j], field->nComponentGet(), cplFieldName.c_str());
                 }
 
                 cpl_cpl._fields[cplFieldName]->linkedFieldLocationSet(localFieldLocation);
@@ -2193,8 +2236,8 @@ namespace cwipi {
 
                     if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
 
-                      _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                      cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+                      _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
+                      cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().objectCreate(cpl_cpl._spatialInterpAlgo)));
 
                       _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                       cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);
@@ -2209,8 +2252,8 @@ namespace cwipi {
 
                     if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
 
-                      _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                      cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+                      _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().objectCreate(_spatialInterpAlgo)));
+                      cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().objectCreate(cpl_cpl._spatialInterpAlgo)));
 
                       _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_RECV);
                       cpl_cpl._spatial_interp_send[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_SEND);
@@ -2337,100 +2380,50 @@ namespace cwipi {
                                                                      (void *) cpl_sir_loc_r.data());
         }
 
-        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
+        int clear_data = (_n_step > 0) && _is_spatial_interp_init > 0;//(_displacement == CWP_DYNAMIC_MESH_VARIABLE && _n_step > 0);
 
-        if (codeID < cplCodeID) {
-
-          int i = 0;
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
-            if (clear_data) {
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _cpl_sis_loc_r[2*i+1],
-                                       _cpl_sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-            }
-            sis_it->second->weightsCompute();
-            cpl_spatial_interp->weightsCompute();
-            sis_it++;
-            i++;
+        int i = 0;
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
+          if (clear_data) {
+            sis_it->second->clear();
+            sis_it->second->init(this,
+                                 sis_it->first.first,
+                                 sis_it->first.second,
+                                 SPATIAL_INTERP_EXCH_SEND);
+            cpl_spatial_interp->clear();
+            cpl_spatial_interp->init(&cpl_cpl,
+                                      _cpl_sis_loc_r[2*i+1],
+                                      _cpl_sis_loc_r[2*i  ],
+                                      SPATIAL_INTERP_EXCH_RECV);
           }
-
-          i = 0;
-          sis_it = cpl_cpl._spatial_interp_send.begin();
-          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
-            if (clear_data) {
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _sis_loc_r[2*i+1],
-                                       _sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-            }
-            cpl_spatial_interp->weightsCompute();
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
-          }
+          sis_it->second->weightsCompute();
+          cpl_spatial_interp->weightsCompute();
+          sis_it++;
+          i++;
         }
 
-        else {
-
-          int i = 0;
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = cpl_cpl._spatial_interp_send.begin();
-          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
-            if (clear_data) {
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _sis_loc_r[2*i+1],
-                                       _sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-            }
-            cpl_spatial_interp->weightsCompute();
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
+        i = 0;
+        sis_it = cpl_cpl._spatial_interp_send.begin();
+        while(sis_it != cpl_cpl._spatial_interp_send.end()) {
+          SpatialInterp *cpl_spatial_interp = _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])];
+          if (clear_data) {
+            cpl_spatial_interp->clear();
+            cpl_spatial_interp->init(this,
+                                     _sis_loc_r[2*i+1],
+                                     _sis_loc_r[2*i  ],
+                                     SPATIAL_INTERP_EXCH_RECV);
+            sis_it->second->clear();
+            sis_it->second->init(&cpl_cpl,
+                                 sis_it->first.first,
+                                 sis_it->first.second,
+                                 SPATIAL_INTERP_EXCH_SEND);
           }
-
-          i = 0;
-          sis_it = _spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            SpatialInterp *cpl_spatial_interp = cpl_cpl._spatial_interp_recv[make_pair(_cpl_sis_loc_r[2*i+1], _cpl_sis_loc_r[2*i])];
-            if (clear_data) {
-              sis_it->second->clear();
-              sis_it->second->init(this,
-                                   sis_it->first.first,
-                                   sis_it->first.second,
-                                   SPATIAL_INTERP_EXCH_SEND);
-              cpl_spatial_interp->clear();
-              cpl_spatial_interp->init(&cpl_cpl,
-                                       _cpl_sis_loc_r[2*i+1],
-                                       _cpl_sis_loc_r[2*i  ],
-                                       SPATIAL_INTERP_EXCH_RECV);
-            }
-            sis_it->second->weightsCompute();
-            cpl_spatial_interp->weightsCompute();
-            sis_it++;
-            i++;
-          }
+          cpl_spatial_interp->weightsCompute();
+          sis_it->second->weightsCompute();
+          sis_it++;
+          i++;
         }
       }
     }
@@ -2485,15 +2478,11 @@ namespace cwipi {
     CWP_UNUSED(format);
 
     if (_is_first_field_created) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Error : CWP_Visu_set has to be called before CWP_Field_create.\n");
-      abort();
+      PDM_error("CWP_Visu_set has to be called before CWP_Field_create.\n");
     }
 
     if (_is_mesh_finalized) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "Error : CWP_Visu_set has to be called before CWP_Mesh_interf_finalize.\n");
-      abort();
+      PDM_error("CWP_Visu_set has to be called before CWP_Mesh_interf_finalize.\n");
     }
 
     string CodeName = _localCodeProperties.nameGet();
@@ -2561,8 +2550,7 @@ namespace cwipi {
           fmt_fic = PDM_WRITER_FMT_BIN;
         }
         else if (option != "") {
-          PDM_error(__FILE__, __LINE__, 0,
-                    "Not a valid visualization option.\n");
+          PDM_error("Not a valid visualization option.");
         }
 
       }
@@ -2660,8 +2648,7 @@ namespace cwipi {
     _is_first_field_created = 1;
 
     if (fieldIs(field_id)) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' existing field\n", field_id.c_str());
+      PDM_error("'%s' existing field", field_id.c_str());
     }
 
     //
@@ -2745,8 +2732,7 @@ namespace cwipi {
 
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       It->second->dataSet(i_part, map_type, data);
@@ -2777,8 +2763,7 @@ namespace cwipi {
 
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
+      PDM_error("'%s' not existing field", field_id.c_str());
     }
     else {
       *data = It->second->dataGet(i_part, map_type);
@@ -2805,7 +2790,7 @@ namespace cwipi {
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
-       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
+       PDM_error("'%s' not existing field", field_id.c_str());
     }
     return It->second->nDOFGet(i_part);
   }
@@ -2825,7 +2810,7 @@ namespace cwipi {
   void
   Coupling::exchange ()
   {
-    PDM_error(__FILE__, __LINE__, 0, "\nexchange not implemented yet\n");
+    PDM_error("\nexchange not implemented yet");
   }
 
 
@@ -2854,7 +2839,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (field_id);
-    PDM_error(__FILE__, __LINE__, 0, "\nsendrecv not implemented yet\n");
+    PDM_error("\nsendrecv not implemented yet");
   }
 
 
@@ -2893,7 +2878,7 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+          PDM_error("\nUnknown spatial interpolation for field %s (%d -> %d)",
                     sendingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
@@ -2907,7 +2892,7 @@ namespace cwipi {
 
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -2928,7 +2913,7 @@ namespace cwipi {
           recvField = it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -2947,21 +2932,21 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->irecv(recvField);
           }
 
           if (it2 == _spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->issend(sendingField);
           }
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3001,7 +2986,7 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error("\nUnknown spatial interpolation");
         }
         else {
           it2->second->waitIssend(sendingField);
@@ -3023,7 +3008,7 @@ namespace cwipi {
           recvField = cpl_it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3042,21 +3027,21 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_recv.find(cpl_newKey);
 
           if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->waitIrecv(recvField);
           }
 
           if (it2 == _spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->waitIssend(sendingField);
           }
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3099,7 +3084,7 @@ namespace cwipi {
         it2 = _spatial_interp_recv.find(newKey);
 
         if (it2 == _spatial_interp_recv.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation for field %s (%d -> %d)\n",
+          PDM_error("\nUnknown spatial interpolation for field %s (%d -> %d)",
                     receivingFieldID.c_str(), localFieldLocation, cplFieldLocation);
         }
         else {
@@ -3107,7 +3092,7 @@ namespace cwipi {
         }
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -3128,7 +3113,7 @@ namespace cwipi {
           sendField = it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3147,14 +3132,14 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->irecv(receivingField);
           }
 
           if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->issend(sendField);
@@ -3162,7 +3147,7 @@ namespace cwipi {
 
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3204,14 +3189,14 @@ namespace cwipi {
         it2 = _spatial_interp_recv.find(newKey);
 
         if (it2 == _spatial_interp_recv.end()) {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          PDM_error("\nUnknown spatial interpolation");
         }
         else {
           it2->second->waitIrecv(receivingField);
         }
       }
       else {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        PDM_error("\nUnknown field");
       }
     }
 
@@ -3232,7 +3217,7 @@ namespace cwipi {
           sendField = cpl_it->second;
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
 
         if (it != _fields.end()) {
@@ -3251,14 +3236,14 @@ namespace cwipi {
           cpl_it2 = cpl_cpl._spatial_interp_send.find(cpl_newKey);
 
           if (it2 == _spatial_interp_recv.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             it2->second->waitIrecv(receivingField);
           }
 
           if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
-            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+            PDM_error("\nUnknown spatial interpolation");
           }
           else {
             cpl_it2->second->waitIssend(sendField);
@@ -3266,7 +3251,7 @@ namespace cwipi {
 
         }
         else {
-          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+          PDM_error("\nUnknown field");
         }
       }
     }
@@ -3425,7 +3410,7 @@ namespace cwipi {
   CWP_g_num_t*
   Coupling::globalNumGet(int id_block,int i_part)
   {
-    return _mesh.globalNumGet(id_block,i_part);
+    return _mesh.blockGlobalNumGet(id_block,i_part);
   }
 
   // int

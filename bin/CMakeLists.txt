@@ -22,7 +22,8 @@ if (CWP_ENABLE_EXTERNAL_PDM)
 else ()
   file(GLOB_RECURSE SOURCESPDM
     ${PDM_SOURCE_DIR}/src/*/pdm_io.c
-    ${PDM_SOURCE_DIR}/src/*/pdm_timer.c
+    ${PDM_SOURCE_DIR}/src/*/pdm_timer.cpp
+    ${PDM_SOURCE_DIR}/src/*/pdm_logging.c
     ${PDM_SOURCE_DIR}/src/*/pdm_mpi.c
     ${PDM_SOURCE_DIR}/src/*/pdm_array.c
     ${PDM_SOURCE_DIR}/src/*/pdm_file_seq.c

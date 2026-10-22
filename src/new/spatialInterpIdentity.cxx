@@ -87,12 +87,12 @@ namespace cwipi {
       _src_to_tgt_idx = (int **) malloc (sizeof(int *) * _nPart);
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          _src_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          _src_n_gnum[i_part] = _mesh->nEltsGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          _src_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
+          _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          _src_n_gnum[i_part] = _mesh->nVtxGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
@@ -106,12 +106,12 @@ namespace cwipi {
     else {
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNElts(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->elementGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nEltsGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum(i_part);
-          _tgt_n_gnum[i_part] = _mesh->getPartNVertex(i_part);
+          _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->vertexGlobalNumGet(i_part);
+          _tgt_n_gnum[i_part] = _mesh->nVtxGet(i_part);
         }
         else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
           _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet(i_part);
@@ -160,7 +160,7 @@ namespace cwipi {
                                         0,
                                         (const int         **) _src_to_tgt_idx,
                                         (const PDM_g_num_t **) _src_gnum,
-                                        _pdmCplComm);
+                                        _pdmUnionComm);
       }
       else {
         for (int i_part = 0; i_part < _nPart; i_part++) {
@@ -180,7 +180,7 @@ namespace cwipi {
                                         _nPart,
                                         (const int         **) NULL,
                                         (const PDM_g_num_t **) NULL,
-                                        _pdmCplComm);
+                                        _pdmUnionComm);
       }
     }
     else {
@@ -227,7 +227,7 @@ namespace cwipi {
                                           _cplNPart,
                                           (const int         **) _src_to_tgt_idx,
                                           (const PDM_g_num_t **) _src_gnum,
-                                          _pdmCplComm);
+                                          _pdmUnionComm);
         }
         else {
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
@@ -255,7 +255,7 @@ namespace cwipi {
                                           _nPart,
                                           (const int         **) cpl_spatial_interp->_src_to_tgt_idx,
                                           (const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
-                                          _pdmCplComm);
+                                          _pdmUnionComm);
         }
 
         cpl_spatial_interp->_ptsp = _ptsp;
@@ -288,7 +288,7 @@ namespace cwipi {
     for (int i_part = 0; i_part < _nPart; i_part++) {
 
       // if (n_ref[i_part] != _tgt_n_gnum[i_part]) {
-      //   PDM_error(__FILE__, __LINE__, 0, "Invalid Part Data (some tgt are not referenced)\n");
+      //   PDM_error("Invalid Part Data (some tgt are not referenced)");
       // }
 
       double *referenceData = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET);

@@ -1,11 +1,7 @@
-/*============================================================================
- * Logging adapted from "pdm_logging"
- *============================================================================*/
-
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2022-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,18 +18,15 @@
 */
 
 /*-----------------------------------------------------------------------------*/
+#include "cwp_logging.h"
 
-/*
- * Standard C library headers
- */
-#include <stdio.h>
-#include <stdlib.h>
+#include <mpi.h>
+
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
-#include "cwp_logging.h"
-#include "mpi.h"
 /*-----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -55,15 +48,21 @@ extern "C" {
 
 static FILE* logging_file = NULL;
 
-static
-void
-free_logging_file(void)
+
+static void
+_free_logging_file(void)
 {
   if (logging_file != NULL)
     fclose(logging_file);
 }
 
-static const char* _filename_without_path(const char* path) {
+
+static const char*
+_filename_without_path
+(
+  const char* path
+)
+{
   const char* slash     = strrchr(path, '/');
   const char* backslash = strrchr(path, '\\');
   if (slash && backslash) {
@@ -76,15 +75,27 @@ static const char* _filename_without_path(const char* path) {
   return path;
 }
 
+
 static struct {
   int level;
   int verbose_console;
   int verbose_logfile;
 } L = {CWP_LOG_FATAL, 0, 0};
 
-static void _cwp_log_va(int level, bool add_line_break, const char* func, const char *file, int line, const char *fmt, va_list args){
 
-  // Supress unused warning
+static void
+_cwp_log_va
+(
+        int      level,
+        bool     add_line_break,
+  const char    *func,
+  const char    *file,
+        int      line,
+  const char    *fmt,
+        va_list  args
+)
+{
+  // Suppress unused warning
   (void)(level);
   (void)(func);
   (void)(file);
@@ -97,10 +108,10 @@ static void _cwp_log_va(int level, bool add_line_break, const char* func, const 
     if (logging_file == NULL) {
       char filename[50];
       int i_rank;
-      MPI_Comm_rank (MPI_COMM_WORLD, &i_rank);
-      sprintf(filename, "cwp_%d.log", i_rank);
+      MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
+      snprintf(filename, sizeof(filename), "cwp_%d.log", i_rank);
       logging_file = fopen(filename, "w");
-      atexit(free_logging_file);
+      atexit(_free_logging_file);
     }
 
     vfprintf(logging_file, fmt, args);
@@ -121,29 +132,57 @@ static void _cwp_log_va(int level, bool add_line_break, const char* func, const 
  * Public function prototypes
  *-----------------------------------------------------------------------------*/
 
-void CWP_Log_level_set(int level) {
+void
+CWP_Log_level_set
+(
+  int level
+)
+{
   L.level = level;
 }
 
-void CWP_Log_console_enable(int enable) {
+
+void
+CWP_Log_console_enable
+(
+  int enable
+)
+{
   L.verbose_console = enable ? 1 : 0;
 }
 
-void CWP_Log_logfile_enable(int enable) {
+
+void
+CWP_Log_logfile_enable
+(
+  int enable
+)
+{
   L.verbose_logfile = enable ? 1 : 0;
 }
 
-void _cwp_log(int level, const char* func, const char *file, int line, const char *fmt, ...) {
+
+void
+_cwp_log
+(
+        int   level,
+  const char *func,
+  const char *file,
+        int   line,
+  const char *fmt,
+  ...
+)
+{
   if ((L.verbose_console == 0 && L.verbose_logfile == 0) || level < L.level) {
     return;
   }
 
   bool add_line_break = false;
   size_t len = strlen(fmt);
-  if (len == 0){
+  if (len == 0) {
     add_line_break = true;
   }
-  else if (strcmp(&fmt[len-1], "\n") != 0) {
+  else if (fmt[len-1] != '\n') {
     add_line_break = true;
   }
 
@@ -153,7 +192,18 @@ void _cwp_log(int level, const char* func, const char *file, int line, const cha
   va_end(args);
 }
 
-void _cwp_log_assert(bool condition, const char* func, const char *file, int line, const char *fmt, ...) {
+
+void
+_cwp_log_assert
+(
+        bool  condition,
+  const char *func,
+  const char *file,
+        int   line,
+  const char *fmt,
+  ...
+)
+{
   if (condition) return;
   _cwp_log(CWP_LOG_FATAL, func, file, line, "Assertion error in \"%s\" (file %s, line %d)", func, _filename_without_path(file), line);
   va_list args;
@@ -165,7 +215,17 @@ void _cwp_log_assert(bool condition, const char* func, const char *file, int lin
   exit(1);
 }
 
-void _cwp_log_fail(const char* func, const char *file, int line, const char *fmt, ...) {
+
+void
+_cwp_log_fail
+(
+  const char *func,
+  const char *file,
+        int   line,
+  const char *fmt,
+  ...
+)
+{
   _cwp_log(CWP_LOG_FATAL, func, file, line, "Fatal error in \"%s\" (file %s, line %d)", func, _filename_without_path(file), line);
   va_list args;
   va_start(args, fmt);
@@ -176,51 +236,54 @@ void _cwp_log_fail(const char* func, const char *file, int line, const char *fmt
   exit(1);
 }
 
+
 void
 CWP_Log_array_int
 (
- const int   level,
- const int*  array,
- const int   larray,
- const char* header
+  const int   level,
+  const int  *array,
+  const int   larray,
+  const char *header
 )
 {
   CWP_Log(level, header);
   CWP_Log(level, "(%i) -> ", larray);
-  for(int i = 0; i < larray; ++i){
+  for (int i = 0; i < larray; ++i) {
     CWP_Log(level, "%d ", array[i]);
   }
   CWP_Log(level, "\n");
 }
 
+
 void
 CWP_Log_array_double
 (
- const int     level,
- const double* array,
- const int     larray,
- const char*   header
+  const int     level,
+  const double *array,
+  const int     larray,
+  const char   *header
 )
 {
   CWP_Log(level, header);
   CWP_Log(level, "(%i) -> ", larray);
-  for(int i = 0; i < larray; ++i){
+  for (int i = 0; i < larray; ++i) {
     CWP_Log(level, "%20.16e ", array[i]);
   }
   CWP_Log(level, "\n");
 }
 
+
 void
 CWP_Log_array_size_t
 (
- const int     level,
- const size_t *array,
- const int     larray,
- const char   *header
+  const int     level,
+  const size_t *array,
+  const int     larray,
+  const char   *header
 )
 {
   CWP_Log(level, header);
-  for(int i = 0; i < larray; ++i){
+  for (int i = 0; i < larray; ++i) {
     CWP_Log(level, "%lu ", array[i]);
   }
   CWP_Log(level, "\n");

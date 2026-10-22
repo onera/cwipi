@@ -102,7 +102,7 @@ user_interp_function_c
                                            field_id,
                                            i_part,
                                            &cell_vtx_idx,
-                                          &cell_vtx);
+                                           &cell_vtx);
 
   // INTERSECTION SPATIAL INTERPOLATION ALGORITHM
 
