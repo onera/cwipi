@@ -154,14 +154,14 @@ breathe_projects = {
 breathe_projects_source = {
     "cwipi" : ( "@PROJECT_SOURCE_DIR@/src",
                ["@PROJECT_SOURCE_DIR@/src/cwipi.h",
-               "@PROJECT_SOURCE_DIR@/src/new/cwp.h",
-               "@PROJECT_SOURCE_DIR@/src/new/client_server/client.h",
-               "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
-               "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
-               "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
-               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_c_pattern.txt",
-               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_fortran_pattern.txt",
-               "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_python_pattern.txt"] )
+                "@PROJECT_SOURCE_DIR@/src/new/cwp.h",
+                "@PROJECT_SOURCE_DIR@/src/new/client_server/client.h",
+                "@PROJECT_SOURCE_DIR@/tests/tutorial/c_new_api_polygon_sol.c",
+                "@PROJECT_SOURCE_DIR@/tests/tutorial/fortran_new_api_polygon_sol.F90",
+                "@PROJECT_SOURCE_DIR@/tests/tutorial/python_new_api_polygon_sol.py",
+                "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_c_pattern.txt",
+                "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_fortran_pattern.txt",
+                "@PROJECT_SOURCE_DIR@/pattern/user_interp_function_python_pattern.txt"] )
 }
 
 breathe_default_project = "cwipi"
@@ -430,7 +430,7 @@ for lang in []:
 
 # POPULATE LINKS TO OTHER VERSIONS
 html_context['versions'] = list()
-for version in ['dev', '1.3.0', '1.2.0', '1.1.0', '1.0.0']:
+for version in ['dev', '1.4.0', '1.3.0', '1.2.0', '1.1.0', '1.0.0']:
   html_context['versions'].append( (version, f'/{REPO_NAME}/{version}/') )
 
 # POPULATE LINKS TO OTHER FORMATS/DOWNLOADS

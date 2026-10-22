@@ -1,4 +1,10 @@
-## [1.4.0] - 2026-XX-XX
+## [1.5.0] - 2027-XX-XX
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+## [1.4.0] - 2026-10-22
 ### Added
 - Add CWP_logging functions (for debug mostly)
 - Check dependencies for cwp_run at build
