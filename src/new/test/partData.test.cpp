@@ -103,7 +103,7 @@ _get_values
   }
   int n_code = static_cast<int>(code_names.size());
 
-  MPI_Comm *intra_comm = (MPI_Comm *) malloc(sizeof(MPI_Comm) * n_code);
+  MPI_Comm *intra_comm = static_cast<MPI_Comm *>(malloc(sizeof(MPI_Comm) * n_code));
   CWP_Init(comm,
            n_code,
            code_names.data(),
@@ -111,7 +111,7 @@ _get_values
            intra_comm);
 
   // Create coupling
-  int        *n_part    = (int *) malloc(sizeof(int) * n_code);
+  int        *n_part    = static_cast<int *>(malloc(sizeof(int) * n_code));
   int         n_vtx_seg = 9;
   const char *cpl_name  = "partDataTest";
 
@@ -145,13 +145,13 @@ _get_values
   }
 
   // Define mesh
-  int          **pn_face        = (int          **) malloc(sizeof(int          *) * n_code);
-  int          **pn_vtx         = (int          **) malloc(sizeof(int          *) * n_code);
-  int         ***pface_vtx_idx  = (int         ***) malloc(sizeof(int         **) * n_code);
-  int         ***pface_vtx      = (int         ***) malloc(sizeof(int         **) * n_code);
-  double      ***pvtx_coord     = (double      ***) malloc(sizeof(double      **) * n_code);
-  CWP_g_num_t ***pface_ln_to_gn = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
-  CWP_g_num_t ***pvtx_ln_to_gn  = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
+  int          **pn_face        = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
+  int          **pn_vtx         = static_cast<int          **>(malloc(sizeof(int          *) * n_code));
+  int         ***pface_vtx_idx  = static_cast<int         ***>(malloc(sizeof(int         **) * n_code));
+  int         ***pface_vtx      = static_cast<int         ***>(malloc(sizeof(int         **) * n_code));
+  double      ***pvtx_coord     = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  CWP_g_num_t ***pface_ln_to_gn = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
+  CWP_g_num_t ***pvtx_ln_to_gn  = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
 
   for (int i_code = 0; i_code < n_code; i_code++) {
 
@@ -183,36 +183,36 @@ _get_values
   }
 
   // Allocate exchange buffers and fill send buffers
-  double      ***send_val1 = (double      ***) malloc(sizeof(double      **) * n_code);
-  double      ***recv_val1 = (double      ***) malloc(sizeof(double      **) * n_code);
-  double      ***send_val2 = (double      ***) malloc(sizeof(double      **) * n_code);
-  double      ***recv_val2 = (double      ***) malloc(sizeof(double      **) * n_code);
-  CWP_g_num_t ***send_val3 = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
-  CWP_g_num_t ***recv_val3 = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
-  CWP_g_num_t ***send_val4 = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
-  CWP_g_num_t ***recv_val4 = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * n_code);
+  double      ***send_val1 = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  double      ***recv_val1 = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  double      ***send_val2 = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  double      ***recv_val2 = static_cast<double      ***>(malloc(sizeof(double      **) * n_code));
+  CWP_g_num_t ***send_val3 = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
+  CWP_g_num_t ***recv_val3 = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
+  CWP_g_num_t ***send_val4 = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
+  CWP_g_num_t ***recv_val4 = static_cast<CWP_g_num_t ***>(malloc(sizeof(CWP_g_num_t **) * n_code));
 
   for (int i_code = 0; i_code < n_code; i_code++) {
 
-    send_val1[i_code] = (double      **) malloc(sizeof(double      *) * n_part[i_code]);
-    recv_val1[i_code] = (double      **) malloc(sizeof(double      *) * n_part[i_code]);
-    send_val2[i_code] = (double      **) malloc(sizeof(double      *) * n_part[i_code]);
-    recv_val2[i_code] = (double      **) malloc(sizeof(double      *) * n_part[i_code]);
-    send_val3[i_code] = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part[i_code]);
-    recv_val3[i_code] = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part[i_code]);
-    send_val4[i_code] = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part[i_code]);
-    recv_val4[i_code] = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part[i_code]);
+    send_val1[i_code] = static_cast<double      **>(malloc(sizeof(double      *) * n_part[i_code]));
+    recv_val1[i_code] = static_cast<double      **>(malloc(sizeof(double      *) * n_part[i_code]));
+    send_val2[i_code] = static_cast<double      **>(malloc(sizeof(double      *) * n_part[i_code]));
+    recv_val2[i_code] = static_cast<double      **>(malloc(sizeof(double      *) * n_part[i_code]));
+    send_val3[i_code] = static_cast<CWP_g_num_t **>(malloc(sizeof(CWP_g_num_t *) * n_part[i_code]));
+    recv_val3[i_code] = static_cast<CWP_g_num_t **>(malloc(sizeof(CWP_g_num_t *) * n_part[i_code]));
+    send_val4[i_code] = static_cast<CWP_g_num_t **>(malloc(sizeof(CWP_g_num_t *) * n_part[i_code]));
+    recv_val4[i_code] = static_cast<CWP_g_num_t **>(malloc(sizeof(CWP_g_num_t *) * n_part[i_code]));
 
     for (int i_part = 0; i_part < n_part[i_code]; i_part++) {
 
       send_val1[i_code][i_part] = pvtx_coord    [i_code][i_part];
-      send_val2[i_code][i_part] = (double      *) malloc(sizeof(double     ) *     pn_vtx [i_code][i_part]);
+      send_val2[i_code][i_part] = static_cast<double      *>(malloc(sizeof(double     ) *     pn_vtx [i_code][i_part]));
       send_val3[i_code][i_part] = pface_ln_to_gn[i_code][i_part];
-      send_val4[i_code][i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * 2 * pn_face[i_code][i_part]);
-      recv_val1[i_code][i_part] = (double      *) malloc(sizeof(double     ) * 3 * pn_vtx [i_code][i_part]);
-      recv_val2[i_code][i_part] = (double      *) malloc(sizeof(double     ) *     pn_vtx [i_code][i_part]);
-      recv_val3[i_code][i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) *     pn_face[i_code][i_part]);
-      recv_val4[i_code][i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * 2 * pn_face[i_code][i_part]);
+      send_val4[i_code][i_part] = static_cast<CWP_g_num_t *>(malloc(sizeof(CWP_g_num_t) * 2 * pn_face[i_code][i_part]));
+      recv_val1[i_code][i_part] = static_cast<double      *>(malloc(sizeof(double     ) * 3 * pn_vtx [i_code][i_part]));
+      recv_val2[i_code][i_part] = static_cast<double      *>(malloc(sizeof(double     ) *     pn_vtx [i_code][i_part]));
+      recv_val3[i_code][i_part] = static_cast<CWP_g_num_t *>(malloc(sizeof(CWP_g_num_t) *     pn_face[i_code][i_part]));
+      recv_val4[i_code][i_part] = static_cast<CWP_g_num_t *>(malloc(sizeof(CWP_g_num_t) * 2 * pn_face[i_code][i_part]));
 
       for (int i_vtx = 0; i_vtx < pn_vtx[i_code][i_part]; i_vtx++) {
         send_val2[i_code][i_part][i_vtx] = static_cast<double>(pvtx_ln_to_gn[i_code][i_part][i_vtx]);
