@@ -1,9 +1,9 @@
 #ifndef __COMMWITHPART_H__
 #define __COMMWITHPART_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,119 +20,78 @@
 */
 
 #include "communication.hxx"
+
 #include "cwp.h"
+
+/**
+ * \cond
+ */
 
 namespace cwipi {
 
-  /** 
+  /**
    * \class CommWithPart commWithPart.hxx "commWithPart.hxx"
-   * \brief Communication with support partitionning
+   * \brief Communication with partitioned support.
    *
-   *  This class manages communication when the support is partitionned
+   * This class manages communication when the support is partitioned
    *
    */
 
   class CommWithPart :
-    public Communication {
-    
-  public :
+    public Communication
+  {
+
+  public:
 
     /**
-     *
      * \brief Constructor.
      *
      */
-
     CommWithPart();
+
 
     /**
      * \brief Destructor.
      *
      */
+    virtual ~CommWithPart() override;
 
-    virtual ~CommWithPart();
-
-    /**
-     *
-     * \brief Return Communication Type
-     *
-     * \return   communication type
-     *
-     */
-
-    inline CWP_Comm_t commTypeGet(); 
 
     /**
+     * \brief Return the communication type.
      *
-     * \brief Synchronise
-     *
+     * \return Communication type
      */
+    inline CWP_Comm_t
+    commTypeGet() const override;
 
-  /*  virtual void
-    sync
+  private:
+
+    /**
+     * \brief Build the coupling communicator.
+     *
+     * \param [in]  cplCodeCommType Coupling communicator type
+     */
+    void
+    cplCommCreate
     (
-     void *tab, 
-     MPI_Datatype mpiType, 
-     int tabSize
-    );*/
+      const CWP_Comm_t cplCodeCommType
+    ) override;
 
-  private :
-
-    /**
-     *
-     * \brief Assigment operator
-     *
-     */
-    
-    CommWithPart 
-    &operator=
-    (const CommWithPart &other);
-
-    /**
-     *
-     * \brief Copy constructor
-     *
-     */
-
-    CommWithPart(const CommWithPart& other); 
-
-  private :
-
-    /**
-     *
-     * \brief Building coupling communicator.
-     *
-     */
-
-    void 
-    _cplCommCreate
-    (
-     CWP_Comm_t cplCodeCommType
-     );
-
-    /**
-     *
-     * \brief Communication type
-     *
-     */
-
-    CWP_Comm_t _commType;
+    CWP_Comm_t _commType; /*!< Communication type */
 
   };
 
-  /**
-   *
-   * \brief Return Communication Type
-   *
-   * \return   communication type
-   *
-   */
-  
-  CWP_Comm_t 
-  CommWithPart::commTypeGet()
+  inline CWP_Comm_t
+  CommWithPart::commTypeGet() const
   {
     return _commType;
   }
 
 }
-#endif
+
+/**
+ * \endcond
+ */
+
+#endif // __COMMWITHPART_H__

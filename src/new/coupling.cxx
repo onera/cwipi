@@ -576,8 +576,8 @@ namespace cwipi {
 
     PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
-    int mpi_tag = _communication._get_tag(part_data_id,
-                                          exch_id);
+    int mpi_tag = _communication.tagGet(part_data_id,
+                                        exch_id);
 
     int send_request = -1;
 
@@ -631,8 +631,8 @@ namespace cwipi {
 
     PDM_part_to_part_t *ptp = it->second.pdmPartToPartGet();
 
-    int mpi_tag = _communication._get_tag(part_data_id,
-                                          exch_id);
+    int mpi_tag = _communication.tagGet(part_data_id,
+                                        exch_id);
 
     int recv_request = -1;
 
@@ -799,12 +799,12 @@ namespace cwipi {
     assert(it != _globalData.end());
 
     MPI_Request data_send_request;
-    _communication.issendGlobalDataBetweenCodesThroughUnionCom(global_data_id,
-                                                               &data_send_request,
-                                                               s_send_entity,
-                                                               send_stride,
-                                                               n_send_entity,
-                                                               send_data);
+    _communication.globalDataBetweenCodesThroughUnionCommIssend(global_data_id,
+                                                                &data_send_request,
+                                                                s_send_entity,
+                                                                send_stride,
+                                                                n_send_entity,
+                                                                send_data);
     it->second.dataSendRequestSet(data_send_request);
   }
 
@@ -841,12 +841,12 @@ namespace cwipi {
     assert(it != _globalData.end());
 
     MPI_Request data_recv_request;
-    _communication.irecvGlobalDataBetweenCodesThroughUnionCom(global_data_id,
-                                                              &data_recv_request,
-                                                              s_recv_entity,
-                                                              recv_stride,
-                                                              n_recv_entity,
-                                                              recv_data);
+    _communication.globalDataBetweenCodesThroughUnionCommIrecv(global_data_id,
+                                                               &data_recv_request,
+                                                               s_recv_entity,
+                                                               recv_stride,
+                                                               n_recv_entity,
+                                                               recv_data);
     it->second.dataRecvRequestSet(data_recv_request);
   }
 
@@ -878,12 +878,12 @@ namespace cwipi {
     }
 
     // Get coupled
-    _communication.waitIssendGlobalDataBetweenCodesThroughUnionCom(data_send_request,
-                                                                   s_entity,
-                                                                   stride,
-                                                                   n_entity,
-                                                                   send_data,
-                                                                   cpl_recv_data);
+    _communication.globalDataBetweenCodesThroughUnionCommWaitIssend(data_send_request,
+                                                                    s_entity,
+                                                                    stride,
+                                                                    n_entity,
+                                                                    send_data,
+                                                                    cpl_recv_data);
   }
 
   /**
@@ -914,40 +914,12 @@ namespace cwipi {
     }
 
     // Get coupled
-    _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(data_recv_request,
-                                                                  s_entity,
-                                                                  stride,
-                                                                  n_entity,
-                                                                  cpl_send_data,
-                                                                  recv_data);
-  }
-
-  /*----------------------------------------------------------------------------*
-   * Methods about communicators                                                *
-   *----------------------------------------------------------------------------*/
-
- /**
-  * \brief Get coupling communicator and coupling ranks.
-  *
-  * \param [out] cpl_comm             Coupling communicator
-  * \param [out] cpl_ranks            Coupling ranks
-  *
-  * \return Size of \ref cpl_ranks vector
-  *
-  */
-
-  int
-  Coupling::commGet (
-    MPI_Comm  *cpl_comm,
-    int      **cpl_ranks
-  )
-  {
-    *cpl_comm  = _communication.cplCommGet();
-
-    std::vector<int>* vect_cpl_ranks = _communication.cplCommCplRanksGet();
-    *cpl_ranks = vect_cpl_ranks->data();
-
-    return vect_cpl_ranks->size();
+    _communication.globalDataBetweenCodesThroughUnionCommWaitIrecv(data_recv_request,
+                                                                   s_entity,
+                                                                   stride,
+                                                                   n_entity,
+                                                                   cpl_send_data,
+                                                                   recv_data);
   }
 
 
@@ -1683,7 +1655,7 @@ namespace cwipi {
           it++;
         }
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    1,
                                                                    (void *) &_nPart,
                                                                    -1,
@@ -1698,7 +1670,7 @@ namespace cwipi {
         int nRecvData  = 1;
         int cplNbField = 0;
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    nSendData,
                                                                    (void *) &localNbField,
                                                                    -1,
@@ -1720,7 +1692,7 @@ namespace cwipi {
 
         nSendData   = localNbField + 1;
         nRecvData   = cplNbField + 1;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    nSendData,
                                                                    (void *) localFieldsNameIdx.data(),
                                                                    -1,
@@ -1737,7 +1709,7 @@ namespace cwipi {
         localFieldsNameIdx.clear();
 
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(char),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(char),
                                                                    nSendData,
                                                                    (void *) localFieldsName.c_str(),
                                                                    -1,
@@ -1751,7 +1723,7 @@ namespace cwipi {
 
         nSendData   = localNbField;
         nRecvData   = cplNbField;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Field_exch_t),
                                                                    nSendData,
                                                                    (void *) localFieldsExch.data(),
                                                                    -1,
@@ -1764,7 +1736,7 @@ namespace cwipi {
 
         nSendData   = localNbField;
         nRecvData   = cplNbField;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                    nSendData,
                                                                    (void *) localFieldLocationV.data(),
                                                                    -1,
@@ -1777,7 +1749,7 @@ namespace cwipi {
 
         nSendData   = localNbField;
         nRecvData   = cplNbField;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    nSendData,
                                                                    (void *) localFieldNComponent.data(),
                                                                    -1,
@@ -1851,7 +1823,7 @@ namespace cwipi {
 
         int sis_r;
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    1,
                                                                    (void *) &sis_s,
                                                                    -1,
@@ -1875,7 +1847,7 @@ namespace cwipi {
 
         int sir_r;
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                    1,
                                                                    (void *) &sir_s,
                                                                    -1,
@@ -1890,7 +1862,7 @@ namespace cwipi {
 
         _sis_loc_r.resize(2*sis_r);
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                    2*sis_s,
                                                                    (void *) sis_loc.data(),
                                                                    -1,
@@ -1903,7 +1875,7 @@ namespace cwipi {
         vector<CWP_Dof_location_t> sir_loc_r;
         sir_loc_r.resize(2*sis_s);
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+        _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                    2*sir_s,
                                                                    (void *) sir_loc.data(),
                                                                    -1,
@@ -2055,7 +2027,7 @@ namespace cwipi {
             it++;
           }
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      1,
                                                                      (void *) &_nPart,
                                                                      1,
@@ -2075,7 +2047,7 @@ namespace cwipi {
           int cpl_nRecvData       = 1;
           int cpl_cplNbField      = 0;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      nSendData,
                                                                      (void *) &localNbField,
                                                                      cpl_nSendData,
@@ -2108,7 +2080,7 @@ namespace cwipi {
           cpl_nSendData   = cpl_localNbField + 1;
           cpl_nRecvData   = cpl_cplNbField + 1;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      nSendData,
                                                                      (void *) localFieldsNameIdx.data(),
                                                                      cpl_nSendData,
@@ -2130,7 +2102,7 @@ namespace cwipi {
           cpl_localFieldsNameIdx.clear();
 
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(char),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(char),
                                                                      nSendData,
                                                                      (void *) localFieldsName.c_str(),
                                                                      cpl_nSendData,
@@ -2149,7 +2121,7 @@ namespace cwipi {
           cpl_nSendData   = cpl_localNbField;
           cpl_nRecvData   = cpl_cplNbField;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Field_exch_t),
                                                                      nSendData,
                                                                      (void *) localFieldsExch.data(),
                                                                      cpl_nSendData,
@@ -2168,7 +2140,7 @@ namespace cwipi {
           cpl_nSendData   = cpl_localNbField;
           cpl_nRecvData   = cpl_cplNbField;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                      nSendData,
                                                                      (void *) localFieldLocationV.data(),
                                                                      cpl_nSendData,
@@ -2187,7 +2159,7 @@ namespace cwipi {
           cpl_nSendData   = cpl_localNbField;
           cpl_nRecvData   = cpl_cplNbField;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      nSendData,
                                                                      (void *) localFieldNComponent.data(),
                                                                      cpl_nSendData,
@@ -2293,7 +2265,7 @@ namespace cwipi {
           int sis_r;
           int cpl_sis_r;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      1,
                                                                      (void *) &sis_s,
                                                                      1,
@@ -2333,7 +2305,7 @@ namespace cwipi {
           // sir_s = 5;
           // cpl_sir_s = 7;
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(int),
                                                                      1,
                                                                      (void *) &sir_s,
                                                                      1,
@@ -2353,7 +2325,7 @@ namespace cwipi {
           assert(cpl_sir_r == cpl_sis_s);
           assert(cpl_sis_r == cpl_sir_s);
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                      2*sis_s,
                                                                      (void *) sis_loc.data(),
                                                                      2*cpl_sis_s,
@@ -2369,7 +2341,7 @@ namespace cwipi {
           vector<CWP_Dof_location_t> cpl_sir_loc_r;
           cpl_sir_loc_r.resize(2*cpl_sis_s);
 
-          _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+          _communication.globalDataBetweenCodesThroughUnionCommExch (sizeof(CWP_Dof_location_t),
                                                                      2*sir_s,
                                                                      (void *) sir_loc.data(),
                                                                      2*cpl_sir_s,

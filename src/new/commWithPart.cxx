@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,137 +19,87 @@
 
 #include "commWithPart.hxx"
 
+#include "cwp.h"
+
+#include <mpi.h>
+
+#include <cstddef>
+#include <cstdlib>
+#include <vector>
+
+/**
+ * \cond
+ */
+
 using namespace std;
 
 namespace cwipi {
 
-  /**
-   *
-   * \brief Constructor.
-   *
-   */
-
   CommWithPart::CommWithPart()
-    : Communication::Communication(),
-      _commType(CWP_COMM_PAR_WITH_PART)
+  : Communication::Communication(),
+    _commType(CWP_COMM_PAR_WITH_PART)
   {
   }
 
-  /**
-   * \brief Destructor.
-   *
-   */
 
   CommWithPart::~CommWithPart()
   {
   }
 
-  /**
-   *
-   * \brief Building coupling communicator.
-   *
-   */
 
   void
-  CommWithPart::_cplCommCreate
+  CommWithPart::cplCommCreate
   (
-   CWP_Comm_t cplCodeCommType
+    const CWP_Comm_t cplCodeCommType
   )
   {
-
-    _isCplRank = true;
-
-    vector <int> cplRanks = *(_cplCodeProperties->connectableRanksGet());
-    vector <int> locRanks = *(_localCodeProperties->connectableRanksGet());
-
-    _unionCommCplRanks = new std::vector<int>(cplRanks.size());
-    _unionCommLocRanks = new std::vector<int>(locRanks.size());
-
-    //Traduction de ces rangs dans _unionCommCplRanks - Contient les rangs (unionComm) correspondants
-
     MPI_Group globalGroup;
-    MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
-
-    MPI_Group unionGroup;
-    MPI_Comm_group(_unionComm, &unionGroup);
-
-    MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
-                              unionGroup, &((*_unionCommCplRanks)[0]));
-
-    MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
-                              unionGroup , &((*_unionCommLocRanks)[0]));
-
-    _cplCommCplRanks = new std::vector<int>(*_unionCommCplRanks);
-    _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
-
-    /*
-    Use the unionComm which the union of coupled ranks to compute spatial interpolation weights for partitioned and unpartitioned case.
-    Use the intraComm to broadcast computation results in withOutPart case.
-
-    _cplComm = unionComm in withPart case and contained the two code root ranks in withOutPart case.
-    the _cplComm is
-
-
-    */
+    MPI_Comm_group(_local_code_properties->globalCommGet(), &globalGroup);
 
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
 
-      //Exclusion des rangs connectable (unionComm) du code couplé pour obtenir le communicateur cplComm
-      // contenant uniquement les rangs connectable du code couplé
+      MPI_Group unionGroup;
+      MPI_Comm_group(_union_comm, &unionGroup);
 
-      const int cplRootRankInGlobalComm = _cplCodeProperties->rootRankGet();
+      vector<int> cplRanks = *(_cpl_code_properties->connectableRanksGet());
+
+      // Translate cplRanks from globalGroup into unionCommCplRanks in unionGroup
+      vector<int> unionCommCplRanks(cplRanks.size());
+      MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
+                                unionGroup, &(unionCommCplRanks[0]));
+
+      // Exclude the connectable ranks (unionComm) of the coupled code to obtain the cplComm communicator
+      // containing only the root rank of the coupled code
+      const int cplRootRankInGlobalComm = _cpl_code_properties->rootRankGet();
       int cplRootRankInUnionComm;
       MPI_Group_translate_ranks(globalGroup, 1, &cplRootRankInGlobalComm,
                                 unionGroup, &cplRootRankInUnionComm);
-      int *excludeRanks = (int *) malloc(sizeof(int) * (cplRanks.size() - 1));
+      int *excludeRanks = static_cast<int *>(malloc(sizeof(int) * (cplRanks.size() - 1)));
       int n_exclude = 0;
       for (size_t i = 0; i < cplRanks.size(); i++) {
-        if ((*_unionCommCplRanks)[i] != cplRootRankInUnionComm) {
-          excludeRanks[n_exclude++] = (*_unionCommCplRanks)[i];
+        if (unionCommCplRanks[i] != cplRootRankInUnionComm) {
+          excludeRanks[n_exclude++] = unionCommCplRanks[i];
         }
       }
 
-      MPI_Group_excl(unionGroup, n_exclude, excludeRanks, &_cplGroup);
+      MPI_Group cplGroup;
+      MPI_Group_excl(unionGroup, n_exclude, excludeRanks, &cplGroup);
+      MPI_Comm_create(_union_comm, cplGroup, &_cpl_comm);
+      MPI_Group_free(&cplGroup);
+      MPI_Group_free(&unionGroup);
       free(excludeRanks);
-
-      MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
 
     }
     else {
-
-      _cplComm = _unionComm;
-      MPI_Comm_group(_cplComm, &_cplGroup);
-
+      _cpl_comm = _union_comm;
     }
-    MPI_Group_free(&_cplGroup);
-    MPI_Group_free(&unionGroup);
+
+    MPI_Group_free(&globalGroup);
+
   }
 
-  /**
-   *
-   * \brief Synchronise
-   *
-   */
-
-#if defined(__INTEL_COMPILER)
-#pragma warning(push)
-#pragma warning(disable:869)
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value"
-#endif
-/*  void
-  CommWithPart::sync
-  (
-   void *tab,
-   MPI_Datatype mpiType,
-   int tabSize
-  )
-  {
-  }*/
-#if defined(__INTEL_COMPILER)
-#pragma warning(pop)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 }
+
+/**
+ * \endcond
+ */

@@ -41,12 +41,16 @@ namespace cwipi {
     /**
      * \brief Constructor.
      *
+     * \param [in]  s_entity Size of datatype in bytes
+     * \param [in]  stride   Stride of data
+     * \param [in]  n_entity Number of entities
+     *
      */
     GlobalData
     (
-      size_t s_entity,
-      int    stride,
-      int    n_entity
+      const size_t s_entity,
+      const int    stride,
+      const int    n_entity
     );
 
 
@@ -155,7 +159,7 @@ namespace cwipi {
     inline void
     dataRecvRequestSet
     (
-      MPI_Request req
+      const MPI_Request req
     );
 
 
@@ -237,7 +241,7 @@ namespace cwipi {
   inline void
   GlobalData::dataSendRequestSet
   (
-    MPI_Request req
+    const MPI_Request req
   )
   {
     _data_send_request = req;

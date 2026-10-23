@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,364 +19,326 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-#include <cstdint>
+#include "cwp.h"
+
 #include "codeProperties.hxx"
 #include "couplingDB.hxx"
 
+#include <mpi.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
 /**
  * \cond
  */
 
-using namespace std;
-
 namespace cwipi {
 
   /**
    * \class Communication communication.hxx "communication.hxx"
-   * \brief Communication abstract interface
+   * \brief Communication abstract interface.
    *
-   *  This class is the abstract interface of communication instances.
-   *  A communication instance manage MPI communication between coupled codes
+   * This class is the abstract interface of communication instances
+   * and manages MPI communication between coupled codes
+   *
    */
-
   class Communication {
 
-  public :
+  public:
 
     /**
-     *
      * \brief Constructor.
      *
      */
-
     Communication();
+
 
     /**
      * \brief Destructor.
      *
      */
-
     virtual ~Communication();
 
+
     /**
-     *
      * \brief Initialize coupling communicators.
      *
-     * \param [in]  localCodeProperties   Local code properties
-     * \param [in]  cplCodeProperties     Coupled code properties
-     * \param [in]  cplId                 Coupling identifier
-     * \param [in]  cplDB                 Coupling DataBase
-     *
+     * \param [in]  localCodeProperties Local code properties
+     * \param [in]  cplCodeProperties   Coupled code properties
+     * \param [in]  cplId               Coupling identifier
+     * \param [in]  cplDB               Coupling database
      */
-
     void
     init
     (
-     const CodeProperties &localCodeProperties,
-     const CodeProperties &cplCodeProperties,
-     const string         &cplId,
-     CouplingDB           &cplDB
-     );
+      const CodeProperties &localCodeProperties,
+      const CodeProperties &cplCodeProperties,
+      const std::string    &cplId,
+            CouplingDB     &cplDB
+    );
+
 
     /**
-     *
      * \brief Initialize coupling communicators.
      *
-     * \param [in]  cplCodeComm           Coupled code communication
-     *
+     * \param [in]  cplCodeComm Coupled code communication
      */
-
     void
     init
     (
-     Communication &cplCodeComm
+      const Communication &cplCodeComm
     );
 
 
     /**
+     * \brief Get a tag from an Adler code.
      *
-     * \brief Exchange Data between two coupled code through Union Comminucator
-     *        All code ranks receive data (sendRecv between root rank then Bcast)
-     *
-     * \param [in]    s_data           Size of a data tot exchange
-     * \param [in]    n_send_data      Number of data to send
-     * \param [in]    send_data        Array of data to send
-     * \param [in]    n_send_data_cpl  Number of data to send (if current rank is shared betweenn code en coupled code)
-     * \param [in]    send_data_cpl    Array of data to send (if current rank is shared betweenn code en coupled code)
-     * \param [in]    n_recv_data      Number of data to receive
-     * \param [inout] recv_data        Array of data to receive
-     * \param [in]    n_recv_data_cpl  Number of data to receive (if current rank is shared betweenn code en coupled code)
-     * \param [inout] recv_data_cpl    Array of data to receive (if current rank is shared betweenn code en coupled code)
-     *
+     * \param [in]  name   Data identifier
+     * \param [in]  offset Offset
+     * \return Tag
      */
+    uint32_t
+    tagGet
+    (
+      const std::string name,
+      const int         offset
+    );
 
+
+    /**
+     * \brief Exchange data between two coupled codes through the union communicator.
+     *        All code ranks receive data (sendrecv between root ranks then bcast).
+     *
+     * \param [in]  s_data          Size of data values to exchange
+     * \param [in]  n_send_data     Number of data to send
+     * \param [in]  send_data       Array of data to send
+     * \param [in]  n_send_data_cpl Number of data to send (if current rank is shared between codes)
+     * \param [in]  send_data_cpl   Array of data to send (if current rank is shared between codes)
+     * \param [in]  n_recv_data     Number of data to receive
+     * \param [out] recv_data       Array of data to receive
+     * \param [in]  n_recv_data_cpl Number of data to receive (if current rank is shared between codes)
+     * \param [out] recv_data_cpl   Array of data to receive (if current rank is shared between codes)
+     */
     void
-    iexchGlobalDataBetweenCodesThroughUnionCom
+    globalDataBetweenCodesThroughUnionCommExch
     (
-     size_t       s_data,
-     int          n_send_data,
-     void        *send_data,
-     int          n_send_data_cpl,
-     void        *send_data_cpl,
-     int          n_recv_data,
-     void        *recv_data,
-     int          n_recv_data_cpl,
-     void        *recv_data_cpl
+      const size_t  s_data,
+      const int     n_send_data,
+      const void   *send_data,
+      const int     n_send_data_cpl,
+      const void   *send_data_cpl,
+      const int     n_recv_data,
+            void   *recv_data,
+      const int     n_recv_data_cpl,
+            void   *recv_data_cpl
     );
 
-    /**
-     *
-     * \brief Non blocking send of global data array
-     *
-     * \param [in]  global_data_id
-     * \param [out] data_send_request
-     * \param [in]  s_send_entity
-     * \param [in]  send_stride
-     * \param [in]  n_send_entity
-     * \param [in]  send_data
-     */
 
+    /**
+     * \brief Non blocking send of global data array.
+     *
+     * \param [in]  global_data_id    Global data identifier
+     * \param [out] data_send_request Send request
+     * \param [in]  s_entity          Size of data values
+     * \param [in]  stride            Stride
+     * \param [in]  n_entity          Number of entities
+     * \param [in]  send_data         Array of data to send
+     */
     void
-    issendGlobalDataBetweenCodesThroughUnionCom
+    globalDataBetweenCodesThroughUnionCommIssend
     (
-     const string    global_data_id,
-     MPI_Request    *data_send_request,
-     size_t          s_entity,
-     int             stride,
-     int             n_entity,
-     void           *send_data
-     );
+      const std::string  global_data_id,
+            MPI_Request *data_send_request,
+      const size_t       s_entity,
+      const int          stride,
+      const int          n_entity,
+      const void        *send_data
+    );
+
 
     /**
+     * \brief Non blocking receive of global data array.
      *
-     * \brief Non blocking receive of global data array
-     *
-     * \param [in]  global_data_id
-     * \param [out] data_recv_request
-     * \param [in]  s_entity
-     * \param [in]  stride
-     * \param [in]  n_entity
-     * \param [out] recv_data
+     * \param [in]  global_data_id    Global data identifier
+     * \param [out] data_recv_request Receive request
+     * \param [in]  s_entity          Size of data values
+     * \param [in]  stride            Stride
+     * \param [in]  n_entity          Number of entities
+     * \param [out] recv_data         Array of data to receive
      */
-
     void
-    irecvGlobalDataBetweenCodesThroughUnionCom
+    globalDataBetweenCodesThroughUnionCommIrecv
     (
-     const string    global_data_id,
-     MPI_Request    *data_recv_request,
-     size_t          s_entity,
-     int             stride,
-     int             n_entity,
-     void           *recv_data
-     );
+      const std::string  global_data_id,
+            MPI_Request *data_recv_request,
+      const size_t       s_entity,
+      const int          stride,
+      const int          n_entity,
+            void        *recv_data
+    );
+
 
     /**
+     * \brief Non blocking send wait of global data array.
      *
-     * \brief Non blocking send wait of global data array
-     *
-     * \param [in]  data_send_request
-     * \param [in]  s_entity
-     * \param [in]  stride
-     * \param [in]  n_entity
-     * \param [in]  send_data
-     * \param [out] recv_data
+     * \param [in]  data_send_request Send request
+     * \param [in]  s_entity          Size of data values
+     * \param [in]  stride            Stride
+     * \param [in]  n_entity          Number of entities
+     * \param [in]  send_data         Array of data to send
+     * \param [out] recv_data         Array of data to receive
      */
-
     void
-    waitIssendGlobalDataBetweenCodesThroughUnionCom
+    globalDataBetweenCodesThroughUnionCommWaitIssend
     (
-     MPI_Request     data_send_request,
-     size_t          s_entity,
-     int             stride,
-     int             n_entity,
-     void           *send_data,
-     void           *recv_data
-     );
+            MPI_Request  data_send_request,
+      const size_t       s_entity,
+      const int          stride,
+      const int          n_entity,
+      const void        *send_data,
+            void        *recv_data
+    );
+
 
     /**
+     * \brief Non blocking receive wait of global data array.
      *
-     * \brief Non blocking receive wait of global data array
-     *
-     * \param [in]  data_recv_request
-     * \param [in]  s_entity
-     * \param [in]  stride
-     * \param [in]  n_entity
-     * \param [in]  send_data
-     * \param [out] recv_data
+     * \param [in]  data_recv_request Receive request
+     * \param [in]  s_entity          Size of data values
+     * \param [in]  stride            Stride
+     * \param [in]  n_entity          Number of entities
+     * \param [in]  send_data         Array of data to send
+     * \param [out] recv_data         Array of data to receive
      */
-
     void
-    waitIrecvGlobalDataBetweenCodesThroughUnionCom
+    globalDataBetweenCodesThroughUnionCommWaitIrecv
     (
-     MPI_Request     data_recv_request,
-     size_t          s_entity,
-     int             stride,
-     int             n_entity,
-     void           *send_data,
-     void           *recv_data
-     );
-
-
-    MPI_Comm
-    unionCommGet
-    (
+            MPI_Request  data_recv_request,
+      const size_t       s_entity,
+      const int          stride,
+      const int          n_entity,
+      const void        *send_data,
+            void        *recv_data
     );
 
-    std::vector<int>*
-    unionCommCplRanksGet
-    (
-    );
-
-    std::vector<int>*
-    unionCommLocRanksGet
-    (
-    );
-
-    MPI_Comm
-    cplCommGet
-    (
-    );
-
-    std::vector<int>*
-    cplCommCplRanksGet
-    (
-    );
-
-    std::vector<int>*
-    cplCommLocRanksGet
-    (
-    );
-
-
-    int
-    unionCommCplCodeRootRanksGet
-    (
-    );
-
-    int
-    unionCommLocCodeRootRanksGet
-    (
-    );
-
-    int
-    cplCommCplCodeRootRanksGet
-    (
-    );
-
-    int
-    cplCommLocCodeRootRanksGet
-    (
-    );
 
     /**
+     * \brief Get the union communicator.
      *
-     * \brief Return the communicator type
-     *
+     * \return Union communicator
      */
+    inline MPI_Comm
+    unionCommGet() const;
 
+
+    /**
+     * \brief Get the coupling communicator.
+     *
+     * \return Coupling communicator
+     */
+    inline MPI_Comm
+    cplCommGet() const;
+
+
+    /**
+     * \brief Get the root rank of the coupled code into the union communicator.
+     *
+     * \return Root rank of the coupled code into the union communicator
+     */
+    inline int
+    unionCommCplCodeRootRanksGet() const;
+
+
+    /**
+     * \brief Get the root rank of the local code into the union communicator.
+     *
+     * \return Root rank of the local code into the union communicator
+     */
+    inline int
+    unionCommLocCodeRootRanksGet() const;
+
+
+    /**
+     * \brief Return the communicator type.
+     *
+     * \return Communicator type
+     */
     virtual CWP_Comm_t
-    commTypeGet() = 0;
+    commTypeGet() const = 0;
+
+  private:
 
     /**
+     * \brief Compute an Adler code.
      *
-     * \brief Synchronise
-     *
+     * \param [in]  buf       Buffer
+     * \param [in]  buflength Buffer length
+     * \return Adler code
      */
-/*
-    virtual void
-    sync
+    uint32_t
+    _adler32Compute
     (
-     void *tab,
-     MPI_Datatype mpiType,
-     int tabSize
-    ) = 0;
-*/
-
-    /**
-     *
-     * \brief Get an adler code
-     *
-     */
-
-    uint32_t _get_tag
-    (
-     const string    name,
-     int             offset
-     );
-
-  protected :
-
-    /**
-     *
-     * \brief Building coupling communicator from \ref CWP_Comm_t.
-     *
-     */
-
-    virtual void _cplCommCreate(CWP_Comm_t cplCodeCommType) = 0;
-
-
-  private :
-
-    /**
-     *
-     * \brief Adler code (taken from SpatialInterp)
-     *
-     */
-
-
-    uint32_t _adler32
-    (
-     const void *buf,
-     size_t buflength
-     );
-
-    /**
-     *
-     * \brief Assigment operator
-     *
-     */
-
-    Communication
-    &operator=
-    (const Communication &other);
-
-    /**
-     *
-     * \brief Copy constructor
-     *
-     */
-
-    Communication (const Communication& other);
+      const void   *buf,
+      const size_t  buflength
+    );
 
   protected:
 
-    const CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
-    const CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */
+    /**
+     * \brief Build the coupling communicator from \ref CWP_Comm_t.
+     *
+     * \param [in]  cplCodeCommType Coupling communicator type
+     */
+    virtual void
+    cplCommCreate
+    (
+      const CWP_Comm_t cplCodeCommType
+    ) = 0;
 
-    int       _tag;                     /*!< Tag for MPI */
-    MPI_Group _unionGroup;              /*!< Union grou between coupled codes */
-    MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
-    vector <int>  *_unionCommCplRanks;
-    vector <int>  *_unionCommLocRanks;
+    const CodeProperties *_local_code_properties;         /*!< Pointer to the local code properties */
+    const CodeProperties *_cpl_code_properties;           /*!< Pointer to the coupled code properties */
 
-    vector <int>  *_cplCommCplRanks;
-    vector <int>  *_cplCommLocRanks;
+    int                   _tag;                           /*!< Tag for MPI */
+    MPI_Comm              _union_comm;                    /*!< Union communicator between coupled codes */
+    MPI_Comm              _cpl_comm;                      /*!< Coupling communicator */
+    int                   _loc_code_root_rank_union_comm; /*!< Root rank of the local code into the union communicator */
+    int                   _cpl_code_root_rank_union_comm; /*!< Root rank of the coupled code into the union communicator */
 
-    MPI_Group _cplGroup;                  /*!< Coupling group (part of merger inter communicator */
-    MPI_Comm _cplComm;                    /*!< Coupling communicator (part of merger inter communicator */
-    int      _locCodeRootRankUnionComm;   /*!< Root rank associated to the local code into the union communicator */
-    int      _cplCodeRootRankUnionComm;   /*!< Root rank associated to the coupled code into the union communicator */
-    int      _locCodeRootRankCplComm;   /*!< Root rank associated to the local code into the coupling communicator */
-    int      _cplCodeRootRankCplComm;   /*!< Root rank associated to the coupled code into the coupling communicator */
-    bool      _isCplRank;                /*!< Is a current rank coupled */
   };
-}
 
+  inline MPI_Comm
+  Communication::unionCommGet() const
+  {
+    return _union_comm;
+  }
+
+
+  inline MPI_Comm
+  Communication::cplCommGet() const
+  {
+    return _cpl_comm;
+  }
+
+
+  inline int
+  Communication::unionCommCplCodeRootRanksGet() const
+  {
+    return _cpl_code_root_rank_union_comm;
+  }
+
+
+  inline int
+  Communication::unionCommLocCodeRootRanksGet() const
+  {
+    return _loc_code_root_rank_union_comm;
+  }
+
+}
 
 /**
  * \endcond
  */
 
-#endif //__COMMUNICATION_H__
+#endif // __COMMUNICATION_H__

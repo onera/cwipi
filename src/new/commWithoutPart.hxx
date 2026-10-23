@@ -1,9 +1,9 @@
 #ifndef __COMMWITHOUTPART_H__
 #define __COMMWITHOUTPART_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
-  Copyright (C) 2021-2023  ONERA
+  Copyright (C) 2021-2026  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,121 +20,78 @@
 */
 
 #include "communication.hxx"
+
 #include "cwp.h"
+
+/**
+ * \cond
+ */
 
 namespace cwipi {
 
-  /** 
+  /**
    * \class CommWithoutPart commWithoutPart.hxx "commWithoutPart.hxx"
-   * \brief Communication without support partitionning
+   * \brief Communication without partitioned support.
    *
-   *  This class manages communication when the support is unpartitionned
+   * This class manages communication when the support is not partitioned
    *
    */
 
   class CommWithoutPart :
-    public Communication {
-    
-  public :
+    public Communication
+  {
+
+  public:
 
     /**
-     *
      * \brief Constructor.
      *
      */
-
     CommWithoutPart();
+
 
     /**
      * \brief Destructor.
      *
      */
+    virtual ~CommWithoutPart() override;
 
-    virtual ~CommWithoutPart();
-
-    /**
-     *
-     * \brief Return Communication Type
-     *
-     * \return   communication type
-     *
-     */
-
-    inline CWP_Comm_t commTypeGet(); 
 
     /**
+     * \brief Return the communication type.
      *
-     * \brief Synchronise
-     *
+     * \return Communication type
      */
-/*
-    virtual void
-    sync
+    inline CWP_Comm_t
+    commTypeGet() const override;
+
+  private:
+
+    /**
+     * \brief Build the coupling communicator.
+     *
+     * \param [in]  cplCodeCommType Coupling communicator type
+     */
+    void
+    cplCommCreate
     (
-     void *tab, 
-     MPI_Datatype mpiType, 
-     int tabSize
-    );
-    
-    */
+      const CWP_Comm_t cplCodeCommType
+    ) override;
 
-  private :
-
-    /**
-     *
-     * \brief Assigment operator
-     *
-     */
-    
-    CommWithoutPart 
-    &operator=
-    (const CommWithoutPart &other);
-
-    /**
-     *
-     * \brief Copy constructor
-     *
-     */
-
-    CommWithoutPart(const CommWithoutPart& other); 
-
-  private :
-
-    /**
-     *
-     * \brief Building coupling communicator.
-     *
-     */
-
-    void 
-    _cplCommCreate
-    (
-     CWP_Comm_t cplCodeCommType
-     );
-
-    /**
-     *
-     * \brief Communication type
-     *
-     */
-
-    CWP_Comm_t _commType;
+    CWP_Comm_t _commType; /*!< Communication type */
 
   };
 
-  /**
-   *
-   * \brief Return Communication Type
-   *
-   * \return   communication type
-   *
-   */
-  
-  CWP_Comm_t 
-  CommWithoutPart::commTypeGet()
+  inline CWP_Comm_t
+  CommWithoutPart::commTypeGet() const
   {
     return _commType;
   }
 
 }
-#endif
+
+/**
+ * \endcond
+ */
+
+#endif // __COMMWITHOUTPART_H__
