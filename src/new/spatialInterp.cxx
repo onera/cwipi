@@ -135,12 +135,6 @@ namespace cwipi {
 
     _exchDirection          = exchDirection;
 
-    //_connectableRanks_cpl = _cpl->communicationGet()->cplCommCplRanksGet();
-    //_connectableRanks     = _cpl->communicationGet()->cplCommLocRanksGet();
-
-    //_id     = _localCodeProperties  ->idGet();
-    //_id_cpl = _coupledCodeProperties->idGet();
-
     _send_buffer.resize(_cpl->fieldsGet()->size());  /*!< Send buffer (size = n_field) */
     _recv_buffer.resize(_cpl->fieldsGet()->size());  /*!< Recv buffer (size = n_field) */
 

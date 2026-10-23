@@ -297,14 +297,14 @@ namespace cwipi {
       const CWP_Comm_t cplCodeCommType
     ) = 0;
 
-    const CodeProperties *_local_code_properties;          /*!< Pointer to the local code properties */
-    const CodeProperties *_cpl_code_properties;            /*!< Pointer to the coupled code properties */
+    const CodeProperties *_local_code_properties;         /*!< Pointer to the local code properties */
+    const CodeProperties *_cpl_code_properties;           /*!< Pointer to the coupled code properties */
 
-    int                    _tag;                           /*!< Tag for MPI */
-    MPI_Comm               _union_comm;                    /*!< Union communicator between coupled codes */
-    MPI_Comm               _cpl_comm;                      /*!< Coupling communicator */
-    int                    _loc_code_root_rank_union_comm; /*!< Root rank of the local code into the union communicator */
-    int                    _cpl_code_root_rank_union_comm; /*!< Root rank of the coupled code into the union communicator */
+    int                   _tag;                           /*!< Tag for MPI */
+    MPI_Comm              _union_comm;                    /*!< Union communicator between coupled codes */
+    MPI_Comm              _cpl_comm;                      /*!< Coupling communicator */
+    int                   _loc_code_root_rank_union_comm; /*!< Root rank of the local code into the union communicator */
+    int                   _cpl_code_root_rank_union_comm; /*!< Root rank of the coupled code into the union communicator */
 
   };
 
