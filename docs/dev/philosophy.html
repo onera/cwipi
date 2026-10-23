@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Philosophy &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Philosophy &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
@@ -89,12 +89,16 @@
              
   <section id="philosophy">
 <span id="id1"></span><h1>Philosophy<a class="headerlink" href="#philosophy" title="Permalink to this heading"></a></h1>
-<p>In this section we, the CWIPI developers, would like to raise awareness about philosophy that guides our coding choices.
-The library is quite low level. Thus, to ensure it is standalone, we restrict as much as possible the mandatory dependencies.
-For that same reason no particular data structure is used. Only simple types and arrays (C-contiguous) are used.
-For instance in Python, Numpy arrays are used for all physical and geometrical data, otherwise only basic types (list, int, bool…) are used.
-Since the library does not allocate the memory of the data that users can get, users need to manage the memory allocation and deallocation themselves.
-Let us note that coordinates arrays always have 3 components (x, y and z), even if the coupling interface is of lower dimension than 3D.</p>
+<p>In this section we, the CWIPI developers, would like to raise awareness about philosophy
+that guides our coding choices. The library is quite low level. Thus, to ensure it is
+standalone, we restrict as much as possible the mandatory dependencies.
+For that same reason no particular data structure is used. Only simple types and arrays
+(C-contiguous) are used. For instance in Python, Numpy arrays are used for all physical
+and geometrical data, otherwise only basic types (list, int, bool…) are used.
+Since the library does not allocate the memory of the data that users can get, users need
+to manage the memory allocation and deallocation themselves.
+Let us note that coordinates arrays always have 3 components (x, y and z), even if the
+coupling interface is of lower dimension than 3D.</p>
 </section>
 
 
@@ -108,7 +112,7 @@ Let us note that coordinates arrays always have 3 components (x, y and z), even 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -136,6 +140,8 @@ Let us note that coordinates arrays always have 3 components (x, y and z), even 
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

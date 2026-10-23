@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interpolation from nearest neighbors &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Interpolation from nearest neighbors &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -90,13 +90,14 @@ A specific spatial interpolation method can be assigned to each Coupling object.
 <p>Each method has a set of properties that can be adjusted (with <code class="docutils literal notranslate"><span class="pre">CWP_Spatial_interp_property_set</span></code> in C).
 Note that some methods do not support all types of dof location.
 Finally, each method relies on some geometric mapping data to perform spatial interpolation.
-This data is computed by CWIPI and can be accessed to design <span class="xref std std-ref">customized interpolation functions</span>.</p>
+This data is computed by CWIPI and can be accessed to design <a class="reference internal" href="new_cwipi.html#user-defined-spatial-interpolation-methods"><span class="std std-ref">customized interpolation functions</span></a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Some spatial interpolation methods leave some target dofs unmapped if the interface meshes overlap partially.
-The interpolated field for such targets is simply not computed.
-Only the first <img class="math" src="../_images/math/06d36e67cd9a99a5382f574212c7223daefb746b.png" alt="n_{mapped} \times n_{comp}"/> values of the receiving data array are thus filled by CWIPI, where <img class="math" src="../_images/math/da7b1b90745423b48f63912499b86fe136010345.png" alt="n_{mapped}"/> is the number of mapped targets (returned by <code class="docutils literal notranslate"><span class="pre">CWP_N_computed_tgts_get</span></code>), and <img class="math" src="../_images/math/1109abbde9ddb57814ae266c383ae92a91f0a990.png" alt="n_{comp}"/> the number of field components (specified when creating the field and returned by <code class="docutils literal notranslate"><span class="pre">CWP_Field_n_components_get</span></code>).
-Please refer to section <span class="xref std std-ref">Advanced functionalities</span> for some examples of use.</p>
+The interpolated field for such targets is simply not computed. Only the first <img class="math" src="../_images/math/06d36e67cd9a99a5382f574212c7223daefb746b.png" alt="n_{mapped} \times n_{comp}"/>
+values of the receiving data array are thus filled by CWIPI, where <img class="math" src="../_images/math/da7b1b90745423b48f63912499b86fe136010345.png" alt="n_{mapped}"/> is the number of mapped
+targets (returned by <code class="docutils literal notranslate"><span class="pre">CWP_N_computed_tgts_get</span></code>), and <img class="math" src="../_images/math/1109abbde9ddb57814ae266c383ae92a91f0a990.png" alt="n_{comp}"/> the number of field components
+(specified when creating the field and returned by <code class="docutils literal notranslate"><span class="pre">CWP_Field_n_components_get</span></code>).</p>
 </div>
 <p>The spatial interpolation methods can be divided into the following four families.</p>
 <section id="interpolation-from-nearest-neighbors">
@@ -108,50 +109,66 @@ Please refer to section <span class="xref std std-ref">Advanced functionalities<
 <li><p><code class="docutils literal notranslate"><span class="pre">CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES</span></code>: each source dof is mapped to its <code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code> nearest target dofs (note that some targets may be mapped to zero source).</p></li>
 </ul>
 </div></blockquote>
-<dl class="simple">
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Illustration with <code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code> = 2</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/inter_from_nearest_src.svg"><img alt="FROM_NEAREST_SOURCES" src="../_images/inter_from_nearest_src.svg" width="300" /></a>
+<figcaption>
+<p><span class="caption-text">From nearest sources</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</td>
+<td><figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="../_images/inter_from_nearest_tgt.svg"><img alt="FROM_NEAREST_TARGETS" src="../_images/inter_from_nearest_tgt.svg" width="300" /></a>
+<figcaption>
+<p><span class="caption-text">From nearest targets</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</td>
+</tr>
+</tbody>
+</table>
+<dl>
 <dt><strong>Default interpolation</strong></dt><dd><p>Both methods perform a Least Square interpolation weighted by inverse squared distance (see <a class="reference external" href="http://www.nealen.de/projects/mls/asapmls.pdf">[Nealen 2004]</a> for more details).</p>
 </dd>
-</dl>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>The following properties can be adjusted by the user:</p>
+<dt><strong>Properties</strong></dt><dd><p>The following properties can be adjusted by the user:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code>: number of neighbors to interpolate from (<cite>integer</cite>, default value: 4)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">polyfit_degree</span></code>: degree of polynomial fit (<cite>integer</cite>, default value: 1)</p></li>
 </ul>
 </div></blockquote>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>Since these are point cloud-based methods, they support all kinds of dof locations (mesh nodes, cell centers and user-defined points) for both source and target fields.</p>
-</div></blockquote>
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>Since these are point cloud-based methods, they support all kinds of dof locations (mesh nodes, cell centers and user-defined points) for both source and target fields.</p>
+</dd>
+</dl>
 </section>
 <section id="interpolation-from-mesh-intersection">
 <h1>Interpolation from mesh intersection<a class="headerlink" href="#interpolation-from-mesh-intersection" title="Permalink to this heading"></a></h1>
 <p>This family includes only one method: <code class="docutils literal notranslate"><span class="pre">CWP_SPATIAL_INTERP_FROM_INTERSECTION</span></code> which consists on computing the overlap fractions between the elements of both interface meshes.
 It is suited for conservative interpolation.</p>
-<p><strong>Default interpolation</strong></p>
-<blockquote>
-<div><p>The interpolated field at target <img class="math" src="../_images/math/e8dea8254118f111b5fb20895b03528c17566f06.png" alt="T"/> is computed as follows</p>
+<dl>
+<dt><strong>Default interpolation</strong></dt><dd><p>The interpolated field at target <img class="math" src="../_images/math/e8dea8254118f111b5fb20895b03528c17566f06.png" alt="T"/> is computed as follows</p>
 <div class="math">
 <p><img src="../_images/math/3e91cac9b0dbf9b60b5512c95f0727be2ecd2892.png" alt="f(T) = \frac{\sum_{S} w_S f(S)}{\sum_{S} w_S},"/></p>
 </div><p>where <img class="math" src="../_images/math/b988975be41fd13b4d091c10202ba19374643586.png" alt="S"/> designates a source element and <img class="math" src="../_images/math/0096b2764c9c507934e970485709c077a8e1fd84.png" alt="w_S"/> is the volume (or area for surface coupling interfaces) of <img class="math" src="../_images/math/73b4dd3fce779573efbbc8d04fd5a9074b720777.png" alt="T \cap S"/>.</p>
 <p>Note that for each mapped target element, the interpolation weights sum to one.
 Target elements that intersect no source element are simply not mapped.</p>
-</div></blockquote>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p id="bbox-paragraph">The intersection algorithm uses efficient bounding box collisions detection as a first step.
+</dd>
+<dt><strong>Properties</strong></dt><dd><p>The intersection algorithm uses efficient bounding box collisions detection as a first step.
 The boxes can be inflated using a relative tolerance.
 This is especially useful for non-planar, surface interface meshes where alignment with cartesian axes might cause some detection misses if the tolerance is set too low.
 The <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> property is of type <cite>double</cite> and is set to 0.001 by default, but be can adjusted as well.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>Naturally, this method cannot be used to interpolate fields with dofs located at user-defined points.
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>Naturally, this method cannot be used to interpolate fields with dofs located at user-defined points.
 Note that in version 1.0 this interpolation method is also not available for node-based source and target fields, but it will be soon.</p>
-</div></blockquote>
+</dd>
+</dl>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This method is only available for <em>surface</em> and <em>volume</em> interface meshes.</p>
@@ -172,23 +189,19 @@ Note that in version 1.0 this interpolation method is also not available for nod
 <p>These first two methods are equivalent to the spatial interpolation method of versions 0.x but have been re-implemented to improve performance.
 Both methods yield the same results but the octree generally performs better.</p>
 </div>
-<p><strong>Default interpolation</strong></p>
-<blockquote>
-<div><p>If the source field dofs are at cell centers, each mapped target simply gets the field value of its associated source mesh element.
+<dl class="simple">
+<dt><strong>Default interpolation</strong></dt><dd><p>If the source field dofs are at cell centers, each mapped target simply gets the field value of its associated source mesh element.
 If the source field dofs are located at nodes, the generalized barycentric coordinates of the target are used as interpolation weights if the source field dofs are located at nodes.</p>
-</div></blockquote>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>As for the <a class="reference internal" href="#bbox-paragraph"><span class="std std-ref">intersection method</span></a>, the first step of the localization method uses bounding boxes inflated by a relative geometric tolerance.
+</dd>
+<dt><strong>Properties</strong></dt><dd><p>As for the <a class="reference internal" href="#interpolation-from-mesh-intersection"><span class="std std-ref">intersection method</span></a>, the first step of the localization method uses bounding boxes inflated by a relative geometric tolerance.
 The <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> property is of type <cite>double</cite> and is set to 0.001 by default but be can adjusted as well.
 Again, it is recommended to tune this property for non-planar, surface interface meshes when using either of the first two methods, in order to avoid true positive detection errors.
 The third method is however much less sensitive to this property so it should be kept to a low value to avoid detecting too many false positive candidates, which could impair performance.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>This interpolation method requires the source field dofs to be located at either mesh nodes or cell centers.
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>This interpolation method requires the source field dofs to be located at either mesh nodes or cell centers.
 However, target field dofs can also be located at user-defined points.</p>
-</div></blockquote>
+</dd>
+</dl>
 </section>
 <section id="interpolation-from-identity">
 <h1>Interpolation from identity<a class="headerlink" href="#interpolation-from-identity" title="Permalink to this heading"></a></h1>
@@ -197,15 +210,11 @@ It might be useful for conforming interface meshes with different MPI partitioni
 <dl class="simple">
 <dt><strong>Default interpolation</strong></dt><dd><p>Each target dof is assigned the field value of its mapped source dof.</p>
 </dd>
+<dt><strong>Properties</strong></dt><dd><p>This method has no properties.</p>
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>This method supports all kinds of dof location.</p>
+</dd>
 </dl>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>This method has no properties.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>This method supports all kinds of dof location.</p>
-</div></blockquote>
 </section>
 
 
@@ -216,7 +225,7 @@ It might be useful for conforming interface meshes with different MPI partitioni
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -244,6 +253,8 @@ It might be useful for conforming interface meshes with different MPI partitioni
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

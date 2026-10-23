@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Quick Start &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
@@ -73,6 +73,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id6">Execution</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="old_cwipi/old_cwipi.html">Old CWIPI</a></li>
@@ -110,7 +111,8 @@
 <span id="id1"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
 <p>Here is shown how to couple two codes using the 1.x version of CWIPI in the different
 programming languages in which CWIPI is available. Both codes have the same basic
-polygonal mesh (see figure). code1 sends a field on the nodes to code2 and the unmapped points are checked.</p>
+polygonal mesh (see figure). code1 sends a field on the nodes to code2 and the unmapped
+points are checked.</p>
 <a class="reference internal image-reference" href="_images/mesh.png"><img alt="_images/mesh.png" src="_images/mesh.png" style="width: 255.0px; height: 302.5px;" /></a>
 <section id="cwipi-c">
 <h2>CWIPI C<a class="headerlink" href="#cwipi-c" title="Permalink to this heading"></a></h2>
@@ -440,6 +442,7 @@ polygonal mesh (see figure). code1 sends a field on the nodes to code2 and the u
 
 </pre></div>
 </div>
+<p>The file path in the repository is <code class="docutils literal notranslate"><span class="pre">&lt;cwipi_source&gt;/tests/tutorial/c_new_api_polygon_sol.c</span></code>.</p>
 </section>
 <section id="compilation">
 <h3>Compilation<a class="headerlink" href="#compilation" title="Permalink to this heading"></a></h3>
@@ -822,6 +825,8 @@ mpirun -np <span class="m">2</span> ./&lt;exec&gt;
 <span class="k">end program </span><span class="n">fortran_new_api_polygon_sol</span><span class="w"></span>
 </pre></div>
 </div>
+<p>The file path in the repository is <code class="docutils literal notranslate"><span class="pre">&lt;cwipi_source&gt;/tests/tutorial/fortran_new_api_polygon_sol.F90</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">cwipi_configf.h</span></code> header necessary for compilation is automatically generated at build time when <code class="docutils literal notranslate"><span class="pre">CWP_ENABLE_Fortran</span></code> is set to <code class="docutils literal notranslate"><span class="pre">ON</span></code>.</p>
 </section>
 <section id="id3">
 <h3>Compilation<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
@@ -1081,6 +1086,7 @@ mpirun -np <span class="m">2</span> ./&lt;exec&gt;
     <span class="n">runTest</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>The file path in the repository is <code class="docutils literal notranslate"><span class="pre">&lt;cwipi_source&gt;/tests/tutorial/python_new_api_polygon_sol.py</span></code>.</p>
 </section>
 <section id="id6">
 <h3>Execution<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
@@ -1090,6 +1096,19 @@ mpirun -np <span class="m">2</span> python &lt;file&gt;.py
 </pre></div>
 </div>
 </section>
+</section>
+<section id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading"></a></h2>
+<p>CWIPI will produce a <code class="docutils literal notranslate"><span class="pre">cwipi_writer</span></code> directory containing the output of the two codes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">code1_code2_code1_code2</span></code> (coupling <code class="docutils literal notranslate"><span class="pre">code1_code2</span></code>, interface mesh for <code class="docutils literal notranslate"><span class="pre">code1</span></code>, partitioning information for <code class="docutils literal notranslate"><span class="pre">code1</span></code>, data sent to/received from <code class="docutils literal notranslate"><span class="pre">code2</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">code1_code2_code2_code1</span></code> (coupling <code class="docutils literal notranslate"><span class="pre">code1_code2</span></code>, interface mesh for <code class="docutils literal notranslate"><span class="pre">code2</span></code>, partitioning information for <code class="docutils literal notranslate"><span class="pre">code2</span></code>, data sent to/received from <code class="docutils literal notranslate"><span class="pre">code1</span></code>)</p></li>
+</ul>
+<p>The output files are in the Ensight Gold format. The <code class="docutils literal notranslate"><span class="pre">.case</span></code> files should be opened with, e.g., Ensight or ParaView
+to visualize the exchanged fields on the respective interface meshes. For the examples above, the two fields
+<code class="docutils literal notranslate"><span class="pre">s_a~super~fancy~field1</span></code> (sent) and <code class="docutils literal notranslate"><span class="pre">r_a~super~fancy~field1</span></code> (received) can be visualized and will show the same
+values on the two interface meshes.</p>
+<a class="reference internal image-reference" href="_images/quickstart-visualization.png"><img alt="_images/quickstart-visualization.png" src="_images/quickstart-visualization.png" style="width: 640.0px; height: 400.0px;" /></a>
 </section>
 </section>
 
@@ -1104,7 +1123,7 @@ mpirun -np <span class="m">2</span> python &lt;file&gt;.py
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -1132,6 +1151,8 @@ mpirun -np <span class="m">2</span> python &lt;file&gt;.py
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

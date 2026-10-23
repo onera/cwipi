@@ -19,7 +19,7 @@ Besides, one can select which MPI ranks will be available for CWIPI.
 In summary, since version 1.0 the following additional arguments are required at CWIPI initialization:
    - ``n_code``: the number of codes executed on current MPI rank ;
    - ``code_names``: the list of local code names ;
-   - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users's code placement stragegy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.
+   - ``is_active_rank``: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users's code placement strategy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.
 
 Create a coupling
 =================
@@ -64,7 +64,6 @@ In version 0.x a single function ``cwipi_define_mesh`` was used to define the me
 Version 1.x, gives more flexibility in the way the mesh is provided so several functions must be called to define the mesh.
 In any case, you proceed the same way to define the mesh vertex coordinates. An example code in C is given below.
 
-
 Mesh vertices coordinates
 -------------------------
 
@@ -75,7 +74,7 @@ The coordinates of the mesh vertices should be provided in the following way::
                           partition_identifier,
                           number_of_vertices,
                           coordinates,
-                          NULL);
+                          global_num_vertices);
 
 The different ways to provide the mesh to CWIPI are explained below with C code. Note that all functions with the ``partition_identifier``
 argument must be called for all partitions on the given MPI rank.
@@ -97,7 +96,7 @@ If you want to provide a polygonal (2D) mesh in an element->vertex fashion, you 
                                    number_of_faces,
                                    face_vertex_index,
                                    face_vertex_connectivity,
-                                   NULL);
+                                   global_num_faces);
 
 If you want to provide a polyhedral (3D) mesh in an element->vertex fashion, you should do::
 
@@ -114,7 +113,7 @@ If you want to provide a polyhedral (3D) mesh in an element->vertex fashion, you
                                    face_edge_connectivity,
                                    cell_vertex_index,
                                    cell_vertex_connectivity,
-                                   NULL);
+                                   global_num_cells);
 
 Standard element Mesh
 ---------------------
@@ -131,7 +130,7 @@ If you want to provide your mesh per standard element type (eg for Finite Elemen
                                 block_idendifier,
                                 number_of_elements,
                                 element_vertex_connectivity,
-                                NULL);
+                                global_num_elements);
 
 Standard high-order element Mesh
 --------------------------------
@@ -149,7 +148,7 @@ If you want to provide your mesh per standard high-order element type, you shoul
                                number_of_elements,
                                order,
                                element_vertex_connectivity,
-                               NULL);
+                               global_num_elements);
 
    CWP_Mesh_interf_ho_ordering_from_IJK_set("code_name",
                                             "coupling_name",
@@ -171,7 +170,7 @@ If you want to provide a polygonal (2D) mesh in a downward topological connectio
                                     face_edge_connectivity,
                                     number_of_edges,
                                     edge_vertex_connectivity,
-                                    NULL);
+                                    global_num_faces);
 
 If you want to provide a polyhedral (3D) mesh in a downward topological connection fashion, you should do::
 
@@ -184,16 +183,14 @@ If you want to provide a polyhedral (3D) mesh in a downward topological connecti
                                     number_of_faces,
                                     face_vertex_index,
                                     face_vertex_connectivity,
-                                    NULL);
+                                    global_num_cells);
 
 Finalize Mesh
 -------------
 
-In any case, it is mandatory to finalize the mesh definition using ``CWP_Mesh_interf_finalize``. The ``NULL`` argument in the previous
-code blocks allows to provide a global numbering. Since it is only used low-level in CWIPI, the finalize function allow to generate them
-if not provided.
-
-.. TODO: on mettrait pas l'argument global_ids plutôt que NULL? En précisant qu'il est optionnel
+In any case, it is mandatory to finalize the mesh definition using ``CWP_Mesh_interf_finalize``. The ``global_num`` arguments in the previous
+code blocks allow to provide a global numbering of mesh entities. These arguments are optional and might be replaced by ``NULL``. Since it is
+only used low-level in CWIPI, the finalize function allows to generate global numberings if not provided.
 
 Exchange fields
 ===============

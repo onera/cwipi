@@ -10,7 +10,6 @@ General concepts
 
 .. include:: concepts.rst
 
-
 .. _spatial_interp:
 
 Spatial interpolation methods
@@ -21,9 +20,8 @@ Spatial interpolation methods
 Advanced features
 =================
 
-
-User-defined spatial interpolation
-----------------------------------
+User-defined spatial interpolation methods
+------------------------------------------
 
 Users can perform customized spatial interpolation based on the geometric mapping computed by CWIPI.
 To do so, one needs to provide CWIPI with a pointer to a user-written interpolation function (via ``CWP_Field_interp_function_set`` in C).
@@ -48,18 +46,15 @@ Data getters for user interpolation functions in Python
 .. literalinclude:: ../../../../pattern/user_interp_function_python_pattern.txt
    :language: python
 
-
 Additional exchange features
 ----------------------------
 
-CWIPI v.1 offers two additional means to exchange data between the coupled codes.
-As opposed to fields, these data need not be related to the interface meshes.
+CWIPI version 1.x offers two additional means to exchange data between the coupled codes.
+As opposed to fields, these data might not be related to the interface meshes.
 
 .. include:: global_data.rst
 
 .. include:: part_data.rst
-
-
 
 C API documentation
 ===================
@@ -78,7 +73,6 @@ Initialization/Finalization
 .. f:autosubroutine:: CWP_Init_
 
 .. .. f:autosubroutine:: CWP_Finalize
-
 
 Coupling
 --------
@@ -117,7 +111,6 @@ Control parameters
 
 .. f:autosubroutine:: CWP_Param_unlock_
 
-
 Interface mesh
 --------------
 
@@ -138,7 +131,6 @@ Interface mesh
 .. f:autosubroutine:: CWP_Mesh_interf_finalize_
 
 .. f:autosubroutine:: CWP_Mesh_interf_del_
-
 
 Spatial interpolation
 ---------------------
@@ -163,7 +155,6 @@ Spatial interpolation
 
 .. f:autosubroutine:: CWP_Involved_srcs_get_
 
-
 Fields
 ------
 
@@ -180,7 +171,6 @@ Fields
 .. f:autosubroutine:: CWP_Field_wait_irecv_
 
 .. f:autosubroutine:: CWP_Field_del_
-
 
 User-defined spatial interpolation
 ----------------------------------
@@ -226,7 +216,6 @@ Nearest neighbors methods
 
 .. f:autosubroutine:: CWP_Field_nearest_neighbors_coord_get_
 
-
 Global data
 -----------
 
@@ -237,7 +226,6 @@ Global data
 .. .. f:autosubroutine:: CWP_Global_data_irecv_
 
 .. f:autosubroutine:: CWP_Global_data_wait_irecv_
-
 
 Partitioned data
 ----------------
@@ -254,7 +242,6 @@ Partitioned data
 
 .. f:autosubroutine:: CWP_Part_data_del_
 
-
 Python API documentation (:mod:`pycwp`)
 =======================================
 
@@ -268,5 +255,3 @@ Python API documentation (:mod:`pycwp`)
    :members:
    :undoc-members:
    :show-inheritance:
-
-

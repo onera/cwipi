@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Old to New &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Old to New &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -116,7 +116,7 @@ Besides, one can select which MPI ranks will be available for CWIPI.</p>
 <dt>In summary, since version 1.0 the following additional arguments are required at CWIPI initialization:</dt><dd><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">n_code</span></code>: the number of codes executed on current MPI rank ;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">code_names</span></code>: the list of local code names ;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_active_rank</span></code>: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users’s code placement stragegy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active_rank</span></code>: this variable indicates whether the current MPI rank will participate in the coupling : if set to 0, it excludes the current MPI rank from the coupling (e.g. depending on the users’s code placement strategy on CPUs). If set to 1, a coupling including interface mesh and fields/parts has to be created for the current MPI rank.</p></li>
 </ul>
 </dd>
 </dl>
@@ -179,7 +179,7 @@ In any case, you proceed the same way to define the mesh vertex coordinates. An 
                         <span class="n">partition_identifier</span><span class="p">,</span>
                         <span class="n">number_of_vertices</span><span class="p">,</span>
                         <span class="n">coordinates</span><span class="p">,</span>
-                        <span class="n">NULL</span><span class="p">);</span>
+                        <span class="n">global_num_vertices</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The different ways to provide the mesh to CWIPI are explained below with C code. Note that all functions with the <code class="docutils literal notranslate"><span class="pre">partition_identifier</span></code>
@@ -200,7 +200,7 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                                  <span class="n">number_of_faces</span><span class="p">,</span>
                                  <span class="n">face_vertex_index</span><span class="p">,</span>
                                  <span class="n">face_vertex_connectivity</span><span class="p">,</span>
-                                 <span class="n">NULL</span><span class="p">);</span>
+                                 <span class="n">global_num_faces</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>If you want to provide a polyhedral (3D) mesh in an element-&gt;vertex fashion, you should do:</p>
@@ -217,7 +217,7 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                                  <span class="n">face_edge_connectivity</span><span class="p">,</span>
                                  <span class="n">cell_vertex_index</span><span class="p">,</span>
                                  <span class="n">cell_vertex_connectivity</span><span class="p">,</span>
-                                 <span class="n">NULL</span><span class="p">);</span>
+                                 <span class="n">global_num_cells</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -234,7 +234,7 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                               <span class="n">block_idendifier</span><span class="p">,</span>
                               <span class="n">number_of_elements</span><span class="p">,</span>
                               <span class="n">element_vertex_connectivity</span><span class="p">,</span>
-                              <span class="n">NULL</span><span class="p">);</span>
+                              <span class="n">global_num_elements</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -252,7 +252,7 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                              <span class="n">number_of_elements</span><span class="p">,</span>
                              <span class="n">order</span><span class="p">,</span>
                              <span class="n">element_vertex_connectivity</span><span class="p">,</span>
-                             <span class="n">NULL</span><span class="p">);</span>
+                             <span class="n">global_num_elements</span><span class="p">);</span>
 
  <span class="n">CWP_Mesh_interf_ho_ordering_from_IJK_set</span><span class="p">(</span><span class="s2">&quot;code_name&quot;</span><span class="p">,</span>
                                           <span class="s2">&quot;coupling_name&quot;</span><span class="p">,</span>
@@ -274,7 +274,7 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                                   <span class="n">face_edge_connectivity</span><span class="p">,</span>
                                   <span class="n">number_of_edges</span><span class="p">,</span>
                                   <span class="n">edge_vertex_connectivity</span><span class="p">,</span>
-                                  <span class="n">NULL</span><span class="p">);</span>
+                                  <span class="n">global_num_faces</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>If you want to provide a polyhedral (3D) mesh in a downward topological connection fashion, you should do:</p>
@@ -287,15 +287,15 @@ If you want to provide a polygonal (2D) mesh in an element-&gt;vertex fashion, y
                                   <span class="n">number_of_faces</span><span class="p">,</span>
                                   <span class="n">face_vertex_index</span><span class="p">,</span>
                                   <span class="n">face_vertex_connectivity</span><span class="p">,</span>
-                                  <span class="n">NULL</span><span class="p">);</span>
+                                  <span class="n">global_num_cells</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
 <section id="finalize-mesh">
 <h3>Finalize Mesh<a class="headerlink" href="#finalize-mesh" title="Permalink to this heading"></a></h3>
-<p>In any case, it is mandatory to finalize the mesh definition using <code class="docutils literal notranslate"><span class="pre">CWP_Mesh_interf_finalize</span></code>. The <code class="docutils literal notranslate"><span class="pre">NULL</span></code> argument in the previous
-code blocks allows to provide a global numbering. Since it is only used low-level in CWIPI, the finalize function allow to generate them
-if not provided.</p>
+<p>In any case, it is mandatory to finalize the mesh definition using <code class="docutils literal notranslate"><span class="pre">CWP_Mesh_interf_finalize</span></code>. The <code class="docutils literal notranslate"><span class="pre">global_num</span></code> arguments in the previous
+code blocks allow to provide a global numbering of mesh entities. These arguments are optional and might be replaced by <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. Since it is
+only used low-level in CWIPI, the finalize function allows to generate global numberings if not provided.</p>
 </section>
 </section>
 <section id="exchange-fields">
@@ -322,7 +322,7 @@ The non-blocking exchange functions were kept and are the way to go.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -350,6 +350,8 @@ The non-blocking exchange functions were kept and are the way to go.</p>
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

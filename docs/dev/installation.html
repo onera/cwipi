@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Installation &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
@@ -101,12 +101,29 @@
 <p>General dependencies for building <strong>CWIPI</strong> are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>a C++ compiler (tested with <code class="code docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">10,</span> <span class="pre">12,</span> <span class="pre">14,</span> <span class="pre">15</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel-llvm</span> <span class="pre">2022</span></code>)</p></li>
+<li><p>a C++ compiler (tested with <code class="code docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">10,</span> <span class="pre">12,</span> <span class="pre">14,</span> <span class="pre">15,</span> <span class="pre">16</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel</span> <span class="pre">2022</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel-llvm</span> <span class="pre">2022</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel-llvm</span> <span class="pre">2025</span></code>)</p></li>
 <li><p><a class="reference external" href="https://cmake.org/">CMake</a> (version 3.16 or higher)</p></li>
 <li><p>an MPI distribution (tested with <code class="code docutils literal notranslate"><span class="pre">openmpi</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel</span> <span class="pre">oneapi</span></code>)</p></li>
-<li><p><a class="reference external" href="https://formulae.brew.sh/formula/gnu-time">gnu-time</a> on macOS (to run tests with <cite>cwp_run</cite>)</p></li>
 </ul>
 </div></blockquote>
+<dl class="simple">
+<dt>To run <strong>CWIPI</strong> tests with <cite>cwp_run</cite>, additional dependencies are:</dt><dd><ul class="simple">
+<li><p><cite>bc</cite></p></li>
+<li><p><cite>awk</cite></p></li>
+<li><p><a class="reference external" href="https://formulae.brew.sh/formula/gnu-time">gnu-time</a> on macOS</p></li>
+</ul>
+</dd>
+<dt>To build <strong>CWIPI</strong> Fortran API, additional dependencies are:</dt><dd><ul class="simple">
+<li><p>a Fortran 90 compiler (tested with <code class="code docutils literal notranslate"><span class="pre">gfortran</span></code> based on <code class="code docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">10,</span> <span class="pre">12,</span> <span class="pre">14,</span> <span class="pre">15,</span> <span class="pre">16</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel</span> <span class="pre">2022</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel-llvm</span> <span class="pre">2022</span></code>, <code class="code docutils literal notranslate"><span class="pre">intel-llvm</span> <span class="pre">2025</span></code>)</p></li>
+</ul>
+</dd>
+<dt>To build <strong>CWIPI</strong> Python API, additional dependencies are:</dt><dd><ul class="simple">
+<li><p><cite>numpy (1.x)</cite></p></li>
+<li><p><cite>mpi4py</cite></p></li>
+<li><p><cite>Cython (0.29.x, 3.x)</cite></p></li>
+</ul>
+</dd>
+</dl>
 </section>
 <section id="basic-installation">
 <h2>Basic Installation<a class="headerlink" href="#basic-installation" title="Permalink to this heading"></a></h2>
@@ -131,6 +148,7 @@ make install
 </div>
 <p><strong>Enable Fortran interface</strong></p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CWP_ENABLE_Fortran</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : OFF<span class="o">)</span>
+<span class="nv">CWP_ENABLE_Fortran_MPI_MODULE</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : OFF<span class="o">)</span>
 </pre></div>
 </div>
 <p><strong>Enable Python interface</strong></p>
@@ -151,6 +169,20 @@ make install
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CWP_ENABLE_STATIC</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : ON<span class="o">)</span>
 </pre></div>
 </div>
+<p><strong>Hide symbols of internal ParaDiGM library</strong></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CWP_ENABLE_HIDE_PDM_SYMBOLS</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : ON<span class="o">)</span>
+</pre></div>
+</div>
+<p>If <code class="code docutils literal notranslate"><span class="pre">CWP_ENABLE_STATIC=ON</span></code> then <code class="code docutils literal notranslate"><span class="pre">CWP_ENABLE_HIDE_PDM_SYMBOLS=OFF</span></code> is forced</p>
+<p><strong>Enable the use of external ParaDiGM library</strong></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CWP_ENABLE_EXTERNAL_PDM</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : OFF<span class="o">)</span>
+</pre></div>
+</div>
+<p>If <code class="code docutils literal notranslate"><span class="pre">CWP_ENABLE_EXTERNAL_PDM=ON</span></code>, you must define this variable to find ParaDiGM:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">PDM_SOURCE_DIR</span><span class="o">=</span>&lt;path&gt; Where to find the base directory of ParaDiGM
+</pre></div>
+</div>
+<p>If <code class="code docutils literal notranslate"><span class="pre">CWP_ENABLE_HIDE_PDM_SYMBOLS=ON</span></code> then <code class="code docutils literal notranslate"><span class="pre">CWP_ENABLE_EXTERNAL_PDM=OFF</span></code> is forced</p>
 <p><strong>Enable the use of</strong> <a class="reference external" href="https://www.netlib.org/blas/"><strong>BLAS</strong></a> <strong>(linear algebra)</strong></p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CWP_ENABLE_BLAS</span><span class="o">=</span>&lt;ON <span class="p">|</span> OFF&gt; <span class="o">(</span>default : ON<span class="o">)</span>
 </pre></div>
@@ -213,7 +245,7 @@ MPI_&lt;language&gt;_INCLUDE_PATH
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -241,6 +273,8 @@ MPI_&lt;language&gt;_INCLUDE_PATH
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

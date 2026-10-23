@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Client-Server &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Client-Server &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -101,9 +101,8 @@ closed-source software that might have different MPI implementations.
 Communications between client and server are based on TCP/IP sockets.
 The servers communicate using MPI protocol running the classical implementation of the library.
 Note that this mode might degrade severely CWIPI’s performance.
-For now, this mode has a separate C/C++ and Python API, albeit very similar to the full MPI mode ; in fact these two APIs may be fused in future versions.
-A Fortran interface might be developed upon request.</p>
-<p>One can enable the verbose mode with <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">CWP_TCP_IP_VERBOSE=1</span></code> to get more information about the client-server exchanges, which proves useful for debugging.</p>
+For now, this mode has a separate C/C++ and Python API, albeit very similar to the full MPI mode ; in fact these two APIs may be fused in future versions.</p>
+<p>One can enable the verbose mode with <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">CWP_TCP_IP_VERBOSE=1</span></code> to get more information about the client-server exchanges, which proves to be useful for debugging.</p>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this heading"></a></h2>
 <p>The aim is to couple <em>code 1</em> and <em>code 2</em>. The client-server mode is used because the MPI version of those codes is different.
@@ -122,10 +121,10 @@ It is up to the user to choose the TCP port range on which the server will liste
 The code name for which this server is launched has to be given using <code class="docutils literal notranslate"><span class="pre">-cn</span></code>.
 This data is used by <code class="docutils literal notranslate"><span class="pre">cwp_server</span></code> to write a configuration file containing the <code class="docutils literal notranslate"><span class="pre">hostname/port</span></code>.
 The client executables should be able to access this file.
-Indeed, it will read it to know on which server port to connect.
+Indeed, they will read it to know on which server port to connect.
 The path and name of this configuration file is set using <code class="docutils literal notranslate"><span class="pre">-c</span></code>.
-Here is how the servers for the example above should be launched:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpiexec -n <span class="m">4</span> ../bin/cwp_server -cn code1 -p <span class="m">49100</span> <span class="m">49103</span> -c <span class="se">\&quot;</span>code1/cwp_config_srv.txt<span class="se">\&quot;</span> : -n <span class="m">3</span>  ../bin/cwp_server -cn code2 -p <span class="m">49104</span> <span class="m">49106</span> -c <span class="se">\&quot;</span>code2/cwp_config_srv.txt<span class="se">\&quot;</span> <span class="p">&amp;</span>
+Here is how the servers should be launched for the example above:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpiexec -n <span class="m">4</span> ../bin/cwp_server -cn code1 -p <span class="m">49100</span> <span class="m">49103</span> -c <span class="se">\&quot;</span>code1/cwp_config_srv.txt<span class="se">\&quot;</span> : -n <span class="m">3</span> ../bin/cwp_server -cn code2 -p <span class="m">49104</span> <span class="m">49106</span> -c <span class="se">\&quot;</span>code2/cwp_config_srv.txt<span class="se">\&quot;</span> <span class="p">&amp;</span>
 </pre></div>
 </div>
 <p>Once the servers have been properly launched, the following message will be printed:</p>
@@ -2685,7 +2684,7 @@ In this case, calling output_listing.flush() before any CWIPI call may help.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -2713,6 +2712,8 @@ In this case, calling output_listing.flush() before any CWIPI call may help.</p>
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

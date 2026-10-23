@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New CWIPI &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>New CWIPI &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -77,7 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#user-defined-spatial-interpolation">User-defined spatial interpolation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#user-defined-spatial-interpolation-methods">User-defined spatial interpolation methods</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#data-getters-for-user-interpolation-functions-in-c">Data getters for user interpolation functions in C</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#data-getters-for-user-interpolation-functions-in-fortran">Data getters for user interpolation functions in Fortran</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#data-getters-for-user-interpolation-functions-in-python">Data getters for user interpolation functions in Python</a></li>
@@ -98,13 +98,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#interface-mesh">Interface mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#spatial-interpolation">Spatial interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id4">Fields</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">User-defined spatial interpolation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#user-defined-spatial-interpolation">User-defined spatial interpolation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#location-methods">Location methods</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#intersection-method">Intersection method</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#nearest-neighbors-methods">Nearest neighbors methods</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">Global data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Global data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#partitioned-data">Partitioned data</a></li>
 </ul>
 </li>
@@ -160,61 +160,61 @@ After creating this block, the mesh element data can be given using the add func
 <p>For CWIPI to be able to do the internal geometric computations on the mesh, it must be “finalized” (<code class="docutils literal notranslate"><span class="pre">CWP_Mesh_interf_finalize</span></code> in C).</p>
 <section id="convention-for-standard-elements">
 <h4>Convention for standard elements<a class="headerlink" href="#convention-for-standard-elements" title="Permalink to this heading"></a></h4>
-<table class="colwidths-given docutils align-default" id="id9">
-<caption><span class="caption-text">Numbering convention used in CWIPI for standard elements</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
+<table class="colwidths-given docutils align-default" id="id8">
+<caption><span class="caption-text">Numbering convention used in CWIPI for standard elements</span><a class="headerlink" href="#id8" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 50%" />
 <col style="width: 50%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><figure class="align-default" id="id10">
+<tr class="row-odd"><td><figure class="align-default" id="id9">
 <img alt="PDM_MESH_NODAL_POINT" src="../_images/pdm_mesh_nodal_point.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_POINT</span></code></span><a class="headerlink" href="#id10" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_POINT</span></code></span><a class="headerlink" href="#id9" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
-<td><figure class="align-default" id="id11">
+<td><figure class="align-default" id="id10">
 <img alt="PDM_MESH_NODAL_BAR2" src="../_images/pdm_mesh_nodal_bar2.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_BAR2</span></code></span><a class="headerlink" href="#id11" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_BAR2</span></code></span><a class="headerlink" href="#id10" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
 </tr>
-<tr class="row-even"><td><figure class="align-default" id="id12">
+<tr class="row-even"><td><figure class="align-default" id="id11">
 <img alt="PDM_MESH_NODAL_TRIA3" src="../_images/pdm_mesh_nodal_tria3.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_TRIA3</span></code></span><a class="headerlink" href="#id12" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_TRIA3</span></code></span><a class="headerlink" href="#id11" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
-<td><figure class="align-default" id="id13">
+<td><figure class="align-default" id="id12">
 <img alt="PDM_MESH_NODAL_QUAD4" src="../_images/pdm_mesh_nodal_quad4.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_QUAD4</span></code></span><a class="headerlink" href="#id13" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_QUAD4</span></code></span><a class="headerlink" href="#id12" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
 </tr>
-<tr class="row-odd"><td><figure class="align-default" id="id14">
+<tr class="row-odd"><td><figure class="align-default" id="id13">
 <img alt="PDM_MESH_NODAL_TETRA4" src="../_images/pdm_mesh_nodal_tetra4.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_TETRA4</span></code></span><a class="headerlink" href="#id14" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_TETRA4</span></code></span><a class="headerlink" href="#id13" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
-<td><figure class="align-default" id="id15">
+<td><figure class="align-default" id="id14">
 <img alt="PDM_MESH_NODAL_PYRAM5" src="../_images/pdm_mesh_nodal_pyram5.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_PYRAM5</span></code></span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_PYRAM5</span></code></span><a class="headerlink" href="#id14" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
 </tr>
-<tr class="row-even"><td><figure class="align-default" id="id16">
+<tr class="row-even"><td><figure class="align-default" id="id15">
 <img alt="PDM_MESH_NODAL_PRISM6" src="../_images/pdm_mesh_nodal_prism6.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_PRISM6</span></code></span><a class="headerlink" href="#id16" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_PRISM6</span></code></span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
-<td><figure class="align-default" id="id17">
+<td><figure class="align-default" id="id16">
 <img alt="PDM_MESH_NODAL_HEXA8" src="../_images/pdm_mesh_nodal_hexa8.svg" /><figcaption>
-<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_HEXA8</span></code></span><a class="headerlink" href="#id17" title="Permalink to this image"></a></p>
+<p><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">PDM_MESH_NODAL_HEXA8</span></code></span><a class="headerlink" href="#id16" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </td>
@@ -238,13 +238,16 @@ There can be no more than one user-defined point cloud per Coupling object.</p>
 For <cite>Solver2</cite> the opposite will be done.</p>
 <p>There are two ways to store field components:</p>
 <ul class="simple">
-<li><p>CWP_FIELD_STORAGE_INTERLACED   : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/017b5799bd4df4410bf7918e6ecd513c413e867e.png" alt="(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n})"/> , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements;</p></li>
-<li><p>CWP_FIELD_STORAGE_INTERLEAVED  : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/94b5a5c7ae4fa059629fdc53a49c92695bf92c9b.png" alt="(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n})"/> , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements. In this mode,</p></li>
+<li><p>CWP_FIELD_STORAGE_INTERLACED  : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/017b5799bd4df4410bf7918e6ecd513c413e867e.png" alt="(c_{1,1} ... c_{s,1} ... c_{1,n} ... c_{s,n})"/> , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements;</p></li>
+<li><p>CWP_FIELD_STORAGE_INTERLEAVED : The number of components is constant for each element. The field is stored according to this pattern <img class="math" src="../_images/math/94b5a5c7ae4fa059629fdc53a49c92695bf92c9b.png" alt="(c_{1,1} ... c_{1,n} ... c_{s,1} ... c_{s,n})"/> , where <img class="math" src="../_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/> is the number of components and <img class="math" src="../_images/math/5a939c5280da7202ca4531f175a7780ad5e1f80a.png" alt="n"/> the number of field elements. In this mode,</p></li>
 </ul>
 </section>
 <section id="control-parameters">
 <h3>Control Parameters<a class="headerlink" href="#control-parameters" title="Permalink to this heading"></a></h3>
-<p><em>Not documented yet</em></p>
+<p>As in version 0.x, basic control parameters (<code class="docutils literal notranslate"><span class="pre">CWP_INTEGER</span></code>, <code class="docutils literal notranslate"><span class="pre">CWP_DOUBLE</span></code>, <code class="docutils literal notranslate"><span class="pre">CWP_CHAR</span></code>) can be exchanged between codes;
+reduction operations among <code class="docutils literal notranslate"><span class="pre">CWP_OP_MIN</span></code>, <code class="docutils literal notranslate"><span class="pre">CWP_OP_MAX</span></code> and <code class="docutils literal notranslate"><span class="pre">CWP_OP_SUM</span></code> are also possible over multiple codes. Control
+parameters are handled through <strong>One-Sided MPI communications</strong>: access should be locked/unlocked by the user before/after
+modification.</p>
 </section>
 </section>
 <section id="spatial-interpolation-methods">
@@ -254,13 +257,14 @@ A specific spatial interpolation method can be assigned to each Coupling object.
 <p>Each method has a set of properties that can be adjusted (with <code class="docutils literal notranslate"><span class="pre">CWP_Spatial_interp_property_set</span></code> in C).
 Note that some methods do not support all types of dof location.
 Finally, each method relies on some geometric mapping data to perform spatial interpolation.
-This data is computed by CWIPI and can be accessed to design <span class="xref std std-ref">customized interpolation functions</span>.</p>
+This data is computed by CWIPI and can be accessed to design <a class="reference internal" href="#user-defined-spatial-interpolation-methods"><span class="std std-ref">customized interpolation functions</span></a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Some spatial interpolation methods leave some target dofs unmapped if the interface meshes overlap partially.
-The interpolated field for such targets is simply not computed.
-Only the first <img class="math" src="../_images/math/06d36e67cd9a99a5382f574212c7223daefb746b.png" alt="n_{mapped} \times n_{comp}"/> values of the receiving data array are thus filled by CWIPI, where <img class="math" src="../_images/math/da7b1b90745423b48f63912499b86fe136010345.png" alt="n_{mapped}"/> is the number of mapped targets (returned by <code class="docutils literal notranslate"><span class="pre">CWP_N_computed_tgts_get</span></code>), and <img class="math" src="../_images/math/1109abbde9ddb57814ae266c383ae92a91f0a990.png" alt="n_{comp}"/> the number of field components (specified when creating the field and returned by <code class="docutils literal notranslate"><span class="pre">CWP_Field_n_components_get</span></code>).
-Please refer to section <span class="xref std std-ref">Advanced functionalities</span> for some examples of use.</p>
+The interpolated field for such targets is simply not computed. Only the first <img class="math" src="../_images/math/06d36e67cd9a99a5382f574212c7223daefb746b.png" alt="n_{mapped} \times n_{comp}"/>
+values of the receiving data array are thus filled by CWIPI, where <img class="math" src="../_images/math/da7b1b90745423b48f63912499b86fe136010345.png" alt="n_{mapped}"/> is the number of mapped
+targets (returned by <code class="docutils literal notranslate"><span class="pre">CWP_N_computed_tgts_get</span></code>), and <img class="math" src="../_images/math/1109abbde9ddb57814ae266c383ae92a91f0a990.png" alt="n_{comp}"/> the number of field components
+(specified when creating the field and returned by <code class="docutils literal notranslate"><span class="pre">CWP_Field_n_components_get</span></code>).</p>
 </div>
 <p>The spatial interpolation methods can be divided into the following four families.</p>
 <section id="interpolation-from-nearest-neighbors">
@@ -272,50 +276,66 @@ Please refer to section <span class="xref std std-ref">Advanced functionalities<
 <li><p><code class="docutils literal notranslate"><span class="pre">CWP_SPATIAL_INTERP_FROM_NEAREST_TARGETS_LEAST_SQUARES</span></code>: each source dof is mapped to its <code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code> nearest target dofs (note that some targets may be mapped to zero source).</p></li>
 </ul>
 </div></blockquote>
-<dl class="simple">
+<table class="colwidths-given docutils align-default" id="id17">
+<caption><span class="caption-text">Illustration with <code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code> = 2</span><a class="headerlink" href="#id17" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><figure class="align-default" id="id18">
+<a class="reference internal image-reference" href="../_images/inter_from_nearest_src.svg"><img alt="FROM_NEAREST_SOURCES" src="../_images/inter_from_nearest_src.svg" width="300" /></a>
+<figcaption>
+<p><span class="caption-text">From nearest sources</span><a class="headerlink" href="#id18" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</td>
+<td><figure class="align-default" id="id19">
+<a class="reference internal image-reference" href="../_images/inter_from_nearest_tgt.svg"><img alt="FROM_NEAREST_TARGETS" src="../_images/inter_from_nearest_tgt.svg" width="300" /></a>
+<figcaption>
+<p><span class="caption-text">From nearest targets</span><a class="headerlink" href="#id19" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</td>
+</tr>
+</tbody>
+</table>
+<dl>
 <dt><strong>Default interpolation</strong></dt><dd><p>Both methods perform a Least Square interpolation weighted by inverse squared distance (see <a class="reference external" href="http://www.nealen.de/projects/mls/asapmls.pdf">[Nealen 2004]</a> for more details).</p>
 </dd>
-</dl>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>The following properties can be adjusted by the user:</p>
+<dt><strong>Properties</strong></dt><dd><p>The following properties can be adjusted by the user:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code>: number of neighbors to interpolate from (<cite>integer</cite>, default value: 4)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">polyfit_degree</span></code>: degree of polynomial fit (<cite>integer</cite>, default value: 1)</p></li>
 </ul>
 </div></blockquote>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>Since these are point cloud-based methods, they support all kinds of dof locations (mesh nodes, cell centers and user-defined points) for both source and target fields.</p>
-</div></blockquote>
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>Since these are point cloud-based methods, they support all kinds of dof locations (mesh nodes, cell centers and user-defined points) for both source and target fields.</p>
+</dd>
+</dl>
 </section>
 <section id="interpolation-from-mesh-intersection">
 <h3>Interpolation from mesh intersection<a class="headerlink" href="#interpolation-from-mesh-intersection" title="Permalink to this heading"></a></h3>
 <p>This family includes only one method: <code class="docutils literal notranslate"><span class="pre">CWP_SPATIAL_INTERP_FROM_INTERSECTION</span></code> which consists on computing the overlap fractions between the elements of both interface meshes.
 It is suited for conservative interpolation.</p>
-<p><strong>Default interpolation</strong></p>
-<blockquote>
-<div><p>The interpolated field at target <img class="math" src="../_images/math/e8dea8254118f111b5fb20895b03528c17566f06.png" alt="T"/> is computed as follows</p>
+<dl>
+<dt><strong>Default interpolation</strong></dt><dd><p>The interpolated field at target <img class="math" src="../_images/math/e8dea8254118f111b5fb20895b03528c17566f06.png" alt="T"/> is computed as follows</p>
 <div class="math">
 <p><img src="../_images/math/3e91cac9b0dbf9b60b5512c95f0727be2ecd2892.png" alt="f(T) = \frac{\sum_{S} w_S f(S)}{\sum_{S} w_S},"/></p>
 </div><p>where <img class="math" src="../_images/math/b988975be41fd13b4d091c10202ba19374643586.png" alt="S"/> designates a source element and <img class="math" src="../_images/math/0096b2764c9c507934e970485709c077a8e1fd84.png" alt="w_S"/> is the volume (or area for surface coupling interfaces) of <img class="math" src="../_images/math/73b4dd3fce779573efbbc8d04fd5a9074b720777.png" alt="T \cap S"/>.</p>
 <p>Note that for each mapped target element, the interpolation weights sum to one.
 Target elements that intersect no source element are simply not mapped.</p>
-</div></blockquote>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p id="bbox-paragraph">The intersection algorithm uses efficient bounding box collisions detection as a first step.
+</dd>
+<dt><strong>Properties</strong></dt><dd><p>The intersection algorithm uses efficient bounding box collisions detection as a first step.
 The boxes can be inflated using a relative tolerance.
 This is especially useful for non-planar, surface interface meshes where alignment with cartesian axes might cause some detection misses if the tolerance is set too low.
 The <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> property is of type <cite>double</cite> and is set to 0.001 by default, but be can adjusted as well.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>Naturally, this method cannot be used to interpolate fields with dofs located at user-defined points.
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>Naturally, this method cannot be used to interpolate fields with dofs located at user-defined points.
 Note that in version 1.0 this interpolation method is also not available for node-based source and target fields, but it will be soon.</p>
-</div></blockquote>
+</dd>
+</dl>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This method is only available for <em>surface</em> and <em>volume</em> interface meshes.</p>
@@ -336,23 +356,19 @@ Note that in version 1.0 this interpolation method is also not available for nod
 <p>These first two methods are equivalent to the spatial interpolation method of versions 0.x but have been re-implemented to improve performance.
 Both methods yield the same results but the octree generally performs better.</p>
 </div>
-<p><strong>Default interpolation</strong></p>
-<blockquote>
-<div><p>If the source field dofs are at cell centers, each mapped target simply gets the field value of its associated source mesh element.
+<dl class="simple">
+<dt><strong>Default interpolation</strong></dt><dd><p>If the source field dofs are at cell centers, each mapped target simply gets the field value of its associated source mesh element.
 If the source field dofs are located at nodes, the generalized barycentric coordinates of the target are used as interpolation weights if the source field dofs are located at nodes.</p>
-</div></blockquote>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>As for the <a class="reference internal" href="spatial_interp.html#bbox-paragraph"><span class="std std-ref">intersection method</span></a>, the first step of the localization method uses bounding boxes inflated by a relative geometric tolerance.
+</dd>
+<dt><strong>Properties</strong></dt><dd><p>As for the <a class="reference internal" href="spatial_interp.html#interpolation-from-mesh-intersection"><span class="std std-ref">intersection method</span></a>, the first step of the localization method uses bounding boxes inflated by a relative geometric tolerance.
 The <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> property is of type <cite>double</cite> and is set to 0.001 by default but be can adjusted as well.
 Again, it is recommended to tune this property for non-planar, surface interface meshes when using either of the first two methods, in order to avoid true positive detection errors.
 The third method is however much less sensitive to this property so it should be kept to a low value to avoid detecting too many false positive candidates, which could impair performance.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>This interpolation method requires the source field dofs to be located at either mesh nodes or cell centers.
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>This interpolation method requires the source field dofs to be located at either mesh nodes or cell centers.
 However, target field dofs can also be located at user-defined points.</p>
-</div></blockquote>
+</dd>
+</dl>
 </section>
 <section id="interpolation-from-identity">
 <h3>Interpolation from identity<a class="headerlink" href="#interpolation-from-identity" title="Permalink to this heading"></a></h3>
@@ -361,21 +377,17 @@ It might be useful for conforming interface meshes with different MPI partitioni
 <dl class="simple">
 <dt><strong>Default interpolation</strong></dt><dd><p>Each target dof is assigned the field value of its mapped source dof.</p>
 </dd>
+<dt><strong>Properties</strong></dt><dd><p>This method has no properties.</p>
+</dd>
+<dt><strong>Acceptable degrees-of-freedom</strong></dt><dd><p>This method supports all kinds of dof location.</p>
+</dd>
 </dl>
-<p><strong>Properties</strong></p>
-<blockquote>
-<div><p>This method has no properties.</p>
-</div></blockquote>
-<p><strong>Acceptable degrees-of-freedom</strong></p>
-<blockquote>
-<div><p>This method supports all kinds of dof location.</p>
-</div></blockquote>
 </section>
 </section>
 <section id="advanced-features">
 <h2>Advanced features<a class="headerlink" href="#advanced-features" title="Permalink to this heading"></a></h2>
-<section id="user-defined-spatial-interpolation">
-<h3>User-defined spatial interpolation<a class="headerlink" href="#user-defined-spatial-interpolation" title="Permalink to this heading"></a></h3>
+<section id="user-defined-spatial-interpolation-methods">
+<h3>User-defined spatial interpolation methods<a class="headerlink" href="#user-defined-spatial-interpolation-methods" title="Permalink to this heading"></a></h3>
 <p>Users can perform customized spatial interpolation based on the geometric mapping computed by CWIPI.
 To do so, one needs to provide CWIPI with a pointer to a user-written interpolation function (via <code class="docutils literal notranslate"><span class="pre">CWP_Field_interp_function_set</span></code> in C).
 Each Field object can have a specific user-defined spatial interpolation.
@@ -486,7 +498,7 @@ The following sections show how to retrieve all the information required to writ
 <span class="w">                                           </span><span class="n">field_id</span><span class="p">,</span><span class="w"></span>
 <span class="w">                                           </span><span class="n">i_part</span><span class="p">,</span><span class="w"></span>
 <span class="w">                                           </span><span class="o">&amp;</span><span class="n">cell_vtx_idx</span><span class="p">,</span><span class="w"></span>
-<span class="w">                                          </span><span class="o">&amp;</span><span class="n">cell_vtx</span><span class="p">);</span><span class="w"></span>
+<span class="w">                                           </span><span class="o">&amp;</span><span class="n">cell_vtx</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// INTERSECTION SPATIAL INTERPOLATION ALGORITHM</span>
 
@@ -837,18 +849,24 @@ The following sections show how to retrieve all the information required to writ
 </section>
 <section id="additional-exchange-features">
 <h3>Additional exchange features<a class="headerlink" href="#additional-exchange-features" title="Permalink to this heading"></a></h3>
-<p>CWIPI v.1 offers two additional means to exchange data between the coupled codes.
-As opposed to fields, these data need not be related to the interface meshes.</p>
+<p>CWIPI version 1.x offers two additional means to exchange data between the coupled codes.
+As opposed to fields, these data might not be related to the interface meshes.</p>
 <section id="exchange-of-global-data">
 <span id="global-data"></span><h4>Exchange of Global Data<a class="headerlink" href="#exchange-of-global-data" title="Permalink to this heading"></a></h4>
-<p><em>à remplir</em></p>
+<p>A <em>GlobalData</em> object is to be used to send/recv (non-blocking) interlaced strided arrays of any
+type through a Coupling object. Arrays to exchange are characterized by the number of elements,
+the stride, <em>i.e.</em> the number of values per element, and the size of one value in bytes.</p>
+<p>Each Coupling object can handle an arbitrary number of GlobalData objects.</p>
 </section>
 <section id="exchange-of-partitioned-data">
 <span id="part-data"></span><h4>Exchange of Partitioned Data<a class="headerlink" href="#exchange-of-partitioned-data" title="Permalink to this heading"></a></h4>
-<p><em>à remplir + schéma</em></p>
-<p>A given PartData object can be used for multiple, simultaneous, non-blocking exchanges.
-Each exchange is identified by an integer <code class="docutils literal notranslate"><span class="pre">exch_id</span></code>.
-Finally, each Coupling object can handle an arbitrary number of PartData objects.</p>
+<p>A <em>PartData</em> object is to be used to send/recv (non-blocking) interlaced strided arrays of any
+type through a Coupling object. Contrary to the GlobalData object, this object accounts for the
+global numbering of entities to exchange data between entities having the same global number. Note that
+when an entity is defined on multiple ranks (eg vertices) only the value on the lowest MPI rank is kept.
+Multiple exchanges, identified by an integer <code class="docutils literal notranslate"><span class="pre">exch_id</span></code>, can be performed simultaneously. Arrays to exchange
+are characterized by the stride, <em>i.e.</em> the number of values per element, and the size of one value in bytes.</p>
+<p>Each Coupling object can handle an arbitrary number of PartData objects.</p>
 </section>
 </section>
 </section>
@@ -889,11 +907,6 @@ Finally, each Coupling object can handle an arbitrary number of PartData objects
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="cpp type">
-<dt class="sig sig-object cpp" id="_CPPv411CWP_timer_t">
-<span id="_CPPv311CWP_timer_t"></span><span id="_CPPv211CWP_timer_t"></span><span id="CWP_timer_t"></span><span class="target" id="cwp_8h_1ac793b77710165ed16187aa49788c66f7"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_t</span></span></span><a class="headerlink" href="#_CPPv411CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
@@ -3393,117 +3406,6 @@ return 1 : true / 0 : false </p>
 </dl>
 </dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv416CWP_timer_createv">
-<span id="_CPPv316CWP_timer_createv"></span><span id="_CPPv216CWP_timer_createv"></span><span id="CWP_timer_create__void"></span><span class="target" id="cwp_8h_1a8b5f09be892e5938beb9922c21bb56c9"></span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_create</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416CWP_timer_createv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Create a timer object. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>timer </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv414CWP_timer_init11CWP_timer_t">
-<span id="_CPPv314CWP_timer_init11CWP_timer_t"></span><span id="_CPPv214CWP_timer_init11CWP_timer_t"></span><span id="CWP_timer_init__CWP_timer_t"></span><span class="target" id="cwp_8h_1a4dd21388daa82a1ebc0d527109d9f2d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_init</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414CWP_timer_init11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Initialize a timer object. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv416CWP_timer_resume11CWP_timer_t">
-<span id="_CPPv316CWP_timer_resume11CWP_timer_t"></span><span id="_CPPv216CWP_timer_resume11CWP_timer_t"></span><span id="CWP_timer_resume__CWP_timer_t"></span><span class="target" id="cwp_8h_1a3db6716633b149c6f7fac1d7d41eb7b5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_resume</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416CWP_timer_resume11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Resuming time measurement. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv417CWP_timer_hang_on11CWP_timer_t">
-<span id="_CPPv317CWP_timer_hang_on11CWP_timer_t"></span><span id="_CPPv217CWP_timer_hang_on11CWP_timer_t"></span><span id="CWP_timer_hang_on__CWP_timer_t"></span><span class="target" id="cwp_8h_1afe78e1a76dac94929992ae562b2a05aa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_hang_on</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417CWP_timer_hang_on11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Suspend time measurement. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv413CWP_timer_cpu11CWP_timer_t">
-<span id="_CPPv313CWP_timer_cpu11CWP_timer_t"></span><span id="_CPPv213CWP_timer_cpu11CWP_timer_t"></span><span id="CWP_timer_cpu__CWP_timer_t"></span><span class="target" id="cwp_8h_1a47132deee15e9a4f44d3b92f807121d2"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_cpu</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413CWP_timer_cpu11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Get user time. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>User time </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv418CWP_timer_cpu_user11CWP_timer_t">
-<span id="_CPPv318CWP_timer_cpu_user11CWP_timer_t"></span><span id="_CPPv218CWP_timer_cpu_user11CWP_timer_t"></span><span id="CWP_timer_cpu_user__CWP_timer_t"></span><span class="target" id="cwp_8h_1af622c930d8b5f56cc939edebbdc76960"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_cpu_user</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv418CWP_timer_cpu_user11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Get user cpu time. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>User cpu time </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv417CWP_timer_cpu_sys11CWP_timer_t">
-<span id="_CPPv317CWP_timer_cpu_sys11CWP_timer_t"></span><span id="_CPPv217CWP_timer_cpu_sys11CWP_timer_t"></span><span id="CWP_timer_cpu_sys__CWP_timer_t"></span><span class="target" id="cwp_8h_1afae8184d244f454c0d69c468609e3937"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_cpu_sys</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417CWP_timer_cpu_sys11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Get system cpu time. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>System cpu time </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv417CWP_timer_elapsed11CWP_timer_t">
-<span id="_CPPv317CWP_timer_elapsed11CWP_timer_t"></span><span id="_CPPv217CWP_timer_elapsed11CWP_timer_t"></span><span id="CWP_timer_elapsed__CWP_timer_t"></span><span class="target" id="cwp_8h_1aaf8bc772e849c89a5c271f5edd71f228"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_elapsed</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417CWP_timer_elapsed11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Get elpased time. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Elapsed time </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv414CWP_timer_free11CWP_timer_t">
-<span id="_CPPv314CWP_timer_free11CWP_timer_t"></span><span id="_CPPv214CWP_timer_free11CWP_timer_t"></span><span id="CWP_timer_free__CWP_timer_t"></span><span class="target" id="cwp_8h_1ae9bb6e37377cce55fe283d95eb9a79af"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CWP_timer_free</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411CWP_timer_t" title="CWP_timer_t"><span class="n"><span class="pre">CWP_timer_t</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">timer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414CWP_timer_free11CWP_timer_t" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Free timer. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timer</strong> – <strong>[in]</strong> </p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 </section>
 <section id="fortran-api-documentation">
@@ -4195,8 +4097,8 @@ manually check the consistency of the exchanges.</p>
 </dd></dl>
 
 </section>
-<section id="id5">
-<h3>User-defined spatial interpolation<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<section id="user-defined-spatial-interpolation">
+<h3>User-defined spatial interpolation<a class="headerlink" href="#user-defined-spatial-interpolation" title="Permalink to this heading"></a></h3>
 <dl>
 <dt class="sig sig-object f" id="f/_/cwp_field_interp_function_set_">
 <em class="property"><span class="pre">subroutine</span>&#160; </em><span class="sig-name descname"><span class="pre">cwp_field_interp_function_set_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">local_code_name</span></em>, <em class="sig-param"><span class="pre">cpl_id</span></em>, <em class="sig-param"><span class="pre">field_id</span></em>, <em class="sig-param"><span class="pre">user_interpolation_fct</span></em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cwp_field_interp_function_set_" title="Permalink to this definition"></a></dt>
@@ -4490,8 +4392,8 @@ manually check the consistency of the exchanges.</p>
 
 </section>
 </section>
-<section id="id6">
-<h3>Global data<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<section id="id5">
+<h3>Global data<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
 <dl>
 <dt class="sig sig-object f" id="f/_/cwp_global_data_wait_issend_">
 <em class="property"><span class="pre">subroutine</span>&#160; </em><span class="sig-name descname"><span class="pre">cwp_global_data_wait_issend_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">local_code_name</span></em>, <em class="sig-param"><span class="pre">cpl_id</span></em>, <em class="sig-param"><span class="pre">global_data_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cwp_global_data_wait_issend_" title="Permalink to this definition"></a></dt>
@@ -4959,7 +4861,7 @@ not provided.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>i_part</strong> (<em>int</em>) – Current partition</p></li>
-<li><p><strong>cell_face_idx</strong> (<em>np.ndarray</em><em>[</em><em>np.int32_t</em><em>]</em>) – Polyhedron to face index (<a href="#id7"><span class="problematic" id="id8">``</span></a>cell_face_idx[0] = 0 and size = <em>n_cells</em> + 1)</p></li>
+<li><p><strong>cell_face_idx</strong> (<em>np.ndarray</em><em>[</em><em>np.int32_t</em><em>]</em>) – Polyhedron to face index (<a href="#id6"><span class="problematic" id="id7">``</span></a>cell_face_idx[0] = 0 and size = <em>n_cells</em> + 1)</p></li>
 <li><p><strong>cell_face</strong> (<em>np.ndarray</em><em>[</em><em>np.int32_t</em><em>]</em>) – Cell to face connectivity (size = <code class="docutils literal notranslate"><span class="pre">cell_face_idx</span></code> [<em>n_cells</em>])</p></li>
 <li><p><strong>face_vtx_idx</strong> (<em>np.ndarray</em><em>[</em><em>np.int32_t</em><em>]</em>) – Polyhedron face to vertex index (<code class="docutils literal notranslate"><span class="pre">face_vtx_idx</span></code> [0] = 0 and size = <em>n_faces</em> + 1)</p></li>
 <li><p><strong>face_vtx</strong> (<em>np.ndarray</em><em>[</em><em>np.int32_t</em><em>]</em>) – Face to vertex connectivity (size = <code class="docutils literal notranslate"><span class="pre">face_vtx_idx</span></code> [<em>n_faces</em>])</p></li>
@@ -6041,7 +5943,7 @@ In this case, calling output_listing.flush() before any CWIPI call may help.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -6069,6 +5971,8 @@ In this case, calling output_listing.flush() before any CWIPI call may help.</p>
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         

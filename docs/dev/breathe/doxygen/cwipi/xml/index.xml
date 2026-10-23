@@ -336,7 +336,6 @@
     <member refid="cwp_8h_1a019d707a97c55d61bfcd58b7d1c3d0c5afb9951fe60ca12f7763d0dba8ab0e0eb" kind="enumvalue"><name>CWPT_SPLIT_DUAL_WITH_HILBERT</name></member>
     <member refid="cwp_8h_1ade076fe59e8d14d32e38a82f3c9e43d6" kind="typedef"><name>CWP_g_num_t</name></member>
     <member refid="cwp_8h_1a574c9fd622a74b986dace4681604d94e" kind="typedef"><name>CWP_Interp_function_t</name></member>
-    <member refid="cwp_8h_1ac793b77710165ed16187aa49788c66f7" kind="typedef"><name>CWP_timer_t</name></member>
     <member refid="cwp_8h_1aefe2ec993f9d77b6c66721ef6520d1e4" kind="function"><name>CWP_Init</name></member>
     <member refid="cwp_8h_1a2864ae1874f9fde3e9713fcc7739dec5" kind="function"><name>CWP_Finalize</name></member>
     <member refid="cwp_8h_1a079243e6701df41aa2f1d61e25b66cfe" kind="function"><name>CWP_State_update</name></member>
@@ -437,15 +436,6 @@
     <member refid="cwp_8h_1a27398030e3350ace5f7d233bf9b4d66e" kind="function"><name>CWPT_generate_mesh_sphere_ngon</name></member>
     <member refid="cwp_8h_1a5a90b9c5f2647c7c6cbf590b684b7e5c" kind="function"><name>CWPT_generate_mesh_ball_ngon</name></member>
     <member refid="cwp_8h_1abf9e74d5ea7a556be79310be2de598fc" kind="function"><name>CWPT_generate_mesh_parallelepiped_ngon</name></member>
-    <member refid="cwp_8h_1a8b5f09be892e5938beb9922c21bb56c9" kind="function"><name>CWP_timer_create</name></member>
-    <member refid="cwp_8h_1a4dd21388daa82a1ebc0d527109d9f2d5" kind="function"><name>CWP_timer_init</name></member>
-    <member refid="cwp_8h_1a3db6716633b149c6f7fac1d7d41eb7b5" kind="function"><name>CWP_timer_resume</name></member>
-    <member refid="cwp_8h_1afe78e1a76dac94929992ae562b2a05aa" kind="function"><name>CWP_timer_hang_on</name></member>
-    <member refid="cwp_8h_1a47132deee15e9a4f44d3b92f807121d2" kind="function"><name>CWP_timer_cpu</name></member>
-    <member refid="cwp_8h_1af622c930d8b5f56cc939edebbdc76960" kind="function"><name>CWP_timer_cpu_user</name></member>
-    <member refid="cwp_8h_1afae8184d244f454c0d69c468609e3937" kind="function"><name>CWP_timer_cpu_sys</name></member>
-    <member refid="cwp_8h_1aaf8bc772e849c89a5c271f5edd71f228" kind="function"><name>CWP_timer_elapsed</name></member>
-    <member refid="cwp_8h_1ae9bb6e37377cce55fe283d95eb9a79af" kind="function"><name>CWP_timer_free</name></member>
   </compound>
   <compound refid="c__new__api__polygon__sol_8c" kind="file"><name>c_new_api_polygon_sol.c</name>
     <member refid="c__new__api__polygon__sol_8c_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
@@ -455,16 +445,16 @@
   </compound>
   <compound refid="python__new__api__polygon__sol_8py" kind="file"><name>python_new_api_polygon_sol.py</name>
   </compound>
-  <compound refid="dir_6436889afbb88510d481ef1bf0094be4" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new/client_server</name>
+  <compound refid="dir_6436889afbb88510d481ef1bf0094be4" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/src/new/client_server</name>
   </compound>
-  <compound refid="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src/new</name>
+  <compound refid="dir_efd04a19529e6329a36d3fe7619458ad" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/src/new</name>
   </compound>
-  <compound refid="dir_8fdb7f4d27c6340e06275085d6f34a15" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/pattern</name>
+  <compound refid="dir_8fdb7f4d27c6340e06275085d6f34a15" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/pattern</name>
   </compound>
-  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/src</name>
+  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/src</name>
   </compound>
-  <compound refid="dir_59425e443f801f1f2fd8bbe4959a3ccf" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/tests</name>
+  <compound refid="dir_59425e443f801f1f2fd8bbe4959a3ccf" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/tests</name>
   </compound>
-  <compound refid="dir_401b27da25eab5df96b3acf87382f9ab" kind="dir"><name>/stck/ndelling/.jacamar-ci/builds/FOZNv1T6F/000/numerics/coupling/cwipi/tests/tutorial</name>
+  <compound refid="dir_401b27da25eab5df96b3acf87382f9ab" kind="dir"><name>/tmp_user/juno/ndelling/.jacamar-ci/builds/cSnXwyblJ/000/numerics/coupling/cwipi/tests/tutorial</name>
   </compound>
 </doxygenindex>

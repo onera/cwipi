@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exchange of Global Data &mdash; CWIPI 1.4.0-dev documentation</title>
+  <title>Exchange of Global Data &mdash; CWIPI 1.5.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -87,7 +87,10 @@
              
   <section id="exchange-of-global-data">
 <span id="global-data"></span><h1>Exchange of Global Data<a class="headerlink" href="#exchange-of-global-data" title="Permalink to this heading"></a></h1>
-<p><em>à remplir</em></p>
+<p>A <em>GlobalData</em> object is to be used to send/recv (non-blocking) interlaced strided arrays of any
+type through a Coupling object. Arrays to exchange are characterized by the number of elements,
+the stride, <em>i.e.</em> the number of values per element, and the size of one value in bytes.</p>
+<p>Each Coupling object can handle an arbitrary number of GlobalData objects.</p>
 </section>
 
 
@@ -98,7 +101,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, ONERA The French Aerospace Lab.</p>
+    <p>&#169; Copyright 2026, ONERA The French Aerospace Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -126,6 +129,8 @@
         <dt>Versions</dt>
         
           <dd><a href="/cwipi/dev/">dev</a></dd>
+        
+          <dd><a href="/cwipi/1.4.0/">1.4.0</a></dd>
         
           <dd><a href="/cwipi/1.3.0/">1.3.0</a></dd>
         
