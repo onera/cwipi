@@ -1172,8 +1172,8 @@ _get_values
       const std::string concat = prefix + n;
       CHECK(access(concat.c_str(), F_OK) == 0);
       remove(concat.c_str());
-      }
     }
+  }
 
   // Free all
   for (int i_code = 0; i_code < n_code; i_code++) {
