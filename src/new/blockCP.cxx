@@ -46,8 +46,8 @@ namespace cwipi {
   void
   BlockCP::blockAdd
   (
-    CWP_Block_t  block_type,
-    Mesh        *mesh
+    const CWP_Block_t  block_type,
+          Mesh        *mesh
   )
   {
     Block::blockAdd(block_type, mesh);
@@ -63,14 +63,14 @@ namespace cwipi {
   void
   BlockCP::blockSet
   (
-    int          i_part,
-    int          n_elts,
-    int          n_faces,
-    int         *connec_faces_idx,
-    int         *connec_faces,
-    int         *connec_cells_idx,
-    int         *connec_cells,
-    CWP_g_num_t *global_num
+    const int          i_part,
+    const int          n_elts,
+    const int          n_faces,
+          int         *connec_faces_idx,
+          int         *connec_faces,
+          int         *connec_cells_idx,
+          int         *connec_cells,
+          CWP_g_num_t *global_num
   )
   {
     _n_elts          [i_part] = n_elts;
@@ -86,14 +86,14 @@ namespace cwipi {
   void
   BlockCP::blockGet
   (
-    int           i_part,
-    int          *n_elts,
-    int          *n_faces,
-    int         **connec_faces_idx,
-    int         **connec_faces,
-    int         **connec_cells_idx,
-    int         **connec_cells,
-    CWP_g_num_t **global_num
+    const int           i_part,
+          int          *n_elts,
+          int          *n_faces,
+          int         **connec_faces_idx,
+          int         **connec_faces,
+          int         **connec_cells_idx,
+          int         **connec_cells,
+          CWP_g_num_t **global_num
   )
   {
     *n_elts           = _n_elts          [i_part];
@@ -109,7 +109,7 @@ namespace cwipi {
   void
   BlockCP::faceGlobalNumFree
   (
-    int i_part
+    const int i_part
   )
   {
     if (_global_num_faces[i_part] != nullptr) {

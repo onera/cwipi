@@ -54,8 +54,8 @@ namespace cwipi {
   void
   Block::blockAdd
   (
-    CWP_Block_t  block_type,
-    Mesh        *mesh
+    const CWP_Block_t  block_type,
+          Mesh        *mesh
   )
   {
     _mesh = mesh;
@@ -73,9 +73,9 @@ namespace cwipi {
   void
   Block::globalNumSet
   (
-    int              i_part,
-    CWP_g_num_t     *global_num,
-    PDM_ownership_t  owner
+    const int              i_part,
+          CWP_g_num_t     *global_num,
+          PDM_ownership_t  owner
   )
   {
     _global_num[i_part] = global_num;
@@ -86,7 +86,7 @@ namespace cwipi {
   void
   Block::globalNumFree
   (
-    int i_part
+    const int i_part
   )
   {
     if (_global_num_owner == PDM_OWNERSHIP_KEEP) {
@@ -101,9 +101,9 @@ namespace cwipi {
   void
   Block::parentNumSet
   (
-    int              i_part,
-    int             *parent_num,
-    PDM_ownership_t  owner
+    const int              i_part,
+          int             *parent_num,
+          PDM_ownership_t  owner
   )
   {
     _parent_num[i_part] = parent_num;
@@ -114,7 +114,7 @@ namespace cwipi {
   void
   Block::parentNumFree
   (
-    int i_part
+    const int i_part
   )
   {
     if (_parent_num_owner == PDM_OWNERSHIP_KEEP) {
@@ -129,7 +129,7 @@ namespace cwipi {
   double*
   Block::elementCentersGet
   (
-    int i_part
+    const int i_part
   )
   {
     PDM_part_mesh_nodal_section_elt_center_reset(_mesh->pdmPartMeshNodalGet(),

@@ -67,8 +67,8 @@ namespace cwipi {
     virtual void
     blockAdd
     (
-      CWP_Block_t  block_type,
-      Mesh        *mesh
+      const CWP_Block_t  block_type,
+            Mesh        *mesh
     ) override;
 
 
@@ -87,14 +87,14 @@ namespace cwipi {
     void
     blockSet
     (
-      int          i_part,
-      int          n_elts,
-      int          n_faces,
-      int         *connec_faces_idx,
-      int         *connec_faces,
-      int         *connec_cells_idx,
-      int         *connec_cells,
-      CWP_g_num_t *global_num
+      const int          i_part,
+      const int          n_elts,
+      const int          n_faces,
+            int         *connec_faces_idx,
+            int         *connec_faces,
+            int         *connec_cells_idx,
+            int         *connec_cells,
+            CWP_g_num_t *global_num
     );
 
 
@@ -113,14 +113,14 @@ namespace cwipi {
     void
     blockGet
     (
-      int           i_part,
-      int          *n_elts,
-      int          *n_faces,
-      int         **connec_faces_idx,
-      int         **connec_faces,
-      int         **connec_cells_idx,
-      int         **connec_cells,
-      CWP_g_num_t **global_num
+      const int           i_part,
+            int          *n_elts,
+            int          *n_faces,
+            int         **connec_faces_idx,
+            int         **connec_faces,
+            int         **connec_cells_idx,
+            int         **connec_cells,
+            CWP_g_num_t **global_num
     );
 
 
@@ -133,7 +133,7 @@ namespace cwipi {
     inline int*
     cellConnecGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -146,7 +146,7 @@ namespace cwipi {
     inline int*
     cellConnecIdxGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -159,7 +159,7 @@ namespace cwipi {
     inline int
     nFacesGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -181,7 +181,7 @@ namespace cwipi {
     inline int*
     faceConnecGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -203,7 +203,7 @@ namespace cwipi {
     inline int*
     faceConnecIdxGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -225,8 +225,8 @@ namespace cwipi {
     inline void
     faceGlobalNumSet
     (
-      int          i_part,
-      CWP_g_num_t *global_num_faces
+      const int          i_part,
+            CWP_g_num_t *global_num_faces
     );
 
 
@@ -251,7 +251,7 @@ namespace cwipi {
     inline CWP_g_num_t*
     faceGlobalNumGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -263,7 +263,7 @@ namespace cwipi {
     void
     faceGlobalNumFree
     (
-      int i_part
+      const int i_part
     );
 
 
@@ -288,7 +288,7 @@ namespace cwipi {
   inline int*
   BlockCP::cellConnecGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec_cells[i_part];
@@ -298,7 +298,7 @@ namespace cwipi {
   inline int*
   BlockCP::cellConnecIdxGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec_cells_idx[i_part];
@@ -308,7 +308,7 @@ namespace cwipi {
   inline int
   BlockCP::nFacesGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _n_faces[i_part];
@@ -325,7 +325,7 @@ namespace cwipi {
   inline int*
   BlockCP::faceConnecGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec_faces[i_part];
@@ -342,7 +342,7 @@ namespace cwipi {
   inline int*
   BlockCP::faceConnecIdxGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec_faces_idx[i_part];
@@ -359,8 +359,8 @@ namespace cwipi {
   inline void
   BlockCP::faceGlobalNumSet
   (
-    int          i_part,
-    CWP_g_num_t *global_num_faces
+    const int          i_part,
+          CWP_g_num_t *global_num_faces
   )
   {
     _global_num_faces[i_part] = global_num_faces;
@@ -380,7 +380,7 @@ namespace cwipi {
   inline CWP_g_num_t*
   BlockCP::faceGlobalNumGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _global_num_faces[i_part];

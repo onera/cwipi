@@ -68,8 +68,8 @@ namespace cwipi {
     virtual void
     blockAdd
     (
-      CWP_Block_t  block_type,
-      Mesh        *mesh
+      const CWP_Block_t  block_type,
+            Mesh        *mesh
     ) override;
 
 
@@ -86,8 +86,8 @@ namespace cwipi {
     void
     blockSet
     (
-            int          i_part,
-            int          n_elts,
+      const int          i_part,
+      const int          n_elts,
             int         *connec,
             CWP_g_num_t *global_num,
       const int          order,
@@ -108,12 +108,12 @@ namespace cwipi {
     void
     blockGet
     (
-      int           i_part,
-      int          *n_elts,
-      int         **connec,
-      CWP_g_num_t **global_num,
-      int          *order,
-      char        **ho_ordering
+      const int           i_part,
+            int          *n_elts,
+            int         **connec,
+            CWP_g_num_t **global_num,
+            int          *order,
+            char        **ho_ordering
     );
 
 
@@ -126,7 +126,7 @@ namespace cwipi {
     inline int*
     connecGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -139,7 +139,7 @@ namespace cwipi {
     inline int*
     connecIJKGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -188,7 +188,7 @@ namespace cwipi {
   inline int*
   BlockHO::connecGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec[i_part];
@@ -198,7 +198,7 @@ namespace cwipi {
   inline int*
   BlockHO::connecIJKGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _connec_ijk[i_part];

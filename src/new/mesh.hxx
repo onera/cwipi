@@ -65,10 +65,10 @@ namespace cwipi {
      */
     Mesh
     (
-      const MPI_Comm     &local_comm,
-      int                 n_part,
-      CWP_Dynamic_mesh_t  displacement,
-      Coupling           *cpl
+      const MPI_Comm           &local_comm,
+      const int                 n_part,
+      const CWP_Dynamic_mesh_t  displacement,
+            Coupling           *cpl
     );
 
 
@@ -127,7 +127,7 @@ namespace cwipi {
       const int         n_cells,
             int         cell_face_idx[],
             int         cell_face[],
-            int         n_faces,
+      const int         n_faces,
             int         face_vtx_idx[],
             int         face_vtx[],
             CWP_g_num_t global_num[]
@@ -426,7 +426,7 @@ namespace cwipi {
     inline CWP_Block_t
     blockTypeGet
     (
-      int id_block
+      const int id_block
     ) const;
 
 
@@ -450,7 +450,7 @@ namespace cwipi {
     inline int
     nVtxGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -464,7 +464,7 @@ namespace cwipi {
     inline double*
     coordGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -478,7 +478,7 @@ namespace cwipi {
     inline CWP_g_num_t*
     vertexGlobalNumGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -493,8 +493,8 @@ namespace cwipi {
     inline CWP_g_num_t*
     blockGlobalNumGet
     (
-      int id_block,
-      int i_part
+      const int id_block,
+      const int i_part
     ) const;
 
 
@@ -508,7 +508,7 @@ namespace cwipi {
     int
     nEltsGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -522,7 +522,7 @@ namespace cwipi {
     CWP_g_num_t*
     elementGlobalNumGet
     (
-      int i_part
+      const int i_part
     ) const;
 
 
@@ -536,7 +536,7 @@ namespace cwipi {
     double*
     elementCentersGet
     (
-      int i_part
+      const int i_part
     );
 
 
@@ -584,57 +584,57 @@ namespace cwipi {
     _meshDimensionGet() const;
 
 
-    int                           _n_part;                /*!< Number of partitions */
-    int                           _n_blocks;              /*!< Number of blocks of the mesh */
-    std::vector<cwipi::Block*>    _block_DB;              /*!< Blocks database */
+    int                         _n_part;                /*!< Number of partitions */
+    int                         _n_blocks;              /*!< Number of blocks of the mesh */
+    std::vector<cwipi::Block*>  _block_DB;              /*!< Blocks database */
 
-    std::vector<int>              _n_vtx;                 /*!< Number of vertices for each partition */
-    std::vector<double*>          _coords;                /*!< Vertices coordinate for each partition */
-    std::vector<CWP_g_num_t*>     _global_num_vtx;        /*!< Vertices global numbering for each partition */
+    std::vector<int>            _n_vtx;                 /*!< Number of vertices for each partition */
+    std::vector<double*>        _coords;                /*!< Vertices coordinate for each partition */
+    std::vector<CWP_g_num_t*>   _global_num_vtx;        /*!< Vertices global numbering for each partition */
 
-    std::vector<int>              _n_elts;                /*!< Number of elements for each partition */
-    std::vector<double*>          _elt_centers;           /*!< Element centers for each partition */
+    std::vector<int>            _n_elts;                /*!< Number of elements for each partition */
+    std::vector<double*>        _elt_centers;           /*!< Element centers for each partition */
 
-    CWP_Dynamic_mesh_t            _displacement;          /*!< Type of mesh displacement */
-    Coupling                     *_cpl;                   /*!< Pointer to the Coupling object */
+    CWP_Dynamic_mesh_t          _displacement;          /*!< Type of mesh displacement */
+    Coupling                   *_cpl;                   /*!< Pointer to the Coupling object */
 
-    std::vector<int>              _n_cells;               /*!< Number of cells for each partition */
-    std::vector<int*>             _cell_face_idx;         /*!< Cell to face index for each partition */
-    std::vector<int*>             _cell_face;             /*!< Cell to face connectivity for each partition */
-    std::vector<int*>             _cell_vtx_idx;          /*!< Cell to vertex index for each partition */
-    std::vector<int*>             _cell_vtx;              /*!< Cell to vertex connectivity for each partition */
-    std::vector<CWP_g_num_t*>     _global_num_cells;      /*!< Cell global numbering for each partition */
+    std::vector<int>            _n_cells;               /*!< Number of cells for each partition */
+    std::vector<int*>           _cell_face_idx;         /*!< Cell to face index for each partition */
+    std::vector<int*>           _cell_face;             /*!< Cell to face connectivity for each partition */
+    std::vector<int*>           _cell_vtx_idx;          /*!< Cell to vertex index for each partition */
+    std::vector<int*>           _cell_vtx;              /*!< Cell to vertex connectivity for each partition */
+    std::vector<CWP_g_num_t*>   _global_num_cells;      /*!< Cell global numbering for each partition */
 
-    std::vector<int>              _n_faces;               /*!< Number of faces for each partition */
-    std::vector<int*>             _face_edge_idx;         /*!< Face to edge index for each partition */
-    std::vector<int*>             _face_edge;             /*!< Face to edge connectivity for each partition */
-    std::vector<int*>             _face_vtx_idx;          /*!< Face to vertex index for each partition */
-    std::vector<int*>             _face_vtx;              /*!< Face to vertex connectivity for each partition */
-    std::vector<CWP_g_num_t*>     _global_num_faces;      /*!< Face global numbering for each partition */
+    std::vector<int>            _n_faces;               /*!< Number of faces for each partition */
+    std::vector<int*>           _face_edge_idx;         /*!< Face to edge index for each partition */
+    std::vector<int*>           _face_edge;             /*!< Face to edge connectivity for each partition */
+    std::vector<int*>           _face_vtx_idx;          /*!< Face to vertex index for each partition */
+    std::vector<int*>           _face_vtx;              /*!< Face to vertex connectivity for each partition */
+    std::vector<CWP_g_num_t*>   _global_num_faces;      /*!< Face global numbering for each partition */
 
-    std::vector<int>              _n_edges;               /*!< Number of edges for each partition */
-    std::vector<int*>             _edge_vtx;              /*!< Edge to vertex connectivity for each partition */
+    std::vector<int>            _n_edges;               /*!< Number of edges for each partition */
+    std::vector<int*>           _edge_vtx;              /*!< Edge to vertex connectivity for each partition */
 
-    PDM_MPI_Comm                  _local_comm_pdm;        /*!< Paradigm local MPI communicator */
+    PDM_MPI_Comm                _local_comm_pdm;        /*!< Paradigm local MPI communicator */
 
-    PDM_part_mesh_nodal_t        *_pmn;                   /*!< Paradigm part mesh nodal identifier */
-    PDM_geometry_kind_t           _geom_kind;             /*!< Geometry kind */
+    PDM_part_mesh_nodal_t      *_pmn;                   /*!< Paradigm part mesh nodal identifier */
+    PDM_geometry_kind_t         _geom_kind;             /*!< Geometry kind */
 
-    bool                          _is_face_edge_method;   /*!< Flag: face to edge   method */
-    bool                          _is_face_vtx_method;    /*!< Flag: face to vertex method */
-    bool                          _is_cell_face_method;   /*!< Flag: cell to face   method */
-    bool                          _is_cell_vtx_method;    /*!< Flag: cell to vertex method */
+    bool                        _is_face_edge_method;   /*!< Flag: face to edge   method */
+    bool                        _is_face_vtx_method;    /*!< Flag: face to vertex method */
+    bool                        _is_cell_face_method;   /*!< Flag: cell to face   method */
+    bool                        _is_cell_vtx_method;    /*!< Flag: cell to vertex method */
 
-    bool                          _is_vtx_gnum_computed;  /*!< Flag: vertex  global numbering computed */
-    bool                          _is_elt_gnum_computed;  /*!< Flag: element global numbering computed */
-    bool                          _is_face_gnum_computed; /*!< Flag: face    global numbering computed */
+    bool                        _is_vtx_gnum_computed;  /*!< Flag: vertex  global numbering computed */
+    bool                        _is_elt_gnum_computed;  /*!< Flag: element global numbering computed */
+    bool                        _is_face_gnum_computed; /*!< Flag: face    global numbering computed */
 
   };
 
   inline CWP_Block_t
   Mesh::blockTypeGet
   (
-    int id_block
+    const int id_block
   ) const
   {
     return _block_DB[id_block]->blockTypeGet();
@@ -651,7 +651,7 @@ namespace cwipi {
   inline int
   Mesh::nVtxGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _n_vtx[i_part];
@@ -661,7 +661,7 @@ namespace cwipi {
   inline double*
   Mesh::coordGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _coords[i_part];
@@ -671,7 +671,7 @@ namespace cwipi {
   inline CWP_g_num_t*
   Mesh::vertexGlobalNumGet
   (
-    int i_part
+    const int i_part
   ) const
   {
     return _global_num_vtx[i_part];
@@ -681,8 +681,8 @@ namespace cwipi {
   inline CWP_g_num_t*
   Mesh::blockGlobalNumGet
   (
-    int id_block,
-    int i_part
+    const int id_block,
+    const int i_part
   ) const
   {
     return _block_DB[id_block]->globalNumGet(i_part);
