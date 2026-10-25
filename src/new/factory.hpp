@@ -57,6 +57,7 @@ namespace cwipi {
        * \brief what function.
        *
        * \return "Unknown Type"
+       *
        */
       const char* what() const throw() override { return "Unknown Type"; }
 
@@ -67,6 +68,7 @@ namespace cwipi {
      * \brief Throws an exception.
      *
      * \return AbstractProduct*
+     *
      */
     static AbstractProduct* ofUnknownType(IdentifierType)
     {
@@ -155,6 +157,7 @@ namespace cwipi {
      * \brief Create an object of Concrete product from its identifier.
      *
      * \tparam ConcreteProduct Concrete product
+     *
      * \return A new concrete product with the abstract product interface
      *
      */

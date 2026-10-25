@@ -40,6 +40,7 @@ namespace cwipi {
 
     /**
      * \brief Singleton instance.
+     *
      */
     Singleton() {}
 
@@ -50,6 +51,7 @@ namespace cwipi {
      * Creates the instance on first call and returns a reference to it
      *
      * \return Reference to the singleton instance
+     *
      */
     static T &getInstance()
     {
@@ -64,6 +66,7 @@ namespace cwipi {
      * \brief Destroy the singleton instance.
      *
      * Deletes the singleton instance if it exists
+     *
      */
     static void kill()
     {
@@ -77,6 +80,7 @@ namespace cwipi {
 
     /**
      * \brief Destructor.
+     *
      */
     virtual ~Singleton() {}
 

@@ -57,6 +57,7 @@ namespace cwipi {
    *
    * A block \ref Factory which makes \ref Block class objects.
    * The type of block objects built depends on the block type \ref CWP_Block_t.
+   *
    */
   typedef Factory<Block, CWP_Block_t> FB;
 

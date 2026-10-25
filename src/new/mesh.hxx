@@ -214,6 +214,7 @@ namespace cwipi {
      * \param [in]  block_type Type of block
      *
      * \return Block identifier
+     *
      */
     int
     blockAdd
@@ -420,6 +421,7 @@ namespace cwipi {
      * \brief Get the block type.
      *
      * \param [in]  id_block Block identifier
+     *
      * \return Block type
      *
      */
@@ -444,6 +446,7 @@ namespace cwipi {
      * \brief Get the number of vertices of the partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Number of vertices of the partition
      *
      */
@@ -458,6 +461,7 @@ namespace cwipi {
      * \brief Get the vertices coordinates of the partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Vertices coordinates of the partition
      *
      */
@@ -472,6 +476,7 @@ namespace cwipi {
      * \brief Get the vertices global numbering of the partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Vertices global numbering of the partition
      *
      */
@@ -487,6 +492,7 @@ namespace cwipi {
      *
      * \param [in]  id_block Block identifier
      * \param [in]  i_part   Partition identifier
+     *
      * \return Global numbering of the block
      *
      */
@@ -502,6 +508,7 @@ namespace cwipi {
      * \brief Get the number of elements of the partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Number of elements of the partition
      *
      */
@@ -516,6 +523,7 @@ namespace cwipi {
      * \brief Get the global numbering of elements for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Global numbering of elements
      *
      */
@@ -530,6 +538,7 @@ namespace cwipi {
      * \brief Get the element centers for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Element centers
      *
      */
@@ -579,6 +588,7 @@ namespace cwipi {
      * \brief Return the mesh dimension from the interface entity dimension.
      *
      * \return Mesh dimension (0, 1, 2 or 3)
+     *
      */
     int
     _meshDimensionGet() const;

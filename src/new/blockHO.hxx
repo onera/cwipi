@@ -64,6 +64,7 @@ namespace cwipi {
      *
      * \param [in]  block_type Type of the block
      * \param [in]  mesh       Mesh object owning the block
+     *
      */
     virtual void
     blockAdd
@@ -82,6 +83,7 @@ namespace cwipi {
      * \param [in]  global_num  Global numbering of the block
      * \param [in]  order       Element order
      * \param [in]  ho_ordering HO ordering name
+     *
      */
     void
     blockSet
@@ -104,6 +106,7 @@ namespace cwipi {
      * \param [out] global_num  Global numbering of the block
      * \param [out] order       Element order
      * \param [out] ho_ordering HO ordering name
+     *
      */
     void
     blockGet
@@ -121,7 +124,9 @@ namespace cwipi {
      * \brief Return the connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Connectivity array
+     *
      */
     inline int*
     connecGet
@@ -134,7 +139,9 @@ namespace cwipi {
      * \brief Return the IJK connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return IJK connectivity array
+     *
      */
     inline int*
     connecIJKGet
@@ -147,6 +154,7 @@ namespace cwipi {
      * \brief Return the element order.
      *
      * \return Element order
+     *
      */
     inline int
     orderGet() const;
@@ -156,6 +164,7 @@ namespace cwipi {
      * \brief Return the higher-order ordering scheme.
      *
      * \return High-order ordering name
+     *
      */
     inline char*
     hoOrderingGet() const;

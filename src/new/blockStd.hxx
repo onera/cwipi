@@ -63,6 +63,7 @@ namespace cwipi {
      *
      * \param [in]  block_type Type of the block
      * \param [in]  mesh       Mesh object owning the block
+     *
      */
     virtual void
     blockAdd
@@ -79,6 +80,7 @@ namespace cwipi {
      * \param [in]  n_elts     Number of elements of the block
      * \param [in]  connec     Element to vertex connectivity
      * \param [in]  global_num Global numbering of the block
+     *
      */
     void
     blockSet
@@ -97,6 +99,7 @@ namespace cwipi {
      * \param [out] n_elts     Number of elements of the block
      * \param [out] connec     Element to vertex connectivity
      * \param [out] global_num Global numbering of the block
+     *
      */
     void
     blockGet
@@ -112,7 +115,9 @@ namespace cwipi {
      * \brief Return the element connectivity for a specific partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Connectivity array for the specified partition
+     *
      */
     inline int*
     connecGet

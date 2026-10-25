@@ -63,6 +63,7 @@ namespace cwipi {
      *
      * \param [in]  block_type Type of the block
      * \param [in]  mesh       Mesh object owning the block
+     *
      */
     virtual void
     blockAdd
@@ -83,6 +84,7 @@ namespace cwipi {
      * \param [in]  connec_cells_idx Cell to face connectivity index
      * \param [in]  connec_cells     Cell to face connectivity
      * \param [in]  global_num       Global numbering of the block
+     *
      */
     void
     blockSet
@@ -109,6 +111,7 @@ namespace cwipi {
      * \param [out] connec_cells_idx Cell to face connectivity index
      * \param [out] connec_cells     Cell to face connectivity
      * \param [out] global_num       Global numbering of the block
+     *
      */
     void
     blockGet
@@ -128,7 +131,9 @@ namespace cwipi {
      * \brief Return the cell to face connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Connectivity array for the partition
+     *
      */
     inline int*
     cellConnecGet
@@ -141,7 +146,9 @@ namespace cwipi {
      * \brief Return the cell to face connectivity index for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Connectivity index array for the partition
+     *
      */
     inline int*
     cellConnecIdxGet
@@ -154,7 +161,9 @@ namespace cwipi {
      * \brief Return the number of faces for a partition (Cells_POLY_3D).
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Number of faces for the partition
+     *
      */
     inline int
     nFacesGet
@@ -167,6 +176,7 @@ namespace cwipi {
      * \brief Return the number of faces for all partitions.
      *
      * \return Vector of face counts for each partition
+     *
      */
     inline const std::vector<int>&
     nFacesGet() const;
@@ -176,7 +186,9 @@ namespace cwipi {
      * \brief Return the face to vertex connectivity for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Faces connectivity array for the partition
+     *
      */
     inline int*
     faceConnecGet
@@ -189,6 +201,7 @@ namespace cwipi {
      * \brief Return the face to vertex connectivity for all partitions.
      *
      * \return Vector of connectivity arrays for each partition
+     *
      */
     inline const std::vector<int*>&
     faceConnecGet() const;
@@ -198,7 +211,9 @@ namespace cwipi {
      * \brief Return the face to vertex connectivity index for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Faces connectivity index array for the partition
+     *
      */
     inline int*
     faceConnecIdxGet
@@ -211,6 +226,7 @@ namespace cwipi {
      * \brief Return the face to vertex connectivity index for all partitions.
      *
      * \return Vector of connectivity index arrays for each partition
+     *
      */
     inline const std::vector<int*>&
     faceConnecIdxGet() const;
@@ -221,6 +237,7 @@ namespace cwipi {
      *
      * \param [in]  i_part           Partition identifier
      * \param [in]  global_num_faces Faces global numbering array
+     *
      */
     inline void
     faceGlobalNumSet
@@ -234,6 +251,7 @@ namespace cwipi {
      * \brief Set the faces global numbering for all partitions.
      *
      * \param [in]  global_num_faces Vector of global numbering arrays for each partition
+     *
      */
     inline void
     faceGlobalNumSet
@@ -246,7 +264,9 @@ namespace cwipi {
      * \brief Return the faces global numbering for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Faces global numbering array for the partition
+     *
      */
     inline CWP_g_num_t*
     faceGlobalNumGet
@@ -259,6 +279,7 @@ namespace cwipi {
      * \brief Free the faces global numbering.
      *
      * \param [in]  i_part Partition identifier
+     *
      */
     void
     faceGlobalNumFree

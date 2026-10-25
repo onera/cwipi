@@ -69,6 +69,7 @@ namespace cwipi {
      * \param [in]  cplCodeProperties   Coupled code properties
      * \param [in]  cplId               Coupling identifier
      * \param [in]  cplDB               Coupling database
+     *
      */
     void
     init
@@ -84,6 +85,7 @@ namespace cwipi {
      * \brief Initialize coupling communicators.
      *
      * \param [in]  cplCodeComm Coupled code communication
+     *
      */
     void
     init
@@ -97,7 +99,9 @@ namespace cwipi {
      *
      * \param [in]  name   Data identifier
      * \param [in]  offset Offset
+     *
      * \return Tag
+     *
      */
     uint32_t
     tagGet
@@ -120,6 +124,7 @@ namespace cwipi {
      * \param [out] recv_data       Array of data to receive
      * \param [in]  n_recv_data_cpl Number of data to receive (if current rank is shared between codes)
      * \param [out] recv_data_cpl   Array of data to receive (if current rank is shared between codes)
+     *
      */
     void
     globalDataBetweenCodesThroughUnionCommExch
@@ -145,6 +150,7 @@ namespace cwipi {
      * \param [in]  stride            Stride
      * \param [in]  n_entity          Number of entities
      * \param [in]  send_data         Array of data to send
+     *
      */
     void
     globalDataBetweenCodesThroughUnionCommIssend
@@ -167,6 +173,7 @@ namespace cwipi {
      * \param [in]  stride            Stride
      * \param [in]  n_entity          Number of entities
      * \param [out] recv_data         Array of data to receive
+     *
      */
     void
     globalDataBetweenCodesThroughUnionCommIrecv
@@ -189,6 +196,7 @@ namespace cwipi {
      * \param [in]  n_entity          Number of entities
      * \param [in]  send_data         Array of data to send
      * \param [out] recv_data         Array of data to receive
+     *
      */
     void
     globalDataBetweenCodesThroughUnionCommWaitIssend
@@ -211,6 +219,7 @@ namespace cwipi {
      * \param [in]  n_entity          Number of entities
      * \param [in]  send_data         Array of data to send
      * \param [out] recv_data         Array of data to receive
+     *
      */
     void
     globalDataBetweenCodesThroughUnionCommWaitIrecv
@@ -228,6 +237,7 @@ namespace cwipi {
      * \brief Get the union communicator.
      *
      * \return Union communicator
+     *
      */
     inline MPI_Comm
     unionCommGet() const;
@@ -237,6 +247,7 @@ namespace cwipi {
      * \brief Get the coupling communicator.
      *
      * \return Coupling communicator
+     *
      */
     inline MPI_Comm
     cplCommGet() const;
@@ -246,6 +257,7 @@ namespace cwipi {
      * \brief Get the root rank of the coupled code into the union communicator.
      *
      * \return Root rank of the coupled code into the union communicator
+     *
      */
     inline int
     unionCommCplCodeRootRanksGet() const;
@@ -255,6 +267,7 @@ namespace cwipi {
      * \brief Get the root rank of the local code into the union communicator.
      *
      * \return Root rank of the local code into the union communicator
+     *
      */
     inline int
     unionCommLocCodeRootRanksGet() const;
@@ -264,6 +277,7 @@ namespace cwipi {
      * \brief Return the communicator type.
      *
      * \return Communicator type
+     *
      */
     virtual CWP_Comm_t
     commTypeGet() const = 0;
@@ -275,7 +289,9 @@ namespace cwipi {
      *
      * \param [in]  buf       Buffer
      * \param [in]  buflength Buffer length
+     *
      * \return Adler code
+     *
      */
     uint32_t
     _adler32Compute
@@ -290,6 +306,7 @@ namespace cwipi {
      * \brief Build the coupling communicator from \ref CWP_Comm_t.
      *
      * \param [in]  cplCodeCommType Coupling communicator type
+     *
      */
     virtual void
     cplCommCreate

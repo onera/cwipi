@@ -61,6 +61,7 @@ namespace cwipi {
      * \brief Return the communication type.
      *
      * \return Communication type
+     *
      */
     inline CWP_Comm_t
     commTypeGet() const override;
@@ -71,6 +72,7 @@ namespace cwipi {
      * \brief Build the coupling communicator.
      *
      * \param [in]  cplCodeCommType Coupling communicator type
+     *
      */
     void
     cplCommCreate

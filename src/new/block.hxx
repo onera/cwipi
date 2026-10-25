@@ -69,6 +69,7 @@ namespace cwipi {
      *
      * \param [in]  block_type Type of the block
      * \param [in]  mesh       Mesh object owning the block
+     *
      */
     virtual void
     blockAdd
@@ -82,6 +83,7 @@ namespace cwipi {
      * \brief Return the CWIPI block type.
      *
      * \return Block type
+     *
      */
     inline CWP_Block_t
     blockTypeGet() const;
@@ -91,6 +93,7 @@ namespace cwipi {
      * \brief Return true if the block is standard.
      *
      * \return True if the block is standard
+     *
      */
     inline bool
     blockTypeStdIs() const;
@@ -100,6 +103,7 @@ namespace cwipi {
      * \brief Set the CWIPI block identifier.
      *
      * \param [in]  block_id Block identifier
+     *
      */
     inline void
     blockIdCwipiSet
@@ -112,6 +116,7 @@ namespace cwipi {
      * \brief Return the CWIPI block identifier.
      *
      * \return Block identifier
+     *
      */
     inline int
     blockIdCwipiGet() const;
@@ -121,6 +126,7 @@ namespace cwipi {
      * \brief Set the PDM block identifier.
      *
      * \param [in]  block_id Block identifier
+     *
      */
     inline void
     blockIdPdmSet
@@ -133,6 +139,7 @@ namespace cwipi {
      * \brief Return the PDM block identifier.
      *
      * \return Block identifier
+     *
      */
     inline int
     blockIdPdmGet() const;
@@ -142,7 +149,9 @@ namespace cwipi {
      * \brief Return the number of elements for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Number of elements
+     *
      */
     inline int
     nEltsGet
@@ -160,6 +169,7 @@ namespace cwipi {
      *
      * \note If owner is PDM_OWNERSHIP_KEEP, the Block takes ownership
      *       and will free the memory when the block is destroyed.
+     *
      */
     void
     globalNumSet
@@ -174,7 +184,9 @@ namespace cwipi {
      * \brief Return the element global numbering for a partition.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Global numbering array
+     *
      */
     inline CWP_g_num_t*
     globalNumGet
@@ -187,6 +199,7 @@ namespace cwipi {
      * \brief Free the element global numbering.
      *
      * \param [in]  i_part Partition identifier
+     *
      */
     void
     globalNumFree
@@ -204,6 +217,7 @@ namespace cwipi {
      *
      * \note If owner is PDM_OWNERSHIP_KEEP, the Block takes ownership
      *       and will free the memory when the block is destroyed.
+     *
      */
     void
     parentNumSet
@@ -218,7 +232,9 @@ namespace cwipi {
      * \brief Return the parent numbering.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Parent numbering array
+     *
      */
     inline int*
     parentNumGet
@@ -231,6 +247,7 @@ namespace cwipi {
      * \brief Free the parent numbering.
      *
      * \param [in]  i_part Partition identifier
+     *
      */
     void
     parentNumFree
@@ -243,7 +260,9 @@ namespace cwipi {
      * \brief Return the element centers.
      *
      * \param [in]  i_part Partition identifier
+     *
      * \return Element centers array
+     *
      */
     double*
     elementCentersGet
@@ -255,7 +274,8 @@ namespace cwipi {
     /**
      * \brief Finalize geometry processing.
      *
-     *  Pure virtual method to be implemented by derived classes.
+     * Pure virtual method to be implemented by derived classes
+     *
      */
     virtual void
     geomFinalize() = 0;

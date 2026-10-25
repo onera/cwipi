@@ -119,6 +119,7 @@ namespace cwipi {
      * \param [in]  cplId               Coupling identifier
      *
      * \return Reference to the coupling object
+     *
      */
     inline Coupling&
     couplingGet
@@ -134,6 +135,7 @@ namespace cwipi {
      * \param [in]  localCodeProperties Source code
      *
      * \return Reference to the map of coupling objects
+     *
      */
     inline std::map<std::string, Coupling *>&
     couplingListGet
@@ -149,6 +151,7 @@ namespace cwipi {
      * \param [in]  cplId               Coupling identifier
      *
      * \return status
+     *
      */
     inline bool
     couplingIs

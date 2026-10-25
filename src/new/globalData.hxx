@@ -65,6 +65,7 @@ namespace cwipi {
      * \brief Get size of datatype in bytes.
      *
      * \return Reference to size of datatype in bytes
+     *
      */
     inline const size_t&
     sEntityGet() const;
@@ -74,6 +75,7 @@ namespace cwipi {
      * \brief Get stride.
      *
      * \return Reference to stride
+     *
      */
     inline const int&
     strideGet() const;
@@ -83,6 +85,7 @@ namespace cwipi {
      * \brief Get number of entities.
      *
      * \return Reference to number of entities
+     *
      */
     inline const int&
     nEntityGet() const;
@@ -92,6 +95,7 @@ namespace cwipi {
      * \brief Set send data pointer.
      *
      * \param [in]  send_data Pointer to send data
+     *
      */
     inline void
     sendDataSet
@@ -104,6 +108,7 @@ namespace cwipi {
      * \brief Get send data pointer.
      *
      * \return Pointer to send data
+     *
      */
     inline void*
     sendDataGet() const;
@@ -113,6 +118,7 @@ namespace cwipi {
      * \brief Set receive data pointer.
      *
      * \param [in]  recv_data Pointer to receive data
+     *
      */
     inline void
     recvDataSet
@@ -125,6 +131,7 @@ namespace cwipi {
      * \brief Get receive data pointer.
      *
      * \return Pointer to receive data
+     *
      */
     inline void*
     recvDataGet() const;
@@ -134,6 +141,7 @@ namespace cwipi {
      * \brief Set send MPI request.
      *
      * \param [in]  req MPI request for send
+     *
      */
     inline void
     dataSendRequestSet
@@ -146,6 +154,7 @@ namespace cwipi {
      * \brief Get send MPI request.
      *
      * \return MPI request for send
+     *
      */
     inline MPI_Request
     dataSendRequestGet() const;
@@ -155,6 +164,7 @@ namespace cwipi {
      * \brief Set receive MPI request.
      *
      * \param [in]  req MPI request for receive
+     *
      */
     inline void
     dataRecvRequestSet
@@ -167,6 +177,7 @@ namespace cwipi {
      * \brief Get receive MPI request.
      *
      * \return MPI request for receive
+     *
      */
     inline MPI_Request
     dataRecvRequestGet() const;

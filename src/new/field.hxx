@@ -86,6 +86,7 @@ namespace cwipi {
      * \brief Get field identifier.
      *
      * \return Field identifier
+     *
      */
     inline std::string
     fieldIDGet() const;
@@ -95,6 +96,7 @@ namespace cwipi {
      * \brief Get integer field identifier.
      *
      * \return Integer field identifier
+     *
      */
     inline int
     fieldIDIntGet() const;
@@ -104,6 +106,7 @@ namespace cwipi {
      * \brief Get field data type.
      *
      * \return Field data type
+     *
      */
     inline CWP_Type_t
     dataTypeGet() const;
@@ -113,6 +116,7 @@ namespace cwipi {
      * \brief Get field data type size.
      *
      * \return Field data type size
+     *
      */
     inline int
     dataTypeSizeGet() const;
@@ -122,6 +126,7 @@ namespace cwipi {
      * \brief Get field location.
      *
      * \return Field location
+     *
      */
     inline CWP_Dof_location_t
     locationGet() const;
@@ -131,6 +136,7 @@ namespace cwipi {
      * \brief Set linked field location.
      *
      * \param [in]  linkedFieldLocation Linked field location
+     *
      */
     inline void
     linkedFieldLocationSet
@@ -143,6 +149,7 @@ namespace cwipi {
      * \brief Get linked field location.
      *
      * \return Linked field location
+     *
      */
     inline CWP_Dof_location_t
     linkedFieldLocationGet() const;
@@ -152,6 +159,7 @@ namespace cwipi {
      * \brief Get field storage type.
      *
      * \return Field storage type
+     *
      */
     inline CWP_Field_storage_t
     storageTypeGet() const;
@@ -161,6 +169,7 @@ namespace cwipi {
      * \brief Get number of field components.
      *
      * \return Number of field components
+     *
      */
     inline int
     nComponentGet() const;
@@ -170,6 +179,7 @@ namespace cwipi {
      * \brief Get exchange type.
      *
      * \return Exchange type
+     *
      */
     inline CWP_Field_exch_t
     exchangeTypeGet() const;
@@ -179,6 +189,7 @@ namespace cwipi {
      * \brief Get visualization status.
      *
      * \return Visualization status
+     *
      */
     inline CWP_Status_t
     visuStatusGet() const;
@@ -188,6 +199,7 @@ namespace cwipi {
      * \brief Get number of field partitions.
      *
      * \return Number of partitions
+     *
      */
     inline int
     nPartGet() const;
@@ -199,6 +211,7 @@ namespace cwipi {
      * \param [in]  i_part Partition identifier
      *
      * \return Number of field degrees of freedom
+     *
      */
     int
     nDOFGet
@@ -213,6 +226,7 @@ namespace cwipi {
      * \param [in]  i_part   Partition identifier
      * \param [in]  map_type Data map type
      * \param [in]  data     Data array
+     *
      */
     inline void
     dataSet
@@ -230,6 +244,7 @@ namespace cwipi {
      * \param [in]  map_type Data map type
      *
      * \return Data array
+     *
      */
     inline void*
     dataGet
@@ -254,6 +269,7 @@ namespace cwipi {
      * \brief Set interpolation function.
      *
      * \param [in]  fct Interpolation function
+     *
      */
     inline void
     interpFunctionSet
@@ -266,6 +282,7 @@ namespace cwipi {
      * \brief Get interpolation function.
      *
      * \return Interpolation function
+     *
      */
     inline CWP_Interp_function_t
     interpFunctionGet() const;
@@ -283,6 +300,7 @@ namespace cwipi {
      * \brief Set Fortran interpolation function.
      *
      * \param [in]  fct Interpolation function
+     *
      */
     inline void
     interpFunctionFSet
@@ -295,6 +313,7 @@ namespace cwipi {
      * \brief Get Fortran interpolation function.
      *
      * \return Interpolation function
+     *
      */
     inline CWP_Interp_function_t
     interpFunctionFGet() const;
@@ -312,6 +331,7 @@ namespace cwipi {
      * \brief Set Python interpolation function.
      *
      * \param [in]  fct Interpolation function
+     *
      */
     inline void
     interpFunctionPSet
@@ -324,6 +344,7 @@ namespace cwipi {
      * \brief Get Python interpolation function.
      *
      * \return Interpolation function
+     *
      */
     inline CWP_Interp_function_p_t
     interpFunctionPGet() const;
@@ -341,6 +362,7 @@ namespace cwipi {
      * \brief Get interpolation type.
      *
      * \return Interpolation type
+     *
      */
     inline CWP_Interpolation_t
     interpolationTypeGet() const;
@@ -350,6 +372,7 @@ namespace cwipi {
      * \brief Set python object.
      *
      * \param [in]  p Python object
+     *
      */
     inline void
     pythonObjectSet
@@ -362,6 +385,7 @@ namespace cwipi {
      * \brief Get python object.
      *
      * \return Python object
+     *
      */
     inline void *
     pythonObjectGet() const;
@@ -371,6 +395,7 @@ namespace cwipi {
      * \brief Set send already performed flag.
      *
      * \param [in]  value Flag value
+     *
      */
     inline void
     isSendYetSet
@@ -383,6 +408,7 @@ namespace cwipi {
      * \brief Get send already performed flag.
      *
      * \return Send already performed flag
+     *
      */
     inline bool
     isSendYetGet() const;
@@ -392,6 +418,7 @@ namespace cwipi {
      * \brief Set receive already performed flag.
      *
      * \param [in]  value Flag value
+     *
      */
     inline void
     isRecvYetSet
@@ -404,6 +431,7 @@ namespace cwipi {
      * \brief Get receive already performed flag.
      *
      * \return Receive already performed flag
+     *
      */
     inline bool
     isRecvYetGet() const;
@@ -415,6 +443,7 @@ namespace cwipi {
      * \param [in]  i_comp Component identifier
      *
      * \return Sent variable writer identifier
+     *
      */
     inline int
     idWriterVarSendGet
@@ -427,6 +456,7 @@ namespace cwipi {
      * \brief Get sent variable status writer identifier.
      *
      * \return Sent variable status writer identifier
+     *
      */
     inline int
     idWriterVarSendStatusGet() const;
@@ -438,6 +468,7 @@ namespace cwipi {
      * \param [in]  i_comp Component identifier
      *
      * \return Received variable writer identifiers
+     *
      */
     inline int
     idWriterVarRecvGet
@@ -450,6 +481,7 @@ namespace cwipi {
      * \brief Get received variable status writer identifier.
      *
      * \return Received variable status writer identifier
+     *
      */
     inline int
     idWriterVarRecvStatusGet() const;
@@ -467,6 +499,7 @@ namespace cwipi {
      * \brief Check if computed target broadcast is enabled.
      *
      * \return true if enabled, false otherwise
+     *
      */
     inline bool
     computedTgtBcastEnabledIs() const;
@@ -484,6 +517,7 @@ namespace cwipi {
      * \brief Check if involved source broadcast is enabled.
      *
      * \return true if enabled, false otherwise
+     *
      */
     inline bool
     involvedSrcBcastEnabledIs() const;

@@ -53,6 +53,7 @@ namespace cwipi {
      * \param [in]  n_part       Number of partitions
      *
      * The global_num and n_elts pointers are borrowed (not owned) by the PartData
+     *
      */
     PartData
     (
@@ -75,6 +76,7 @@ namespace cwipi {
      * \brief Get the exchange type.
      *
      * \return Exchange type
+     *
      */
     inline CWP_PartData_exch_t
     exchTypeGet() const;
@@ -86,6 +88,7 @@ namespace cwipi {
      * \param [in]  exch_id Exchange identifier
      * \param [in]  s_unit  Datatype size in bytes
      * \param [in]  data    Data pointer
+     *
      */
     void
     dataSet
@@ -101,6 +104,7 @@ namespace cwipi {
      *
      * \param [in]  exch_id Exchange identifier
      * \param [in]  request Request
+     *
      */
     void
     requestSet
@@ -114,7 +118,9 @@ namespace cwipi {
      * \brief Get the request.
      *
      * \param [in]  exch_id Exchange identifier
+     *
      * \return Request
+     *
      */
     int
     requestGet
@@ -127,6 +133,7 @@ namespace cwipi {
      * \brief Filter the received data in-place.
      *
      * \param [in]  exch_id Exchange identifier
+     *
      */
     void
     recvDataFilter
@@ -139,6 +146,7 @@ namespace cwipi {
      * \brief Clear an exchange.
      *
      * \param [in]  exch_id Exchange identifier
+     *
      */
     void
     exchClear
@@ -151,6 +159,7 @@ namespace cwipi {
      * \brief Set the part-to-part object.
      *
      * \param [in]  ptp Part-to-part object
+     *
      */
     inline void
     pdmPartToPartSet
@@ -163,6 +172,7 @@ namespace cwipi {
      * \brief Get the part-to-part object.
      *
      * \return Part-to-part object
+     *
      */
     inline PDM_part_to_part_t*
     pdmPartToPartGet() const;
@@ -172,6 +182,7 @@ namespace cwipi {
      * \brief Get the global numbering.
      *
      * \return Global numbering
+     *
      */
     inline CWP_g_num_t**
     globalNumGet() const;
@@ -181,6 +192,7 @@ namespace cwipi {
      * \brief Get the number of elements.
      *
      * \return Number of elements
+     *
      */
     inline int*
     nEltsGet() const;
@@ -190,6 +202,7 @@ namespace cwipi {
      * \brief Get the number of partitions.
      *
      * \return Number of partitions
+     *
      */
     inline int
     nPartGet() const;
