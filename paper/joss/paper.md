@@ -62,9 +62,9 @@ Consequently, the intersection of the MPI intra-communicators of different codes
 
 # Software Design
 
-Since version 1.0, CWIPI is built on top of the ParaDiGM library [@Quemerais2026], originally created specifically to meet the needs of CWIPI. ParaDiGM provides the low-level geometric algorithms and parallel data structures. More broadly, ParaDiGM was designed to mutualize parallel geometric algorithms that share common requirements across other contexts, such as dynamic mesh adaptation and, more generally, any geometric co-processing tasks performed by solvers during runtime.
+Since version 1.0, CWIPI has been built on top of the ParaDiGM library [@Quemerais2026], originally created specifically to meet the needs of CWIPI. ParaDiGM provides the low-level geometric algorithms and parallel data structures. More broadly, ParaDiGM was designed to mutualize parallel geometric algorithms that share common requirements across other contexts, such as dynamic mesh adaptation and, more generally, any geometric co-processing tasks performed by solvers during runtime.
 
-CWIPI provides three APIs: in C (which can be used from C++ codes as well), Fortran, and Python/NumPy — making it compatible with a wide range of scientific codes. The integration of CWIPI into an existing solver is designed to be minimally intrusive: it does not require modifying the code structure, and the API relies solely on simple arrays, keeping the coupling layer lightweight and straightforward to adopt (see the
+CWIPI provides three APIs—in C (which can be used from C++ codes as well), Fortran, and Python/NumPy—making it compatible with a wide range of scientific codes. The integration of CWIPI into an existing solver is designed to be minimally intrusive: it does not require modifying the code structure, and the API relies solely on simple arrays, keeping the coupling layer lightweight and straightforward to adopt (see the
 [Quickstart](https://onera.github.io/cwipi/1.3.0/quick_start.html#quick-start) for a
 minimal example).
 
@@ -72,14 +72,14 @@ To support various discretization schemes, CWIPI's three interpolation families 
 
 At each coupling step, the execution sequence typically proceeds as follows: first, the geometric algorithm corresponding to the selected interpolation family is invoked; second, the physical fields are exchanged across the communication graph established by the preceding geometric step; and finally, the fields are interpolated onto the target mesh. However, if the chosen family is based on the location of target points within the source mesh, the field interpolation is performed directly by the source code, which inverts the order of the last two steps. Furthermore, in cases where the mesh interface remains fixed throughout the simulation, the geometric algorithm is invoked only once during the initialization phase, and its results are subsequently stored in memory for all remaining coupling steps.
 
-Within this coupling communicator, the geometric algorithms linked to the interpolation families generate optimized point-to-point communication graphs between the processes of the coupled codes. Each geometric algorithm produces its own communication graph. This graph also depends on the location of the fields' degrees of freedom (nodes, cell centers, etc.). Since the location of the degrees of freedom and the choice of interpolation family are properties specific to each field, CWIPI is capable of managing several distinct communication graphs between the codes for a single coupling instance.
+Within this coupling communicator, the geometric algorithms linked to the interpolation families generate optimized point-to-point communication graphs between the processes of the coupled codes. Each geometric algorithm produces its own communication graph. This graph also depends on the location of the fields' degrees of freedom (nodes, cell centers, etc.) Since the location of the degrees of freedom and the choice of interpolation family are properties specific to each field, CWIPI is capable of managing several distinct communication graphs between the codes for a single coupling instance.
 
 A major design challenge lies in the **performance of geometric algorithms**, especially when the coupling interface moves during the simulation or when solvers employ dynamic mesh adaptation. In the 0.x branch of CWIPI, algorithms relied on the FVM library from Code_Saturne [@Archambeau2004], which later evolved into PLE, a lightweight coupling library [@Fournier2020]. New algorithms [@Andrieu2026] developed within ParaDiGM provide **dynamic load and memory balancing** at each coupling step, which is critical because coupling problems are inherently unbalanced across MPI processes. These developments bring significant performance gains for large-scale and complex simulations.
 
 
 ## Future Directions
 
-Two main research directions are currently pursued. The first concerns the **GPU porting** of the most computationally expensive geometric algorithms, for which new algorithms have recently been designed [@Cazalbou2024] and will be integrated in an upcoming release. The second focuses on the development of **temporal interpolation methods** [@Simon2025; @Francois2023], complementary to those provided by existing frameworks such as preCICE, aiming to improve accuracy and flexibility for dynamic interfaces and heterogeneous solvers.
+Two main research directions are currently being pursued. The first concerns the **GPU porting** of the most computationally expensive geometric algorithms, for which new algorithms have recently been designed [@Cazalbou2024] and will be integrated in an upcoming release. The second focuses on the development of **temporal interpolation methods** [@Simon2025; @Francois2023], complementary to those provided by existing frameworks such as preCICE, aiming to improve accuracy and flexibility for dynamic interfaces and heterogeneous solvers.
 
 # Research Impact Statement
 
@@ -99,7 +99,7 @@ The authors would like to thank the following people for their contributions to 
 
 Romain Casta¹, Nicolas Dellinger², Florent Duchaine¹, Bastien Frisulli², Jean-Didier Garaud², Thomas Hennion², Stéphanie Lala², Xavier Lamboley¹², Bruno Maugars², Thierry Morel¹, Christophe Peyret²
 
-¹ CERFACS — ² ONERA
+¹CERFACS, ²ONERA
 
 The authors also wish to thank BPI France, the Directorate General for Civil Aviation (DGAC), and the General Scientific Directorate of ONERA for their financial support.
 
