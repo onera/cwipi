@@ -1,3 +1,5 @@
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.10424/status.svg)](https://doi.org/10.21105/joss.10424)
+
 <p align="center">
     <img src="doc/images/cwipiNew.svg" alt="Logo" width="25%"/>
 </p>
@@ -111,6 +113,11 @@ If you have a question or encounter a problem, please follow the [rules of our c
 ## 💡 Contributing to CWIPI
 
 If you would like to contribute to **CWIPI**, make sure you follow [these instructions](CONTRIBUTING.md).
+
+
+## 📰 Citing CWIPI
+
+- Quémerais et al., (2026). *CWIPI: Coupling With Interpolation Parallel Interface*. Journal of Open Source Software, 11(126), 10424, https://doi.org/10.21105/joss.10424
 
 
 ## ⚖️ License
