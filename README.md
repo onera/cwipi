@@ -1,5 +1,9 @@
 <p align="center">
     <img src="doc/images/cwipiNew.svg" alt="Logo" width="25%"/>
+    <br>
+    <br>
+    <a href="https://doi.org/10.21105/joss.10424"><img alt="JOSS" src="https://joss.theoj.org/papers/10.21105/joss.10424/status.svg"></a>
+    <a href="https://www.gnu.org/licenses/lgpl-3.0"><img alt="License LGPL v3.0" src="https://img.shields.io/badge/License-LGPL_v3-blue.svg"></a>
 </p>
 
 **CWIPI** (Coupling With Interpolation Parallel Interface) is a library for coupling parallel scientific codes via MPI communications to perform multi-physics simulations in massively parallel, distributed-memory environments, with interfaces in C, Python and Fortran.
@@ -111,6 +115,11 @@ If you have a question or encounter a problem, please follow the [rules of our c
 ## 💡 Contributing to CWIPI
 
 If you would like to contribute to **CWIPI**, make sure you follow [these instructions](CONTRIBUTING.md).
+
+
+## 📰 Citing CWIPI
+
+- Quémerais et al., (2026). *CWIPI: Coupling With Interpolation Parallel Interface*. Journal of Open Source Software, 11(126), 10424, https://doi.org/10.21105/joss.10424
 
 
 ## ⚖️ License
